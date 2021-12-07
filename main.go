@@ -13,7 +13,7 @@ func main() {
 	// Create a new cli program.
 	p := cli.NewProgram()
 	p.Name = "kittycad"
-	p.Description = "The KittyCAD command line tool"
+	p.Description = "Work seamlessly with KittyCAD from the command line"
 
 	// Set the GitCommit and Version.
 	p.GitCommit = version.GITCOMMIT
