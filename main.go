@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 
+	"github.com/kittycad/cli/version"
+
 	"github.com/genuinetools/pkg/cli"
 )
 
