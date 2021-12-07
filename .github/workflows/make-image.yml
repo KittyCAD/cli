@@ -1,11 +1,20 @@
-on: push
-name: make image
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '**.go'
+      - 'Makefile'
+      - 'Dockerfile'
+      - '.github/workflows/make-image.yml'
+name: make-image
 jobs:
   makeimage:
-    name: make image
+    name: make-image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: make image
         run: make image
         shell: bash

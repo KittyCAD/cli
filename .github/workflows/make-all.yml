@@ -1,13 +1,27 @@
-on: push
-name: make all
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '**.go'
+      - 'Makefile'
+      - '.github/workflows/make-all.yml'
+name: make-all
 jobs:
   makeall:
-    name: make all
+    name: make-all
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: make all
-        uses: docker://golang:latest
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
         with:
-          entrypoint: bash
-          args: -c "go get honnef.co/go/tools/cmd/staticcheck && go get golang.org/x/lint/golint && git checkout . && make all"
+          stable: 'true'
+      - name: make all
+        shell: bash
+        run: |
+          make all
+      - name: make cross compile
+        shell: bash
+        run: |
+          make release
