@@ -11,3 +11,4 @@ include basic.mk
 
 .PHONY: prebuild
 prebuild:
+	go env -w GOPRIVATE=github.com/kittycad
