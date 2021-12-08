@@ -17,11 +17,6 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           stable: 'true'
-      - name: Install deps
-        shell: bash
-        run: |
-          go install honnef.co/go/tools/cmd/staticcheck
-          go install golang.org/x/lint/golint
       - name: make all
         shell: bash
         run: |
