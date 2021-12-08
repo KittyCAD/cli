@@ -8,6 +8,7 @@ import (
 	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/version"
 
+	// TODO: Go back to this version when everything is open source.
 	//"github.com/kittycad/kittycad.go"
 	"github.com/urfave/cli/v2"
 )
