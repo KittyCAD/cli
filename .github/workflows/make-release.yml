@@ -35,10 +35,6 @@ jobs:
         with:
           path: releases
           destination: dl.kittycad.io
-      - name: Show the files we uploaded
-        shell: bash
-        run: |
-          echo -e "We uploaded the following files:\n${{steps.upload-files.outputs.uploaded}}"
       - name: Create a Release
         uses: softprops/action-gh-release@v1
         with:
