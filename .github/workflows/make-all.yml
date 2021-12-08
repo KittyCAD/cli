@@ -20,8 +20,8 @@ jobs:
       - name: Install deps
         shell: bash
         run: |
-          go get honnef.co/go/tools/cmd/staticcheck
-          go get golang.org/x/lint/golint
+          go install honnef.co/go/tools/cmd/staticcheck
+          go install golang.org/x/lint/golint
       - name: make all
         shell: bash
         run: |
