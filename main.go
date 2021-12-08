@@ -11,7 +11,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var kittycadClient *kittycad.Client
+var kittycadClient *kittycad.ClientWithResponses
 
 func main() {
 

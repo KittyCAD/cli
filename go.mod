@@ -3,7 +3,7 @@ module github.com/kittycad/cli
 go 1.17
 
 require (
-	github.com/kittycad/kittycad.go v0.0.0-20211208171321-7d5cecd76e4d
+	github.com/kittycad/kittycad.go v0.0.0-20211208183441-434c8561628d
 	github.com/urfave/cli/v2 v2.3.0
 )
 
