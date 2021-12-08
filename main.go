@@ -5,9 +5,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/version"
 
-	"github.com/kittycad/kittycad.go"
+	//"github.com/kittycad/kittycad.go"
 	"github.com/urfave/cli/v2"
 )
 
