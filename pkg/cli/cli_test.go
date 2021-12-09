@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -69,7 +70,8 @@ func Test_ioStreams_pager(t *testing.T) {
 					}
 				}
 			}
-			f := New("1")
+			ctx := context.Background()
+			f := New(ctx)
 			f.Config = func() (config.Config, error) {
 				if tt.config == nil {
 					return config.NewBlankConfig(), nil
@@ -101,7 +103,8 @@ func Test_ioStreams_prompt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := New("1")
+			ctx := context.Background()
+			f := New(ctx)
 			f.Config = func() (config.Config, error) {
 				if tt.config == nil {
 					return config.NewBlankConfig(), nil
@@ -175,7 +178,8 @@ func Test_browserLauncher(t *testing.T) {
 					defer os.Setenv(k, old)
 				}
 			}
-			f := New("1")
+			ctx := context.Background()
+			f := New(ctx)
 			f.Config = func() (config.Config, error) {
 				if tt.config == nil {
 					return config.NewBlankConfig(), nil

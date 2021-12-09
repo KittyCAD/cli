@@ -122,10 +122,10 @@ func Test_ConfigDir(t *testing.T) {
 			output: filepath.Join(tempDir, "kittycad"),
 		},
 		{
-			name: "GH_CONFIG_DIR and XDG_CONFIG_HOME specified",
+			name: "KITTYCAD_CONFIG_DIR and XDG_CONFIG_HOME specified",
 			env: map[string]string{
-				"GH_CONFIG_DIR":   filepath.Join(tempDir, "kittycad_config_dir"),
-				"XDG_CONFIG_HOME": tempDir,
+				"KITTYCAD_CONFIG_DIR": filepath.Join(tempDir, "kittycad_config_dir"),
+				"XDG_CONFIG_HOME":     tempDir,
 			},
 			output: filepath.Join(tempDir, "kittycad_config_dir"),
 		},
@@ -138,13 +138,13 @@ func Test_ConfigDir(t *testing.T) {
 			output: filepath.Join(tempDir, "KittyCAD CLI"),
 		},
 		{
-			name:        "GH_CONFIG_DIR and AppData specified",
+			name:        "KITTYCAD_CONFIG_DIR and AppData specified",
 			onlyWindows: true,
 			env: map[string]string{
-				"GH_CONFIG_DIR": filepath.Join(tempDir, "gh_config_dir"),
-				"AppData":       tempDir,
+				"KITTYCAD_CONFIG_DIR": filepath.Join(tempDir, "kittycad_config_dir"),
+				"AppData":             tempDir,
 			},
-			output: filepath.Join(tempDir, "gh_config_dir"),
+			output: filepath.Join(tempDir, "kittycad_config_dir"),
 		},
 		{
 			name:        "XDG_CONFIG_HOME and AppData specified",
@@ -182,8 +182,8 @@ func Test_ConfigDir(t *testing.T) {
 func Test_configFile_Write_toDisk(t *testing.T) {
 	configDir := filepath.Join(t.TempDir(), ".config", "kittycad")
 	_ = os.MkdirAll(configDir, 0755)
-	os.Setenv(GH_CONFIG_DIR, configDir)
-	defer os.Unsetenv(GH_CONFIG_DIR)
+	os.Setenv(KittyCADConfigDirEnvVar, configDir)
+	defer os.Unsetenv(KittyCADConfigDirEnvVar)
 
 	cfg := NewFromString(`pager: less`)
 	err := cfg.Write()
@@ -217,12 +217,12 @@ func Test_StateDir(t *testing.T) {
 		{
 			name: "HOME/USERPROFILE specified",
 			env: map[string]string{
-				"XDG_STATE_HOME":  "",
-				"GH_CONFIG_DIR":   "",
-				"XDG_CONFIG_HOME": "",
-				"LocalAppData":    "",
-				"USERPROFILE":     tempDir,
-				"HOME":            tempDir,
+				"XDG_STATE_HOME":      "",
+				"kittycad_config_dir": "",
+				"XDG_CONFIG_HOME":     "",
+				"LocalAppData":        "",
+				"USERPROFILE":         tempDir,
+				"HOME":                tempDir,
 			},
 			output: filepath.Join(tempDir, ".local", "state", "kittycad"),
 		},
@@ -286,12 +286,12 @@ func Test_DataDir(t *testing.T) {
 		{
 			name: "HOME/USERPROFILE specified",
 			env: map[string]string{
-				"XDG_DATA_HOME":   "",
-				"GH_CONFIG_DIR":   "",
-				"XDG_CONFIG_HOME": "",
-				"LocalAppData":    "",
-				"USERPROFILE":     tempDir,
-				"HOME":            tempDir,
+				"XDG_DATA_HOME":       "",
+				"kittycad_config_dir": "",
+				"XDG_CONFIG_HOME":     "",
+				"LocalAppData":        "",
+				"USERPROFILE":         tempDir,
+				"HOME":                tempDir,
 			},
 			output: filepath.Join(tempDir, ".local", "share", "kittycad"),
 		},

@@ -55,7 +55,7 @@ func Test_defaultConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, len(aliases.All()), 1)
 	expansion, _ := aliases.Get("co")
-	assert.Equal(t, expansion, "pr checkout")
+	assert.Equal(t, expansion, "file convert")
 
 	browser, err := cfg.Get("", "browser")
 	assert.NoError(t, err)
@@ -63,7 +63,7 @@ func Test_defaultConfig(t *testing.T) {
 }
 
 func Test_ValidateValue(t *testing.T) {
-	err = ValidateValue("got", "123")
+	err := ValidateValue("got", "123")
 	assert.NoError(t, err)
 }
 

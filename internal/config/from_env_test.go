@@ -21,13 +21,13 @@ func setenv(t *testing.T, key, newValue string) {
 }
 
 func TestInheritEnv(t *testing.T) {
-	orig_KITTYCAD_API_TOKEN := os.Getenv("KITTYCAD_API_TOKEN")
-	orig_KITTYCAD_TOKEN := os.Getenv("KITTYCAD_TOKEN")
-	orig_AppData := os.Getenv("AppData")
+	ogKittyCADAPITokenEnvVar := os.Getenv("KITTYCAD_API_TOKEN")
+	ogKittyCADTokenEnvVar := os.Getenv("KITTYCAD_TOKEN")
+	ogAppData := os.Getenv("AppData")
 	t.Cleanup(func() {
-		os.Setenv("KITTYCAD_API_TOKEN", orig_KITTYCAD_API_TOKEN)
-		os.Setenv("KITTYCAD_TOKEN", orig_KITTYCAD_TOKEN)
-		os.Setenv("AppData", orig_AppData)
+		os.Setenv("KITTYCAD_API_TOKEN", ogKittyCADAPITokenEnvVar)
+		os.Setenv("KITTYCAD_TOKEN", ogKittyCADTokenEnvVar)
+		os.Setenv("AppData", ogAppData)
 	})
 
 	type wants struct {
@@ -38,12 +38,12 @@ func TestInheritEnv(t *testing.T) {
 	}
 
 	tests := []struct {
-		name               string
-		baseConfig         string
-		KITTYCAD_API_TOKEN string
-		KITTYCAD_TOKEN     string
-		hostname           string
-		wants              wants
+		name                   string
+		baseConfig             string
+		KittyCADAPITokenEnvVar string
+		KittyCADTokenEnvVar    string
+		hostname               string
+		wants                  wants
 	}{
 		{
 			name:       "blank",
@@ -52,15 +52,15 @@ func TestInheritEnv(t *testing.T) {
 			wants: wants{
 				hosts:     []string{},
 				token:     "",
-				source:    ".config.gh.config.yml",
+				source:    ".config.kittycad.config.yml",
 				writeable: true,
 			},
 		},
 		{
-			name:               "KITTYCAD_API_TOKEN over blank config",
-			baseConfig:         ``,
-			KITTYCAD_API_TOKEN: "OTOKEN",
-			hostname:           "api.kittycad.io",
+			name:                   "KITTYCAD_API_TOKEN over blank config",
+			baseConfig:             ``,
+			KittyCADAPITokenEnvVar: "OTOKEN",
+			hostname:               "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io"},
 				token:     "OTOKEN",
@@ -69,10 +69,10 @@ func TestInheritEnv(t *testing.T) {
 			},
 		},
 		{
-			name:           "KITTYCAD_TOKEN over blank config",
-			baseConfig:     ``,
-			KITTYCAD_TOKEN: "OTOKEN",
-			hostname:       "api.kittycad.io",
+			name:                "KITTYCAD_TOKEN over blank config",
+			baseConfig:          ``,
+			KittyCADTokenEnvVar: "OTOKEN",
+			hostname:            "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io"},
 				token:     "OTOKEN",
@@ -81,53 +81,17 @@ func TestInheritEnv(t *testing.T) {
 			},
 		},
 		{
-			name:               "KITTYCAD_API_TOKEN not applicable to GHE",
-			baseConfig:         ``,
-			KITTYCAD_API_TOKEN: "OTOKEN",
-			hostname:           "example.org",
-			wants: wants{
-				hosts:     []string{"api.kittycad.io"},
-				token:     "",
-				source:    ".config.gh.config.yml",
-				writeable: true,
-			},
-		},
-		{
-			name:           "KITTYCAD_TOKEN not applicable to GHE",
-			baseConfig:     ``,
-			KITTYCAD_TOKEN: "OTOKEN",
-			hostname:       "example.org",
-			wants: wants{
-				hosts:     []string{"api.kittycad.io"},
-				token:     "",
-				source:    ".config.gh.config.yml",
-				writeable: true,
-			},
-		},
-		{
-			name:               "KITTYCAD_API_TOKEN allowed in Codespaces",
-			baseConfig:         ``,
-			KITTYCAD_API_TOKEN: "OTOKEN",
-			hostname:           "example.org",
-			wants: wants{
-				hosts:     []string{"api.kittycad.io"},
-				token:     "OTOKEN",
-				source:    "KITTYCAD_API_TOKEN",
-				writeable: false,
-			},
-		},
-		{
 			name: "token from file",
 			baseConfig: heredoc.Doc(`
 			hosts:
-			  github.com:
+			  api.kittycad.io:
 			    token: OTOKEN
 			`),
 			hostname: "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io"},
 				token:     "OTOKEN",
-				source:    ".config.gh.hosts.yml",
+				source:    ".config.kittycad.hosts.yml",
 				writeable: true,
 			},
 		},
@@ -135,11 +99,11 @@ func TestInheritEnv(t *testing.T) {
 			name: "KITTYCAD_API_TOKEN shadows token from file",
 			baseConfig: heredoc.Doc(`
 			hosts:
-			  github.com:
+			  api.kittycad.io:
 			    token: OTOKEN
 			`),
-			KITTYCAD_API_TOKEN: "ENVTOKEN",
-			hostname:           "api.kittycad.io",
+			KittyCADAPITokenEnvVar: "ENVTOKEN",
+			hostname:               "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io"},
 				token:     "ENVTOKEN",
@@ -151,11 +115,11 @@ func TestInheritEnv(t *testing.T) {
 			name: "KITTYCAD_TOKEN shadows token from file",
 			baseConfig: heredoc.Doc(`
 			hosts:
-			  github.com:
+			  api.kittycad.io:
 			    token: OTOKEN
 			`),
-			KITTYCAD_TOKEN: "ENVTOKEN",
-			hostname:       "api.kittycad.io",
+			KittyCADTokenEnvVar: "ENVTOKEN",
+			hostname:            "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io"},
 				token:     "ENVTOKEN",
@@ -164,11 +128,11 @@ func TestInheritEnv(t *testing.T) {
 			},
 		},
 		{
-			name:               "KITTYCAD_TOKEN shadows token from KITTYCAD_API_TOKEN",
-			baseConfig:         ``,
-			KITTYCAD_TOKEN:     "GHTOKEN",
-			KITTYCAD_API_TOKEN: "GITHUBTOKEN",
-			hostname:           "api.kittycad.io",
+			name:                   "KITTYCAD_TOKEN shadows token from KITTYCAD_API_TOKEN",
+			baseConfig:             ``,
+			KittyCADTokenEnvVar:    "GHTOKEN",
+			KittyCADAPITokenEnvVar: "GITHUBTOKEN",
+			hostname:               "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io"},
 				token:     "GHTOKEN",
@@ -183,8 +147,8 @@ func TestInheritEnv(t *testing.T) {
 			  example.org:
 			    token: OTOKEN
 			`),
-			KITTYCAD_API_TOKEN: "ENVTOKEN",
-			hostname:           "api.kittycad.io",
+			KittyCADAPITokenEnvVar: "ENVTOKEN",
+			hostname:               "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io", "example.org"},
 				token:     "ENVTOKEN",
@@ -199,8 +163,8 @@ func TestInheritEnv(t *testing.T) {
 			  example.org:
 			    token: OTOKEN
 			`),
-			KITTYCAD_TOKEN: "ENVTOKEN",
-			hostname:       "api.kittycad.io",
+			KittyCADTokenEnvVar: "ENVTOKEN",
+			hostname:            "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io", "example.org"},
 				token:     "ENVTOKEN",
@@ -211,8 +175,8 @@ func TestInheritEnv(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setenv(t, "KITTYCAD_API_TOKEN", tt.KITTYCAD_API_TOKEN)
-			setenv(t, "KITTYCAD_TOKEN", tt.KITTYCAD_TOKEN)
+			setenv(t, "KITTYCAD_API_TOKEN", tt.KittyCADAPITokenEnvVar)
+			setenv(t, "KITTYCAD_TOKEN", tt.KittyCADTokenEnvVar)
 			setenv(t, "AppData", "")
 
 			baseCfg := NewFromString(tt.baseConfig)
@@ -237,39 +201,39 @@ func TestInheritEnv(t *testing.T) {
 }
 
 func TestAuthTokenProvidedFromEnv(t *testing.T) {
-	orig_KITTYCAD_API_TOKEN := os.Getenv("KITTYCAD_API_TOKEN")
-	orig_KITTYCAD_TOKEN := os.Getenv("KITTYCAD_TOKEN")
+	ogKittyCADAPITokenEnvVar := os.Getenv("KITTYCAD_API_TOKEN")
+	ogKittyCADTokenEnvVar := os.Getenv("KITTYCAD_TOKEN")
 	t.Cleanup(func() {
-		os.Setenv("KITTYCAD_API_TOKEN", orig_KITTYCAD_API_TOKEN)
-		os.Setenv("KITTYCAD_TOKEN", orig_KITTYCAD_TOKEN)
+		os.Setenv("KITTYCAD_API_TOKEN", ogKittyCADAPITokenEnvVar)
+		os.Setenv("KITTYCAD_TOKEN", ogKittyCADTokenEnvVar)
 	})
 
 	tests := []struct {
-		name               string
-		KITTYCAD_API_TOKEN string
-		KITTYCAD_TOKEN     string
-		provided           bool
+		name                   string
+		KittyCADAPITokenEnvVar string
+		KittyCADTokenEnvVar    string
+		provided               bool
 	}{
 		{
 			name:     "no env tokens",
 			provided: false,
 		},
 		{
-			name:           "KITTYCAD_TOKEN",
-			KITTYCAD_TOKEN: "TOKEN",
-			provided:       true,
+			name:                "KITTYCAD_TOKEN",
+			KittyCADTokenEnvVar: "TOKEN",
+			provided:            true,
 		},
 		{
-			name:               "KITTYCAD_API_TOKEN",
-			KITTYCAD_API_TOKEN: "TOKEN",
-			provided:           true,
+			name:                   "KITTYCAD_API_TOKEN",
+			KittyCADAPITokenEnvVar: "TOKEN",
+			provided:               true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("KITTYCAD_API_TOKEN", tt.KITTYCAD_API_TOKEN)
-			os.Setenv("KITTYCAD_TOKEN", tt.KITTYCAD_TOKEN)
+			os.Setenv("KITTYCAD_API_TOKEN", tt.KittyCADAPITokenEnvVar)
+			os.Setenv("KITTYCAD_TOKEN", tt.KittyCADTokenEnvVar)
 			assert.Equal(t, tt.provided, AuthTokenProvidedFromEnv())
 		})
 	}

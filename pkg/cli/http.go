@@ -14,9 +14,9 @@ type configGetter interface {
 // TODO: if this is not the default server, we should set the server properly.
 // TODO: if they are in debug mode, we should set debug mode in the client library.
 func NewKittyCADClient(cfg configGetter) (*kittycad.Client, error) {
-	token, _ := config.AuthTokenFromEnv(config.KITTYCAD_DEFAULT_HOST)
+	token, _ := config.AuthTokenFromEnv(config.KittyCADDefaultHost)
 	if token == "" {
-		token, _ = cfg.Get(config.KITTYCAD_DEFAULT_HOST, "token")
+		token, _ = cfg.Get(config.KittyCADDefaultHost, "token")
 	}
 	return kittycad.NewClient(token)
 

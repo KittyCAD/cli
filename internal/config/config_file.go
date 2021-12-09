@@ -13,19 +13,19 @@ import (
 )
 
 const (
-	// KittyCADConfigDir is the environment variable that can be used to override
+	// KittyCADConfigDirEnvVar is the environment variable that can be used to override
 	// the default config directory.
-	KittyCADConfigDir = "KITTYCAD_CONFIG_DIR"
+	KittyCADConfigDirEnvVar = "KITTYCAD_CONFIG_DIR"
 	// KittyCADShorthandDir is the directory name used for the config and state.
 	KittyCADShorthandDir = "kittycad"
 	// KittyCADWindowsDir is the directory name used for the config and state on Windows.`
 	KittyCADWindowsDir = "KittyCAD CLI"
-	// XDGConfigHome is the environment variable for the XDG_CONFIG_HOME.
-	XDGConfigHome = "XDG_CONFIG_HOME"
-	// XDGStateHome is the environment variable for the XDG_STATE_HOME.
-	XDGStateHome = "XDG_STATE_HOME"
-	// XDGDataHome is the environment variable for the XDG_DATA_HOME.
-	XDGDataHome = "XDG_DATA_HOME"
+	// XDGConfigHomeEnvVar is the environment variable for the XDG_CONFIG_HOME.
+	XDGConfigHomeEnvVar = "XDG_CONFIG_HOME"
+	// XDGStateHomeEnvVar is the environment variable for the XDG_STATE_HOME.
+	XDGStateHomeEnvVar = "XDG_STATE_HOME"
+	// XDGDataHomeEnvVar is the environment variable for the XDG_DATA_HOME.
+	XDGDataHomeEnvVar = "XDG_DATA_HOME"
 	// AppData is the directory for AppData on Windows.
 	AppData = "AppData"
 	// LocalAppData is the directory for LocalAppData on Windows.
@@ -40,9 +40,9 @@ const (
 // 4. HOME
 func Dir() string {
 	var path string
-	if a := os.Getenv(KittyCADConfigDir); a != "" {
+	if a := os.Getenv(KittyCADConfigDirEnvVar); a != "" {
 		path = a
-	} else if b := os.Getenv(XDGConfigHome); b != "" {
+	} else if b := os.Getenv(XDGConfigHomeEnvVar); b != "" {
 		path = filepath.Join(b, KittyCADShorthandDir)
 	} else if c := os.Getenv(AppData); runtime.GOOS == "windows" && c != "" {
 		path = filepath.Join(c, KittyCADWindowsDir)
@@ -53,7 +53,7 @@ func Dir() string {
 
 	// If the path does not exist and the KITTYCAD_CONFIG_DIR flag is not set try
 	// migrating config from default paths.
-	if !dirExists(path) && os.Getenv(KittyCADConfigDir) == "" {
+	if !dirExists(path) && os.Getenv(KittyCADConfigDirEnvVar) == "" {
 		_ = autoMigrateConfigDir(path)
 	}
 
@@ -67,7 +67,7 @@ func Dir() string {
 // 3. HOME
 func StateDir() string {
 	var path string
-	if a := os.Getenv(XDGStateHome); a != "" {
+	if a := os.Getenv(XDGStateHomeEnvVar); a != "" {
 		path = filepath.Join(a, KittyCADShorthandDir)
 	} else if b := os.Getenv(LocalAppData); runtime.GOOS == "windows" && b != "" {
 		path = filepath.Join(b, KittyCADWindowsDir)
@@ -91,7 +91,7 @@ func StateDir() string {
 // 3. HOME
 func DataDir() string {
 	var path string
-	if a := os.Getenv(XDGDataHome); a != "" {
+	if a := os.Getenv(XDGDataHomeEnvVar); a != "" {
 		path = filepath.Join(a, KittyCADShorthandDir)
 	} else if b := os.Getenv(LocalAppData); runtime.GOOS == "windows" && b != "" {
 		path = filepath.Join(b, KittyCADWindowsDir)

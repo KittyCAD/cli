@@ -231,7 +231,7 @@ func (c *fileConfig) Hosts() ([]string, error) {
 		hostnames = append(hostnames, entry.Host)
 	}
 
-	sort.SliceStable(hostnames, func(i, j int) bool { return hostnames[i] == KITTYCAD_DEFAULT_HOST })
+	sort.SliceStable(hostnames, func(i, j int) bool { return hostnames[i] == KittyCADDefaultHost })
 
 	return hostnames, nil
 }
@@ -247,7 +247,7 @@ func (c *fileConfig) DefaultHostWithSource() (string, string, error) {
 		return hosts[0], HostsConfigFile(), nil
 	}
 
-	return KITTYCAD_DEFAULT_HOST, "", nil
+	return KittyCADDefaultHost, "", nil
 }
 
 func (c *fileConfig) makeConfigForHost(hostname string) *HostConfig {

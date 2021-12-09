@@ -9,9 +9,11 @@ import (
 )
 
 func Test_CheckAuth(t *testing.T) {
-	orig_KITTYCAD_TOKEN := os.Getenv("KITTYCAD_TOKEN")
+	ogKittyCADTokenEnvVar := os.Getenv("KITTYCAD_TOKEN")
+	ogKittyCADAPITokenEnvVar := os.Getenv("KITTYCAD_API_TOKEN")
 	t.Cleanup(func() {
-		os.Setenv("KITTYCAD_TOKEN", orig_KITTYCAD_TOKEN)
+		os.Setenv("KITTYCAD_TOKEN", ogKittyCADTokenEnvVar)
+		os.Setenv("KITTYCAD_API_TOKEN", ogKittyCADAPITokenEnvVar)
 	})
 
 	tests := []struct {
@@ -51,6 +53,8 @@ func Test_CheckAuth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Clear out the API token env var for these tests.
+			os.Setenv("KITTYCAD_API_TOKEN", "")
 			if tt.envToken {
 				os.Setenv("KITTYCAD_TOKEN", "TOKEN")
 			} else {
