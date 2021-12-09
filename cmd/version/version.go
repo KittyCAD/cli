@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cli/cli/pkg/cmdutil"
 	"github.com/kittycad/cli/pkg/cli"
+	"github.com/kittycad/cli/pkg/cmdutil"
 	"github.com/kittycad/cli/version"
 	"github.com/spf13/cobra"
 )

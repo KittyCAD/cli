@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cli/cli/pkg/text"
+	"github.com/cli/cli/v2/pkg/text"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
 	"github.com/spf13/cobra"

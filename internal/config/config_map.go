@@ -6,7 +6,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// This is largely based on https://github.com/cli/cli, so THANK YOU!
 // This type implements a low-level get/set config that is backed by an in-memory tree of yaml
 // nodes. It allows us to interact with a yaml-based config programmatically, preserving any
 // comments that were present when the yaml was parsed.

@@ -14,7 +14,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/AlecAivazis/survey/v2/terminal"
-	"github.com/cli/cli/pkg/cmd/alias/expand"
+	"github.com/cli/cli/v2/pkg/cmd/alias/expand"
 	"github.com/cli/safeexec"
 	"github.com/kittycad/cli/cmd/root"
 	"github.com/kittycad/cli/internal/config"
