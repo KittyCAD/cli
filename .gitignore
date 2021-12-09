@@ -43,6 +43,7 @@ Icon
 .Trashes
 
 cli
+!pkg/cli
 cross/
 
 # Go coverage results

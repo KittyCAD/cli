@@ -412,6 +412,22 @@ func (c *Client) applyEditors(ctx context.Context, req *http.Request, additional
 	return nil
 }
 
+// HTTPError is an error returned by a failed API call
+type HTTPError struct {
+	StatusCode int
+	RequestURL *url.URL
+	Message    string
+}
+
+func (err HTTPError) Error() string {
+	if msgs := strings.SplitN(err.Message, "\n", 2); len(msgs) > 1 {
+		return fmt.Sprintf("HTTP %d: %s (%s)\n%s", err.StatusCode, msgs[0], err.RequestURL, msgs[1])
+	} else if err.Message != "" {
+		return fmt.Sprintf("HTTP %d: %s (%s)", err.StatusCode, err.Message, err.RequestURL)
+	}
+	return fmt.Sprintf("HTTP %d (%s)", err.StatusCode, err.RequestURL)
+}
+
 // WithBaseURL overrides the baseURL.
 func WithBaseURL(baseURL string) ClientOption {
 	return func(c *Client) error {
@@ -879,7 +895,16 @@ func parsePingResponse(rsp *http.Response) (*PingResponse, error) {
 
 // MetaDebugInstance request returning *MetaDebugInstanceResponse
 func (c *Client) MetaDebugInstance(ctx context.Context) (*InstanceMetadata, error) {
-	rsp, err := c.MetaDebugInstanceWithResponse(ctx)
+	req, err := newMetaDebugInstanceRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	ogrsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	rsp, err := parseMetaDebugInstanceResponse(ogrsp)
 	if err != nil {
 		return nil, err
 	}
@@ -887,25 +912,50 @@ func (c *Client) MetaDebugInstance(ctx context.Context) (*InstanceMetadata, erro
 	if rsp.JSON200 == nil {
 
 		if rsp.JSON400 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON400.Message,
+			}
 		}
 
 		if rsp.JSON401 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON401.Message,
+			}
 		}
 
 		if rsp.JSON403 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON403.Message,
+			}
 		}
 
-		return nil, fmt.Errorf("%#v", rsp)
+		return nil, HTTPError{
+			StatusCode: ogrsp.StatusCode,
+			RequestURL: ogrsp.Request.URL,
+			Message:    fmt.Sprintf("%#v", rsp),
+		}
 	}
 	return rsp.JSON200, nil
 }
 
 // MetaDebugSession request returning *MetaDebugSessionResponse
 func (c *Client) MetaDebugSession(ctx context.Context) (*AuthSession, error) {
-	rsp, err := c.MetaDebugSessionWithResponse(ctx)
+	req, err := newMetaDebugSessionRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	ogrsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	rsp, err := parseMetaDebugSessionResponse(ogrsp)
 	if err != nil {
 		return nil, err
 	}
@@ -913,25 +963,50 @@ func (c *Client) MetaDebugSession(ctx context.Context) (*AuthSession, error) {
 	if rsp.JSON200 == nil {
 
 		if rsp.JSON400 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON400.Message,
+			}
 		}
 
 		if rsp.JSON401 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON401.Message,
+			}
 		}
 
 		if rsp.JSON403 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON403.Message,
+			}
 		}
 
-		return nil, fmt.Errorf("%#v", rsp)
+		return nil, HTTPError{
+			StatusCode: ogrsp.StatusCode,
+			RequestURL: ogrsp.Request.URL,
+			Message:    fmt.Sprintf("%#v", rsp),
+		}
 	}
 	return rsp.JSON200, nil
 }
 
 // FileConversionByID request returning *FileConversionByIDResponse
 func (c *Client) FileConversionByID(ctx context.Context, id string) (*FileConversion, error) {
-	rsp, err := c.FileConversionByIDWithResponse(ctx, id)
+	req, err := newFileConversionByIDRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	ogrsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	rsp, err := parseFileConversionByIDResponse(ogrsp)
 	if err != nil {
 		return nil, err
 	}
@@ -939,74 +1014,136 @@ func (c *Client) FileConversionByID(ctx context.Context, id string) (*FileConver
 	if rsp.JSON200 == nil {
 
 		if rsp.JSON400 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON400.Message,
+			}
 		}
 
 		if rsp.JSON401 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON401.Message,
+			}
 		}
 
 		if rsp.JSON403 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON403.Message,
+			}
 		}
 
 		if rsp.JSON404 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON404)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON404.Message,
+			}
 		}
 
 		if rsp.JSON406 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON406)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON406.Message,
+			}
 		}
 
-		return nil, fmt.Errorf("%#v", rsp)
+		return nil, HTTPError{
+			StatusCode: ogrsp.StatusCode,
+			RequestURL: ogrsp.Request.URL,
+			Message:    fmt.Sprintf("%#v", rsp),
+		}
 	}
 	return rsp.JSON200, nil
 }
 
 // FileConvertWithBody request with arbitrary body returning *FileConvertResponse
 func (c *Client) FileConvertWithBody(ctx context.Context, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader) (*FileConversion, error) {
-	rsp, err := c.FileConvertWithBodyWithResponse(ctx, sourceFormat, outputFormat, contentType, body)
+	req, err := newFileConvertRequestWithBody(c.Server, sourceFormat, outputFormat, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	ogrsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	rsp, err := parseFileConvertResponse(ogrsp)
 	if err != nil {
 		return nil, err
 	}
 	// Check if the type we want to return is null.
 	if rsp.JSON200 == nil {
 
-		if rsp.JSON202 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON202)
-		}
-
 		if rsp.JSON400 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON400.Message,
+			}
 		}
 
 		if rsp.JSON401 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON401.Message,
+			}
 		}
 
 		if rsp.JSON403 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON403.Message,
+			}
 		}
 
 		if rsp.JSON406 != nil {
-			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON406)
+			return nil, HTTPError{
+				StatusCode: ogrsp.StatusCode,
+				RequestURL: ogrsp.Request.URL,
+				Message:    *rsp.JSON406.Message,
+			}
 		}
 
-		return nil, fmt.Errorf("%#v", rsp)
+		return nil, HTTPError{
+			StatusCode: ogrsp.StatusCode,
+			RequestURL: ogrsp.Request.URL,
+			Message:    fmt.Sprintf("%#v", rsp),
+		}
 	}
 	return rsp.JSON200, nil
 }
 
 // Ping request returning *PingResponse
 func (c *Client) Ping(ctx context.Context) (*Message, error) {
-	rsp, err := c.PingWithResponse(ctx)
+	req, err := newPingRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	ogrsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	rsp, err := parsePingResponse(ogrsp)
 	if err != nil {
 		return nil, err
 	}
 	// Check if the type we want to return is null.
 	if rsp.JSON200 == nil {
 
-		return nil, fmt.Errorf("%#v", rsp)
+		return nil, HTTPError{
+			StatusCode: ogrsp.StatusCode,
+			RequestURL: ogrsp.Request.URL,
+			Message:    fmt.Sprintf("%#v", rsp),
+		}
 	}
 	return rsp.JSON200, nil
 }
