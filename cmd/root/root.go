@@ -2,6 +2,7 @@ package root
 
 import (
 	"github.com/MakeNowJust/heredoc"
+	completionCmd "github.com/kittycad/cli/cmd/completion"
 	configCmd "github.com/kittycad/cli/cmd/config"
 	fileCmd "github.com/kittycad/cli/cmd/file"
 	metaCmd "github.com/kittycad/cli/cmd/meta"
@@ -52,8 +53,8 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 
 	// Child commands
 	cmd.AddCommand(versionCmd.NewCmdVersion(cli))
-	cmd.AddCommand(
-		configCmd.NewCmdConfig(cli))
+	cmd.AddCommand(configCmd.NewCmdConfig(cli))
+	cmd.AddCommand(completionCmd.NewCmdCompletion(cli.IOStreams))
 	cmd.AddCommand(fileCmd.NewCmdFile(cli))
 	cmd.AddCommand(metaCmd.NewCmdMeta(cli))
 
