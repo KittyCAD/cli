@@ -25,6 +25,10 @@ jobs:
         shell: bash
         run: |
           make release
+      - name: make test coverage
+        shell: bash
+        run: |
+          make cover
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
