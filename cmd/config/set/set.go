@@ -23,7 +23,7 @@ type Options struct {
 }
 
 // NewCmdConfigSet creates a new `config set` command.
-func NewCmdConfigSet(cli *cli.CLI) *cobra.Command {
+func NewCmdConfigSet(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	opts := &Options{
 		IO: cli.IOStreams,
 	}
@@ -44,6 +44,10 @@ func NewCmdConfigSet(cli *cli.CLI) *cobra.Command {
 			opts.Config = config
 			opts.Key = args[0]
 			opts.Value = args[1]
+
+			if runF != nil {
+				return runF(opts)
+			}
 
 			return setRun(opts)
 		},

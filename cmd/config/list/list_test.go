@@ -44,7 +44,10 @@ func TestNewCmdConfigList(t *testing.T) {
 			assert.NoError(t, err)
 
 			var gotOpts *Options
-			cmd := NewCmdConfigList(f)
+			cmd := NewCmdConfigList(f, func(opts *Options) error {
+				gotOpts = opts
+				return nil
+			})
 			cmd.Flags().BoolP("help", "x", false, "")
 
 			cmd.SetArgs(argv)

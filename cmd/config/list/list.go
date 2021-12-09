@@ -18,7 +18,7 @@ type Options struct {
 }
 
 // NewCmdConfigList creates a new config list command.
-func NewCmdConfigList(cli *cli.CLI) *cobra.Command {
+func NewCmdConfigList(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	opts := &Options{
 		IO:     cli.IOStreams,
 		Config: cli.Config,
@@ -29,6 +29,10 @@ func NewCmdConfigList(cli *cli.CLI) *cobra.Command {
 		Short: "Print a list of configuration keys and values",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if runF != nil {
+				return runF(opts)
+			}
+
 			return listRun(opts)
 		},
 	}

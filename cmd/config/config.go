@@ -34,9 +34,9 @@ func NewCmdConfig(cli *cli.CLI) *cobra.Command {
 
 	cmdutil.DisableAuthCheck(cmd)
 
-	cmd.AddCommand(cmdGet.NewCmdConfigGet(cli))
-	cmd.AddCommand(cmdSet.NewCmdConfigSet(cli))
-	cmd.AddCommand(cmdList.NewCmdConfigList(cli))
+	cmd.AddCommand(cmdGet.NewCmdConfigGet(cli, nil))
+	cmd.AddCommand(cmdSet.NewCmdConfigSet(cli, nil))
+	cmd.AddCommand(cmdList.NewCmdConfigList(cli, nil))
 
 	return cmd
 }

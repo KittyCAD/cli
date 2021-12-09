@@ -6,6 +6,7 @@ import (
 
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/google/shlex"
+	"github.com/kittycad/cli/internal/config"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/stretchr/testify/assert"
 )
@@ -41,7 +42,7 @@ func TestNewCmdConfigGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &cli.CLI{
 				Config: func() (config.Config, error) {
-					return config.ConfigStub{}, nil
+					return config.Stub{}, nil
 				},
 			}
 
@@ -49,7 +50,10 @@ func TestNewCmdConfigGet(t *testing.T) {
 			assert.NoError(t, err)
 
 			var gotOpts *Options
-			cmd := NewCmdConfigGet(f)
+			cmd := NewCmdConfigGet(f, func(opts *Options) error {
+				gotOpts = opts
+				return nil
+			})
 			cmd.Flags().BoolP("help", "x", false, "")
 
 			cmd.SetArgs(argv)
@@ -94,8 +98,8 @@ func Test_getRun(t *testing.T) {
 				Hostname: "api.kittycad.io",
 				Key:      "pager",
 				Config: config.Stub{
-					"pager":           "cat",
-					"api.kittycad.io": "more",
+					"pager":                 "cat",
+					"api.kittycad.io:pager": "more",
 				},
 			},
 			stdout: "more\n",

@@ -20,7 +20,7 @@ type Options struct {
 }
 
 // NewCmdConfigGet returns a new instance of the get command for config.
-func NewCmdConfigGet(cli *cli.CLI) *cobra.Command {
+func NewCmdConfigGet(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	opts := &Options{
 		IO: cli.IOStreams,
 	}
@@ -40,6 +40,10 @@ func NewCmdConfigGet(cli *cli.CLI) *cobra.Command {
 			}
 			opts.Config = config
 			opts.Key = args[0]
+
+			if runF != nil {
+				return runF(opts)
+			}
 
 			return getRun(opts)
 		},
