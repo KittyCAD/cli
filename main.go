@@ -147,9 +147,6 @@ func mainRun() exitCode {
 			}
 
 			return exitOK
-		} else if len(expandedArgs) > 0 && !hasCommand(rootCmd, expandedArgs) {
-			// If we had extensions, we would check for them here.
-			return exitError
 		}
 	}
 

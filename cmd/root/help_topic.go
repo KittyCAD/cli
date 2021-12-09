@@ -13,11 +13,15 @@ var HelpTopics = map[string]map[string]string{
 		"long": heredoc.Doc(`
 			MinTTY is a terminal emulator for Windows.  It has known issues with kittycad's ability
 			to prompt a user for input.
+
 			There are a few workarounds to make kittycad work with MinTTY:
+
 			- Reinstall Git for Windows, checking "Enable experimental support for pseudo consoles".
+
 			- Use a different terminal emulator like Windows Terminal.
 			  You can run "C:\Program Files\Git\bin\bash.exe" from any terminal emulator without
 			  MinTTY.
+
 			- Prefix invocations of kittycad with winpty, eg: "winpty kittycad auth login".
 			  NOTE: this can lead to some UI bugs.
 		`),
@@ -28,26 +32,37 @@ var HelpTopics = map[string]map[string]string{
 			KITTYCAD_TOKEN, KITTYCAD_API_TOKEN (in order of precedence): an authentication token
 			for api.kittycad.io API requests. Setting this avoids being prompted to authenticate
 			and takes precedence over previously stored credentials.
+
 			KITTYCAD_HOST: specify the KittyCAD hostname for commands that would otherwise assume
 			the "api.kittycad.io" host.
+
 			KITTYCAD_BROWSER, BROWSER (in order of precedence): the web browser to use for opening
 			links.
+
 			DEBUG: set to any value to enable verbose output to standard error.
+
 			KITTYCAD_PAGER, PAGER (in order of precedence): a terminal paging program to send
 			standard output to, e.g. "less".
+
 			GLAMOUR_STYLE: the style to use for rendering Markdown. See
 			<https://github.com/charmbracelet/glamour#styles>
+
 			NO_COLOR: set to any value to avoid printing ANSI escape sequences for color output.
+
 			CLICOLOR: set to "0" to disable printing ANSI colors in output.
+
 			CLICOLOR_FORCE: set to a value other than "0" to keep ANSI colors in output
 			even when the output is piped.
+
 			KITTYCAD_FORCE_TTY: set to any value to force terminal-style output even when the
 			output is redirected. When the value is a number, it is interpreted as the number of
 			columns available in the viewport. When the value is a percentage, it will be applied
 			against the number of columns available in the current viewport.
+
 			KITTYCAD_NO_UPDATE_NOTIFIER: set to any value to disable update notifications. By
 			default, kittycad checks for new releases once every 24 hours and displays an upgrade
 			notice on standard error if a newer version was found.
+
 			KITTYCAD_CONFIG_DIR: the directory where kittycad will store configuration files.
 			Default: "$XDG_CONFIG_HOME/kittycad" or "$HOME/.config/kittycad".
 		`),
@@ -62,12 +77,15 @@ var HelpTopics = map[string]map[string]string{
 			line-based plain text output. This is suitable for passing structured data to scripts.
 			The JSON output is enabled with the %[1]s--json%[1]s option, followed by the list of fields
 			to fetch. Use the flag without a value to get the list of available fields.
+
 			The %[1]s--jq%[1]s option accepts a query in jq syntax and will print only the resulting
 			values that match the query. This is equivalent to piping the output to %[1]sjq -r%[1]s,
 			but does not require the jq utility to be installed on the system. To learn more
 			about the query syntax, see: <https://stedolan.github.io/jq/manual/v1.6/>
+
 			With %[1]s--template%[1]s, the provided Go template is rendered using the JSON data as input.
 			For the syntax of Go templates, see: <https://golang.org/pkg/text/template/>
+
 			The following functions are available in templates:
 			- %[1]sautocolor%[1]s: like %[1]scolor%[1]s, but only emits color to terminals
 			- %[1]scolor <style> <input>%[1]s: colorize input using <https://github.com/mgutz/ansi>
