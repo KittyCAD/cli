@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// DisableAuthCheck disables the auth check for the given command.
 func DisableAuthCheck(cmd *cobra.Command) {
 	if cmd.Annotations == nil {
 		cmd.Annotations = map[string]string{}
@@ -13,6 +14,7 @@ func DisableAuthCheck(cmd *cobra.Command) {
 	cmd.Annotations["skipAuthCheck"] = "true"
 }
 
+// CheckAuth checks if the user is authenticated.
 func CheckAuth(cfg config.Config) bool {
 	if config.AuthTokenProvidedFromEnv() {
 		return true
@@ -33,6 +35,7 @@ func CheckAuth(cfg config.Config) bool {
 	return false
 }
 
+// IsAuthCheckEnabled checks if the auth check is enabled for the given command.
 func IsAuthCheckEnabled(cmd *cobra.Command) bool {
 	switch cmd.Name() {
 	case "help", cobra.ShellCompRequestCmd, cobra.ShellCompNoDescRequestCmd:

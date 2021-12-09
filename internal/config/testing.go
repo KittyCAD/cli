@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 )
 
+// StubBackupConfig stubs the backup config file.
 func StubBackupConfig() func() {
 	orig := BackupConfigFile
 	BackupConfigFile = func(_ string) error {
@@ -18,6 +19,7 @@ func StubBackupConfig() func() {
 	}
 }
 
+// StubWriteConfig stubs the write config file.
 func StubWriteConfig(wc io.Writer, wh io.Writer) func() {
 	orig := WriteConfigFile
 	WriteConfigFile = func(fn string, data []byte) error {
@@ -44,15 +46,13 @@ func stubConfig(main, hosts string) func() {
 		case "config.yml":
 			if main == "" {
 				return []byte(nil), os.ErrNotExist
-			} else {
-				return []byte(main), nil
 			}
+			return []byte(main), nil
 		case "hosts.yml":
 			if hosts == "" {
 				return []byte(nil), os.ErrNotExist
-			} else {
-				return []byte(hosts), nil
 			}
+			return []byte(hosts), nil
 		default:
 			return []byte(nil), fmt.Errorf("read from unstubbed file: %q", fn)
 		}

@@ -135,7 +135,7 @@ func TestExpandAlias(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotExpanded, gotIsShell, err := ExpandAlias(tt.args.config, tt.args.argv, findShFunc)
+			gotExpanded, gotIsShell, err := Alias(tt.args.config, tt.args.argv, findShFunc)
 			if tt.wantErr != nil {
 				if err == nil {
 					t.Fatal("expected error")

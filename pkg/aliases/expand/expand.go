@@ -13,10 +13,10 @@ import (
 	"github.com/kittycad/cli/internal/config"
 )
 
-// ExpandAlias processes argv to see if it should be rewritten according to a user's aliases. The
+// Alias processes argv to see if it should be rewritten according to a user's aliases. The
 // second return value indicates whether the alias should be executed in a new shell process instead
 // of running gh itself.
-func ExpandAlias(cfg config.Config, args []string, findShFunc func() (string, error)) (expanded []string, isShell bool, err error) {
+func Alias(cfg config.Config, args []string, findShFunc func() (string, error)) (expanded []string, isShell bool, err error) {
 	if len(args) < 2 {
 		// the command is lacking a subcommand
 		return
@@ -83,7 +83,7 @@ func findSh() (string, error) {
 	if err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			if runtime.GOOS == "windows" {
-				return "", errors.New("unable to locate sh to execute the shell alias with. The sh.exe interpreter is typically distributed with Git for Windows.")
+				return "", errors.New("unable to locate sh to execute the shell alias with. The sh.exe interpreter is typically distributed with Git for Windows")
 			}
 			return "", errors.New("unable to locate sh to execute shell alias with")
 		}

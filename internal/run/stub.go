@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// T is a test helper type.
 type T interface {
 	Helper()
 	Errorf(string, ...interface{})
@@ -89,6 +90,7 @@ func (cs *CommandStubber) find(args []string) *commandStub {
 	return nil
 }
 
+// CommandCallback is a callback that is invoked when a command is invoked.
 type CommandCallback func([]string)
 
 type commandStub struct {
@@ -99,7 +101,7 @@ type commandStub struct {
 	callbacks  []CommandCallback
 }
 
-// Run satisfies Runnable
+// Run satisfies Runnable.
 func (s *commandStub) Run() error {
 	if s.exitStatus != 0 {
 		return fmt.Errorf("%s exited with status %d", s.pattern, s.exitStatus)
@@ -107,7 +109,7 @@ func (s *commandStub) Run() error {
 	return nil
 }
 
-// Output satisfies Runnable
+// Output satisfies Runnable.
 func (s *commandStub) Output() ([]byte, error) {
 	if s.exitStatus != 0 {
 		return []byte(nil), fmt.Errorf("%s exited with status %d", s.pattern, s.exitStatus)

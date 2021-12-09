@@ -13,34 +13,38 @@ func FlagErrorf(format string, args ...interface{}) error {
 	return FlagErrorWrap(fmt.Errorf(format, args...))
 }
 
-// FlagError returns a new FlagError that wraps the specified error.
+// FlagErrorWrap returns a new FlagError that wraps the specified error.
 func FlagErrorWrap(err error) error { return &FlagError{err} }
 
-// A *FlagError indicates an error processing command-line flags or other arguments.
+// FlagError indicates an error processing command-line flags or other arguments.
 // Such errors cause the application to display the usage message.
 type FlagError struct {
 	// Note: not struct{error}: only *FlagError should satisfy error.
 	err error
 }
 
+// Error implements the error interface.
 func (fe *FlagError) Error() string {
 	return fe.err.Error()
 }
 
+// Unwrap returns the underlying error.
 func (fe *FlagError) Unwrap() error {
 	return fe.err
 }
 
-// SilentError is an error that triggers exit code 1 without any error messaging
-var SilentError = errors.New("SilentError")
+// ErrSilent is an error that triggers exit code 1 without any error messaging.
+var ErrSilent = errors.New("SilentError")
 
-// CancelError signals user-initiated cancellation
-var CancelError = errors.New("CancelError")
+// ErrCancel signals user-initiated cancellation.
+var ErrCancel = errors.New("CancelError")
 
+// IsUserCancellation returns true if the user cancelled the operation.
 func IsUserCancellation(err error) bool {
-	return errors.Is(err, CancelError) || errors.Is(err, terminal.InterruptErr)
+	return errors.Is(err, ErrCancel) || errors.Is(err, terminal.InterruptErr)
 }
 
+// MutuallyExclusive sets of flags that are mutually exclusive.
 func MutuallyExclusive(message string, conditions ...bool) error {
 	numTrue := 0
 	for _, ok := range conditions {

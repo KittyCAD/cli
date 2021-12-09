@@ -113,7 +113,7 @@ func mainRun() exitCode {
 		isShell := false
 
 		argsForExpansion := append([]string{"kittycad"}, expandedArgs...)
-		expandedArgs, isShell, err = expand.ExpandAlias(cfg, argsForExpansion, nil)
+		expandedArgs, isShell, err = expand.Alias(cfg, argsForExpansion, nil)
 		if err != nil {
 			fmt.Fprintf(stderr, "failed to process aliases:  %s\n", err)
 			return exitError
@@ -184,7 +184,7 @@ func mainRun() exitCode {
 	rootCmd.SetArgs(expandedArgs)
 
 	if cmd, err := rootCmd.ExecuteC(); err != nil {
-		if err == cmdutil.SilentError {
+		if err == cmdutil.ErrSilent {
 			return exitError
 		} else if cmdutil.IsUserCancellation(err) {
 			if errors.Is(err, terminal.InterruptErr) {

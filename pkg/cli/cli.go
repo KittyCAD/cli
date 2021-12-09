@@ -16,6 +16,7 @@ import (
 	"github.com/kittycad/cli/kittycad"
 )
 
+// CLI is the main type for the kittycad command line interface.
 type CLI struct {
 	IOStreams *iostreams.IOStreams
 	Browser   Browser
@@ -29,10 +30,12 @@ type CLI struct {
 	Executable func() string
 }
 
+// Browser represents the browser that kittycad will use to open links.
 type Browser interface {
 	Browse(string) error
 }
 
+// New returns a new CLI instance.
 func New(ctx context.Context) *CLI {
 	var exe string
 	cli := &CLI{
@@ -69,6 +72,7 @@ func dobrowser(cli *CLI) Browser {
 	return NewBrowser(browserLauncher(cli), io.Out, io.ErrOut)
 }
 
+// NewBrowser creates a new Browser instance.
 func NewBrowser(launcher string, stdout, stderr io.Writer) Browser {
 	return &webBrowser{
 		launcher: launcher,
@@ -83,6 +87,7 @@ type webBrowser struct {
 	stderr   io.Writer
 }
 
+// Browse opens the given URL in the default browser of the user.
 func (b *webBrowser) Browse(url string) error {
 	if b.launcher != "" {
 		launcherArgs, err := shlex.Split(b.launcher)

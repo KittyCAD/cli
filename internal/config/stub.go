@@ -4,7 +4,8 @@ import (
 	"errors"
 )
 
-type ConfigStub map[string]string
+// Stub is a stub implementation of the Config interface.
+type Stub map[string]string
 
 func genKey(host, key string) string {
 	if host != "" {
@@ -13,47 +14,57 @@ func genKey(host, key string) string {
 	return key
 }
 
-func (c ConfigStub) Get(host, key string) (string, error) {
+// Get returns the value of the given key.
+func (c Stub) Get(host, key string) (string, error) {
 	val, _, err := c.GetWithSource(host, key)
 	return val, err
 }
 
-func (c ConfigStub) GetWithSource(host, key string) (string, string, error) {
+// GetWithSource returns the value of the given key.
+func (c Stub) GetWithSource(host, key string) (string, string, error) {
 	if v, found := c[genKey(host, key)]; found {
 		return v, "(memory)", nil
 	}
 	return "", "", errors.New("not found")
 }
 
-func (c ConfigStub) Set(host, key, value string) error {
+// Set sets the value of the given key.
+func (c Stub) Set(host, key, value string) error {
 	c[genKey(host, key)] = value
 	return nil
 }
 
-func (c ConfigStub) Aliases() (*AliasConfig, error) {
+// Aliases returns the aliases of the given key.
+func (c Stub) Aliases() (*AliasConfig, error) {
 	return nil, nil
 }
 
-func (c ConfigStub) Hosts() ([]string, error) {
+// Hosts returns the list of hosts.
+func (c Stub) Hosts() ([]string, error) {
 	return nil, nil
 }
 
-func (c ConfigStub) UnsetHost(hostname string) {
+// UnsetHost removes the given host from the list of hosts.
+func (c Stub) UnsetHost(hostname string) {
 }
 
-func (c ConfigStub) CheckWriteable(host, key string) error {
+// CheckWriteable checks if the config is writeable.
+func (c Stub) CheckWriteable(host, key string) error {
 	return nil
 }
 
-func (c ConfigStub) Write() error {
+// Write writes the config to the given writer.
+func (c Stub) Write() error {
 	c["_written"] = "true"
 	return nil
 }
 
-func (c ConfigStub) DefaultHost() (string, error) {
+// DefaultHost returns the default host.
+func (c Stub) DefaultHost() (string, error) {
 	return "", nil
 }
 
-func (c ConfigStub) DefaultHostWithSource() (string, string, error) {
+// DefaultHostWithSource returns the default host.
+func (c Stub) DefaultHostWithSource() (string, string, error) {
 	return "", "", nil
 }

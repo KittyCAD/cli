@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/go-playground/assert/v2"
 	"github.com/kittycad/cli/internal/config"
 )
@@ -75,9 +74,8 @@ func Test_ioStreams_pager(t *testing.T) {
 			f.Config = func() (config.Config, error) {
 				if tt.config == nil {
 					return config.NewBlankConfig(), nil
-				} else {
-					return tt.config, nil
 				}
+				return tt.config, nil
 			}
 			io := ioStreams(f)
 			assert.Equal(t, tt.wantPager, io.GetPager())
@@ -108,9 +106,8 @@ func Test_ioStreams_prompt(t *testing.T) {
 			f.Config = func() (config.Config, error) {
 				if tt.config == nil {
 					return config.NewBlankConfig(), nil
-				} else {
-					return tt.config, nil
 				}
+				return tt.config, nil
 			}
 			io := ioStreams(f)
 			assert.Equal(t, tt.promptDisabled, io.GetNeverPrompt())
@@ -183,22 +180,13 @@ func Test_browserLauncher(t *testing.T) {
 			f.Config = func() (config.Config, error) {
 				if tt.config == nil {
 					return config.NewBlankConfig(), nil
-				} else {
-					return tt.config, nil
 				}
+				return tt.config, nil
 			}
 			browser := browserLauncher(f)
 			assert.Equal(t, tt.wantBrowser, browser)
 		})
 	}
-}
-
-func defaultConfig() config.Config {
-	return config.InheritEnv(config.NewFromString(heredoc.Doc(`
-    hosts:
-      nonsense.com:
-        token: BLAH
-		`)))
 }
 
 func pagerConfig() config.Config {

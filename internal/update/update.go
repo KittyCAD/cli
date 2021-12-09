@@ -18,6 +18,7 @@ import (
 
 var gitDescribeSuffixRE = regexp.MustCompile(`\d+-\d+-g[a-f0-9]{8}$`)
 
+// StateEntry is the state file entry.
 type StateEntry struct {
 	CheckedForUpdateAt time.Time                `yaml:"checked_for_update_at"`
 	LatestRelease      github.RepositoryRelease `yaml:"latest_release"`

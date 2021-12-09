@@ -16,20 +16,24 @@ type fileConfig struct {
 	documentRoot *yaml.Node
 }
 
+// HostConfig represents a single host entry in the hosts.yml file.
 type HostConfig struct {
 	Map
 	Host string
 }
 
+// Root returns the root node of the config file.
 func (c *fileConfig) Root() *yaml.Node {
 	return c.Map.Root
 }
 
+// Get returns the value of the given key.
 func (c *fileConfig) Get(hostname, key string) (string, error) {
 	val, _, err := c.GetWithSource(hostname, key)
 	return val, err
 }
 
+// GetWithSource returns the value of the given key with the source.
 func (c *fileConfig) GetWithSource(hostname, key string) (string, string, error) {
 	if hostname != "" {
 		var notFound *NotFoundError
@@ -71,21 +75,23 @@ func (c *fileConfig) GetWithSource(hostname, key string) (string, string, error)
 	return value, defaultSource, nil
 }
 
+// Set sets the value of the given key.
 func (c *fileConfig) Set(hostname, key, value string) error {
 	if hostname == "" {
 		return c.SetStringValue(key, value)
-	} else {
-		hostCfg, err := c.configForHost(hostname)
-		var notFound *NotFoundError
-		if errors.As(err, &notFound) {
-			hostCfg = c.makeConfigForHost(hostname)
-		} else if err != nil {
-			return err
-		}
-		return hostCfg.SetStringValue(key, value)
 	}
+
+	hostCfg, err := c.configForHost(hostname)
+	var notFound *NotFoundError
+	if errors.As(err, &notFound) {
+		hostCfg = c.makeConfigForHost(hostname)
+	} else if err != nil {
+		return err
+	}
+	return hostCfg.SetStringValue(key, value)
 }
 
+// UnsetHost removes the given host from the hosts.yml file.
 func (c *fileConfig) UnsetHost(hostname string) {
 	if hostname == "" {
 		return
@@ -114,11 +120,13 @@ func (c *fileConfig) configForHost(hostname string) (*HostConfig, error) {
 	return nil, &NotFoundError{fmt.Errorf("could not find config entry for %q", hostname)}
 }
 
+// CheckWriteable checks if the config file is writeable.
 func (c *fileConfig) CheckWriteable(hostname, key string) error {
 	// TODO: check filesystem permissions
 	return nil
 }
 
+// Write writes the config file to disk.
 func (c *fileConfig) Write() error {
 	mainData := yaml.Node{Kind: yaml.MappingNode}
 	hostsData := yaml.Node{Kind: yaml.MappingNode}
@@ -151,6 +159,7 @@ func (c *fileConfig) Write() error {
 	return WriteConfigFile(HostsConfigFile(), yamlNormalize(hostsBytes))
 }
 
+// Aliases returns the aliases for the given host.
 func (c *fileConfig) Aliases() (*AliasConfig, error) {
 	// The complexity here is for dealing with either a missing or empty aliases key. It's something
 	// we'll likely want for other config sections at some point.
@@ -236,11 +245,13 @@ func (c *fileConfig) Hosts() ([]string, error) {
 	return hostnames, nil
 }
 
+// DefaultHost returns the default hostname.
 func (c *fileConfig) DefaultHost() (string, error) {
 	val, _, err := c.DefaultHostWithSource()
 	return val, err
 }
 
+// DefaultHostWithSource returns the default hostname and the source of the default hostname.
 func (c *fileConfig) DefaultHostWithSource() (string, string, error) {
 	hosts, err := c.Hosts()
 	if err == nil && len(hosts) == 1 {
