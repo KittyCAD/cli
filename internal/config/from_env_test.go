@@ -130,12 +130,12 @@ func TestInheritEnv(t *testing.T) {
 		{
 			name:                   "KITTYCAD_TOKEN shadows token from KITTYCAD_API_TOKEN",
 			baseConfig:             ``,
-			KittyCADTokenEnvVar:    "GHTOKEN",
-			KittyCADAPITokenEnvVar: "GITHUBTOKEN",
+			KittyCADTokenEnvVar:    "KITTYCADTOKEN",
+			KittyCADAPITokenEnvVar: "KITTYCADAPITOKEN",
 			hostname:               "api.kittycad.io",
 			wants: wants{
 				hosts:     []string{"api.kittycad.io"},
-				token:     "GHTOKEN",
+				token:     "KITTYCADTOKEN",
 				source:    "KITTYCAD_TOKEN",
 				writeable: false,
 			},

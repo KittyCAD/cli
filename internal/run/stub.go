@@ -14,7 +14,7 @@ type T interface {
 	Errorf(string, ...interface{})
 }
 
-// Stub installs a catch-all for all external commands invoked from gh. It returns a restore func that, when
+// Stub installs a catch-all for all external commands invoked from kittycad. It returns a restore func that, when
 // invoked from tests, fails the current test if some stubs that were registered were never matched.
 func Stub() (*CommandStubber, func(T)) {
 	cs := &CommandStubber{}

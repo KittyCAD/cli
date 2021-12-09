@@ -85,7 +85,7 @@ func mainRun() exitCode {
 		}
 	}
 
-	// Enable running gh from Windows File Explorer's address bar. Without this, the user is told to stop and run from a
+	// Enable running kittycad from Windows File Explorer's address bar. Without this, the user is told to stop and run from a
 	// terminal. With this, a user can clone a repo (or take other actions) directly from explorer.
 	if len(os.Args) > 1 && os.Args[1] != "" {
 		cobra.MousetrapHelpText = ""
@@ -288,8 +288,8 @@ func isRecentRelease(publishedAt time.Time) bool {
 	return !publishedAt.IsZero() && time.Since(publishedAt) < time.Hour*24
 }
 
-// Check whether the gh binary was found under the Homebrew prefix
-func isUnderHomebrew(ghBinary string) bool {
+// Check whether the kittycad binary was found under the Homebrew prefix
+func isUnderHomebrew(kittycadBinary string) bool {
 	brewExe, err := safeexec.LookPath("brew")
 	if err != nil {
 		return false
@@ -301,5 +301,5 @@ func isUnderHomebrew(ghBinary string) bool {
 	}
 
 	brewBinPrefix := filepath.Join(strings.TrimSpace(string(brewPrefixBytes)), "bin") + string(filepath.Separator)
-	return strings.HasPrefix(ghBinary, brewBinPrefix)
+	return strings.HasPrefix(kittycadBinary, brewBinPrefix)
 }
