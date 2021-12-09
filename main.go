@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var kittycadClient *kittycad.ClientWithResponses
+var kittycadClient *kittycad.Client
 
 func main() {
 
@@ -30,7 +30,7 @@ func main() {
 			// See if we are authorized to use the API.
 			// TODO: Optionally have an auth command and set the token in a file.
 			var err error
-			kittycadClient, err = kittycad.NewDefaultClientFromEnv()
+			kittycadClient, err = kittycad.NewClientFromEnv()
 			if err != nil {
 				return err
 			}

@@ -21,6 +21,15 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// Defines values for Environment.
+const (
+	EnvironmentDEVELOPMENT Environment = "DEVELOPMENT"
+
+	EnvironmentPREVIEW Environment = "PREVIEW"
+
+	EnvironmentPRODUCTION Environment = "PRODUCTION"
+)
+
 // Defines values for FileConversionStatus.
 const (
 	FileConversionStatusCompleted FileConversionStatus = "Completed"
@@ -32,15 +41,6 @@ const (
 	FileConversionStatusQueued FileConversionStatus = "Queued"
 
 	FileConversionStatusUploaded FileConversionStatus = "Uploaded"
-)
-
-// Defines values for InstanceMetadataEnvironment.
-const (
-	InstanceMetadataEnvironmentDEVELOPMENT InstanceMetadataEnvironment = "DEVELOPMENT"
-
-	InstanceMetadataEnvironmentPREVIEW InstanceMetadataEnvironment = "PREVIEW"
-
-	InstanceMetadataEnvironmentPRODUCTION InstanceMetadataEnvironment = "PRODUCTION"
 )
 
 // Defines values for ValidFileTypes.
@@ -76,6 +76,9 @@ type AuthSession struct {
 	// The user's id.
 	UserId *string `json:"user_id,omitempty"`
 }
+
+// The type of environment.
+type Environment string
 
 // ErrorMessage defines model for ErrorMessage.
 type ErrorMessage struct {
@@ -115,7 +118,7 @@ type InstanceMetadata struct {
 	Description *string `json:"description,omitempty"`
 
 	// The type of environment.
-	Environment *InstanceMetadataEnvironment `json:"environment,omitempty"`
+	Environment *Environment `json:"environment,omitempty"`
 
 	// The git hash of the code the server was built from.
 	GitHash *string `json:"git_hash,omitempty"`
@@ -142,8 +145,11 @@ type InstanceMetadata struct {
 	Zone *string `json:"zone,omitempty"`
 }
 
-// The type of environment.
-type InstanceMetadataEnvironment string
+// Message defines model for Message.
+type Message struct {
+	// The message.
+	Message *string `json:"message,omitempty"`
+}
 
 // ValidFileTypes defines model for ValidFileTypes.
 type ValidFileTypes string
@@ -194,7 +200,7 @@ type Client struct {
 type ClientOption func(*Client) error
 
 // Creates a new Client, with reasonable defaults
-func NewClient(server string, opts ...ClientOption) (*Client, error) {
+func newClient(server string, opts ...ClientOption) (*Client, error) {
 	// create a client with sane default values
 	client := Client{
 		Server: server,
@@ -234,86 +240,8 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 	}
 }
 
-// The interface specification for the client above.
-type ClientInterface interface {
-	// MetaDebugInstance request
-	MetaDebugInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// MetaDebugSession request
-	MetaDebugSession(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// FileConversionByID request
-	FileConversionByID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// FileConvert request with any body
-	FileConvertWithBody(ctx context.Context, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// Ping request
-	Ping(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) MetaDebugInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewMetaDebugInstanceRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) MetaDebugSession(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewMetaDebugSessionRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FileConversionByID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFileConversionByIDRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FileConvertWithBody(ctx context.Context, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFileConvertRequestWithBody(c.Server, sourceFormat, outputFormat, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) Ping(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPingRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// NewMetaDebugInstanceRequest generates requests for MetaDebugInstance
-func NewMetaDebugInstanceRequest(server string) (*http.Request, error) {
+// newMetaDebugInstanceRequest generates requests for MetaDebugInstance
+func newMetaDebugInstanceRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -339,8 +267,8 @@ func NewMetaDebugInstanceRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewMetaDebugSessionRequest generates requests for MetaDebugSession
-func NewMetaDebugSessionRequest(server string) (*http.Request, error) {
+// newMetaDebugSessionRequest generates requests for MetaDebugSession
+func newMetaDebugSessionRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -366,8 +294,8 @@ func NewMetaDebugSessionRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewFileConversionByIDRequest generates requests for FileConversionByID
-func NewFileConversionByIDRequest(server string, id string) (*http.Request, error) {
+// newFileConversionByIDRequest generates requests for FileConversionByID
+func newFileConversionByIDRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -400,8 +328,8 @@ func NewFileConversionByIDRequest(server string, id string) (*http.Request, erro
 	return req, nil
 }
 
-// NewFileConvertRequestWithBody generates requests for FileConvert with any type of body
-func NewFileConvertRequestWithBody(server string, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader) (*http.Request, error) {
+// newFileConvertRequestWithBody generates requests for FileConvert with any type of body
+func newFileConvertRequestWithBody(server string, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -443,8 +371,8 @@ func NewFileConvertRequestWithBody(server string, sourceFormat ValidFileTypes, o
 	return req, nil
 }
 
-// NewPingRequest generates requests for Ping
-func NewPingRequest(server string) (*http.Request, error) {
+// newPingRequest generates requests for Ping
+func newPingRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -484,21 +412,6 @@ func (c *Client) applyEditors(ctx context.Context, req *http.Request, additional
 	return nil
 }
 
-// ClientWithResponses builds on ClientInterface to offer response payloads
-type ClientWithResponses struct {
-	ClientInterface
-}
-
-// NewClientWithResponses creates a new ClientWithResponses, which wraps
-// Client with return type handling
-func NewClientWithResponses(server string, opts ...ClientOption) (*ClientWithResponses, error) {
-	client, err := NewClient(server, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &ClientWithResponses{client}, nil
-}
-
 // WithBaseURL overrides the baseURL.
 func WithBaseURL(baseURL string) ClientOption {
 	return func(c *Client) error {
@@ -509,24 +422,6 @@ func WithBaseURL(baseURL string) ClientOption {
 		c.Server = newBaseURL.String()
 		return nil
 	}
-}
-
-// ClientWithResponsesInterface is the interface specification for the client with responses above.
-type ClientWithResponsesInterface interface {
-	// MetaDebugInstance request
-	MetaDebugInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MetaDebugInstanceResponse, error)
-
-	// MetaDebugSession request
-	MetaDebugSessionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MetaDebugSessionResponse, error)
-
-	// FileConversionByID request
-	FileConversionByIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FileConversionByIDResponse, error)
-
-	// FileConvert request with any body
-	FileConvertWithBodyWithResponse(ctx context.Context, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FileConvertResponse, error)
-
-	// Ping request
-	PingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PingResponse, error)
 }
 
 type MetaDebugInstanceResponse struct {
@@ -636,9 +531,7 @@ func (r FileConvertResponse) StatusCode() int {
 type PingResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		Message *ErrorMessage `json:"message,omitempty"`
-	}
+	JSON200      *Message
 }
 
 // Status returns HTTPResponse.Status
@@ -658,52 +551,92 @@ func (r PingResponse) StatusCode() int {
 }
 
 // MetaDebugInstanceWithResponse request returning *MetaDebugInstanceResponse
-func (c *ClientWithResponses) MetaDebugInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MetaDebugInstanceResponse, error) {
-	rsp, err := c.MetaDebugInstance(ctx, reqEditors...)
+func (c *Client) MetaDebugInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MetaDebugInstanceResponse, error) {
+	req, err := newMetaDebugInstanceRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
-	return ParseMetaDebugInstanceResponse(rsp)
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	rsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return parseMetaDebugInstanceResponse(rsp)
 }
 
 // MetaDebugSessionWithResponse request returning *MetaDebugSessionResponse
-func (c *ClientWithResponses) MetaDebugSessionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MetaDebugSessionResponse, error) {
-	rsp, err := c.MetaDebugSession(ctx, reqEditors...)
+func (c *Client) MetaDebugSessionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MetaDebugSessionResponse, error) {
+	req, err := newMetaDebugSessionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
-	return ParseMetaDebugSessionResponse(rsp)
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	rsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return parseMetaDebugSessionResponse(rsp)
 }
 
 // FileConversionByIDWithResponse request returning *FileConversionByIDResponse
-func (c *ClientWithResponses) FileConversionByIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FileConversionByIDResponse, error) {
-	rsp, err := c.FileConversionByID(ctx, id, reqEditors...)
+func (c *Client) FileConversionByIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FileConversionByIDResponse, error) {
+	req, err := newFileConversionByIDRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
-	return ParseFileConversionByIDResponse(rsp)
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	rsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return parseFileConversionByIDResponse(rsp)
 }
 
 // FileConvertWithBodyWithResponse request with arbitrary body returning *FileConvertResponse
-func (c *ClientWithResponses) FileConvertWithBodyWithResponse(ctx context.Context, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FileConvertResponse, error) {
-	rsp, err := c.FileConvertWithBody(ctx, sourceFormat, outputFormat, contentType, body, reqEditors...)
+func (c *Client) FileConvertWithBodyWithResponse(ctx context.Context, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FileConvertResponse, error) {
+	req, err := newFileConvertRequestWithBody(c.Server, sourceFormat, outputFormat, contentType, body)
 	if err != nil {
 		return nil, err
 	}
-	return ParseFileConvertResponse(rsp)
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	rsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return parseFileConvertResponse(rsp)
 }
 
 // PingWithResponse request returning *PingResponse
-func (c *ClientWithResponses) PingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PingResponse, error) {
-	rsp, err := c.Ping(ctx, reqEditors...)
+func (c *Client) PingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PingResponse, error) {
+	req, err := newPingRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePingResponse(rsp)
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	rsp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return parsePingResponse(rsp)
 }
 
-// ParseMetaDebugInstanceResponse parses an HTTP response from a MetaDebugInstanceWithResponse call
-func ParseMetaDebugInstanceResponse(rsp *http.Response) (*MetaDebugInstanceResponse, error) {
+// parseMetaDebugInstanceResponse parses an HTTP response from a MetaDebugInstanceWithResponse call
+func parseMetaDebugInstanceResponse(rsp *http.Response) (*MetaDebugInstanceResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
@@ -749,8 +682,8 @@ func ParseMetaDebugInstanceResponse(rsp *http.Response) (*MetaDebugInstanceRespo
 	return response, nil
 }
 
-// ParseMetaDebugSessionResponse parses an HTTP response from a MetaDebugSessionWithResponse call
-func ParseMetaDebugSessionResponse(rsp *http.Response) (*MetaDebugSessionResponse, error) {
+// parseMetaDebugSessionResponse parses an HTTP response from a MetaDebugSessionWithResponse call
+func parseMetaDebugSessionResponse(rsp *http.Response) (*MetaDebugSessionResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
@@ -796,8 +729,8 @@ func ParseMetaDebugSessionResponse(rsp *http.Response) (*MetaDebugSessionRespons
 	return response, nil
 }
 
-// ParseFileConversionByIDResponse parses an HTTP response from a FileConversionByIDWithResponse call
-func ParseFileConversionByIDResponse(rsp *http.Response) (*FileConversionByIDResponse, error) {
+// parseFileConversionByIDResponse parses an HTTP response from a FileConversionByIDWithResponse call
+func parseFileConversionByIDResponse(rsp *http.Response) (*FileConversionByIDResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
@@ -857,8 +790,8 @@ func ParseFileConversionByIDResponse(rsp *http.Response) (*FileConversionByIDRes
 	return response, nil
 }
 
-// ParseFileConvertResponse parses an HTTP response from a FileConvertWithResponse call
-func ParseFileConvertResponse(rsp *http.Response) (*FileConvertResponse, error) {
+// parseFileConvertResponse parses an HTTP response from a FileConvertWithResponse call
+func parseFileConvertResponse(rsp *http.Response) (*FileConvertResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
@@ -918,8 +851,8 @@ func ParseFileConvertResponse(rsp *http.Response) (*FileConvertResponse, error) 
 	return response, nil
 }
 
-// ParsePingResponse parses an HTTP response from a PingWithResponse call
-func ParsePingResponse(rsp *http.Response) (*PingResponse, error) {
+// parsePingResponse parses an HTTP response from a PingWithResponse call
+func parsePingResponse(rsp *http.Response) (*PingResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
@@ -933,9 +866,7 @@ func ParsePingResponse(rsp *http.Response) (*PingResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Message *ErrorMessage `json:"message,omitempty"`
-		}
+		var dest Message
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -944,4 +875,138 @@ func ParsePingResponse(rsp *http.Response) (*PingResponse, error) {
 	}
 
 	return response, nil
+}
+
+// MetaDebugInstance request returning *MetaDebugInstanceResponse
+func (c *Client) MetaDebugInstance(ctx context.Context) (*InstanceMetadata, error) {
+	rsp, err := c.MetaDebugInstanceWithResponse(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Check if the type we want to return is null.
+	if rsp.JSON200 == nil {
+
+		if rsp.JSON400 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+		}
+
+		if rsp.JSON401 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+		}
+
+		if rsp.JSON403 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+		}
+
+		return nil, fmt.Errorf("%#v", rsp)
+	}
+	return rsp.JSON200, nil
+}
+
+// MetaDebugSession request returning *MetaDebugSessionResponse
+func (c *Client) MetaDebugSession(ctx context.Context) (*AuthSession, error) {
+	rsp, err := c.MetaDebugSessionWithResponse(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Check if the type we want to return is null.
+	if rsp.JSON200 == nil {
+
+		if rsp.JSON400 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+		}
+
+		if rsp.JSON401 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+		}
+
+		if rsp.JSON403 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+		}
+
+		return nil, fmt.Errorf("%#v", rsp)
+	}
+	return rsp.JSON200, nil
+}
+
+// FileConversionByID request returning *FileConversionByIDResponse
+func (c *Client) FileConversionByID(ctx context.Context, id string) (*FileConversion, error) {
+	rsp, err := c.FileConversionByIDWithResponse(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	// Check if the type we want to return is null.
+	if rsp.JSON200 == nil {
+
+		if rsp.JSON400 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+		}
+
+		if rsp.JSON401 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+		}
+
+		if rsp.JSON403 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+		}
+
+		if rsp.JSON404 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON404)
+		}
+
+		if rsp.JSON406 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON406)
+		}
+
+		return nil, fmt.Errorf("%#v", rsp)
+	}
+	return rsp.JSON200, nil
+}
+
+// FileConvertWithBody request with arbitrary body returning *FileConvertResponse
+func (c *Client) FileConvertWithBody(ctx context.Context, sourceFormat ValidFileTypes, outputFormat ValidFileTypes, contentType string, body io.Reader) (*FileConversion, error) {
+	rsp, err := c.FileConvertWithBodyWithResponse(ctx, sourceFormat, outputFormat, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	// Check if the type we want to return is null.
+	if rsp.JSON200 == nil {
+
+		if rsp.JSON202 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON202)
+		}
+
+		if rsp.JSON400 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON400)
+		}
+
+		if rsp.JSON401 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON401)
+		}
+
+		if rsp.JSON403 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON403)
+		}
+
+		if rsp.JSON406 != nil {
+			return nil, fmt.Errorf("got status: %s, error: %#v", rsp.Status(), rsp.JSON406)
+		}
+
+		return nil, fmt.Errorf("%#v", rsp)
+	}
+	return rsp.JSON200, nil
+}
+
+// Ping request returning *PingResponse
+func (c *Client) Ping(ctx context.Context) (*Message, error) {
+	rsp, err := c.PingWithResponse(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Check if the type we want to return is null.
+	if rsp.JSON200 == nil {
+
+		return nil, fmt.Errorf("%#v", rsp)
+	}
+	return rsp.JSON200, nil
 }

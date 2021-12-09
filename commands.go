@@ -7,21 +7,21 @@ import (
 )
 
 func metaSession(c *cli.Context) error {
-	session, err := kittycadClient.MetaDebugSessionWithResponse(c.Context)
+	session, err := kittycadClient.MetaDebugSession(c.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get auth session: %w", err)
 	}
 
-	fmt.Printf("%s\n", session.Body)
+	fmt.Printf("%#v\n", session)
 	return nil
 }
 
 func metaInstance(c *cli.Context) error {
-	instance, err := kittycadClient.MetaDebugInstanceWithResponse(c.Context)
+	instance, err := kittycadClient.MetaDebugInstance(c.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get auth instance: %w", err)
 	}
 
-	fmt.Printf("%s\n", instance.Body)
+	fmt.Printf("%#v\n", instance)
 	return nil
 }
