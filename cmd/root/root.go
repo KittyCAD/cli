@@ -7,6 +7,7 @@ import (
 	versionCmd "github.com/kittycad/cli/cmd/version"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
+	"github.com/kittycad/cli/version"
 	"github.com/spf13/cobra"
 )
 
@@ -37,12 +38,12 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 
 	cmd.PersistentFlags().Bool("help", false, "Show help for command")
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		rootHelpFunc(f, cmd, args)
+		rootHelpFunc(cli, cmd, args)
 	})
 	cmd.SetUsageFunc(rootUsageFunc)
 	cmd.SetFlagErrorFunc(rootFlagErrorFunc)
 
-	formattedVersion := versionCmd.Format(version, buildDate)
+	formattedVersion := versionCmd.Format(version.VERSION, version.GITCOMMIT)
 	cmd.SetVersionTemplate(formattedVersion)
 	cmd.Version = formattedVersion
 	cmd.Flags().Bool("version", false, "Show kittycad version")
@@ -57,7 +58,7 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 	cmd.AddCommand(NewHelpTopic("formatting"))
 	cmd.AddCommand(NewHelpTopic("mintty"))
 	referenceCmd := NewHelpTopic("reference")
-	referenceCmd.SetHelpFunc(referenceHelpFn())
+	referenceCmd.SetHelpFunc(referenceHelpFn(cli.IOStreams))
 	cmd.AddCommand(referenceCmd)
 
 	cmdutil.DisableAuthCheck(cmd)

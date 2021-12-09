@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmdMeta(cli *cli.CLI) *cobra.Command {
+func NewCmdFile(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "file <command>",
 		Short: "CAD file operations",

@@ -145,16 +145,6 @@ func rootHelpFunc(cli *cli.CLI, command *cobra.Command, args []string) {
 		helpEntries = append(helpEntries, helpEntry{"ADDITIONAL COMMANDS", strings.Join(additionalCommands, "\n")})
 	}
 
-	if isRootCmd(command) {
-		if exts := f.ExtensionManager.List(false); len(exts) > 0 {
-			var names []string
-			for _, ext := range exts {
-				names = append(names, ext.Name())
-			}
-			helpEntries = append(helpEntries, helpEntry{"EXTENSION COMMANDS", strings.Join(names, "\n")})
-		}
-	}
-
 	flagUsages := command.LocalFlags().FlagUsages()
 	if flagUsages != "" {
 		helpEntries = append(helpEntries, helpEntry{"FLAGS", dedent(flagUsages)})

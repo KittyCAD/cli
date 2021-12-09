@@ -6,7 +6,6 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.2
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/cli/browser v1.1.0
-	github.com/cli/cli v1.14.0
 	github.com/cli/cli/v2 v2.3.0
 	github.com/cli/safeexec v1.0.0
 	github.com/deepmap/oapi-codegen v1.9.0

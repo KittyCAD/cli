@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/cli/browser"
-	"github.com/cli/cli/pkg/iostreams"
+	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/cli/safeexec"
 	"github.com/google/shlex"
 	"github.com/kittycad/cli/internal/config"

@@ -14,12 +14,14 @@ import (
 
 	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/AlecAivazis/survey/v2/terminal"
-	"github.com/cli/cli/v2/pkg/cmd/alias/expand"
 	"github.com/cli/safeexec"
+	"github.com/google/go-github/github"
 	"github.com/kittycad/cli/cmd/root"
 	"github.com/kittycad/cli/internal/config"
+	"github.com/kittycad/cli/internal/run"
 	"github.com/kittycad/cli/internal/update"
 	"github.com/kittycad/cli/kittycad"
+	"github.com/kittycad/cli/pkg/aliases/expand"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
 	"github.com/kittycad/cli/version"
@@ -52,7 +54,7 @@ func main() {
 
 func mainRun() exitCode {
 	ctx := context.Background()
-	updateMessageChan := make(chan *update.ReleaseInfo)
+	updateMessageChan := make(chan *github.RepositoryRelease)
 	go func() {
 		rel, _ := checkForUpdate(ctx, version.VERSION)
 		updateMessageChan <- rel
@@ -89,7 +91,7 @@ func mainRun() exitCode {
 		cobra.MousetrapHelpText = ""
 	}
 
-	rootCmd := root.NewCmdRoot()
+	rootCmd := root.NewCmdRoot(cli)
 
 	cfg, err := cli.Config()
 	if err != nil {
@@ -161,11 +163,6 @@ func mainRun() exitCode {
 				}
 			}
 		}
-		for _, ext := range cli.ExtensionManager.List(false) {
-			if strings.HasPrefix(ext.Name(), toComplete) {
-				results = append(results, ext.Name())
-			}
-		}
 		return results, cobra.ShellCompDirectiveNoFileComp
 	}
 
@@ -221,19 +218,19 @@ func mainRun() exitCode {
 	newRelease := <-updateMessageChan
 	if newRelease != nil {
 		isHomebrew := isUnderHomebrew(cli.Executable())
-		if isHomebrew && isRecentRelease(newRelease.PublishedAt) {
+		if isHomebrew && isRecentRelease(newRelease.PublishedAt.Time) {
 			// do not notify Homebrew users before the version bump had a chance to get merged into homebrew-core
 			return exitOK
 		}
 		fmt.Fprintf(stderr, "\n\n%s %s → %s\n",
 			ansi.Color("A new release of kittycad is available:", "yellow"),
 			ansi.Color(version.VERSION, "cyan"),
-			ansi.Color(newRelease.Version, "cyan"))
+			ansi.Color(*newRelease.TagName, "cyan"))
 		if isHomebrew {
 			fmt.Fprintf(stderr, "To upgrade, run: %s\n", "brew update && brew upgrade kittycad")
 		}
 		fmt.Fprintf(stderr, "%s\n\n",
-			ansi.Color(newRelease.URL, "yellow"))
+			ansi.Color(*newRelease.URL, "yellow"))
 	}
 
 	return exitOK
@@ -281,7 +278,7 @@ func isCI() bool {
 		os.Getenv("RUN_ID") != "" // TaskCluster, dsari
 }
 
-func checkForUpdate(ctx context.Context, currentVersion string) (*update.ReleaseInfo, error) {
+func checkForUpdate(ctx context.Context, currentVersion string) (*github.RepositoryRelease, error) {
 	if !shouldCheckForUpdate() {
 		return nil, nil
 	}
