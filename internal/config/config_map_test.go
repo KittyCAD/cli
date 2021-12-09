@@ -37,7 +37,7 @@ func TestFindEntry(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		cm := ConfigMap{Root: testYaml()}
+		cm := Map{Root: testYaml()}
 		t.Run(tt.name, func(t *testing.T) {
 			out, err := cm.FindEntry(tt.key)
 			if tt.wantErr {
@@ -51,7 +51,7 @@ func TestFindEntry(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
-	cm := ConfigMap{}
+	cm := Map{}
 	assert.Equal(t, true, cm.Empty())
 	cm.Root = &yaml.Node{
 		Content: []*yaml.Node{
@@ -88,7 +88,7 @@ func TestGetStringValue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		cm := ConfigMap{Root: testYaml()}
+		cm := Map{Root: testYaml()}
 		t.Run(tt.name, func(t *testing.T) {
 			val, err := cm.GetStringValue(tt.key)
 			if tt.wantErr {
@@ -129,7 +129,7 @@ func TestSetStringValue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		cm := ConfigMap{Root: testYaml()}
+		cm := Map{Root: testYaml()}
 		t.Run(tt.name, func(t *testing.T) {
 			err := cm.SetStringValue(tt.key, tt.value)
 			assert.NoError(t, err)
@@ -164,7 +164,7 @@ func TestRemoveEntry(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		cm := ConfigMap{Root: testYaml()}
+		cm := Map{Root: testYaml()}
 		t.Run(tt.name, func(t *testing.T) {
 			cm.RemoveEntry(tt.key)
 			assert.Equal(t, tt.wantLength, len(cm.Root.Content))

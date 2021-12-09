@@ -174,7 +174,7 @@ func Test_ConfigDir(t *testing.T) {
 			// which gets run when target directory does not exist
 			_ = os.MkdirAll(tt.output, 0755)
 
-			assert.Equal(t, tt.output, ConfigDir())
+			assert.Equal(t, tt.output, Dir())
 		})
 	}
 }

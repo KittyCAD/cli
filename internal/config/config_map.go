@@ -6,28 +6,32 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// This type implements a low-level get/set config that is backed by an in-memory tree of yaml
+// Map implements a low-level get/set config that is backed by an in-memory tree of yaml
 // nodes. It allows us to interact with a yaml-based config programmatically, preserving any
 // comments that were present when the yaml was parsed.
-type ConfigMap struct {
+type Map struct {
 	Root *yaml.Node
 }
 
-type ConfigEntry struct {
+// Entry represents a single entry in a Map.
+type Entry struct {
 	KeyNode   *yaml.Node
 	ValueNode *yaml.Node
 	Index     int
 }
 
+// NotFoundError is returned when a key is not found in a Map.
 type NotFoundError struct {
 	error
 }
 
-func (cm *ConfigMap) Empty() bool {
+// Empty returns true if the Map is empty.
+func (cm *Map) Empty() bool {
 	return cm.Root == nil || len(cm.Root.Content) == 0
 }
 
-func (cm *ConfigMap) GetStringValue(key string) (string, error) {
+// GetStringValue returns the value of the given key as a string.
+func (cm *Map) GetStringValue(key string) (string, error) {
 	entry, err := cm.FindEntry(key)
 	if err != nil {
 		return "", err
@@ -35,7 +39,8 @@ func (cm *ConfigMap) GetStringValue(key string) (string, error) {
 	return entry.ValueNode.Value, nil
 }
 
-func (cm *ConfigMap) SetStringValue(key, value string) error {
+// SetStringValue sets the value of the given key to the given string.
+func (cm *Map) SetStringValue(key, value string) error {
 	entry, err := cm.FindEntry(key)
 	if err == nil {
 		entry.ValueNode.Value = value
@@ -61,8 +66,9 @@ func (cm *ConfigMap) SetStringValue(key, value string) error {
 	return nil
 }
 
-func (cm *ConfigMap) FindEntry(key string) (*ConfigEntry, error) {
-	ce := &ConfigEntry{}
+// FindEntry returns the Entry for the given key.
+func (cm *Map) FindEntry(key string) (*Entry, error) {
+	ce := &Entry{}
 
 	if cm.Empty() {
 		return ce, &NotFoundError{errors.New("not found")}
@@ -88,7 +94,8 @@ func (cm *ConfigMap) FindEntry(key string) (*ConfigEntry, error) {
 	return ce, &NotFoundError{errors.New("not found")}
 }
 
-func (cm *ConfigMap) RemoveEntry(key string) {
+// RemoveEntry removes the entry with the given key.
+func (cm *Map) RemoveEntry(key string) {
 	if cm.Empty() {
 		return
 	}

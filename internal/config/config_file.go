@@ -32,13 +32,13 @@ const (
 	LocalAppData = "LocalAppData"
 )
 
-// ConfigDir returns the path to the config directory.
+// Dir returns the path to the config directory.
 // Config path precedence
 // 1. KITTYCAD_CONFIG_DIR
 // 2. XDG_CONFIG_HOME
 // 3. AppData (windows only)
 // 4. HOME
-func ConfigDir() string {
+func Dir() string {
 	var path string
 	if a := os.Getenv(KittyCADConfigDir); a != "" {
 		path = a
@@ -167,19 +167,19 @@ func fileExists(path string) bool {
 	return err == nil && !f.IsDir()
 }
 
-// ConfigFile returns the path to the config file.
-func ConfigFile() string {
-	return filepath.Join(ConfigDir(), "config.yml")
+// File returns the path to the config file.
+func File() string {
+	return filepath.Join(Dir(), "config.yml")
 }
 
 // HostsConfigFile returns the path to the hosts config file.
 func HostsConfigFile() string {
-	return filepath.Join(ConfigDir(), "hosts.yml")
+	return filepath.Join(Dir(), "hosts.yml")
 }
 
 // ParseDefaultConfig parses the default config file.
 func ParseDefaultConfig() (Config, error) {
-	return parseConfig(ConfigFile())
+	return parseConfig(File())
 }
 
 // HomeDirPath returns the path to the home directory.

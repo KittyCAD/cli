@@ -100,7 +100,7 @@ func ValidateValue(key, value string) error {
 // NewConfig initializes a Config from a yaml node.
 func NewConfig(root *yaml.Node) Config {
 	return &fileConfig{
-		ConfigMap:    ConfigMap{Root: root.Content[0]},
+		Map:          Map{Root: root.Content[0]},
 		documentRoot: root,
 	}
 }

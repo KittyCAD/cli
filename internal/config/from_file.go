@@ -12,17 +12,17 @@ import (
 
 // This type implements a Config interface and represents a config file on disk.
 type fileConfig struct {
-	ConfigMap
+	Map
 	documentRoot *yaml.Node
 }
 
 type HostConfig struct {
-	ConfigMap
+	Map
 	Host string
 }
 
 func (c *fileConfig) Root() *yaml.Node {
-	return c.ConfigMap.Root
+	return c.Map.Root
 }
 
 func (c *fileConfig) Get(hostname, key string) (string, error) {
@@ -52,7 +52,7 @@ func (c *fileConfig) GetWithSource(hostname, key string) (string, string, error)
 		}
 	}
 
-	defaultSource := ConfigFile()
+	defaultSource := File()
 
 	value, err := c.GetStringValue(key)
 
@@ -96,7 +96,7 @@ func (c *fileConfig) UnsetHost(hostname string) {
 		return
 	}
 
-	cm := ConfigMap{hostsEntry.ValueNode}
+	cm := Map{hostsEntry.ValueNode}
 	cm.RemoveEntry(hostname)
 }
 
@@ -137,7 +137,7 @@ func (c *fileConfig) Write() error {
 		return err
 	}
 
-	filename := ConfigFile()
+	filename := File()
 	err = WriteConfigFile(filename, yamlNormalize(mainBytes))
 	if err != nil {
 		return err
@@ -200,8 +200,8 @@ func (c *fileConfig) Aliases() (*AliasConfig, error) {
 	}
 
 	return &AliasConfig{
-		Parent:    c,
-		ConfigMap: ConfigMap{Root: valueNode},
+		Parent: c,
+		Map:    Map{Root: valueNode},
 	}, nil
 }
 
@@ -253,8 +253,8 @@ func (c *fileConfig) DefaultHostWithSource() (string, string, error) {
 func (c *fileConfig) makeConfigForHost(hostname string) *HostConfig {
 	hostRoot := &yaml.Node{Kind: yaml.MappingNode}
 	hostCfg := &HostConfig{
-		Host:      hostname,
-		ConfigMap: ConfigMap{Root: hostRoot},
+		Host: hostname,
+		Map:  Map{Root: hostRoot},
 	}
 
 	var notFound *NotFoundError
@@ -287,8 +287,8 @@ func (c *fileConfig) parseHosts(hostsEntry *yaml.Node) ([]*HostConfig, error) {
 		hostname := hostsEntry.Content[i].Value
 		hostRoot := hostsEntry.Content[i+1]
 		hostConfig := HostConfig{
-			ConfigMap: ConfigMap{Root: hostRoot},
-			Host:      hostname,
+			Map:  Map{Root: hostRoot},
+			Host: hostname,
 		}
 		hostConfigs = append(hostConfigs, &hostConfig)
 	}

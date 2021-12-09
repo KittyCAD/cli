@@ -6,7 +6,7 @@ import (
 
 // AliasConfig is a config file that stores aliases.
 type AliasConfig struct {
-	ConfigMap
+	Map
 	Parent Config
 }
 
