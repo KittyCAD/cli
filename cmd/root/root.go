@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdRoot creates the root command and its nested children.
 func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kittycad <command> <subcommand> [flags]",

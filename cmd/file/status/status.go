@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdStatus returns a new instance of the status command.
 func NewCmdStatus(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status <id>",

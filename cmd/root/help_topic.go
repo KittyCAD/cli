@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// HelpTopics is a map of help topics to their short and long descriptions.
 var HelpTopics = map[string]map[string]string{
 	"mintty": {
 		"short": "Information about using kittycad with MinTTY",
@@ -94,6 +95,7 @@ var HelpTopics = map[string]map[string]string{
 	},
 }
 
+// NewHelpTopic returns a new help topic for the given topic name.
 func NewHelpTopic(topic string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     topic,

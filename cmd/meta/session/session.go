@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdSession returns a new instance of the session command.
 func NewCmdSession(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "session",

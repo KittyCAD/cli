@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdConvert creates a new cobra.Command for the convert subcommand.
 func NewCmdConvert(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "convert",

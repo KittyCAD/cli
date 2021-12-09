@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdInstance returns a new instance command.
 func NewCmdInstance(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "instance",

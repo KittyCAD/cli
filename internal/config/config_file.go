@@ -13,56 +13,67 @@ import (
 )
 
 const (
-	KITTYCAD_CONFIG_DIR    = "KITTYCAD_CONFIG_DIR"
-	KITTYCAD_SHORTHAND_DIR = "kittycad"
-	KITTYCAD_WINDOWS_DIR   = "KittyCAD CLI"
-	XDG_CONFIG_HOME        = "XDG_CONFIG_HOME"
-	XDG_STATE_HOME         = "XDG_STATE_HOME"
-	XDG_DATA_HOME          = "XDG_DATA_HOME"
-	APP_DATA               = "AppData"
-	LOCAL_APP_DATA         = "LocalAppData"
+	// KittyCADConfigDir is the environment variable that can be used to override
+	// the default config directory.
+	KittyCADConfigDir = "KITTYCAD_CONFIG_DIR"
+	// KittyCADShorthandDir is the directory name used for the config and state.
+	KittyCADShorthandDir = "kittycad"
+	// KittyCADWindowsDir is the directory name used for the config and state on Windows.`
+	KittyCADWindowsDir = "KittyCAD CLI"
+	// XDGConfigHome is the environment variable for the XDG_CONFIG_HOME.
+	XDGConfigHome = "XDG_CONFIG_HOME"
+	// XDGStateHome is the environment variable for the XDG_STATE_HOME.
+	XDGStateHome = "XDG_STATE_HOME"
+	// XDGDataHome is the environment variable for the XDG_DATA_HOME.
+	XDGDataHome = "XDG_DATA_HOME"
+	// AppData is the directory for AppData on Windows.
+	AppData = "AppData"
+	// LocalAppData is the directory for LocalAppData on Windows.
+	LocalAppData = "LocalAppData"
 )
 
+// ConfigDir returns the path to the config directory.
 // Config path precedence
-// 1. GH_CONFIG_DIR
+// 1. KITTYCAD_CONFIG_DIR
 // 2. XDG_CONFIG_HOME
 // 3. AppData (windows only)
 // 4. HOME
 func ConfigDir() string {
 	var path string
-	if a := os.Getenv(KITTYCAD_CONFIG_DIR); a != "" {
+	if a := os.Getenv(KittyCADConfigDir); a != "" {
 		path = a
-	} else if b := os.Getenv(XDG_CONFIG_HOME); b != "" {
-		path = filepath.Join(b, KITTYCAD_SHORTHAND_DIR)
-	} else if c := os.Getenv(APP_DATA); runtime.GOOS == "windows" && c != "" {
-		path = filepath.Join(c, KITTYCAD_WINDOWS_DIR)
+	} else if b := os.Getenv(XDGConfigHome); b != "" {
+		path = filepath.Join(b, KittyCADShorthandDir)
+	} else if c := os.Getenv(AppData); runtime.GOOS == "windows" && c != "" {
+		path = filepath.Join(c, KittyCADWindowsDir)
 	} else {
 		d, _ := os.UserHomeDir()
-		path = filepath.Join(d, ".config", KITTYCAD_SHORTHAND_DIR)
+		path = filepath.Join(d, ".config", KittyCADShorthandDir)
 	}
 
-	// If the path does not exist and the GH_CONFIG_DIR flag is not set try
+	// If the path does not exist and the KITTYCAD_CONFIG_DIR flag is not set try
 	// migrating config from default paths.
-	if !dirExists(path) && os.Getenv(KITTYCAD_CONFIG_DIR) == "" {
+	if !dirExists(path) && os.Getenv(KittyCADConfigDir) == "" {
 		_ = autoMigrateConfigDir(path)
 	}
 
 	return path
 }
 
+// StateDir returns the path to the state directory.
 // State path precedence
 // 1. XDG_CONFIG_HOME
 // 2. LocalAppData (windows only)
 // 3. HOME
 func StateDir() string {
 	var path string
-	if a := os.Getenv(XDG_STATE_HOME); a != "" {
-		path = filepath.Join(a, KITTYCAD_SHORTHAND_DIR)
-	} else if b := os.Getenv(LOCAL_APP_DATA); runtime.GOOS == "windows" && b != "" {
-		path = filepath.Join(b, KITTYCAD_WINDOWS_DIR)
+	if a := os.Getenv(XDGStateHome); a != "" {
+		path = filepath.Join(a, KittyCADShorthandDir)
+	} else if b := os.Getenv(LocalAppData); runtime.GOOS == "windows" && b != "" {
+		path = filepath.Join(b, KittyCADWindowsDir)
 	} else {
 		c, _ := os.UserHomeDir()
-		path = filepath.Join(c, ".local", "state", KITTYCAD_SHORTHAND_DIR)
+		path = filepath.Join(c, ".local", "state", KittyCADShorthandDir)
 	}
 
 	// If the path does not exist try migrating state from default paths
@@ -73,19 +84,20 @@ func StateDir() string {
 	return path
 }
 
+// DataDir returns the path to the data directory.
 // Data path precedence
 // 1. XDG_DATA_HOME
 // 2. LocalAppData (windows only)
 // 3. HOME
 func DataDir() string {
 	var path string
-	if a := os.Getenv(XDG_DATA_HOME); a != "" {
-		path = filepath.Join(a, KITTYCAD_SHORTHAND_DIR)
-	} else if b := os.Getenv(LOCAL_APP_DATA); runtime.GOOS == "windows" && b != "" {
-		path = filepath.Join(b, KITTYCAD_WINDOWS_DIR)
+	if a := os.Getenv(XDGDataHome); a != "" {
+		path = filepath.Join(a, KittyCADShorthandDir)
+	} else if b := os.Getenv(LocalAppData); runtime.GOOS == "windows" && b != "" {
+		path = filepath.Join(b, KittyCADWindowsDir)
 	} else {
 		c, _ := os.UserHomeDir()
-		path = filepath.Join(c, ".local", "share", KITTYCAD_SHORTHAND_DIR)
+		path = filepath.Join(c, ".local", "share", KittyCADShorthandDir)
 	}
 
 	return path
@@ -95,10 +107,10 @@ var errSamePath = errors.New("same path")
 var errNotExist = errors.New("not exist")
 
 // Check default path, os.UserHomeDir, for existing configs
-// If configs exist then move them to newPath
+// If configs exist then move them to newPath.
 func autoMigrateConfigDir(newPath string) error {
 	path, err := os.UserHomeDir()
-	if oldPath := filepath.Join(path, ".config", KITTYCAD_SHORTHAND_DIR); err == nil && dirExists(oldPath) {
+	if oldPath := filepath.Join(path, ".config", KittyCADShorthandDir); err == nil && dirExists(oldPath) {
 		return migrateDir(oldPath, newPath)
 	}
 
@@ -109,7 +121,7 @@ func autoMigrateConfigDir(newPath string) error {
 // If state file exist then move it to newPath
 func autoMigrateStateDir(newPath string) error {
 	path, err := os.UserHomeDir()
-	if oldPath := filepath.Join(path, ".config", KITTYCAD_SHORTHAND_DIR); err == nil && dirExists(oldPath) {
+	if oldPath := filepath.Join(path, ".config", KittyCADShorthandDir); err == nil && dirExists(oldPath) {
 		return migrateFile(oldPath, newPath, "state.yml")
 	}
 
@@ -155,18 +167,22 @@ func fileExists(path string) bool {
 	return err == nil && !f.IsDir()
 }
 
+// ConfigFile returns the path to the config file.
 func ConfigFile() string {
 	return filepath.Join(ConfigDir(), "config.yml")
 }
 
+// HostsConfigFile returns the path to the hosts config file.
 func HostsConfigFile() string {
 	return filepath.Join(ConfigDir(), "hosts.yml")
 }
 
+// ParseDefaultConfig parses the default config file.
 func ParseDefaultConfig() (Config, error) {
 	return parseConfig(ConfigFile())
 }
 
+// HomeDirPath returns the path to the home directory.
 func HomeDirPath(subdir string) (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -177,6 +193,7 @@ func HomeDirPath(subdir string) (string, error) {
 	return newPath, nil
 }
 
+// ReadConfigFile reads the config file.
 var ReadConfigFile = func(filename string) ([]byte, error) {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -192,6 +209,7 @@ var ReadConfigFile = func(filename string) ([]byte, error) {
 	return data, nil
 }
 
+// WriteConfigFile writes the config file.
 var WriteConfigFile = func(filename string, data []byte) error {
 	err := os.MkdirAll(filepath.Dir(filename), 0771)
 	if err != nil {
@@ -208,6 +226,7 @@ var WriteConfigFile = func(filename string, data []byte) error {
 	return err
 }
 
+// BackupConfigFile backs up the config file.
 var BackupConfigFile = func(filename string) error {
 	return os.Rename(filename, filename+".bak")
 }

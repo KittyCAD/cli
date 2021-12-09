@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdVersion creates a new cobra.Command for `kittycad version`.
 func NewCmdVersion(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "version",
@@ -25,6 +26,7 @@ func NewCmdVersion(cli *cli.CLI) *cobra.Command {
 	return cmd
 }
 
+// Format formats the version information.
 func Format(version, gitHash string) string {
 	version = strings.TrimPrefix(version, "v")
 

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdMeta returns a new instance of the meta command.
 func NewCmdMeta(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "meta <command>",

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdFile returns a new instance of the file command.
 func NewCmdFile(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "file <command>",

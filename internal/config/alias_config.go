@@ -4,11 +4,13 @@ import (
 	"fmt"
 )
 
+// AliasConfig is a config file that stores aliases.
 type AliasConfig struct {
 	ConfigMap
 	Parent Config
 }
 
+// Get returns the expansion of the alias.
 func (a *AliasConfig) Get(alias string) (string, bool) {
 	if a.Empty() {
 		return "", false
@@ -18,6 +20,7 @@ func (a *AliasConfig) Get(alias string) (string, bool) {
 	return value, value != ""
 }
 
+// Add adds an alias to the config.
 func (a *AliasConfig) Add(alias, expansion string) error {
 	err := a.SetStringValue(alias, expansion)
 	if err != nil {
@@ -32,6 +35,7 @@ func (a *AliasConfig) Add(alias, expansion string) error {
 	return nil
 }
 
+// Delete deletes an alias from the config.
 func (a *AliasConfig) Delete(alias string) error {
 	a.RemoveEntry(alias)
 
@@ -43,6 +47,7 @@ func (a *AliasConfig) Delete(alias string) error {
 	return nil
 }
 
+// All returns all aliases in the config.
 func (a *AliasConfig) All() map[string]string {
 	out := map[string]string{}
 

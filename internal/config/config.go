@@ -6,7 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// This interface describes interacting with some persistent configuration for gh.
+// Config is the interface for a configuration file.
 type Config interface {
 	Get(string, string) (string, error)
 	GetWithSource(string, string) (string, string, error)
@@ -20,14 +20,15 @@ type Config interface {
 	Write() error
 }
 
-type ConfigOption struct {
+// Option is a configuration option.
+type Option struct {
 	Key           string
 	Description   string
 	DefaultValue  string
 	AllowedValues []string
 }
 
-var configOptions = []ConfigOption{
+var configOptions = []Option{
 	{
 		Key:           "prompt",
 		Description:   "toggle interactive prompting in the terminal",
@@ -46,10 +47,12 @@ var configOptions = []ConfigOption{
 	},
 }
 
-func ConfigOptions() []ConfigOption {
+// Options returns a list of all config options.
+func Options() []Option {
 	return configOptions
 }
 
+// ValidateKey validates a key.
 func ValidateKey(key string) error {
 	for _, configKey := range configOptions {
 		if key == configKey.Key {
@@ -60,14 +63,17 @@ func ValidateKey(key string) error {
 	return fmt.Errorf("invalid key")
 }
 
+// InvalidValueError is an error that occurs when a value is not valid for a key.
 type InvalidValueError struct {
 	ValidValues []string
 }
 
+// Error implements the error interface.
 func (e InvalidValueError) Error() string {
 	return "invalid value"
 }
 
+// ValidateValue validates a value for a key.
 func ValidateValue(key, value string) error {
 	var validValues []string
 
@@ -91,6 +97,7 @@ func ValidateValue(key, value string) error {
 	return &InvalidValueError{ValidValues: validValues}
 }
 
+// NewConfig initializes a Config from a yaml node.
 func NewConfig(root *yaml.Node) Config {
 	return &fileConfig{
 		ConfigMap:    ConfigMap{Root: root.Content[0]},
@@ -98,7 +105,7 @@ func NewConfig(root *yaml.Node) Config {
 	}
 }
 
-// NewFromString initializes a Config from a yaml string
+// NewFromString initializes a Config from a yaml string.
 func NewFromString(str string) Config {
 	root, err := parseConfigData([]byte(str))
 	if err != nil {
@@ -107,11 +114,12 @@ func NewFromString(str string) Config {
 	return NewConfig(root)
 }
 
-// NewBlankConfig initializes a config file pre-populated with comments and default values
+// NewBlankConfig initializes a config file pre-populated with comments and default values.
 func NewBlankConfig() Config {
 	return NewConfig(NewBlankRoot())
 }
 
+// NewBlankRoot initializes a config file pre-populated with comments and default values.
 func NewBlankRoot() *yaml.Node {
 	return &yaml.Node{
 		Kind: yaml.DocumentNode,
