@@ -7,7 +7,6 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
-	"github.com/cli/cli/v2/test"
 	"github.com/google/shlex"
 	"github.com/kittycad/cli/internal/config"
 	"github.com/kittycad/cli/pkg/cli"
@@ -16,7 +15,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func runCommand(cfg config.Config, isTTY bool, cmdline string, in string) (*test.CmdOut, error) {
+type CmdOut struct {
+	OutBuf     *bytes.Buffer
+	ErrBuf     *bytes.Buffer
+	BrowsedURL string
+}
+
+func (c CmdOut) String() string {
+	return c.OutBuf.String()
+}
+
+func (c CmdOut) Stderr() string {
+	return c.ErrBuf.String()
+}
+
+func runCommand(cfg config.Config, isTTY bool, cmdline string, in string) (*CmdOut, error) {
 	io, stdin, stdout, stderr := iostreams.Test()
 	io.SetStdoutTTY(isTTY)
 	io.SetStdinTTY(isTTY)
@@ -55,7 +68,7 @@ func runCommand(cfg config.Config, isTTY bool, cmdline string, in string) (*test
 	rootCmd.SetErr(ioutil.Discard)
 
 	_, err = rootCmd.ExecuteC()
-	return &test.CmdOut{
+	return &CmdOut{
 		OutBuf: stdout,
 		ErrBuf: stderr,
 	}, err
@@ -85,11 +98,7 @@ func TestAliasSet_empty_aliases(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	//lint:ignore SA1019 prefer using assert.EqualError over ExpectLines
-	test.ExpectLines(t, output.Stderr(), "Added alias")
-
-	//lint:ignore SA1019 prefer using assert.EqualError over ExpectLines
-	test.ExpectLines(t, output.String(), "")
+	assert.Equal(t, output.Stderr(), "- Adding alias for fc: file convert\n✓ Added alias.\n")
 
 	expected := `aliases:
     fc: file convert
@@ -110,6 +119,5 @@ func TestAliasSet_existing_alias(t *testing.T) {
 	output, err := runCommand(cfg, true, "mi 'meta instance'", "")
 	require.NoError(t, err)
 
-	//lint:ignore SA1019 prefer using assert.EqualError over ExpectLines
-	test.ExpectLines(t, output.Stderr(), "Changed alias.*mi.*from.*meta session.*to.*meta instance")
+	assert.Equal(t, output.Stderr(), "- Adding alias for mi: meta instance\n✓ Changed alias mi from meta session to meta instance\n")
 }
