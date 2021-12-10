@@ -108,7 +108,7 @@ func statusRun(opts *Options) error {
 		}
 
 		// Let the user know if their token is invalid.
-		if !session.IsValid {
+		if !*session.IsValid {
 			addMsg("%s Logged in to %s as %s (%s) with an invalid token", cs.Red("X"), hostname, cs.Bold(*session.UserId), tokenSource)
 			failed = true
 			continue
