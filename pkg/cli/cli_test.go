@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-playground/assert/v2"
 	"github.com/kittycad/cli/internal/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_ioStreams_pager(t *testing.T) {

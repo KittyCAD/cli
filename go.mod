@@ -10,7 +10,6 @@ require (
 	github.com/cli/safeexec v1.0.0
 	github.com/deepmap/oapi-codegen v1.9.0
 	github.com/docker/go-units v0.4.0
-	github.com/go-playground/assert/v2 v2.0.1
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-version v1.3.0

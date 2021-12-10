@@ -85,6 +85,7 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 				opts.OutputFile = args[1]
 			}
 
+			// Check that the file exists.
 			b, err := cmdutil.ReadFile(opts.InputFileArg, opts.IO.In)
 			if err != nil {
 				return err
