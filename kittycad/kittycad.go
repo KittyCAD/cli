@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
 
 const (
@@ -60,6 +61,9 @@ const (
 type AuthSession struct {
 	// The date and time the session/request was created.
 	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// The user's email address.
+	Email *openapi_types.Email `json:"email,omitempty"`
 
 	// The id of the session.
 	Id *string `json:"id,omitempty"`
@@ -1008,6 +1012,9 @@ func (c *Client) FileConversionByID(ctx context.Context, id string) (*FileConver
 		return nil, err
 	}
 	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, c.RequestEditors); err != nil {
+		return nil, err
+	}
 	ogrsp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1075,6 +1082,9 @@ func (c *Client) FileConvertWithBody(ctx context.Context, sourceFormat ValidFile
 		return nil, err
 	}
 	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, c.RequestEditors); err != nil {
+		return nil, err
+	}
 	ogrsp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1134,6 +1144,9 @@ func (c *Client) Ping(ctx context.Context) (*Message, error) {
 		return nil, err
 	}
 	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, c.RequestEditors); err != nil {
+		return nil, err
+	}
 	ogrsp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
