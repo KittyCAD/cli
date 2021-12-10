@@ -3,7 +3,6 @@ package meta
 import (
 	"github.com/MakeNowJust/heredoc"
 	cmdInstance "github.com/kittycad/cli/cmd/meta/instance"
-	cmdSession "github.com/kittycad/cli/cmd/meta/session"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +23,6 @@ func NewCmdMeta(cli *cli.CLI) *cobra.Command {
 	}
 
 	cmd.AddCommand(cmdInstance.NewCmdInstance(cli))
-	cmd.AddCommand(cmdSession.NewCmdSession(cli))
 
 	return cmd
 }
