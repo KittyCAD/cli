@@ -19,7 +19,7 @@ jobs:
           project_id: kittycadapi
       - uses: actions/setup-go@v2
         with:
-          stable: 'true'
+          go-version: '1.17.x'
       - name: make release
         shell: bash
         run: |
