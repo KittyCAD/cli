@@ -102,7 +102,7 @@ func NewCmdLogin(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "The hostname of the GitHub instance to authenticate with")
+	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "The hostname of the KittyCAD instance to authenticate with")
 	cmd.Flags().BoolVar(&tokenStdin, "with-token", false, "Read token from standard input")
 	//TODO: support auth through browser
 	//cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open a browser to authenticate")

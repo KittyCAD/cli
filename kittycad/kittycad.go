@@ -900,6 +900,9 @@ func (c *Client) MetaDebugInstance(ctx context.Context) (*InstanceMetadata, erro
 		return nil, err
 	}
 	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, c.RequestEditors); err != nil {
+		return nil, err
+	}
 	ogrsp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
@@ -951,6 +954,9 @@ func (c *Client) MetaDebugSession(ctx context.Context) (*AuthSession, error) {
 		return nil, err
 	}
 	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, c.RequestEditors); err != nil {
+		return nil, err
+	}
 	ogrsp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err

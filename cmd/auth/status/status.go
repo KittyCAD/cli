@@ -106,6 +106,7 @@ func statusRun(opts *Options) error {
 		if err != nil {
 			addMsg("%s %s: api call failed: %s", cs.Red("X"), hostname, err)
 		}
+
 		// TODO: get the user's email in the session.
 		addMsg("%s Logged in to %s as %s (%s)", cs.SuccessIcon(), hostname, cs.Bold(*session.UserId), tokenSource)
 		tokenDisplay := "*******************"
