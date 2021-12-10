@@ -94,6 +94,7 @@ func NewCmdLogin(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			}
 
 			opts.MainExecutable = cli.Executable()
+
 			if runF != nil {
 				return runF(opts)
 			}

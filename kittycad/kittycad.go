@@ -859,7 +859,7 @@ func parseFileConvertResponse(rsp *http.Response) (*FileConvertResponse, error) 
 		}
 		response.JSON403 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 406:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json"):
 		var dest ErrorMessage
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -913,7 +913,7 @@ func (c *Client) MetaDebugInstance(ctx context.Context) (*InstanceMetadata, erro
 	}
 	rsp, err := parseMetaDebugInstanceResponse(ogrsp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing response failed: %v", err)
 	}
 	// Check if the type we want to return is null.
 	if rsp.JSON200 == nil {
@@ -942,10 +942,14 @@ func (c *Client) MetaDebugInstance(ctx context.Context) (*InstanceMetadata, erro
 			}
 		}
 
+		b, err := ioutil.ReadAll(rsp.HTTPResponse.Body)
+		if err != nil {
+			return nil, fmt.Errorf("reading body failed: %w", err)
+		}
 		return nil, HTTPError{
 			StatusCode: ogrsp.StatusCode,
 			RequestURL: ogrsp.Request.URL,
-			Message:    fmt.Sprintf("%#v", rsp),
+			Message:    string(b),
 		}
 	}
 	return rsp.JSON200, nil

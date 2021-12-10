@@ -23,8 +23,8 @@ func NewCmdFile(cli *cli.CLI) *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(cmdConvert.NewCmdConvert(cli))
-	cmd.AddCommand(cmdStatus.NewCmdStatus(cli))
+	cmd.AddCommand(cmdConvert.NewCmdConvert(cli, nil))
+	cmd.AddCommand(cmdStatus.NewCmdStatus(cli, nil))
 
 	return cmd
 }

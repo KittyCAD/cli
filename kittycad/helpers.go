@@ -1,6 +1,9 @@
 package kittycad
 
 import (
+	"bytes"
+	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 
@@ -8,14 +11,14 @@ import (
 )
 
 // DefaultServerURL is the default server URL for the KittyCad API.
-const DefaultServerURL = "https://api.kittycad.io"
+const DefaultServerURL = "http://localhost:8080"
 
 // TokenEnvVar is the environment variable that contains the token.
 const TokenEnvVar = "KITTYCAD_API_TOKEN"
 
 // NewClient creates a new client for the KittyCad API.
 // You need to pass in your API token to create the client.
-func NewClient(token string) (*Client, error) {
+func NewClient(token string, opts ...ClientOption) (*Client, error) {
 	if token == "" {
 		return nil, fmt.Errorf("you need to pass in an API token to create the client. Create a token at https://kittycad.io/account")
 	}
@@ -35,11 +38,24 @@ func NewClient(token string) (*Client, error) {
 
 // NewClientFromEnv creates a new client for the KittyCad API, using the token
 // stored in the environment variable `KITTYCAD_API_TOKEN`.
-func NewClientFromEnv() (*Client, error) {
+func NewClientFromEnv(opts ...ClientOption) (*Client, error) {
 	token := os.Getenv(TokenEnvVar)
 	if token == "" {
 		return nil, fmt.Errorf("the environment variable %s must be set with your API token. Create a token at https://kittycad.io/account", TokenEnvVar)
 	}
 
-	return NewClient(token)
+	return NewClient(token, opts...)
+}
+
+// FileConvert converts a file.
+func (c *Client) FileConvert(ctx context.Context, srcFormat string, outputFormat string, body []byte) (*FileConversion, error) {
+	var b bytes.Buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, &b)
+	// Encode the body as base64.
+	encoder.Write(body)
+	// Must close the encoder when finished to flush any partial blocks.
+	// If you comment out the following line, the last partial block "r"
+	// won't be encoded.
+	encoder.Close()
+	return c.FileConvertWithBody(ctx, ValidFileTypes(srcFormat), ValidFileTypes(outputFormat), "application/json", &b)
 }
