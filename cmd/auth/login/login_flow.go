@@ -2,6 +2,7 @@ package login
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -58,11 +59,13 @@ func Flow(opts *FlowOptions) error {
 	// Get the session for the token.
 	session, err := kittycadClient.MetaDebugSession(opts.Context)
 	if err != nil {
-		// TODO: do a better error message here like we did in main.go
+		var httpErr kittycad.HTTPError
+		if errors.As(err, &httpErr) && (httpErr.StatusCode >= 401 && httpErr.StatusCode < 500) {
+			return fmt.Errorf("there was a problem with your token. The HTTP call returned `%d`. %s", httpErr.StatusCode, httpErr.Message)
+		}
 		return err
 	}
 
-	// TODO: return the user's email instead.
-	fmt.Fprintf(opts.IO.ErrOut, "%s Logged in as %s\n", cs.SuccessIcon(), cs.Bold(*session.UserId))
+	fmt.Fprintf(opts.IO.ErrOut, "%s Logged in as %s\n", cs.SuccessIcon(), cs.Bold(string(*session.Email)))
 	return nil
 }

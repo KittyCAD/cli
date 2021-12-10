@@ -133,9 +133,8 @@ func logoutRun(opts *Options) error {
 	}
 
 	usernameStr := ""
-	// TODO: change this to the the user's email address.
-	if *session.UserId != "" {
-		usernameStr = fmt.Sprintf(" account '%s'", *session.UserId)
+	if *session.Email != "" {
+		usernameStr = fmt.Sprintf(" account '%s'", *session.Email)
 	}
 
 	if opts.IO.CanPrompt() {

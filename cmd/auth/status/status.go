@@ -109,13 +109,12 @@ func statusRun(opts *Options) error {
 
 		// Let the user know if their token is invalid.
 		if !*session.IsValid {
-			addMsg("%s Logged in to %s as %s (%s) with an invalid token", cs.Red("X"), hostname, cs.Bold(*session.UserId), tokenSource)
+			addMsg("%s Logged in to %s as %s (%s) with an invalid token", cs.Red("X"), hostname, cs.Bold(string(*session.Email)), tokenSource)
 			failed = true
 			continue
 		}
 
-		// TODO: get the user's email in the session.
-		addMsg("%s Logged in to %s as %s (%s)", cs.SuccessIcon(), hostname, cs.Bold(*session.UserId), tokenSource)
+		addMsg("%s Logged in to %s as %s (%s)", cs.SuccessIcon(), hostname, cs.Bold(string(*session.Email)), tokenSource)
 		tokenDisplay := "*******************"
 		if opts.ShowToken {
 			tokenDisplay = token
