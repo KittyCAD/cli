@@ -48,7 +48,7 @@ func NewClientFromEnv(opts ...ClientOption) (*Client, error) {
 }
 
 // FileConvert converts a file.
-func (c *Client) FileConvert(ctx context.Context, srcFormat string, outputFormat string, body []byte) (*FileConversion, error) {
+func (c *Client) FileConvert(ctx context.Context, srcFormat string, outputFormat string, body []byte) (*FileConversion, []byte, error) {
 	var b bytes.Buffer
 	encoder := base64.NewEncoder(base64.StdEncoding, &b)
 	// Encode the body as base64.
@@ -57,5 +57,20 @@ func (c *Client) FileConvert(ctx context.Context, srcFormat string, outputFormat
 	// If you comment out the following line, the last partial block "r"
 	// won't be encoded.
 	encoder.Close()
-	return c.FileConvertWithBody(ctx, ValidFileTypes(srcFormat), ValidFileTypes(outputFormat), "application/json", &b)
+	resp, err := c.FileConvertWithBody(ctx, ValidFileTypes(srcFormat), ValidFileTypes(outputFormat), "application/json", &b)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if *resp.Output == "" {
+		return resp, nil, nil
+	}
+
+	// Decode the base64 encoded body.
+	output, err := base64.StdEncoding.DecodeString(*resp.Output)
+	if err != nil {
+		return nil, nil, fmt.Errorf("base64 decoding output from API failed: %v", err)
+	}
+
+	return resp, output, nil
 }

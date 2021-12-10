@@ -51,6 +51,7 @@ func NewCmdInstance(cli *cli.CLI) *cobra.Command {
 				This is primarily used for debugging
 				`),
 
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return instanceRun(opts)
 		},

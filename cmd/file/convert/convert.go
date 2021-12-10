@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
+	"github.com/docker/go-units"
 	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
@@ -26,6 +29,7 @@ type Options struct {
 	InputFormat   string
 	InputFileBody []byte
 	OutputFormat  string
+	OutputFile    string
 }
 
 // TODO: use an enum for these and generate them in the go api library.
@@ -46,7 +50,7 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "convert <path>",
+		Use:   "convert <source-filepath> [<output-filepath>]",
 		Short: "Convert CAD file",
 		Long: heredoc.Docf(`
 			Convert a CAD file from one format to another.
@@ -66,10 +70,14 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			# when converting from stdin, the original file type is required
 			$ cat my-obj.obj | kittycad file convert - --output-format step --from obj
 		`),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.InputFileArg = args[0]
+			}
+
+			if len(args) > 1 {
+				opts.OutputFile = args[1]
 			}
 
 			b, err := cmdutil.ReadFile(opts.InputFileArg, opts.IO.In)
@@ -131,15 +139,40 @@ func convertRun(opts *Options) error {
 	}
 
 	// Do the conversion.
-	conversion, err := kittycadClient.FileConvert(opts.Context, opts.InputFormat, opts.OutputFormat, opts.InputFileBody)
+	conversion, output, err := kittycadClient.FileConvert(opts.Context, opts.InputFormat, opts.OutputFormat, opts.InputFileBody)
 	if err != nil {
 		return fmt.Errorf("error converting file: %w", err)
 	}
 
-	// Print the output of the conversion.
-	fmt.Fprintf(opts.IO.Out, "%#v", conversion)
+	// If they specified an output file, write the output to it.
+	if len(output) > 0 && opts.OutputFile != "" {
+		if err := ioutil.WriteFile(opts.OutputFile, output, 0644); err != nil {
+			return fmt.Errorf("error writing output to file `%s`: %w", opts.OutputFile, err)
+		}
+	}
 
-	return nil
+	// Let's get the duration.
+	completedAt := time.Now()
+	if conversion.CompletedAt != nil {
+		completedAt = *conversion.CompletedAt
+	}
+	duration := completedAt.Sub(*conversion.CreatedAt)
+
+	connectedToTerminal := opts.IO.IsStdoutTTY() && opts.IO.IsStderrTTY()
+
+	opts.IO.DetectTerminalTheme()
+
+	err = opts.IO.StartPager()
+	if err != nil {
+		return err
+	}
+	defer opts.IO.StopPager()
+
+	if connectedToTerminal {
+		return printHumanConversion(opts, conversion, output, duration)
+	}
+
+	return printRawConversion(opts, conversion, output, duration)
 }
 
 func contains(s []string, str string) bool {
@@ -150,4 +183,44 @@ func contains(s []string, str string) bool {
 	}
 
 	return false
+}
+
+func printRawConversion(opts *Options, conversion *kittycad.FileConversion, output []byte, duration time.Duration) error {
+	out := opts.IO.Out
+
+	fmt.Fprintf(out, "id:\t\t%s\n", *conversion.Id)
+	fmt.Fprintf(out, "created at:\t%s\n", *conversion.CreatedAt)
+	fmt.Fprintf(out, "completed at:\t%s\n", *conversion.CompletedAt)
+	fmt.Fprintf(out, "duration:\t\t%s\n", units.HumanDuration(duration))
+	fmt.Fprintf(out, "source format:\t%s\n", *conversion.SrcFormat)
+	fmt.Fprintf(out, "output format:\t%s\n", *conversion.OutputFormat)
+	if opts.OutputFile != "" && len(output) > 0 {
+		fmt.Fprintf(out, "output file:\t%s\n", opts.OutputFile)
+	}
+
+	// Write the output to stdout.
+	if len(output) > 0 && opts.OutputFile == "" {
+		out.Write(output)
+	}
+
+	return nil
+}
+
+func printHumanConversion(opts *Options, conversion *kittycad.FileConversion, output []byte, duration time.Duration) error {
+	out := opts.IO.Out
+	cs := opts.IO.ColorScheme()
+
+	// Source -> Output
+	fmt.Fprintf(out, "%s (%s) -> %s\n", opts.InputFileArg, opts.InputFormat, cs.Bold(opts.OutputFormat))
+	if opts.OutputFile != "" && len(output) > 0 {
+		fmt.Fprintf(out, "Output has been saved to %s\n", cs.Bold(opts.OutputFile))
+	}
+	fmt.Fprintf(out, "\nConversion took %s\n\n", units.HumanDuration(duration))
+
+	// Write the output to stdout.
+	if len(output) > 0 && opts.OutputFile == "" {
+		out.Write(output)
+	}
+
+	return nil
 }
