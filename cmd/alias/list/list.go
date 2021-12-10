@@ -6,9 +6,9 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
-	"github.com/cli/cli/v2/utils"
 	"github.com/kittycad/cli/internal/config"
 	"github.com/kittycad/cli/pkg/cli"
+	"github.com/kittycad/cli/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +61,7 @@ func listRun(opts *Options) error {
 		return nil
 	}
 
-	tp := utils.NewTablePrinter(opts.IO)
+	tp := cmdutil.NewTablePrinter(opts.IO)
 
 	aliasMap := aliasCfg.All()
 	keys := []string{}
