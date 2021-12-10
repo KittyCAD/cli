@@ -53,14 +53,14 @@ func TestAliasList(t *testing.T) {
 			io.SetStdinTTY(tt.isTTY)
 			io.SetStderrTTY(tt.isTTY)
 
-			factory := &cli.CLI{
+			c := &cli.CLI{
 				IOStreams: io,
 				Config: func() (config.Config, error) {
 					return cfg, nil
 				},
 			}
 
-			cmd := NewCmdList(factory, nil)
+			cmd := NewCmdList(c, nil)
 			cmd.SetArgs([]string{})
 
 			cmd.SetIn(&bytes.Buffer{})

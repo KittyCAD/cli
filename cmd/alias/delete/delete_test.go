@@ -57,14 +57,14 @@ func TestAliasDelete(t *testing.T) {
 			io.SetStdinTTY(tt.isTTY)
 			io.SetStderrTTY(tt.isTTY)
 
-			factory := &cli.CLI{
+			c := &cli.CLI{
 				IOStreams: io,
 				Config: func() (config.Config, error) {
 					return cfg, nil
 				},
 			}
 
-			cmd := NewCmdDelete(factory, nil)
+			cmd := NewCmdDelete(c, nil)
 
 			argv, err := shlex.Split(tt.cli)
 			require.NoError(t, err)

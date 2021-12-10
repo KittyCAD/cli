@@ -36,14 +36,14 @@ func runCommand(cfg config.Config, isTTY bool, cmdline string, in string) (*CmdO
 	io.SetStderrTTY(isTTY)
 	stdin.WriteString(in)
 
-	factory := &cli.CLI{
+	c := &cli.CLI{
 		IOStreams: io,
 		Config: func() (config.Config, error) {
 			return cfg, nil
 		},
 	}
 
-	cmd := NewCmdSet(factory, nil)
+	cmd := NewCmdSet(c, nil)
 
 	// fake command nesting structure needed for validCommand
 	rootCmd := &cobra.Command{}
