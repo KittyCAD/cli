@@ -21,7 +21,7 @@ type Options struct {
 }
 
 // TODO: Have the spec generate the fields as well as the client.
-var defaultFields = []string{
+var fields = []string{
 	"id",
 	"git_hash",
 	"environment",
@@ -57,7 +57,7 @@ func NewCmdInstance(cli *cli.CLI) *cobra.Command {
 	}
 
 	// TODO: Actually get the JSON flags to work.
-	cmdutil.AddJSONFlags(cmd, &opts.Exporter, defaultFields)
+	cmdutil.AddJSONFlags(cmd, &opts.Exporter, fields)
 
 	return cmd
 }
@@ -99,16 +99,16 @@ func printRawInstance(io *iostreams.IOStreams, instance *kittycad.InstanceMetada
 	out := io.Out
 	cs := io.ColorScheme()
 
-	fmt.Fprintf(out, "id:\t%s\n", *instance.Id)
+	fmt.Fprintf(out, "id:\t\t%s\n", *instance.Id)
 	fmt.Fprintf(out, "git hash:\t%s\n", *instance.GitHash)
 	fmt.Fprintf(out, "environment:\t%s\n", formattedEnvironment(cs, *instance.Environment))
-	fmt.Fprintf(out, "name:\t%s\n", *instance.Name)
+	fmt.Fprintf(out, "name:\t\t%s\n", *instance.Name)
 	if *instance.Description != "" {
 		fmt.Fprintf(out, "description:\t%s\n", *instance.Description)
 	}
 	fmt.Fprintf(out, "ip address:\t%s\n", *instance.IpAddress)
-	fmt.Fprintf(out, "zone:\t%s\n", *instance.Zone)
-	fmt.Fprintf(out, "image:\t%s\n", *instance.Image)
+	fmt.Fprintf(out, "zone:\t\t%s\n", *instance.Zone)
+	fmt.Fprintf(out, "image:\t\t%s\n", *instance.Image)
 	fmt.Fprintf(out, "hostname:\t%s\n", *instance.Hostname)
 	fmt.Fprintf(out, "cpu platform:\t%s\n", *instance.CpuPlatform)
 	fmt.Fprintf(out, "machine type:\t%s\n", *instance.MachineType)
@@ -125,9 +125,9 @@ func printHumanInstance(opts *Options, instance *kittycad.InstanceMetadata) erro
 	if *instance.Description != "" {
 		fmt.Fprintf(out, "%s\n", *instance.Description)
 	}
-	fmt.Fprintf(out, "ip address:\t%s\n", *instance.IpAddress)
-	fmt.Fprintf(out, "zone:\t%s\n", *instance.Zone)
-	fmt.Fprintf(out, "image:\t%s\n", *instance.Image)
+	fmt.Fprintf(out, "\nip address:\t%s\n", *instance.IpAddress)
+	fmt.Fprintf(out, "zone:\t\t%s\n", *instance.Zone)
+	fmt.Fprintf(out, "image:\t\t%s\n", *instance.Image)
 	fmt.Fprintf(out, "hostname:\t%s\n", *instance.Hostname)
 	fmt.Fprintf(out, "cpu platform:\t%s\n", *instance.CpuPlatform)
 	fmt.Fprintf(out, "machine type:\t%s\n", *instance.MachineType)
