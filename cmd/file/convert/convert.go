@@ -36,10 +36,10 @@ type Options struct {
 const (
 	formatSTEP = "step"
 	formatOBJ  = "obj"
-	formatDXF  = "dxf"
+	formatSTL  = "stl"
 )
 
-var validFormats = []string{formatSTEP, formatOBJ, formatDXF}
+var validFormats = []string{formatSTEP, formatOBJ, formatSTL}
 
 // NewCmdConvert creates a new cobra.Command for the convert subcommand.
 func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
@@ -58,17 +58,22 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			If the file being converted is larger than a certain size it will be
 			performed asynchronously, you can then check its status with the
 			%[1]sfile status%[1]s command.
-		`, "`"),
+
+			Valid formats: %[2]s
+		`, "`", strings.Join(validFormats, ", ")),
 		Example: heredoc.Doc(`
-			# convert obj to step
-			$ kittycad file convert  my-obj.obj --output-format step
+			# convert step to obj and save to file
+			$ kittycad file convert my-file.step my-file.obj
 
-			# convert step to obj
-			$ kittycad file convert	 my-step.step -o obj
+			# convert obj to step and print to stdout
+			$ kittycad file convert  my-obj.obj --to step
 
-			# pass a file to convert from stdin
+			# convert step to obj and print to stdout
+			$ kittycad file convert	 my-step.step -t obj
+
+			# pass a file to convert from stdin and print to stdout
 			# when converting from stdin, the original file type is required
-			$ cat my-obj.obj | kittycad file convert - --output-format step --from obj
+			$ cat my-obj.obj | kittycad file convert - --to step --from obj
 		`),
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -86,10 +91,10 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			}
 			opts.InputFileBody = b
 
-			// Get the file extension type for the file.
-			ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(opts.InputFileArg)), ".")
+			// Get the file extension type for the input file.
+			ext := getExtension(opts.InputFileArg)
 			if ext == "" && opts.InputFormat == "" {
-				return errors.New("input file must have an extension or you mut pass the file type with `--from` or `-i`")
+				return errors.New("input file must have an extension or you must pass the file type with `--from` or `-f`")
 			}
 			// Standardize the input format to lowercase.
 			opts.InputFormat = strings.ToLower(opts.InputFormat)
@@ -97,15 +102,36 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			if ext != "" && opts.InputFormat != "" && ext != opts.InputFormat {
 				return fmt.Errorf("input file extension and file type must match, got extension `%s` and input format `%s`", ext, opts.InputFormat)
 			}
-
 			// Set the extension to the input format if it was not set.
 			if opts.InputFormat == "" {
 				opts.InputFormat = ext
 			}
-
 			// Validate the extension is a supported file format.
 			if !contains(validFormats, opts.InputFormat) {
 				return fmt.Errorf("unsupported input file format: `%s`", ext)
+			}
+
+			if opts.OutputFile != "" {
+				// Get the file extension type for the output file.
+				ext = getExtension(opts.OutputFile)
+				if ext == "" && opts.OutputFormat == "" {
+					return errors.New("ouput file must have an extension or you must pass the file type with `--to` or `-t`")
+				}
+				// Standardize the output format to lowercase.
+				opts.OutputFormat = strings.ToLower(opts.OutputFormat)
+				// Ensure the two types match.
+				if ext != "" && opts.OutputFormat != "" && ext != opts.OutputFormat {
+					return fmt.Errorf("output file extension and file type must match, got extension `%s` and output format `%s`", ext, opts.OutputFormat)
+				}
+				// Set the extension to the output format if it was not set.
+				if opts.OutputFormat == "" {
+					opts.OutputFormat = ext
+				}
+			}
+
+			// If we have an output file, ensure the output format is set.
+			if opts.OutputFile != "" && opts.OutputFormat == "" {
+				return errors.New("output file format must be specified with `--output-format` or `-o`")
 			}
 
 			// Validate the output format is a supported file format.
@@ -126,8 +152,8 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.OutputFormat, "output-format", "o", "", "The output format to convert to.")
-	cmd.Flags().StringVarP(&opts.InputFormat, "from", "i", "", "The input format we are converting from (required when the input file is from stdin or lacks a file extension).")
+	cmd.Flags().StringVarP(&opts.OutputFormat, "to", "t", "", "The output format to convert to.")
+	cmd.Flags().StringVarP(&opts.InputFormat, "from", "f", "", "The input format we are converting from (required when the input file is from stdin or lacks a file extension).")
 
 	return cmd
 }
@@ -223,4 +249,8 @@ func printHumanConversion(opts *Options, conversion *kittycad.FileConversion, ou
 	}
 
 	return nil
+}
+
+func getExtension(file string) string {
+	return strings.TrimPrefix(strings.ToLower(filepath.Ext(file)), ".")
 }
