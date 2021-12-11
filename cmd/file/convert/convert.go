@@ -66,10 +66,10 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			$ kittycad file convert my-file.step my-file.obj
 
 			# convert obj to step and print to stdout
-			$ kittycad file convert  my-obj.obj --to step
+			$ kittycad file convert my-obj.obj --to step
 
 			# convert step to obj and print to stdout
-			$ kittycad file convert	 my-step.step -t obj
+			$ kittycad file convert my-step.step -t obj
 
 			# pass a file to convert from stdin and print to stdout
 			# when converting from stdin, the original file type is required
