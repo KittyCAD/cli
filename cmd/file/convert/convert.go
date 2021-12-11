@@ -85,13 +85,6 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 				opts.OutputFile = args[1]
 			}
 
-			// Check that the file exists.
-			b, err := cmdutil.ReadFile(opts.InputFileArg, opts.IO.In)
-			if err != nil {
-				return err
-			}
-			opts.InputFileBody = b
-
 			// Get the file extension type for the input file.
 			ext := getExtension(opts.InputFileArg)
 			if ext == "" && opts.InputFormat == "" {
@@ -116,7 +109,7 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 				// Get the file extension type for the output file.
 				ext = getExtension(opts.OutputFile)
 				if ext == "" && opts.OutputFormat == "" {
-					return errors.New("ouput file must have an extension or you must pass the file type with `--to` or `-t`")
+					return errors.New("output file must have an extension or you must pass the file type with `--to` or `-t`")
 				}
 				// Standardize the output format to lowercase.
 				opts.OutputFormat = strings.ToLower(opts.OutputFormat)
@@ -130,11 +123,6 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 				}
 			}
 
-			// If we have an output file, ensure the output format is set.
-			if opts.OutputFile != "" && opts.OutputFormat == "" {
-				return errors.New("output file format must be specified with `--output-format` or `-o`")
-			}
-
 			// Validate the output format is a supported file format.
 			if !contains(validFormats, opts.OutputFormat) {
 				return fmt.Errorf("unsupported output file format: `%s`", opts.OutputFormat)
@@ -143,6 +131,12 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			if opts.InputFormat == opts.OutputFormat {
 				return fmt.Errorf("input and output file formats must be different, both are: `%s`", opts.InputFormat)
 			}
+
+			b, err := cmdutil.ReadFile(opts.InputFileArg, opts.IO.In)
+			if err != nil {
+				return err
+			}
+			opts.InputFileBody = b
 
 			if runF != nil {
 				return runF(opts)
