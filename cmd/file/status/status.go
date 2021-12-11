@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/kittycad/cli/cmd/file/shared"
 	"github.com/kittycad/cli/kittycad"
@@ -37,7 +38,14 @@ func NewCmdStatus(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 		Use:   "status <id>",
 		Short: "Get a file conversion",
 		Long:  `Get the status of a file conversion`,
-		Args:  cobra.ExactArgs(1),
+
+		Long: heredoc.Docf(`
+			Get the status of a file conversion.
+
+			This only works for file conversions that are being performed
+			asynchronously.
+		`),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.ID = args[0]

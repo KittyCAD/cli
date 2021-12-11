@@ -57,7 +57,7 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 
 			If the file being converted is larger than a certain size it will be
 			performed asynchronously, you can then check its status with the
-			%[1]sfile status%[1]s command.
+			%[1]skittycad file status%[1]s command.
 
 			Valid formats: %[2]s
 		`, "`", strings.Join(validFormats, ", ")),
