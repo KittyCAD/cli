@@ -8,6 +8,7 @@ require (
 	github.com/cli/browser v1.1.0
 	github.com/cli/cli/v2 v2.3.0
 	github.com/cli/safeexec v1.0.0
+	github.com/cpuguy83/go-md2man/v2 v2.0.1
 	github.com/deepmap/oapi-codegen v1.9.0
 	github.com/docker/go-units v0.4.0
 	github.com/google/go-github v17.0.0+incompatible
@@ -46,6 +47,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/yuin/goldmark v1.3.5 // indirect
 	github.com/yuin/goldmark-emoji v1.0.1 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect

@@ -8,6 +8,7 @@ import (
 
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/kittycad/cli/cmd/root"
+	"github.com/kittycad/cli/internal/docs"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/spf13/pflag"
 )
@@ -42,7 +43,7 @@ func run(args []string) error {
 	io, _, _, _ := iostreams.Test()
 	rootCmd := root.NewCmdRoot(&cli.CLI{
 		IOStreams: io,
-	}, "", "")
+	})
 	rootCmd.InitDefaultHelpCmd()
 
 	if err := os.MkdirAll(*dir, 0755); err != nil {
