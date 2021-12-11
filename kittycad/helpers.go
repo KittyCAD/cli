@@ -11,7 +11,7 @@ import (
 )
 
 // DefaultServerURL is the default server URL for the KittyCad API.
-const DefaultServerURL = "http://api.kittycad.io"
+const DefaultServerURL = "https://api.kittycad.io"
 
 // TokenEnvVar is the environment variable that contains the token.
 const TokenEnvVar = "KITTYCAD_API_TOKEN"
