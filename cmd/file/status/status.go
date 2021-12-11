@@ -2,8 +2,12 @@ package status
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"time"
 
 	"github.com/cli/cli/v2/pkg/iostreams"
+	"github.com/kittycad/cli/cmd/file/shared"
 	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/spf13/cobra"
@@ -15,8 +19,10 @@ type Options struct {
 	KittyCADClient func() (*kittycad.Client, error)
 	Context        context.Context
 
-	// Flag options.
 	ID string
+
+	// Flag options.
+	OutputFile string
 }
 
 // NewCmdStatus returns a new instance of the status command.
@@ -41,9 +47,54 @@ func NewCmdStatus(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 				return runF(opts)
 			}
 
-			return nil
+			return statusRun(opts)
 		},
 	}
 
+	cmd.Flags().StringVarP(&opts.OutputFile, "output", "o", "", "The output file path to save the contents to.")
+
 	return cmd
+}
+
+func statusRun(opts *Options) error {
+	kittycadClient, err := opts.KittyCADClient()
+	if err != nil {
+		return err
+	}
+
+	// Do the conversion.
+	conversion, output, err := kittycadClient.FileConversionStatus(opts.Context, opts.ID)
+	if err != nil {
+		return fmt.Errorf("error getting file conversion %s: %w", opts.ID, err)
+	}
+
+	// If they specified an output file, write the output to it.
+	if len(output) > 0 && opts.OutputFile != "" {
+		if err := ioutil.WriteFile(opts.OutputFile, output, 0644); err != nil {
+			return fmt.Errorf("error writing output to file `%s`: %w", opts.OutputFile, err)
+		}
+	}
+
+	// Let's get the duration.
+	completedAt := time.Now()
+	if conversion.CompletedAt != nil {
+		completedAt = *conversion.CompletedAt
+	}
+	duration := completedAt.Sub(*conversion.CreatedAt)
+
+	connectedToTerminal := opts.IO.IsStdoutTTY() && opts.IO.IsStderrTTY()
+
+	opts.IO.DetectTerminalTheme()
+
+	err = opts.IO.StartPager()
+	if err != nil {
+		return err
+	}
+	defer opts.IO.StopPager()
+
+	if connectedToTerminal {
+		return shared.PrintHumanConversion(opts.IO, conversion, output, opts.OutputFile, duration)
+	}
+
+	return shared.PrintRawConversion(opts.IO, conversion, output, opts.OutputFile, duration)
 }

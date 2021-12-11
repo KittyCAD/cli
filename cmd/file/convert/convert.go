@@ -11,7 +11,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
-	"github.com/docker/go-units"
+	"github.com/kittycad/cli/cmd/file/shared"
 	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
@@ -190,10 +190,10 @@ func convertRun(opts *Options) error {
 	defer opts.IO.StopPager()
 
 	if connectedToTerminal {
-		return printHumanConversion(opts, conversion, output, duration)
+		return shared.PrintHumanConversion(opts.IO, conversion, output, opts.OutputFile, duration)
 	}
 
-	return printRawConversion(opts, conversion, output, duration)
+	return shared.PrintRawConversion(opts.IO, conversion, output, opts.OutputFile, duration)
 }
 
 func contains(s []string, str string) bool {
@@ -204,46 +204,6 @@ func contains(s []string, str string) bool {
 	}
 
 	return false
-}
-
-func printRawConversion(opts *Options, conversion *kittycad.FileConversion, output []byte, duration time.Duration) error {
-	out := opts.IO.Out
-
-	fmt.Fprintf(out, "id:\t\t%s\n", *conversion.Id)
-	fmt.Fprintf(out, "created at:\t%s\n", *conversion.CreatedAt)
-	fmt.Fprintf(out, "completed at:\t%s\n", *conversion.CompletedAt)
-	fmt.Fprintf(out, "duration:\t\t%s\n", units.HumanDuration(duration))
-	fmt.Fprintf(out, "source format:\t%s\n", *conversion.SrcFormat)
-	fmt.Fprintf(out, "output format:\t%s\n", *conversion.OutputFormat)
-	if opts.OutputFile != "" && len(output) > 0 {
-		fmt.Fprintf(out, "output file:\t%s\n", opts.OutputFile)
-	}
-
-	// Write the output to stdout.
-	if len(output) > 0 && opts.OutputFile == "" {
-		out.Write(output)
-	}
-
-	return nil
-}
-
-func printHumanConversion(opts *Options, conversion *kittycad.FileConversion, output []byte, duration time.Duration) error {
-	out := opts.IO.Out
-	cs := opts.IO.ColorScheme()
-
-	// Source -> Output
-	fmt.Fprintf(out, "%s (%s) -> %s\n", opts.InputFileArg, opts.InputFormat, cs.Bold(opts.OutputFormat))
-	if opts.OutputFile != "" && len(output) > 0 {
-		fmt.Fprintf(out, "Output has been saved to %s\n", cs.Bold(opts.OutputFile))
-	}
-	fmt.Fprintf(out, "\nConversion took %s\n\n", units.HumanDuration(duration))
-
-	// Write the output to stdout.
-	if len(output) > 0 && opts.OutputFile == "" {
-		out.Write(output)
-	}
-
-	return nil
 }
 
 func getExtension(file string) string {

@@ -74,3 +74,23 @@ func (c *Client) FileConvert(ctx context.Context, srcFormat string, outputFormat
 
 	return resp, output, nil
 }
+
+// FileConversionStatus returns the status of a file conversion.
+func (c *Client) FileConversionStatus(ctx context.Context, id string) (*FileConversion, []byte, error) {
+	resp, err := c.FileConversionByID(ctx, id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if *resp.Output == "" {
+		return resp, nil, nil
+	}
+
+	// Decode the base64 encoded body.
+	output, err := base64.StdEncoding.DecodeString(*resp.Output)
+	if err != nil {
+		return nil, nil, fmt.Errorf("base64 decoding output from API failed: %v", err)
+	}
+
+	return resp, output, nil
+}
