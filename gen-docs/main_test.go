@@ -26,7 +26,7 @@ func Test_run(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error reading `kittycad_file_convert.md`: %v", err)
 	}
-	if !strings.Contains(string(markdownPage), "## `kittycad file convert") {
+	if !strings.Contains(string(markdownPage), "kittycad file convert") {
 		t.Fatal("markdown page corrupted")
 	}
 }

@@ -53,9 +53,9 @@ type flagView struct {
 
 var flagsTemplate = `
 <dl class="flags">{{ range . }}
-	<dt>{{ if .Shorthand }}<code>-{{.Shorthand}}</code>, {{ end -}}
-		<code>--{{.Name}}{{ if .Varname }} &lt;{{.Varname}}&gt;{{ end }}</code></dt>
-	<dd>{{.Usage}}</dd>
+  <dt>{{ if .Shorthand }}<code>-{{.Shorthand}}</code>, {{ end -}}
+    <code>--{{.Name}}{{ if .Varname }} &lt;{{.Varname}}&gt;{{ end }}</code></dt>
+  <dd>{{.Usage}}</dd>
 {{ end }}</dl>
 `
 
@@ -85,8 +85,6 @@ func GenMarkdown(cmd *cobra.Command, w io.Writer) error {
 
 // GenMarkdownCustom creates custom markdown output.
 func GenMarkdownCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string) string) error {
-	fmt.Fprintf(w, "## `%s`\n\n", strings.Replace(cmd.CommandPath(), cmd.Name(), cmd.Use, -1))
-
 	hasLong := cmd.Long != ""
 	if !hasLong {
 		fmt.Fprintf(w, "%s\n\n", cmd.Short)
