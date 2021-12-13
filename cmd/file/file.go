@@ -15,7 +15,10 @@ func NewCmdFile(cli *cli.CLI) *cobra.Command {
 		Short: "CAD file operations",
 		Long:  `Perform operations like conversions on CAD files`,
 		Example: heredoc.Doc(`
-			$ kittycad file convert ./input.dxf --to=dwg
+			# convert a step file to an obj file
+			$ kittycad file convert ./input.step --to=obj
+
+			# get the status of an asynchronous file conversion
 			$ kittycad file status <uuid_of_conversion>
 		`),
 		Annotations: map[string]string{

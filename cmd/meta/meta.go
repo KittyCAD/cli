@@ -15,11 +15,7 @@ func NewCmdMeta(cli *cli.CLI) *cobra.Command {
 		Long:  `Get information about sessions, servers, and instances. This is best used for debugging authentication sessions, etc`,
 		Example: heredoc.Doc(`
 			$ kittycad meta instance
-			$ kittycad meta session
 		`),
-		Annotations: map[string]string{
-			"IsCore": "true",
-		},
 	}
 
 	cmd.AddCommand(cmdInstance.NewCmdInstance(cli))
