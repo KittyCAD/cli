@@ -164,7 +164,7 @@ func rootHelpFunc(cli *cli.CLI, command *cobra.Command, args []string) {
 	}
 	helpEntries = append(helpEntries, helpEntry{"LEARN MORE", `
 Use 'kittycad <command> <subcommand> --help' for more information about a command.
-Read the manual at https://docs.kittycad.io/cli`})
+Read the manual at https://docs.kittycad.io/cli/manual/`})
 	if _, ok := command.Annotations["help:feedback"]; ok {
 		helpEntries = append(helpEntries, helpEntry{"FEEDBACK", command.Annotations["help:feedback"]})
 	}

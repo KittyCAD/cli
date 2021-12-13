@@ -10,6 +10,7 @@ import (
 	"github.com/kittycad/cli/cmd/root"
 	"github.com/kittycad/cli/internal/docs"
 	"github.com/kittycad/cli/pkg/cli"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -71,13 +72,15 @@ func run(args []string) error {
 	return nil
 }
 
-func filePrepender(filename string) string {
-	return `---
+func filePrepender(cmd *cobra.Command, filename string) string {
+	return fmt.Sprintf(`---
+title: %q
+description: %q
 layout: manual
 permalink: /:path/:basename
 ---
 
-`
+`, cmd.CommandPath(), cmd.Short)
 }
 
 func linkHandler(name string) string {

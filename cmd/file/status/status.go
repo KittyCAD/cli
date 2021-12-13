@@ -37,8 +37,6 @@ func NewCmdStatus(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status <id>",
 		Short: "Get a file conversion",
-		Long:  `Get the status of a file conversion`,
-
 		Long: heredoc.Docf(`
 			Get the status of a file conversion.
 

@@ -85,7 +85,7 @@ func GenMarkdown(cmd *cobra.Command, w io.Writer) error {
 
 // GenMarkdownCustom creates custom markdown output.
 func GenMarkdownCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string) string) error {
-	fmt.Fprintf(w, "## %s\n\n", cmd.CommandPath())
+	fmt.Fprintf(w, "## `%s`\n\n", strings.Replace(cmd.CommandPath(), cmd.Name(), cmd.Use, -1))
 
 	hasLong := cmd.Long != ""
 	if !hasLong {
@@ -114,9 +114,9 @@ func GenMarkdownCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string)
 	}
 
 	if len(cmd.Example) > 0 {
-		fmt.Fprint(w, "### Examples\n\n{% highlight bash %}{% raw %}\n")
+		fmt.Fprint(w, "### Examples\n\n```bash\n")
 		fmt.Fprint(w, cmd.Example)
-		fmt.Fprint(w, "{% endraw %}{% endhighlight %}\n\n")
+		fmt.Fprint(w, "```\n\n")
 	}
 
 	if cmd.HasParent() {
@@ -186,13 +186,13 @@ func subcommandGroups(c *cobra.Command) []commandGroup {
 // help output will be in the file `cmd-sub-third.1`.
 func GenMarkdownTree(cmd *cobra.Command, dir string) error {
 	identity := func(s string) string { return s }
-	emptyStr := func(s string) string { return "" }
+	emptyStr := func(cmd *cobra.Command, s string) string { return "" }
 	return GenMarkdownTreeCustom(cmd, dir, emptyStr, identity)
 }
 
 // GenMarkdownTreeCustom is the the same as GenMarkdownTree, but
 // with custom filePrepender and linkHandler.
-func GenMarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string) error {
+func GenMarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender func(*cobra.Command, string) string, linkHandler func(string) string) error {
 	for _, c := range cmd.Commands() {
 		_, forceGeneration := c.Annotations["markdown:generate"]
 		if c.Hidden && !forceGeneration {
@@ -211,7 +211,7 @@ func GenMarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHa
 	}
 	defer f.Close()
 
-	if _, err := io.WriteString(f, filePrepender(filename)); err != nil {
+	if _, err := io.WriteString(f, filePrepender(cmd, filename)); err != nil {
 		return err
 	}
 	if err := GenMarkdownCustom(cmd, f, linkHandler); err != nil {
