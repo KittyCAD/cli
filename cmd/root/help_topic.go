@@ -16,8 +16,6 @@ var HelpTopics = map[string]map[string]string{
 
 			There are a few workarounds to make kittycad work with MinTTY:
 
-			- Reinstall Git for Windows, checking "Enable experimental support for pseudo consoles".
-
 			- Use a different terminal emulator like Windows Terminal.
 			  You can run "C:\Program Files\Git\bin\bash.exe" from any terminal emulator without
 			  MinTTY.
