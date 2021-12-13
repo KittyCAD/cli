@@ -25,7 +25,10 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		Example: heredoc.Doc(`
+			# convert a step file to a dxf file
 			$ kittycad file convert ./button.step --to=dxf
+
+			# get the status of an asynchronous file conversion
 			$ kittycad file status <uuid_of_conversion>
 		`),
 		Annotations: map[string]string{
