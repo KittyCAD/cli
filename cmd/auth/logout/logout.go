@@ -127,14 +127,14 @@ func logoutRun(opts *Options) error {
 		return err
 	}
 
-	session, err := kittycadClient.MetaDebugSession(opts.Context)
+	session, err := kittycadClient.MetaDebugSession()
 	if err != nil {
 		return err
 	}
 
 	usernameStr := ""
-	if *session.Email != "" {
-		usernameStr = fmt.Sprintf(" account '%s'", *session.Email)
+	if session.Email != "" {
+		usernameStr = fmt.Sprintf(" account '%s'", session.Email)
 	}
 
 	if opts.IO.CanPrompt() {

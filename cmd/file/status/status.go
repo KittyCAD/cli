@@ -69,7 +69,7 @@ func statusRun(opts *Options) error {
 	}
 
 	// Do the conversion.
-	conversion, output, err := kittycadClient.FileConversionStatus(opts.Context, opts.ID)
+	conversion, output, err := kittycadClient.FileConversionByIDWithBase64Helper(opts.ID)
 	if err != nil {
 		return fmt.Errorf("error getting file conversion %s: %w", opts.ID, err)
 	}

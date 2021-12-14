@@ -70,7 +70,7 @@ func instanceRun(opts *Options) error {
 	}
 
 	// Get the instance.
-	instance, err := kittycadClient.MetaDebugInstance(opts.Context)
+	instance, err := kittycadClient.MetaDebugInstance()
 	if err != nil {
 		return fmt.Errorf("failed to get auth server instance: %w", err)
 	}
@@ -100,19 +100,19 @@ func printRawInstance(io *iostreams.IOStreams, instance *kittycad.InstanceMetada
 	out := io.Out
 	cs := io.ColorScheme()
 
-	fmt.Fprintf(out, "id:\t\t%s\n", *instance.Id)
-	fmt.Fprintf(out, "git hash:\t%s\n", *instance.GitHash)
-	fmt.Fprintf(out, "environment:\t%s\n", formattedEnvironment(cs, *instance.Environment))
-	fmt.Fprintf(out, "name:\t\t%s\n", *instance.Name)
-	if *instance.Description != "" {
-		fmt.Fprintf(out, "description:\t%s\n", *instance.Description)
+	fmt.Fprintf(out, "id:\t\t%s\n", instance.ID)
+	fmt.Fprintf(out, "git hash:\t%s\n", instance.GitHash)
+	fmt.Fprintf(out, "environment:\t%s\n", formattedEnvironment(cs, instance.Environment))
+	fmt.Fprintf(out, "name:\t\t%s\n", instance.Name)
+	if instance.Description != "" {
+		fmt.Fprintf(out, "description:\t%s\n", instance.Description)
 	}
-	fmt.Fprintf(out, "ip address:\t%s\n", *instance.IpAddress)
-	fmt.Fprintf(out, "zone:\t\t%s\n", *instance.Zone)
-	fmt.Fprintf(out, "image:\t\t%s\n", *instance.Image)
-	fmt.Fprintf(out, "hostname:\t%s\n", *instance.Hostname)
-	fmt.Fprintf(out, "cpu platform:\t%s\n", *instance.CpuPlatform)
-	fmt.Fprintf(out, "machine type:\t%s\n", *instance.MachineType)
+	fmt.Fprintf(out, "ip address:\t%s\n", instance.IPAddress)
+	fmt.Fprintf(out, "zone:\t\t%s\n", instance.Zone)
+	fmt.Fprintf(out, "image:\t\t%s\n", instance.Image)
+	fmt.Fprintf(out, "hostname:\t%s\n", instance.Hostname)
+	fmt.Fprintf(out, "cpu platform:\t%s\n", instance.CPUPlatform)
+	fmt.Fprintf(out, "machine type:\t%s\n", instance.MachineType)
 
 	return nil
 }
@@ -122,16 +122,16 @@ func printHumanInstance(opts *Options, instance *kittycad.InstanceMetadata) erro
 	cs := opts.IO.ColorScheme()
 
 	// Name (GitHash and Environment)
-	fmt.Fprintf(out, "%s (%s %s)\n", cs.Bold(*instance.Name), *instance.GitHash, formattedEnvironment(cs, *instance.Environment))
-	if *instance.Description != "" {
-		fmt.Fprintf(out, "%s\n", *instance.Description)
+	fmt.Fprintf(out, "%s (%s %s)\n", cs.Bold(instance.Name), instance.GitHash, formattedEnvironment(cs, instance.Environment))
+	if instance.Description != "" {
+		fmt.Fprintf(out, "%s\n", instance.Description)
 	}
-	fmt.Fprintf(out, "\nip address:\t%s\n", *instance.IpAddress)
-	fmt.Fprintf(out, "zone:\t\t%s\n", *instance.Zone)
-	fmt.Fprintf(out, "image:\t\t%s\n", *instance.Image)
-	fmt.Fprintf(out, "hostname:\t%s\n", *instance.Hostname)
-	fmt.Fprintf(out, "cpu platform:\t%s\n", *instance.CpuPlatform)
-	fmt.Fprintf(out, "machine type:\t%s\n", *instance.MachineType)
+	fmt.Fprintf(out, "\nip address:\t%s\n", instance.IPAddress)
+	fmt.Fprintf(out, "zone:\t\t%s\n", instance.Zone)
+	fmt.Fprintf(out, "image:\t\t%s\n", instance.Image)
+	fmt.Fprintf(out, "hostname:\t%s\n", instance.Hostname)
+	fmt.Fprintf(out, "cpu platform:\t%s\n", instance.CPUPlatform)
+	fmt.Fprintf(out, "machine type:\t%s\n", instance.MachineType)
 
 	return nil
 }

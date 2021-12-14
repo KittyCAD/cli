@@ -32,21 +32,17 @@ type Options struct {
 	OutputFile    string
 }
 
-// TODO: use an enum for these and generate them in the go api library.
-const (
-	formatSTEP = "step"
-	formatOBJ  = "obj"
-	formatSTL  = "stl"
-)
-
-var validFormats = []string{formatSTEP, formatOBJ, formatSTL}
-
 // NewCmdConvert creates a new cobra.Command for the convert subcommand.
 func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	opts := &Options{
 		IO:             cli.IOStreams,
 		KittyCADClient: cli.KittyCADClient,
 		Context:        cli.Context,
+	}
+
+	validFormats := []string{}
+	for _, v := range kittycad.ValidFileTypes {
+		validFormats = append(validFormats, string(v))
 	}
 
 	cmd := &cobra.Command{
@@ -160,7 +156,7 @@ func convertRun(opts *Options) error {
 	}
 
 	// Do the conversion.
-	conversion, output, err := kittycadClient.FileConvert(opts.Context, opts.InputFormat, opts.OutputFormat, opts.InputFileBody)
+	conversion, output, err := kittycadClient.FileConvertWithBase64Helper(kittycad.ValidFileType(opts.InputFormat), kittycad.ValidFileType(opts.OutputFormat), opts.InputFileBody)
 	if err != nil {
 		return fmt.Errorf("error converting file: %w", err)
 	}

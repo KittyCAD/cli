@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/kittycad/cli/internal/config"
 	"github.com/kittycad/cli/kittycad"
+	"github.com/kittycad/cli/version"
 )
 
 type configGetter interface {
@@ -18,6 +21,6 @@ func NewKittyCADClient(cfg configGetter) (*kittycad.Client, error) {
 	if token == "" {
 		token, _ = cfg.Get(config.KittyCADDefaultHost, "token")
 	}
-	return kittycad.NewClient(token)
+	return kittycad.NewClient(token, fmt.Sprintf("KittyCAD CLI %s", version.VERSION))
 
 }

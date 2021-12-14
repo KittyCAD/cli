@@ -35,15 +35,15 @@ func PrintRawConversion(io *iostreams.IOStreams, conversion *kittycad.FileConver
 	out := io.Out
 	cs := io.ColorScheme()
 
-	fmt.Fprintf(out, "id:\t\t%s\n", *conversion.Id)
-	fmt.Fprintf(out, "status:\t\t%s\n", FormattedStatus(cs, *conversion.Status))
-	fmt.Fprintf(out, "created at:\t%s\n", *conversion.CreatedAt)
+	fmt.Fprintf(out, "id:\t\t%s\n", conversion.ID)
+	fmt.Fprintf(out, "status:\t\t%s\n", FormattedStatus(cs, conversion.Status))
+	fmt.Fprintf(out, "created at:\t%s\n", conversion.CreatedAt)
 	if conversion.CompletedAt != nil {
-		fmt.Fprintf(out, "completed at:\t%s\n", *conversion.CompletedAt)
+		fmt.Fprintf(out, "completed at:\t%s\n", conversion.CompletedAt)
 	}
 	fmt.Fprintf(out, "duration:\t\t%s\n", units.HumanDuration(duration))
-	fmt.Fprintf(out, "source format:\t%s\n", *conversion.SrcFormat)
-	fmt.Fprintf(out, "output format:\t%s\n", *conversion.OutputFormat)
+	fmt.Fprintf(out, "source format:\t%s\n", conversion.SrcFormat)
+	fmt.Fprintf(out, "output format:\t%s\n", conversion.OutputFormat)
 	if outputFile != "" && len(output) > 0 {
 		fmt.Fprintf(out, "output file:\t%s\n", outputFile)
 	}
@@ -62,7 +62,7 @@ func PrintHumanConversion(io *iostreams.IOStreams, conversion *kittycad.FileConv
 	cs := io.ColorScheme()
 
 	// Source -> Output
-	fmt.Fprintf(out, "%s -> %s\t%s\n", string(*conversion.SrcFormat), cs.Bold(string(*conversion.OutputFormat)), FormattedStatus(cs, *conversion.Status))
+	fmt.Fprintf(out, "%s -> %s\t%s\n", string(conversion.SrcFormat), cs.Bold(string(conversion.OutputFormat)), FormattedStatus(cs, conversion.Status))
 
 	// Print that we have saved the output to a file.
 	if outputFile != "" && len(output) > 0 {

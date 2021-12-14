@@ -57,7 +57,7 @@ func Flow(opts *FlowOptions) error {
 	}
 
 	// Get the session for the token.
-	session, err := kittycadClient.MetaDebugSession(opts.Context)
+	session, err := kittycadClient.MetaDebugSession()
 	if err != nil {
 		var httpErr kittycad.HTTPError
 		if errors.As(err, &httpErr) && (httpErr.StatusCode >= 401 && httpErr.StatusCode < 500) {
@@ -66,6 +66,6 @@ func Flow(opts *FlowOptions) error {
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s Logged in as %s\n", cs.SuccessIcon(), cs.Bold(string(*session.Email)))
+	fmt.Fprintf(opts.IO.ErrOut, "%s Logged in as %s\n", cs.SuccessIcon(), cs.Bold(session.Email))
 	return nil
 }
