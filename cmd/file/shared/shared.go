@@ -38,7 +38,7 @@ func PrintRawConversion(io *iostreams.IOStreams, conversion *kittycad.FileConver
 	fmt.Fprintf(out, "id:\t\t%s\n", conversion.ID)
 	fmt.Fprintf(out, "status:\t\t%s\n", FormattedStatus(cs, conversion.Status))
 	fmt.Fprintf(out, "created at:\t%s\n", conversion.CreatedAt)
-	if conversion.CompletedAt != nil {
+	if conversion.CompletedAt != nil && !conversion.CompletedAt.IsZero() && conversion.CompletedAt.Unix() != 0 {
 		fmt.Fprintf(out, "completed at:\t%s\n", conversion.CompletedAt)
 	}
 	fmt.Fprintf(out, "duration:\t\t%s\n", units.HumanDuration(duration))
@@ -70,10 +70,15 @@ func PrintHumanConversion(io *iostreams.IOStreams, conversion *kittycad.FileConv
 	}
 
 	// Print the time.
-	if conversion.CompletedAt != nil {
+	if conversion.CompletedAt != nil && !conversion.CompletedAt.IsZero() && conversion.CompletedAt.Unix() != 0 {
 		fmt.Fprintf(out, "\nConversion took %s\n\n", units.HumanDuration(duration))
 	} else {
-		fmt.Fprintf(out, "\nConversion has been running for %s\n\n", units.HumanDuration(duration))
+		if conversion.Status != kittycad.FileConversionStatusUploaded {
+			fmt.Fprintf(out, "\nConversion `%s` has been running for %s\n\n", conversion.ID, units.HumanDuration(duration))
+		} else {
+			fmt.Fprintf(out, "\nConversion `%s` uploaded\n", conversion.ID)
+			fmt.Fprintf(out, "Get the status of your conversion with `kittycad file status %s`\n\n", conversion.ID)
+		}
 	}
 
 	// Write the output to stdout.

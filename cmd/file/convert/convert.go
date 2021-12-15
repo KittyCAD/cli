@@ -172,6 +172,7 @@ func convertRun(opts *Options) error {
 		}
 	}
 
+	fmt.Printf("%#v", conversion)
 	// Let's get the duration.
 	completedAt := time.Now()
 	if conversion.CompletedAt != nil {
@@ -237,6 +238,7 @@ func doConversion(c *kittycad.Client, srcFormat kittycad.ValidFileType, outputFo
 		bodyReader = bar.NewProxyReader(&b)
 	}
 
+	// TODO: Make it so the progress bar does not update until we get a response.
 	resp, err := c.FileConvert(srcFormat, outputFormat, bodyReader)
 	if err != nil {
 		return nil, nil, err
