@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 // Client which conforms to the OpenAPI3 specification for this service.
@@ -47,6 +48,8 @@ func NewClient(token, userAgent string) (*Client, error) {
 
 	client.client = &http.Client{
 		Transport: uat,
+		// We want a longer timeout since some of the files might take a bit.
+		Timeout: 600 * time.Second,
 	}
 
 	return client, nil

@@ -1,15 +1,19 @@
 package convert
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/cheggaaa/pb/v3"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/kittycad/cli/cmd/file/shared"
 	"github.com/kittycad/cli/kittycad"
@@ -156,7 +160,7 @@ func convertRun(opts *Options) error {
 	}
 
 	// Do the conversion.
-	conversion, output, err := kittycadClient.FileConvertWithBase64Helper(kittycad.ValidFileType(opts.InputFormat), kittycad.ValidFileType(opts.OutputFormat), opts.InputFileBody)
+	conversion, output, err := doConversion(kittycadClient, kittycad.ValidFileType(opts.InputFormat), kittycad.ValidFileType(opts.OutputFormat), opts.InputFileBody, opts)
 	if err != nil {
 		return fmt.Errorf("error converting file: %w", err)
 	}
@@ -204,4 +208,54 @@ func contains(s []string, str string) bool {
 
 func getExtension(file string) string {
 	return strings.TrimPrefix(strings.ToLower(filepath.Ext(file)), ".")
+}
+
+func doConversion(c *kittycad.Client, srcFormat kittycad.ValidFileType, outputFormat kittycad.ValidFileType, body []byte, opts *Options) (*kittycad.FileConversion, []byte, error) {
+	var b bytes.Buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, &b)
+	// Encode the body as base64.
+	encoder.Write(body)
+	// Must close the encoder when finished to flush any partial blocks.
+	// If you comment out the following line, the last partial block "r"
+	// won't be encoded.
+	encoder.Close()
+
+	connectedToTerminal := opts.IO.IsStdoutTTY() && opts.IO.IsStderrTTY()
+
+	// Initialize the progress bar.
+	var bodyReader io.Reader
+	bodyReader = &b
+	var bar *pb.ProgressBar
+
+	fmt.Println("Sending conversion request...")
+	if connectedToTerminal {
+		// Create a new progress bar.
+		bar = pb.New(b.Len()).Set(pb.Bytes, true).SetRefreshRate(time.Millisecond * 10)
+
+		// Start the progress bar.
+		bar.Start()
+		bodyReader = bar.NewProxyReader(&b)
+	}
+
+	resp, err := c.FileConvert(srcFormat, outputFormat, bodyReader)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if connectedToTerminal {
+		// Stop the progress bar if we were using one.
+		bar.Finish()
+	}
+
+	if resp.Output == "" {
+		return resp, nil, nil
+	}
+
+	// Decode the base64 encoded body.
+	output, err := base64.StdEncoding.DecodeString(resp.Output)
+	if err != nil {
+		return nil, nil, fmt.Errorf("base64 decoding output from API failed: %v", err)
+	}
+
+	return resp, output, nil
 }
