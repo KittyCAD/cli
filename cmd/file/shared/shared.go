@@ -14,15 +14,15 @@ func FormattedStatus(cs *iostreams.ColorScheme, status kittycad.FileConversionSt
 	var colorFunc func(string) string
 	switch status {
 	case kittycad.FileConversionStatusCompleted:
-		colorFunc = cs.Yellow
+		colorFunc = cs.Green
 	case kittycad.FileConversionStatusFailed:
-		colorFunc = cs.Blue
+		colorFunc = cs.Red
 	case kittycad.FileConversionStatusInProgress:
-		colorFunc = cs.Green
+		colorFunc = cs.Yellow
 	case kittycad.FileConversionStatusQueued:
-		colorFunc = cs.Green
+		colorFunc = cs.Cyan
 	case kittycad.FileConversionStatusUploaded:
-		colorFunc = cs.Green
+		colorFunc = cs.Blue
 	default:
 		colorFunc = func(str string) string { return str } // Do nothing
 	}
