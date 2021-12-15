@@ -20,7 +20,7 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kittycad <command> <subcommand> [flags]",
 		Short: "KittyCAD CLI",
-		Long:  `Work seamlessly with KittyCAD from the command line.`,
+		Long:  `You've never CAD it so good.`,
 
 		SilenceErrors: true,
 		SilenceUsage:  true,
