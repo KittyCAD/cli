@@ -76,8 +76,7 @@ func PrintHumanConversion(io *iostreams.IOStreams, conversion *kittycad.FileConv
 		if conversion.Status != kittycad.FileConversionStatusUploaded {
 			fmt.Fprintf(out, "\nConversion `%s` has been running for %s\n\n", conversion.ID, units.HumanDuration(duration))
 		} else {
-			fmt.Fprintf(out, "\nConversion `%s` uploaded\n", conversion.ID)
-			fmt.Fprintf(out, "Get the status of your conversion with `kittycad file status %s`\n\n", conversion.ID)
+			fmt.Fprintf(out, "\nGet the status of your conversion with `kittycad file status %s`\n\n", conversion.ID)
 		}
 	}
 
