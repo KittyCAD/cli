@@ -6,6 +6,7 @@ import (
 	authCmd "github.com/kittycad/cli/cmd/auth"
 	completionCmd "github.com/kittycad/cli/cmd/completion"
 	configCmd "github.com/kittycad/cli/cmd/config"
+	drakeCmd "github.com/kittycad/cli/cmd/drake"
 	fileCmd "github.com/kittycad/cli/cmd/file"
 	metaCmd "github.com/kittycad/cli/cmd/meta"
 	versionCmd "github.com/kittycad/cli/cmd/version"
@@ -62,6 +63,7 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 	cmd.AddCommand(authCmd.NewCmdAuth(cli))
 	cmd.AddCommand(configCmd.NewCmdConfig(cli))
 	cmd.AddCommand(completionCmd.NewCmdCompletion(cli.IOStreams))
+	cmd.AddCommand(drakeCmd.NewCmdDrake(cli, nil))
 	cmd.AddCommand(fileCmd.NewCmdFile(cli))
 	cmd.AddCommand(metaCmd.NewCmdMeta(cli))
 
