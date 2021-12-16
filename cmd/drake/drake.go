@@ -35,7 +35,8 @@ func NewCmdDrake(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 		Example: heredoc.Doc(`
 			$ kittycad drake
 		`),
-		Annotations: map[string]string{},
+		// Hide the command, so only true believers can run it.
+		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runDrake(opts)
 		},
