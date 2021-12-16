@@ -8,6 +8,8 @@ on:
       - 'Makefile'
       - 'Dockerfile'
       - '.github/workflows/make-image.yml'
+      - 'go.mod'
+      - 'go.sum'
 name: make-image
 jobs:
   makeimage:
