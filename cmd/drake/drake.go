@@ -19,7 +19,7 @@ type Options struct {
 	IO      *iostreams.IOStreams
 }
 
-const drakeMemeURL string = "https://dl.kittycad.com/drake.jpeg"
+const drakeMemeURL string = "https://dl.kittycad.io/drake.jpeg"
 
 // NewCmdDrake creates a new `drake` command.
 func NewCmdDrake(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
