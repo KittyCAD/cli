@@ -9,6 +9,7 @@ import (
 	drakeCmd "github.com/kittycad/cli/cmd/drake"
 	fileCmd "github.com/kittycad/cli/cmd/file"
 	metaCmd "github.com/kittycad/cli/cmd/meta"
+	openCmd "github.com/kittycad/cli/cmd/open"
 	versionCmd "github.com/kittycad/cli/cmd/version"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
@@ -66,6 +67,7 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 	cmd.AddCommand(drakeCmd.NewCmdDrake(cli, nil))
 	cmd.AddCommand(fileCmd.NewCmdFile(cli))
 	cmd.AddCommand(metaCmd.NewCmdMeta(cli))
+	cmd.AddCommand(openCmd.NewCmdOpen(cli, nil))
 
 	// Help topics
 	cmd.AddCommand(NewHelpTopic("environment"))

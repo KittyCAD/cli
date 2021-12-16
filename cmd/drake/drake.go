@@ -29,12 +29,13 @@ func NewCmdDrake(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Long:  "Open a drake meme in your web browser.",
-		Short: "Best I ever CAD",
 		Use:   "drake",
+		Short: "Best I ever CAD",
+		Long:  "Open a drake meme in your web browser.",
 		Example: heredoc.Doc(`
 			$ kittycad drake
 		`),
+		Args: cobra.ExactArgs(0),
 		// Hide the command, so only true believers can run it.
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
