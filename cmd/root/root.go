@@ -35,7 +35,7 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 		`),
 		Annotations: map[string]string{
 			"help:feedback": heredoc.Doc(`
-				Open an issue on https://github.com/kittycad/cli/issues
+				Open an issue on https://github.com/kittycad/cli/issues, or run ` + "`kittycad open issue`" + `
 			`),
 			"help:environment": heredoc.Doc(`
 				See 'kittycad help environment' for the list of supported environment variables.
