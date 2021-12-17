@@ -1,0 +1,51 @@
+on:
+  push:
+    tags:
+      - v*
+  pull_request:
+    paths:
+      - .github/workflows/generate-website-docs.yml
+name: generate-website-docs
+jobs:
+  generate-website-docs:
+    name: make-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.17.x'
+      - name: make gen-website
+        shell: bash
+        run: |
+          make gen-website
+      # Checkout the docs repo since we will want to update the files there.
+      - uses: actions/checkout@v2
+        with:
+          repository: 'kittycad/docs'
+          path: 'docs'
+          token: ${{secrets.PAT_GITHUB}}
+      - name: move docs to kittycad docs
+        shell: bash
+        run: |
+          mv -f generated_docs/website/kittycad*.md docs/_pages/cli/manual/
+      - name: commit the changes in the docs repo
+        shell: bash
+        run: |
+          cd docs
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          #git remote set-url origin https://${{ github.actor }}:${{ secrets.PAT_GITHUB }}@github.com/kittycad/docs.git
+          git commit -am "YOYO NEW CLI DOCS FOR $(cat ../VERSION.txt)!" || exit 0
+          git fetch origin
+          git rebase origin/main || exit 0
+          export NEW_BRANCH="update-docs-$(cat ../VERSION.txt)"
+          git checkout -b "$NEW_BRANCH"
+          git push origin "$NEW_BRANCH"
+          gh pr create --title "Update CLI docs for $(cat ../VERSION.txt)" \
+              --body "Updating the generated cli docs" \
+              --head "$NEW_BRANCH" \
+              --base main
+        env:
+          GITHUB_TOKEN: ${{secrets.PAT_GITHUB}}
+
