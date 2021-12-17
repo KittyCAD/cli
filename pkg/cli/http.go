@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/kittycad/cli/internal/config"
-	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/version"
+	"github.com/kittycad/kittycad.go"
 )
 
 type configGetter interface {

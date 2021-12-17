@@ -13,7 +13,7 @@ import (
 	"github.com/cli/safeexec"
 	"github.com/google/shlex"
 	"github.com/kittycad/cli/internal/config"
-	"github.com/kittycad/cli/kittycad"
+	"github.com/kittycad/kittycad.go"
 )
 
 // CLI is the main type for the kittycad command line interface.

@@ -16,9 +16,9 @@ import (
 	"github.com/cheggaaa/pb/v3"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/kittycad/cli/cmd/file/shared"
-	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
+	"github.com/kittycad/kittycad.go"
 	"github.com/spf13/cobra"
 )
 

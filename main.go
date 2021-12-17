@@ -20,11 +20,11 @@ import (
 	"github.com/kittycad/cli/internal/config"
 	"github.com/kittycad/cli/internal/run"
 	"github.com/kittycad/cli/internal/update"
-	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/pkg/aliases/expand"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
 	"github.com/kittycad/cli/version"
+	"github.com/kittycad/kittycad.go"
 	"github.com/mgutz/ansi"
 	"github.com/spf13/cobra"
 )

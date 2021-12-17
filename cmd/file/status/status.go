@@ -9,8 +9,8 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/kittycad/cli/cmd/file/shared"
-	"github.com/kittycad/cli/kittycad"
 	"github.com/kittycad/cli/pkg/cli"
+	"github.com/kittycad/kittycad.go"
 	"github.com/spf13/cobra"
 )
 

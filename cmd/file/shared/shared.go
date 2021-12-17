@@ -6,7 +6,7 @@ import (
 
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/docker/go-units"
-	"github.com/kittycad/cli/kittycad"
+	"github.com/kittycad/kittycad.go"
 )
 
 // FormattedStatus formats a file conversion status with color.

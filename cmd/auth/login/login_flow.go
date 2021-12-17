@@ -9,7 +9,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/cli/cli/v2/pkg/prompt"
-	"github.com/kittycad/cli/kittycad"
+	"github.com/kittycad/kittycad.go"
 )
 
 type iconfig interface {
