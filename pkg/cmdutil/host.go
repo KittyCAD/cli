@@ -15,7 +15,8 @@ func HostnameValidator(v interface{}) error {
 	if len(strings.TrimSpace(hostname)) < 1 {
 		return errors.New("a value is required")
 	}
-	if strings.ContainsRune(hostname, '/') || strings.ContainsRune(hostname, ':') {
+	// Allow for localhost, but other than that, require a valid domain.
+	if strings.ContainsRune(hostname, '/') || (strings.ContainsRune(hostname, ':') && !strings.HasPrefix(hostname, "localhost:")) {
 		return errors.New("invalid hostname")
 	}
 	return nil

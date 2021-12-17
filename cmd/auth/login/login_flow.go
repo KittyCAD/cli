@@ -22,7 +22,7 @@ type iconfig interface {
 type FlowOptions struct {
 	IO             *iostreams.IOStreams
 	Config         iconfig
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	Hostname       string
 	Interactive    bool
 	Web            bool
@@ -51,7 +51,7 @@ func Flow(opts *FlowOptions) error {
 		return err
 	}
 
-	kittycadClient, err := opts.KittyCADClient()
+	kittycadClient, err := opts.KittyCADClient(hostname)
 	if err != nil {
 		return err
 	}

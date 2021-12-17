@@ -23,7 +23,7 @@ type CLI struct {
 
 	Context context.Context
 
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	Config         func() (config.Config, error)
 
 	// Executable is the path to the currently invoked kittycad binary
@@ -57,13 +57,13 @@ func New(ctx context.Context) *CLI {
 	return cli
 }
 
-func kittycadClientFunc(cli *CLI) func() (*kittycad.Client, error) {
-	return func() (*kittycad.Client, error) {
+func kittycadClientFunc(cli *CLI) func(string) (*kittycad.Client, error) {
+	return func(hostname string) (*kittycad.Client, error) {
 		cfg, err := cli.Config()
 		if err != nil {
 			return nil, err
 		}
-		return NewKittyCADClient(cfg)
+		return NewKittyCADClient(cfg, hostname)
 	}
 }
 

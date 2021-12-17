@@ -18,7 +18,7 @@ import (
 
 // Options the options for the logout command.
 type Options struct {
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	IO             *iostreams.IOStreams
 	Config         func() (config.Config, error)
 	Context        context.Context
@@ -122,7 +122,7 @@ func logoutRun(opts *Options) error {
 		return err
 	}
 
-	kittycadClient, err := opts.KittyCADClient()
+	kittycadClient, err := opts.KittyCADClient(hostname)
 	if err != nil {
 		return err
 	}

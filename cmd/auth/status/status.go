@@ -15,7 +15,7 @@ import (
 
 // Options are options for the `kittycad auth status` command.
 type Options struct {
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	IO             *iostreams.IOStreams
 	Config         func() (config.Config, error)
 	Context        context.Context
@@ -81,11 +81,6 @@ func statusRun(opts *Options) error {
 		return cmdutil.ErrSilent
 	}
 
-	kittycadClient, err := opts.KittyCADClient()
-	if err != nil {
-		return err
-	}
-
 	var failed bool
 	var isHostnameFound bool
 
@@ -100,6 +95,11 @@ func statusRun(opts *Options) error {
 		statusInfo[hostname] = []string{}
 		addMsg := func(x string, ys ...interface{}) {
 			statusInfo[hostname] = append(statusInfo[hostname], fmt.Sprintf(x, ys...))
+		}
+
+		kittycadClient, err := opts.KittyCADClient(hostname)
+		if err != nil {
+			return err
 		}
 
 		session, err := kittycadClient.MetaDebugSession()

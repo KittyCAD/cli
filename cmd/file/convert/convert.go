@@ -25,7 +25,7 @@ import (
 // Options defines the options of the `file convert` command.
 type Options struct {
 	IO             *iostreams.IOStreams
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	Context        context.Context
 
 	// Flag options.
@@ -154,7 +154,7 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 }
 
 func convertRun(opts *Options) error {
-	kittycadClient, err := opts.KittyCADClient()
+	kittycadClient, err := opts.KittyCADClient("")
 	if err != nil {
 		return err
 	}

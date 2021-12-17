@@ -22,7 +22,7 @@ import (
 type Options struct {
 	IO             *iostreams.IOStreams
 	Config         func() (config.Config, error)
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	Context        context.Context
 
 	MainExecutable string

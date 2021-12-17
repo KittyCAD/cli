@@ -17,7 +17,7 @@ import (
 // Options defines the options of the `file stattus` command.
 type Options struct {
 	IO             *iostreams.IOStreams
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	Context        context.Context
 
 	ID string
@@ -63,7 +63,7 @@ func NewCmdStatus(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 }
 
 func statusRun(opts *Options) error {
-	kittycadClient, err := opts.KittyCADClient()
+	kittycadClient, err := opts.KittyCADClient("")
 	if err != nil {
 		return err
 	}

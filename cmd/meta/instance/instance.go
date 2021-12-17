@@ -14,7 +14,7 @@ import (
 
 // Options for the instance command.
 type Options struct {
-	KittyCADClient func() (*kittycad.Client, error)
+	KittyCADClient func(string) (*kittycad.Client, error)
 	IO             *iostreams.IOStreams
 	Exporter       cmdutil.Exporter
 	Context        context.Context
@@ -64,7 +64,7 @@ func NewCmdInstance(cli *cli.CLI) *cobra.Command {
 }
 
 func instanceRun(opts *Options) error {
-	kittycadClient, err := opts.KittyCADClient()
+	kittycadClient, err := opts.KittyCADClient("")
 	if err != nil {
 		return err
 	}
