@@ -66,6 +66,15 @@ func Flow(opts *FlowOptions) error {
 		return err
 	}
 
+	if err := cfg.Set(hostname, "user", session.Email); err != nil {
+		return err
+	}
+
+	// Save the config.
+	if err := cfg.Write(); err != nil {
+		return err
+	}
+
 	fmt.Fprintf(opts.IO.ErrOut, "%s Logged in as %s\n", cs.SuccessIcon(), cs.Bold(session.Email))
 	return nil
 }

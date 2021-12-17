@@ -105,6 +105,7 @@ func statusRun(opts *Options) error {
 		session, err := kittycadClient.MetaDebugSession()
 		if err != nil {
 			addMsg("%s %s: api call failed: %s", cs.Red("X"), hostname, err)
+			continue
 		}
 
 		// Let the user know if their token is invalid.
