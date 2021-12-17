@@ -2,6 +2,9 @@
 
 The KittyCAD command line tool.
 
+### Installing
+
+Instructions for installing are on the [latest Release](https://github.com/KittyCAD/cli/releases).
 
 ### Acknowledgements
 
