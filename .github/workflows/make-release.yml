@@ -35,7 +35,17 @@ jobs:
         with:
           path: releases
           destination: dl.kittycad.io
+      - name: Get if prerelease
+        shell: bash
+        id: extract_prerelease
+        run: |
+          if cat VERSION.txt | grep -q "rc"; then
+            echo "##[set-output name=prerelease;]$(echo true)"
+          else
+            echo "##[set-output name=prerelease;]$(echo false)"
+          fi
       - name: Create a Release
         uses: softprops/action-gh-release@v1
         with:
+          prerelease: ${{steps.extract_prerelease.outputs.prerelease}}
           body_path: ${{github.workspace}}/cross/README.md
