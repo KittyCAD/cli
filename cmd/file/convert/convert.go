@@ -44,9 +44,14 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 		Context:        cli.Context,
 	}
 
-	validFormats := []string{}
-	for _, v := range kittycad.ValidFileTypes {
-		validFormats = append(validFormats, string(v))
+	validSourceFormats := []string{}
+	for _, v := range kittycad.ValidSourceFileTypes {
+		validSourceFormats = append(validSourceFormats, string(v))
+	}
+
+	validOutputFormats := []string{}
+	for _, v := range kittycad.ValidOutputFileTypes {
+		validOutputFormats = append(validOutputFormats, string(v))
 	}
 
 	cmd := &cobra.Command{
@@ -59,8 +64,9 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			performed asynchronously, you can then check its status with the
 			%[1]skittycad file status%[1]s command.
 
-			Valid formats: %[2]s
-		`, "`", strings.Join(validFormats, ", ")),
+			Valid source formats: %[2]s
+			Valid output formats: %[3]s
+		`, "`", strings.Join(validSourceFormats, ", "), strings.Join(validOutputFormats, ", ")),
 		Example: heredoc.Doc(`
 			# convert step to obj and save to file
 			$ kittycad file convert my-file.step my-file.obj
@@ -101,7 +107,7 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 				opts.InputFormat = ext
 			}
 			// Validate the extension is a supported file format.
-			if !contains(validFormats, opts.InputFormat) {
+			if !contains(validSourceFormats, opts.InputFormat) {
 				return fmt.Errorf("unsupported input file format: `%s`", ext)
 			}
 
@@ -124,7 +130,7 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			}
 
 			// Validate the output format is a supported file format.
-			if !contains(validFormats, opts.OutputFormat) {
+			if !contains(validOutputFormats, opts.OutputFormat) {
 				return fmt.Errorf("unsupported output file format: `%s`", opts.OutputFormat)
 			}
 
@@ -160,7 +166,7 @@ func convertRun(opts *Options) error {
 	}
 
 	// Do the conversion.
-	conversion, output, err := doConversion(kittycadClient, kittycad.ValidFileType(opts.InputFormat), kittycad.ValidFileType(opts.OutputFormat), opts.InputFileBody, opts)
+	conversion, output, err := doConversion(kittycadClient, kittycad.ValidSourceFileType(opts.InputFormat), kittycad.ValidOutputFileType(opts.OutputFormat), opts.InputFileBody, opts)
 	if err != nil {
 		return fmt.Errorf("error converting file: %w", err)
 	}
@@ -211,7 +217,7 @@ func getExtension(file string) string {
 	return strings.TrimPrefix(strings.ToLower(filepath.Ext(file)), ".")
 }
 
-func doConversion(c *kittycad.Client, srcFormat kittycad.ValidFileType, outputFormat kittycad.ValidFileType, body []byte, opts *Options) (*kittycad.FileConversion, []byte, error) {
+func doConversion(c *kittycad.Client, srcFormat kittycad.ValidSourceFileType, outputFormat kittycad.ValidOutputFileType, body []byte, opts *Options) (*kittycad.FileConversion, []byte, error) {
 	var b bytes.Buffer
 	encoder := base64.NewEncoder(base64.StdEncoding, &b)
 	// Encode the body as base64.
@@ -239,7 +245,7 @@ func doConversion(c *kittycad.Client, srcFormat kittycad.ValidFileType, outputFo
 	}
 
 	// TODO: Make it so the progress bar does not update until we get a response.
-	resp, err := c.FileConvert(srcFormat, outputFormat, bodyReader)
+	resp, err := c.File.Convert(srcFormat, outputFormat, bodyReader)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -70,7 +70,7 @@ func instanceRun(opts *Options) error {
 	}
 
 	// Get the instance.
-	instance, err := kittycadClient.MetaDebugInstance()
+	instance, err := kittycadClient.Meta.DebugInstance()
 	if err != nil {
 		return fmt.Errorf("failed to get auth server instance: %w", err)
 	}

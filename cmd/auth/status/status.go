@@ -102,7 +102,7 @@ func statusRun(opts *Options) error {
 			return err
 		}
 
-		session, err := kittycadClient.MetaDebugSession()
+		session, err := kittycadClient.Meta.DebugSession()
 		if err != nil {
 			addMsg("%s %s: api call failed: %s", cs.Red("X"), hostname, err)
 			continue

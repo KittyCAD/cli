@@ -317,6 +317,8 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kittycad/kittycad.go v0.0.2 h1:2nH8ojLEO0aIyZdJUQq5UW92998W16sIqWH2TBoaGa8=
 github.com/kittycad/kittycad.go v0.0.2/go.mod h1:Yho32rBLfWFT8bxIjGzcNBf9FHc6L5AjkZHToFjQPds=
+github.com/kittycad/kittycad.go v0.0.3-0.20220202173924-4e7d5286a39b h1:DXeniA7TA8Y423LbspGNQ60U1RTqMQ0YyICewqhCiQA=
+github.com/kittycad/kittycad.go v0.0.3-0.20220202173924-4e7d5286a39b/go.mod h1:Yho32rBLfWFT8bxIjGzcNBf9FHc6L5AjkZHToFjQPds=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
