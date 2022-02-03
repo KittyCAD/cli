@@ -70,7 +70,7 @@ func PrintHumanConversion(io *iostreams.IOStreams, conversion *kittycad.FileConv
 	}
 
 	// Print the time.
-	if conversion.CompletedAt != nil && !conversion.CompletedAt.IsZero() && conversion.CompletedAt.Unix() != 0 {
+	if conversion.CompletedAt != nil && conversion.CompletedAt.Time != nil && !conversion.CompletedAt.IsZero() && conversion.CompletedAt.Unix() != 0 {
 		fmt.Fprintf(out, "\nConversion took %s\n\n", units.HumanDuration(duration))
 	} else {
 		if conversion.Status != kittycad.FileConversionStatusUploaded {

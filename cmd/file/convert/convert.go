@@ -178,13 +178,12 @@ func convertRun(opts *Options) error {
 		}
 	}
 
-	fmt.Printf("%#v", conversion)
 	// Let's get the duration.
 	completedAt := time.Now()
-	if conversion.CompletedAt != nil {
-		completedAt = *conversion.CompletedAt
+	if conversion.CompletedAt != nil && conversion.CompletedAt.Time != nil {
+		completedAt = *conversion.CompletedAt.Time
 	}
-	duration := completedAt.Sub(*conversion.CreatedAt)
+	duration := completedAt.Sub(*conversion.CreatedAt.Time)
 
 	connectedToTerminal := opts.IO.IsStdoutTTY() && opts.IO.IsStderrTTY()
 
