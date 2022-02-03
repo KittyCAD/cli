@@ -83,7 +83,7 @@ func statusRun(opts *Options) error {
 
 	// Let's get the duration.
 	completedAt := time.Now()
-	if conversion.CompletedAt != nil {
+	if conversion.CompletedAt != nil && conversion.CompletedAt.Time != nil {
 		completedAt = *conversion.CompletedAt.Time
 	}
 	duration := completedAt.Sub(*conversion.CreatedAt.Time)
