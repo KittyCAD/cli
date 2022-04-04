@@ -75,7 +75,7 @@ func run(args []string) error {
 func filePrepender(cmd *cobra.Command, filename string) string {
 	return fmt.Sprintf(`---
 title: %q
-description: %q
+excerpt: %q
 layout: manual
 permalink: /:path/:basename
 ---
