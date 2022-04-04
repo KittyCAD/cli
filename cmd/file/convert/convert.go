@@ -6,14 +6,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/cheggaaa/pb/v3"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/kittycad/cli/cmd/file/shared"
 	"github.com/kittycad/cli/pkg/cli"
@@ -226,10 +224,11 @@ func doConversion(c *kittycad.Client, srcFormat kittycad.ValidSourceFileFormat, 
 	// won't be encoded.
 	encoder.Close()
 
-	connectedToTerminal := opts.IO.IsStdoutTTY() && opts.IO.IsStderrTTY()
+	//	connectedToTerminal := opts.IO.IsStdoutTTY() && opts.IO.IsStderrTTY()
+	// TODO: fix the progress bar.
 
 	// Initialize the progress bar.
-	var bodyReader io.Reader
+	/*var bodyReader io.Reader
 	bodyReader = &b
 	var bar *pb.ProgressBar
 
@@ -241,18 +240,18 @@ func doConversion(c *kittycad.Client, srcFormat kittycad.ValidSourceFileFormat, 
 		// Start the progress bar.
 		bar.Start()
 		bodyReader = bar.NewProxyReader(&b)
-	}
+	}*/
 
 	// TODO: Make it so the progress bar does not update until we get a response.
-	resp, err := c.File.PostConversion(srcFormat, outputFormat, bodyReader)
+	resp, err := c.File.PostConversion(srcFormat, outputFormat, &b)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if connectedToTerminal {
+	/*if connectedToTerminal {
 		// Stop the progress bar if we were using one.
 		bar.Finish()
-	}
+	}*/
 
 	if resp.Output == "" {
 		return resp, nil, nil
