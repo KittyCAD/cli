@@ -17,7 +17,7 @@ require (
 	github.com/kittycad/kittycad.go v0.0.8
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
