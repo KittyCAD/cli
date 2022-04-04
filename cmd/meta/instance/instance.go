@@ -70,7 +70,7 @@ func instanceRun(opts *Options) error {
 	}
 
 	// Get the instance.
-	instance, err := kittycadClient.Meta.DebugInstance()
+	instance, err := kittycadClient.Meta.InstanceMetadata()
 	if err != nil {
 		return fmt.Errorf("failed to get auth server instance: %w", err)
 	}
@@ -96,7 +96,7 @@ func instanceRun(opts *Options) error {
 	return printRawInstance(opts.IO, instance)
 }
 
-func printRawInstance(io *iostreams.IOStreams, instance *kittycad.InstanceMetadata) error {
+func printRawInstance(io *iostreams.IOStreams, instance *kittycad.Instance) error {
 	out := io.Out
 	cs := io.ColorScheme()
 
@@ -117,7 +117,7 @@ func printRawInstance(io *iostreams.IOStreams, instance *kittycad.InstanceMetada
 	return nil
 }
 
-func printHumanInstance(opts *Options, instance *kittycad.InstanceMetadata) error {
+func printHumanInstance(opts *Options, instance *kittycad.Instance) error {
 	out := opts.IO.Out
 	cs := opts.IO.ColorScheme()
 
@@ -137,14 +137,14 @@ func printHumanInstance(opts *Options, instance *kittycad.InstanceMetadata) erro
 }
 
 // formattedEnvironment formats an environment with state color.
-func formattedEnvironment(cs *iostreams.ColorScheme, environment kittycad.Environment) string {
+func formattedEnvironment(cs *iostreams.ColorScheme, environment kittycad.ServerEnv) string {
 	var colorFunc func(string) string
 	switch environment {
-	case kittycad.EnvironmentDEVELOPMENT:
+	case kittycad.ServerEnvDevelopment:
 		colorFunc = cs.Yellow
-	case kittycad.EnvironmentPREVIEW:
+	case kittycad.ServerEnvPreview:
 		colorFunc = cs.Blue
-	case kittycad.EnvironmentPRODUCTION:
+	case kittycad.ServerEnvProduction:
 		colorFunc = cs.Green
 	default:
 		colorFunc = func(str string) string { return str } // Do nothing

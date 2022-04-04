@@ -45,12 +45,12 @@ func NewCmdConvert(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 	}
 
 	validSourceFormats := []string{}
-	for _, v := range kittycad.ValidSourceFileTypes {
+	for _, v := range kittycad.ValidSourceFileFormats {
 		validSourceFormats = append(validSourceFormats, string(v))
 	}
 
 	validOutputFormats := []string{}
-	for _, v := range kittycad.ValidOutputFileTypes {
+	for _, v := range kittycad.ValidOutputFileFormats {
 		validOutputFormats = append(validOutputFormats, string(v))
 	}
 
@@ -166,7 +166,7 @@ func convertRun(opts *Options) error {
 	}
 
 	// Do the conversion.
-	conversion, output, err := doConversion(kittycadClient, kittycad.ValidSourceFileType(opts.InputFormat), kittycad.ValidOutputFileType(opts.OutputFormat), opts.InputFileBody, opts)
+	conversion, output, err := doConversion(kittycadClient, kittycad.ValidSourceFileFormat(opts.InputFormat), kittycad.ValidOutputFileFormat(opts.OutputFormat), opts.InputFileBody, opts)
 	if err != nil {
 		return fmt.Errorf("error converting file: %w", err)
 	}
@@ -216,7 +216,7 @@ func getExtension(file string) string {
 	return strings.TrimPrefix(strings.ToLower(filepath.Ext(file)), ".")
 }
 
-func doConversion(c *kittycad.Client, srcFormat kittycad.ValidSourceFileType, outputFormat kittycad.ValidOutputFileType, body []byte, opts *Options) (*kittycad.FileConversion, []byte, error) {
+func doConversion(c *kittycad.Client, srcFormat kittycad.ValidSourceFileFormat, outputFormat kittycad.ValidOutputFileFormat, body []byte, opts *Options) (*kittycad.FileConversion, []byte, error) {
 	var b bytes.Buffer
 	encoder := base64.NewEncoder(base64.StdEncoding, &b)
 	// Encode the body as base64.
@@ -244,7 +244,7 @@ func doConversion(c *kittycad.Client, srcFormat kittycad.ValidSourceFileType, ou
 	}
 
 	// TODO: Make it so the progress bar does not update until we get a response.
-	resp, err := c.File.Convert(srcFormat, outputFormat, bodyReader)
+	resp, err := c.File.PostConversion(srcFormat, outputFormat, bodyReader)
 	if err != nil {
 		return nil, nil, err
 	}

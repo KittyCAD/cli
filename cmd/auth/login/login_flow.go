@@ -57,7 +57,7 @@ func Flow(opts *FlowOptions) error {
 	}
 
 	// Get the session for the token.
-	session, err := kittycadClient.Meta.DebugSession()
+	session, err := kittycadClient.Meta.AuthSession()
 	if err != nil {
 		var httpErr kittycad.HTTPError
 		if errors.As(err, &httpErr) && (httpErr.StatusCode >= 401 && httpErr.StatusCode < 500) {
