@@ -11,7 +11,7 @@ jobs:
     name: make-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v2
         with:
           go-version: '1.17.x'
@@ -20,7 +20,7 @@ jobs:
         run: |
           make gen-website
       # Checkout the docs repo since we will want to update the files there.
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: 'kittycad/docs'
           path: 'docs'
