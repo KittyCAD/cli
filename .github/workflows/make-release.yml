@@ -2,6 +2,8 @@ on:
   push:
     tags:
       - v*
+  workflow_dispatch:
+    inputs:
 name: make-release
 jobs:
   makerelease:
