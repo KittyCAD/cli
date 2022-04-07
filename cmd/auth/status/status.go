@@ -102,20 +102,26 @@ func statusRun(opts *Options) error {
 			return err
 		}
 
-		session, err := kittycadClient.Meta.AuthSession()
+		user, err := kittycadClient.User.GetSelf()
+		if err != nil {
+			addMsg("%s %s: api call failed: %s", cs.Red("X"), hostname, err)
+			continue
+		}
+
+		tokenObj, err := kittycadClient.APIToken.GetForUser(token)
 		if err != nil {
 			addMsg("%s %s: api call failed: %s", cs.Red("X"), hostname, err)
 			continue
 		}
 
 		// Let the user know if their token is invalid.
-		if !session.IsValid {
-			addMsg("%s Logged in to %s as %s (%s) with an invalid token", cs.Red("X"), hostname, cs.Bold(session.Email), tokenSource)
+		if !tokenObj.IsValid {
+			addMsg("%s Logged in to %s as %s (%s) with an invalid token", cs.Red("X"), hostname, cs.Bold(user.Email), tokenSource)
 			failed = true
 			continue
 		}
 
-		addMsg("%s Logged in to %s as %s (%s)", cs.SuccessIcon(), hostname, cs.Bold(session.Email), tokenSource)
+		addMsg("%s Logged in to %s as %s (%s)", cs.SuccessIcon(), hostname, cs.Bold(user.Email), tokenSource)
 		tokenDisplay := "*******************"
 		if opts.ShowToken {
 			tokenDisplay = token

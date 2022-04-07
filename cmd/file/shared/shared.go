@@ -31,7 +31,7 @@ func FormattedStatus(cs *iostreams.ColorScheme, status kittycad.FileConversionSt
 }
 
 // PrintRawConversion prints the raw output of a conversion.
-func PrintRawConversion(io *iostreams.IOStreams, conversion *kittycad.FileConversion, output []byte, outputFile string, duration time.Duration) error {
+func PrintRawConversion(io *iostreams.IOStreams, conversion *kittycad.FileConversionWithOutput, output []byte, outputFile string, duration time.Duration) error {
 	out := io.Out
 	cs := io.ColorScheme()
 
@@ -57,7 +57,7 @@ func PrintRawConversion(io *iostreams.IOStreams, conversion *kittycad.FileConver
 }
 
 // PrintHumanConversion prints the human-readable output of a conversion.
-func PrintHumanConversion(io *iostreams.IOStreams, conversion *kittycad.FileConversion, output []byte, outputFile string, duration time.Duration) error {
+func PrintHumanConversion(io *iostreams.IOStreams, conversion *kittycad.FileConversionWithOutput, output []byte, outputFile string, duration time.Duration) error {
 	out := io.Out
 	cs := io.ColorScheme()
 

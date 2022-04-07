@@ -127,7 +127,7 @@ func logoutRun(opts *Options) error {
 		return err
 	}
 
-	session, err := kittycadClient.Meta.AuthSession()
+	session, err := kittycadClient.User.GetSelf()
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.2
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/cli/browser v1.1.0
 	github.com/cli/cli/v2 v2.3.0
 	github.com/cli/safeexec v1.0.0
@@ -14,7 +13,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-version v1.4.0
-	github.com/kittycad/kittycad.go v0.0.8
+	github.com/kittycad/kittycad.go v0.0.10
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/spf13/cobra v1.4.0
@@ -25,7 +24,6 @@ require (
 )
 
 require (
-	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/alecthomas/chroma v0.8.2 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/briandowns/spinner v1.13.0 // indirect
