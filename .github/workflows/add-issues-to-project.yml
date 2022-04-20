@@ -1,0 +1,13 @@
+name: "Add issues to 'All Tasks' Project"
+
+on:
+  issues:
+    types: [opened]
+jobs:
+  createCard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KittyCAD/add-issues-to-project@v0.0.1
+        with:
+          token: ${{ secrets.GLOBAL_PAT }}
+          issue-node: ${{ github.event.issue.node_id }}"
