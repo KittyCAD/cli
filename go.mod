@@ -8,7 +8,7 @@ require (
 	github.com/cli/browser v1.1.0
 	github.com/cli/cli/v2 v2.3.0
 	github.com/cli/safeexec v1.0.0
-	github.com/cpuguy83/go-md2man/v2 v2.0.1
+	github.com/cpuguy83/go-md2man/v2 v2.0.2
 	github.com/docker/go-units v0.4.0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
