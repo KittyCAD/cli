@@ -3,9 +3,12 @@ package status
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
+	"github.com/docker/go-units"
 	"github.com/kittycad/cli/internal/config"
 	"github.com/kittycad/cli/pkg/cli"
 	"github.com/kittycad/cli/pkg/cmdutil"
@@ -109,15 +112,32 @@ func statusRun(opts *Options) error {
 		}
 
 		tokenObj, err := kittycadClient.APIToken.GetForUser(token)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "404") {
 			addMsg("%s %s: api call failed: %s", cs.Red("X"), hostname, err)
 			continue
 		}
 
-		// Let the user know if their token is invalid.
-		if !tokenObj.IsValid {
-			addMsg("%s Logged in to %s as %s (%s) with an invalid token", cs.Red("X"), hostname, cs.Bold(user.Email), tokenSource)
-			failed = true
+		if tokenObj != nil {
+			// Let the user know if their token is invalid.
+			if !tokenObj.IsValid {
+				addMsg("%s Logged in to %s as %s (%s) with an invalid token", cs.Red("X"), hostname, cs.Bold(user.Email), tokenSource)
+				failed = true
+				continue
+			}
+
+			addMsg("%s Logged in to %s as %s (%s)", cs.SuccessIcon(), hostname, cs.Bold(user.Email), tokenSource)
+			tokenDisplay := "*******************"
+			if opts.ShowToken {
+				tokenDisplay = token
+			}
+			addMsg("%s Token: %s", cs.SuccessIcon(), tokenDisplay)
+			addMsg("")
+		}
+
+		// Let's see if this is a session token.
+		sessionObj, err := kittycadClient.Session.GetForUser(token)
+		if err != nil {
+			addMsg("%s %s: api call failed: %s", cs.Red("X"), hostname, err)
 			continue
 		}
 
@@ -126,7 +146,8 @@ func statusRun(opts *Options) error {
 		if opts.ShowToken {
 			tokenDisplay = token
 		}
-		addMsg("%s Token: %s", cs.SuccessIcon(), tokenDisplay)
+		addMsg("%s Session: %s", cs.SuccessIcon(), tokenDisplay)
+		addMsg("%s Expires: %s", cs.SuccessIcon(), units.HumanDuration(time.Until(*sessionObj.Expires.Time)))
 		addMsg("")
 	}
 
