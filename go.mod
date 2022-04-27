@@ -3,7 +3,7 @@ module github.com/kittycad/cli
 go 1.17
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.2
+	github.com/AlecAivazis/survey/v2 v2.3.4
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/cli/browser v1.1.0
 	github.com/cli/cli/v2 v2.3.0
