@@ -6,6 +6,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/kittycad/cli/pkg/cli"
+	"github.com/kittycad/cli/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +43,8 @@ func NewCmdDrake(cli *cli.CLI, runF func(*Options) error) *cobra.Command {
 			return runDrake(opts)
 		},
 	}
+
+	cmdutil.DisableAuthCheck(cmd)
 
 	return cmd
 }
