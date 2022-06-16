@@ -5,47 +5,74 @@ on:
   pull_request:
     paths:
       - .github/workflows/generate-website-docs.yml
+  workflow_dispatch:
 name: generate-website-docs
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   generate-website-docs:
     name: make-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v2
+      - name: Install latest rust
+        uses: actions-rs/toolchain@v1
         with:
-          go-version: '1.17.x'
-      - name: make gen-website
+            toolchain: stable
+            override: true
+            components: rustfmt, clippy
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      - name: install toml-cli
         shell: bash
         run: |
-          make gen-website
+          cargo install toml-cli
+      - name: make gen-md
+        shell: bash
+        run: |
+          make gen-md
       # Checkout the docs repo since we will want to update the files there.
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           repository: 'kittycad/docs'
           path: 'docs'
-          token: ${{secrets.PAT_GITHUB}}
-      - name: move docs to kittycad docs
+          token: ${{secrets.GLOBAL_PAT}}
+      - name: move docs to docs
         shell: bash
         run: |
-          mv -f generated_docs/website/kittycad*.md docs/_pages/cli/manual/
+          mv -f generated_docs/md/kittycad*.md docs/_pages/cli/manual/
       - name: commit the changes in the docs repo
         shell: bash
         run: |
+          export VERSION=$(toml get Cargo.toml package.version | jq -r .);
           cd docs
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          git commit -am "YOYO NEW CLI DOCS FOR $(cat ../VERSION.txt)!" || exit 0
+          git commit -am "YOYO NEW CLI DOCS FOR ${VERSION}!" || exit 0
           git fetch origin
           git rebase origin/main || exit 0
-          export NEW_BRANCH="update-docs-$(cat ../VERSION.txt)"
+          export NEW_BRANCH="update-docs-${VERSION}"
           git checkout -b "$NEW_BRANCH"
-          git push origin "$NEW_BRANCH"
-          gh pr create --title "Update CLI docs for $(cat ../VERSION.txt)" \
+          git push -f origin "$NEW_BRANCH"
+          gh pr create --title "Update CLI docs for ${VERSION}" \
               --body "Updating the generated cli docs" \
               --head "$NEW_BRANCH" \
-              --base main
+              --base main || true
         env:
-          GITHUB_TOKEN: ${{secrets.PAT_GITHUB}}
+          GITHUB_TOKEN: ${{secrets.GLOBAL_PAT}}
 

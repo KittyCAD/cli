@@ -1,0 +1,22 @@
+[package]
+name = "cli-macro-impl"
+description = "Macro for our CLI generation"
+version = "0.1.0"
+authors = ["Jess Frazelle <jess@kittycad.io>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1"
+Inflector = "^0.11.4"
+openapiv3 = "1"
+proc-macro2 = "1"
+quote = "1"
+regex = "1.5"
+rustfmt-wrapper = "^0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+serde_tokenstream = "0.1.0"
+syn = { version = "1.0", features = [ "derive", "parsing", "printing" ] }
+
+[dev-dependencies]
+expectorate = "1"

@@ -1,0 +1,87 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.rs'
+      - '**.rs.gen'
+      - Cargo.toml
+      - Cargo.lock
+      - .github/workflows/cargo-test.yml
+      - 'rust-toolchain'
+      - 'rust-toolchain.toml'
+      - 'Makefile'
+  pull_request:
+    paths:
+      - '**.rs'
+      - '**.rs.gen'
+      - Cargo.toml
+      - Cargo.lock
+      - .github/workflows/cargo-build.yml
+      - 'rust-toolchain'
+      - 'rust-toolchain.toml'
+      - 'Makefile'
+  workflow_dispatch:
+    inputs:
+permissions: read-all
+name: cargo test
+jobs:
+  cargotest:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Install latest rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            override: true
+            components: rustfmt, clippy
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run cargo test
+        run: |
+          cargo test --all
+        env:
+          KITTYCAD_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          RUST_BACKTRACE: 1
+
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: '0.15.0'
+          args: '--all'
+        env:
+          KITTYCAD_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          RUST_BACKTRACE: 1
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          flags: unittests
+          verbose: true

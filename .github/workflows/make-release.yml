@@ -2,15 +2,16 @@ on:
   push:
     tags:
       - v*
-  workflow_dispatch:
-    inputs:
 name: make-release
 jobs:
   makerelease:
-    name: make-release
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    name: make release
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v0.8.0'
         with:
@@ -19,35 +20,110 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0.6.0
         with:
           project_id: kittycadapi
-      - uses: actions/setup-go@v3
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
         with:
-          go-version: '1.17.x'
-      - name: make release
+            toolchain: stable
+            override: true
+            components: rustfmt, clippy
+      - if: ${{ matrix.os == 'ubuntu-latest' }}
+        name: Install deps
         shell: bash
         run: |
+          ./.github/workflows/cross-deps.sh
+      - if: ${{ matrix.os == 'macos-latest' }}
+        name: Install deps
+        shell: bash
+        run: |
+          brew install \
+            coreutils \
+            jq
+
+          cargo install toml-cli
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run make cross
+        run: |
+          export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
           make release
+          ls -la cross
+        shell: bash
       - name: move files to dir for upload
         shell: bash
         run: |
+          export VERSION=v$(toml get Cargo.toml package.version | jq -r .)
           mkdir -p releases/$(basename $(pwd))
-          cp -r cross releases/$(basename $(pwd))/$(cat VERSION.txt)
+          cp -r cross releases/$(basename $(pwd))/${VERSION}
+          cp cross/README.md cross/${{matrix.os}}-${{github.ref_name}}-README.md
       - name: 'upload binary files'
         id: upload-files
         uses: google-github-actions/upload-cloud-storage@v0.10.2
         with:
           path: releases
           destination: dl.kittycad.io
+      # Store the readme as an artifact so we can combine the two.
+      - name: Archive the README.md data
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.os}}-${{github.ref_name}}-README.md
+          path: ${{github.workspace}}/cross/${{matrix.os}}-${{github.ref_name}}-README.md
+  createrelease:
+    runs-on: ubuntu-latest
+    needs: [makerelease]
+    name: createrelease
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: nightly
+            override: true
+            components: rustfmt, clippy
+      - uses: actions/download-artifact@v3
+        with:
+          name:  ubuntu-latest-${{github.ref_name}}-README.md
+      - uses: actions/download-artifact@v3
+        with:
+          name:  macos-latest-${{github.ref_name}}-README.md
+      - name: combine readmes
+        shell: bash
+        run: |
+          ls -la
+          echo 'These instructions are meant as an easy way to install. Note: you likely need to install `coreutils` in order to have the `sha256sum` command.' > release.md
+          echo "" >> release.md
+          cat macos-latest-${{github.ref_name}}-README.md  \
+            ubuntu-latest-${{github.ref_name}}-README.md \
+              >> release.md
       - name: Get if prerelease
         shell: bash
         id: extract_prerelease
         run: |
-          if cat VERSION.txt | grep -q "rc"; then
-            echo "##[set-output name=prerelease;]$(echo true)"
+          cargo install toml-cli
+          export VERSION=v$(toml get Cargo.toml package.version | jq -r .)
+          if echo $VERSION | grep -q "rc"; then
+            echo "##[set-output name=prerelease;]$(echo true)";
           else
-            echo "##[set-output name=prerelease;]$(echo false)"
+            if echo $VERSION | grep -q "pre"; then
+              echo "##[set-output name=prerelease;]$(echo true)";
+            else
+              echo "##[set-output name=prerelease;]$(echo false)";
+            fi
           fi
       - name: Create a Release
         uses: softprops/action-gh-release@v1
         with:
+          body_path: ${{github.workspace}}/release.md
           prerelease: ${{steps.extract_prerelease.outputs.prerelease}}
-          body_path: ${{github.workspace}}/cross/README.md

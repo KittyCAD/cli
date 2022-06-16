@@ -1,0 +1,41 @@
+use num_traits::identities::Zero;
+#[derive(Parser, Debug, Clone)]
+enum SubCommand {
+    #[clap(alias = "get")]
+    View(CmdUserView),
+}
+
+#[doc = "View user.\n\nDisplay information about a KittyCAD user.\n\nWith `--web`, open the user in a web browser instead."]
+#[derive(clap :: Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdUserView {
+    #[doc = "The user to view. Can be an ID or name."]
+    #[clap(name = "user", required = true)]
+    pub user: String,
+    #[doc = "The user ID."]
+    #[clap(long = "id", short = 'i', required = true)]
+    pub id: String,
+    #[doc = "Open the user in the browser."]
+    #[clap(short, long)]
+    pub web: bool,
+    #[doc = r" Output format."]
+    #[clap(long, short)]
+    pub format: Option<crate::types::FormatOutput>,
+}
+
+#[async_trait::async_trait]
+impl crate::cmd::Command for CmdUserView {
+    async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
+        if self.web {
+            let url = format!("https://{}/{}", ctx.config.default_host()?, self.user);
+            ctx.browser("", &url)?;
+            return Ok(());
+        }
+
+        let client = ctx.api_client("")?;
+        let result = client.users().get(&self.id).await?;
+        let format = ctx.format(&self.format)?;
+        ctx.io.write_output(&format, &result)?;
+        Ok(())
+    }
+}

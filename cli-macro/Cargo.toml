@@ -1,0 +1,13 @@
+[package]
+name = "cli-macro"
+description = "Macro for our CLI generation"
+version = "0.1.0"
+authors = ["Jess Frazelle <jess@kittycad.io>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+cli-macro-impl = { path = "../cli-macro-impl" }
+
