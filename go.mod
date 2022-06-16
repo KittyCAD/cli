@@ -13,7 +13,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-version v1.4.0
-	github.com/kittycad/kittycad.go v0.1.2
+	github.com/kittycad/kittycad.go v0.1.6
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/spf13/cobra v1.4.0

@@ -69,7 +69,7 @@ func statusRun(opts *Options) error {
 	}
 
 	// Do the conversion.
-	conversion, output, err := kittycadClient.File.ConversionByIDWithBase64Helper(opts.ID)
+	conversion, output, err := kittycadClient.File.GetConversionWithBase64Helper(opts.ID)
 	if err != nil {
 		return fmt.Errorf("error getting file conversion %s: %w", opts.ID, err)
 	}
@@ -99,8 +99,8 @@ func statusRun(opts *Options) error {
 	defer opts.IO.StopPager()
 
 	if connectedToTerminal {
-		return shared.PrintHumanConversion(opts.IO, conversion, output, opts.OutputFile, duration)
+		return shared.PrintHumanAsyncAPICallOutput(opts.IO, conversion, output, opts.OutputFile, duration)
 	}
 
-	return shared.PrintRawConversion(opts.IO, conversion, output, opts.OutputFile, duration)
+	return shared.PrintRawAsyncAPICall(opts.IO, conversion, output, opts.OutputFile, duration)
 }
