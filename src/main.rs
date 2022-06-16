@@ -21,6 +21,8 @@ pub mod cmd_generate;
 pub mod cmd_open;
 /// The update command.
 pub mod cmd_update;
+/// The user command.
+pub mod cmd_user;
 /// The version command.
 pub mod cmd_version;
 
@@ -120,6 +122,7 @@ enum SubCommand {
     #[clap(alias = "open")]
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
+    User(cmd_user::CmdUser),
     Version(cmd_version::CmdVersion),
 }
 
@@ -232,6 +235,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Generate(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::User(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Version(cmd) => run_cmd(&cmd, ctx).await,
     };
 

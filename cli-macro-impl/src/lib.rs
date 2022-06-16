@@ -562,7 +562,6 @@ impl SchemaExt for openapiv3::Parameter {
 struct Operation {
     op: openapiv3::Operation,
     method: String,
-    #[allow(dead_code)]
     path: String,
     id: String,
 }
@@ -587,12 +586,14 @@ impl Parameter {
 impl Operation {
     /// Returns if the given operation is a root level operation on a specific tag.
     fn is_root_level_operation(&self, tag: &str) -> bool {
-        (self
-            .id
-            .ends_with(&format!("{}_{}", self.method.to_lowercase(), singular(tag)))
-            || self
-                .id
-                .ends_with(&format!("{}_{}_self", self.method.to_lowercase(), singular(tag))))
+        let method = if self.method == "PUT" {
+            "update".to_string()
+        } else {
+            self.method.to_lowercase()
+        };
+
+        (self.id.ends_with(&format!("{}_{}", method, singular(tag)))
+            || self.id.ends_with(&format!("{}_{}_self", method, singular(tag))))
             && !self.op.tags.contains(&"hidden".to_string())
     }
 
@@ -1050,11 +1051,7 @@ impl Operation {
     /// Generate the create command.
     fn generate_create_command(&self, tag: &str) -> Result<(TokenStream, syn::Variant)> {
         let tag_ident = format_ident!("{}", tag);
-        let singular_tag_str = if tag == "vpcs" {
-            singular(tag).to_uppercase()
-        } else {
-            singular(tag)
-        };
+        let singular_tag_str = singular(tag);
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}Create", to_title_case(&singular(tag)));
 
@@ -1283,11 +1280,13 @@ impl Operation {
     /// Generate the edit command.
     fn generate_edit_command(&self, tag: &str) -> Result<(TokenStream, syn::Variant)> {
         let tag_ident = format_ident!("{}", tag);
-        let singular_tag_str = if tag == "vpcs" {
-            singular(tag).to_uppercase()
+        let fn_name_ident = if tag == "users" {
+            format_ident!("{}_self", "update")
         } else {
-            singular(tag)
+            format_ident!("{}", "update")
         };
+
+        let singular_tag_str = singular(tag);
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}Edit", to_title_case(&singular(tag)));
 
@@ -1333,91 +1332,34 @@ impl Operation {
         }
 
         // We need to form the output back to the client.
-        let output = if self.is_parameter("organization") && self.is_parameter("project") {
-            let start = quote! {
-                let full_name = format!("{}/{}", self.organization, self.project);
-            };
-            if tag != "projects" {
-                quote! {
-                    #start
-                    if !self.new_name.is_empty() {
-                        writeln!(
-                            ctx.io.out,
-                            "{} Edited {} {} -> {} in {}",
-                            cs.success_icon(),
-                            #singular_tag_str,
-                            self.#singular_tag_lc,
-                            self.new_name,
-                            full_name
-                        )?;
-                    } else {
-                        writeln!(
-                            ctx.io.out,
-                            "{} Edited {} {} in {}",
-                            cs.success_icon_with_color(ansi_term::Color::Red),
-                            #singular_tag_str,
-                            self.#singular_tag_lc,
-                            full_name
-                        )?;
-                    }
-                }
-            } else {
-                quote! {
-                    #start
-                    if !self.new_name.is_empty() {
-                        writeln!(
-                            ctx.io.out,
-                            "{} Edited {} {} -> {}/{}",
-                            cs.success_icon(),
-                            #singular_tag_str,
-                            full_name,
-                            self.organization,
-                            self.new_name
-                        )?;
-                    } else {
-                        writeln!(
-                            ctx.io.out,
-                            "{} Edited {} {}",
-                            cs.success_icon_with_color(ansi_term::Color::Red),
-                            #singular_tag_str,
-                            full_name
-                        )?;
-                    }
-                }
-            }
-        } else {
-            quote! {
-                if !self.new_name.is_empty() {
-                    writeln!(
-                        ctx.io.out,
-                        "{} Edited {} {} -> {}",
-                        cs.success_icon(),
-                        #singular_tag_str,
-                        self.#singular_tag_lc,
-                        self.new_name
-                    )?;
-                } else {
-                    writeln!(
-                        ctx.io.out,
-                        "{} Edited {} {}",
-                        cs.success_icon_with_color(ansi_term::Color::Red),
-                        #singular_tag_str,
-                        self.#singular_tag_lc
-                    )?;
-                }
-            }
+        let output = quote! {
+                writeln!(
+                    ctx.io.out,
+                    "{} Edited {}",
+                    cs.success_icon_with_color(ansi_term::Color::Red),
+                    #singular_tag_str,
+                )?;
         };
 
         let additional_struct_params = self.get_additional_struct_params(tag)?;
+
+        let params = if tag == "users" {
+            quote!()
+        } else {
+            quote!(
+
+                #[doc = #struct_inner_name_doc]
+                #[clap(name = #singular_tag_str, required = true)]
+                pub #singular_tag_lc: String,
+            )
+        };
 
         let cmd = quote!(
             #[doc = #struct_doc]
             #[derive(clap::Parser, Debug, Clone)]
             #[clap(verbatim_doc_comment)]
             pub struct #struct_name {
-                #[doc = #struct_inner_name_doc]
-                #[clap(name = #singular_tag_str, required = true)]
-                pub #singular_tag_lc: String,
+                #params
 
                 #(#additional_struct_params)*
             }
@@ -1429,13 +1371,7 @@ impl Operation {
 
                     let client = ctx.api_client("")?;
 
-                    let mut name = self.#singular_tag_lc.clone();
-
-                    if !self.new_name.is_empty() {
-                        name = self.new_name.to_string();
-                    }
-
-                    let result = client.#tag_ident().put(#(#api_call_params),*).await?;
+                    let result = client.#tag_ident().#fn_name_ident(#(#api_call_params),*).await?;
 
                     let cs = ctx.io.color_scheme();
                     #output
@@ -1455,11 +1391,13 @@ impl Operation {
     /// Generate the view command.
     fn generate_view_command(&self, tag: &str) -> Result<(TokenStream, syn::Variant)> {
         let tag_ident = format_ident!("{}", tag);
-        let singular_tag_str = if tag == "vpcs" {
-            singular(tag).to_uppercase()
+        let fn_name_ident = if tag == "users" {
+            format_ident!("{}_self", "get")
         } else {
-            singular(tag)
+            format_ident!("{}", "get")
         };
+
+        let singular_tag_str = singular(tag);
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}View", to_title_case(&singular(tag)));
 
@@ -1486,6 +1424,21 @@ impl Operation {
             )
         };
 
+        let url = if tag == "users" {
+            quote!(
+                    let url = "https://kittycad.io/account".to_string();
+            )
+        } else {
+            let path = &self.path;
+            quote!(
+                    let url = format!(
+                        "https://{}{}",
+                        ctx.config.default_host()?,
+                        #path
+                    );
+            )
+        };
+
         let cmd = quote!(
             #[doc = #struct_doc]
             #[derive(clap::Parser, Debug, Clone)]
@@ -1508,12 +1461,7 @@ impl Operation {
             impl crate::cmd::Command for #struct_name {
                 async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
                     if self.web {
-                        // TODO: figure out the right URL.
-                        let url = format!(
-                            "https://{}/{}",
-                            ctx.config.default_host()?,
-                            self.#singular_tag_lc
-                        );
+                        #url
 
                         ctx.browser("", &url)?;
                         return Ok(());
@@ -1521,7 +1469,7 @@ impl Operation {
 
                     let client = ctx.api_client("")?;
 
-                    let result = client.#tag_ident().get(#(#api_call_params),*).await?;
+                    let result = client.#tag_ident().#fn_name_ident(#(#api_call_params),*).await?;
 
                     let format = ctx.format(&self.format)?;
                     ctx.io.write_output(&format, &result)?;
@@ -1541,11 +1489,7 @@ impl Operation {
     /// Generate the list command.
     fn generate_list_command(&self, tag: &str) -> Result<(TokenStream, syn::Variant)> {
         let tag_ident = format_ident!("{}", tag);
-        let singular_tag_str = if tag == "vpcs" {
-            singular(tag).to_uppercase()
-        } else {
-            singular(tag)
-        };
+        let singular_tag_str = singular(tag);
         let struct_name = format_ident!("Cmd{}List", to_title_case(&singular(tag)));
 
         let struct_doc = format!("List {}.", plural(&singular_tag_str));
@@ -1631,11 +1575,7 @@ impl Operation {
     /// Generate the delete command.
     fn generate_delete_command(&self, tag: &str) -> Result<(TokenStream, syn::Variant)> {
         let tag_ident = format_ident!("{}", tag);
-        let singular_tag_str = if tag == "vpcs" {
-            singular(tag).to_uppercase()
-        } else {
-            singular(tag)
-        };
+        let singular_tag_str = singular(tag);
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}Delete", to_title_case(&singular(tag)));
 
@@ -1845,11 +1785,7 @@ pub fn get_text_fmt(output: &proc_macro2::TokenStream) -> Result<String> {
 }
 
 fn clean_param_name(p: &str) -> String {
-    if p != "new_name" && !p.ends_with("dns_name") {
-        p.trim_end_matches("_name").trim_end_matches("_id").to_string()
-    } else {
-        p.to_string()
-    }
+    p.to_string()
 }
 
 struct Flags {

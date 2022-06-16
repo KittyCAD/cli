@@ -22,8 +22,16 @@ pub enum OpenShortcut {
     ApiRef,
     /// Open the KittyCAD CLI reference in your browser.
     CliRef,
-    /// Open the KittyCAD Account in your browser.
+    /// Open your KittyCAD account in your browser.
     Account,
+    /// Open the KittyCAD Discord in your browser.
+    Discord,
+    /// Open the KittyCAD store in your browser.
+    Store,
+    /// Open the KittyCAD blog in your browser.
+    Blog,
+    /// Open the repository for the `kittycad` CLI in your browser.
+    Repo,
 }
 
 impl Default for OpenShortcut {
@@ -39,6 +47,10 @@ impl OpenShortcut {
             OpenShortcut::ApiRef => "https://docs.kittycad.io/api".to_string(),
             OpenShortcut::CliRef => "https://docs.kittycad.io/cli".to_string(),
             OpenShortcut::Account => "https://kittycad.io/account".to_string(),
+            OpenShortcut::Discord => "https://discord.com/invite/Bee65eqawJ".to_string(),
+            OpenShortcut::Store => "https://store.kittycad.io".to_string(),
+            OpenShortcut::Blog => "https://kittycad.io/blog".to_string(),
+            OpenShortcut::Repo => "https://github.com/KittyCAD/cli".to_string(),
         }
     }
 }

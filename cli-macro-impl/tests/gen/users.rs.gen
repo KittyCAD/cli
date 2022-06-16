@@ -3,18 +3,13 @@ use num_traits::identities::Zero;
 enum SubCommand {
     #[clap(alias = "get")]
     View(CmdUserView),
+    Edit(CmdUserEdit),
 }
 
 #[doc = "View user.\n\nDisplay information about a KittyCAD user.\n\nWith `--web`, open the user in a web browser instead."]
 #[derive(clap :: Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdUserView {
-    #[doc = "The user to view. Can be an ID or name."]
-    #[clap(name = "user", required = true)]
-    pub user: String,
-    #[doc = "The user ID."]
-    #[clap(long = "id", short = 'i', required = true)]
-    pub id: String,
     #[doc = "Open the user in the browser."]
     #[clap(short, long)]
     pub web: bool,
@@ -27,15 +22,75 @@ pub struct CmdUserView {
 impl crate::cmd::Command for CmdUserView {
     async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
         if self.web {
-            let url = format!("https://{}/{}", ctx.config.default_host()?, self.user);
+            let url = "https://kittycad.io/account".to_string();
             ctx.browser("", &url)?;
             return Ok(());
         }
 
         let client = ctx.api_client("")?;
-        let result = client.users().get(&self.id).await?;
+        let result = client.users().get_self().await?;
         let format = ctx.format(&self.format)?;
         ctx.io.write_output(&format, &result)?;
+        Ok(())
+    }
+}
+
+#[doc = "Edit user settings."]
+#[derive(clap :: Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdUserEdit {
+    #[doc = "The user's company."]
+    #[clap(long = "company", short = 'c', required = false, default_value_t)]
+    pub new_company: String,
+    #[doc = "The user's Discord handle."]
+    #[clap(long = "discord", required = false, default_value_t)]
+    pub new_discord: String,
+    #[doc = "The user's first name."]
+    #[clap(long = "first-name", short = 'f', required = false, default_value_t)]
+    pub new_first_name: String,
+    #[doc = "The user's GitHub handle."]
+    #[clap(long = "github", short = 'g', required = false, default_value_t)]
+    pub new_github: String,
+    #[doc = "The user's last name."]
+    #[clap(long = "last-name", short = 'l', required = false, default_value_t)]
+    pub new_last_name: String,
+    #[doc = "The user's phone number."]
+    #[clap(long = "phone", short = 'p', required = false, default_value_t)]
+    pub new_phone: kittycad::types::PhoneNumber,
+}
+
+#[async_trait::async_trait]
+impl crate::cmd::Command for CmdUserEdit {
+    async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
+        if self.new_company.is_empty()
+            && self.new_discord.is_empty()
+            && self.new_first_name.is_empty()
+            && self.new_github.is_empty()
+            && self.new_last_name.is_empty()
+            && self.new_phone.is_empty()
+        {
+            return Err(anyhow::anyhow!("nothing to edit"));
+        }
+
+        let client = ctx.api_client("")?;
+        let result = client
+            .users()
+            .update_self(&kittycad::types::UpdateUser {
+                company: self.new_company.clone(),
+                discord: self.new_discord.clone(),
+                first_name: self.new_first_name.clone(),
+                github: self.new_github.clone(),
+                last_name: self.new_last_name.clone(),
+                phone: self.new_phone.clone(),
+            })
+            .await?;
+        let cs = ctx.io.color_scheme();
+        writeln!(
+            ctx.io.out,
+            "{} Edited {}",
+            cs.success_icon_with_color(ansi_term::Color::Red),
+            "user",
+        )?;
         Ok(())
     }
 }

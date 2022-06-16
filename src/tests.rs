@@ -242,6 +242,27 @@ access-control-allow-credentials:  """#
             want_code: 1,
             ..Default::default()
         },
+        TestItem {
+            name: "get your user".to_string(),
+            args: vec!["kittycad".to_string(), "user".to_string(), "view".to_string()],
+            want_out: "name           |".to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get your user as json".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "user".to_string(),
+                "view".to_string(),
+                "--format=json".to_string(),
+            ],
+            want_out: r#""created_at": ""#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();
