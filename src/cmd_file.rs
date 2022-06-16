@@ -41,18 +41,15 @@ impl crate::cmd::Command for CmdFile {
 /// performed asynchronously, you can then check its status with the
 /// `kittycad api-call status <id_of_your_operation>` command.
 ///
-///     # convert step to obj and save to file
+///     # convert step to obj
 ///     $ kittycad file convert my-file.step my-file.obj
 ///
-///     # convert obj to step and print to stdout
-///     $ kittycad file convert my-obj.obj --to step
+///     # convert obj to step
+///     $ kittycad file convert my-obj.obj thing.step
 ///
-///     # convert step to obj and print to stdout
-///     $ kittycad file convert my-step.step -t obj
-///
-///     # pass a file to convert from stdin and print to stdout
+///     # pass a file to convert from stdin
 ///     # when converting from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file convert - --to step --from obj
+///     $ cat my-obj.obj | kittycad file convert - thing.step --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileConvert {
@@ -118,7 +115,7 @@ impl crate::cmd::Command for CmdFileConvert {
 
         // Reset the output field of the file conversion.
         // Otherwise what we print will be crazy big.
-        file_conversion.output = Default::default();
+        file_conversion.output = self.output.to_str().unwrap_or("").to_string();
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
@@ -133,6 +130,12 @@ impl crate::cmd::Command for CmdFileConvert {
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
 /// `kittycad api-call status <id_of_your_operation>` command.
+///
+///     # get the volume of a file
+///     $ kittycad file volume my-file.step
+///
+///     # pass a file from stdin, the original file type is required
+///     $ cat my-obj.obj | kittycad file volume - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileVolume {
@@ -182,6 +185,12 @@ impl crate::cmd::Command for CmdFileVolume {
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
 /// `kittycad api-call status <id_of_your_operation>` command.
+///
+///     # get the mass of a file
+///     $ kittycad file mass my-file.step
+///
+///     # pass a file from stdin, the original file type is required
+///     $ cat my-obj.obj | kittycad file mass - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileMass {
@@ -242,6 +251,12 @@ impl crate::cmd::Command for CmdFileMass {
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
 /// `kittycad api-call status <id_of_your_operation>` command.
+///
+///     # get the density of a file
+///     $ kittycad file density my-file.step
+///
+///     # pass a file from stdin, the original file type is required
+///     $ cat my-obj.obj | kittycad file density - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileDensity {

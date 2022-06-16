@@ -272,7 +272,46 @@ access-control-allow-credentials:  """#
                 "assets/in_obj.obj".to_string(),
                 "/tmp/thing.step".to_string(),
             ],
-            want_out: r#""created_at": ""#.to_string(),
+            want_out: r#"status        | Completed"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the file volume".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "file".to_string(),
+                "volume".to_string(),
+                "assets/in_obj.obj".to_string(),
+            ],
+            want_out: r#"volume       | 48.800293"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the file density".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "file".to_string(),
+                "density".to_string(),
+                "assets/in_obj.obj".to_string(),
+            ],
+            want_out: r#"density       | 0.02049168"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the file mass".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "file".to_string(),
+                "mass".to_string(),
+                "assets/in_obj.obj".to_string(),
+            ],
+            want_out: r#"mass             | 48.800293"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
