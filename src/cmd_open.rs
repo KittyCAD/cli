@@ -5,6 +5,12 @@ use parse_display::{Display, FromStr};
 /// Shortcut to open the KittyCAD documentation or Account in your browser.
 ///
 /// If no arguments are given, the default is to open the KittyCAD documentation.
+///
+///     # open the KittyCAD docs in your browser
+///     $ kittycad open docs
+///
+///     # open your KittyCAD account in your browser
+///     $ kittycad open account
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdOpen {

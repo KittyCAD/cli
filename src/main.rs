@@ -15,6 +15,8 @@ pub mod cmd_auth;
 pub mod cmd_completion;
 /// The config command.
 pub mod cmd_config;
+/// The file command.
+pub mod cmd_file;
 /// The generate command.
 pub mod cmd_generate;
 /// The open command.
@@ -118,6 +120,7 @@ enum SubCommand {
     Auth(cmd_auth::CmdAuth),
     Completion(cmd_completion::CmdCompletion),
     Config(cmd_config::CmdConfig),
+    File(cmd_file::CmdFile),
     Generate(cmd_generate::CmdGenerate),
     #[clap(alias = "open")]
     Open(cmd_open::CmdOpen),
@@ -232,6 +235,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Auth(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Completion(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Config(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::File(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Generate(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,

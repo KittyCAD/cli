@@ -128,6 +128,29 @@ impl Context<'_> {
             Ok(FormatOutput::from_str(&value).unwrap_or_default())
         }
     }
+
+    /// Read the file at the given path and returns the contents.
+    /// If "-" is given, read from stdin.
+    pub fn read_file(&mut self, filename: &str) -> Result<Vec<u8>> {
+        if filename.is_empty() {
+            anyhow::bail!("File path cannot be empty.");
+        }
+
+        if filename == "-" {
+            let mut buffer = Vec::new();
+
+            // Read everything from stdin.
+            self.io.stdin.read_to_end(&mut buffer)?;
+
+            return Ok(buffer);
+        }
+
+        if !std::path::Path::new(filename).exists() {
+            anyhow::bail!("File '{}' does not exist.", filename);
+        }
+
+        std::fs::read(filename).map_err(Into::into)
+    }
 }
 
 #[cfg(test)]
