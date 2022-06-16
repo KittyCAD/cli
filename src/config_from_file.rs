@@ -173,6 +173,11 @@ impl crate::config::Config for FileConfig {
             hosts.push(host.to_string());
         }
 
+        if hosts.is_empty() {
+            // Add the default host.
+            hosts.push(crate::cmd_auth::parse_host(crate::DEFAULT_HOST)?.to_string());
+        }
+
         Ok(hosts)
     }
 
@@ -184,10 +189,6 @@ impl crate::config::Config for FileConfig {
     fn default_host_with_source(&self) -> Result<(String, String)> {
         // Get all the hosts.
         let hosts = self.hosts()?;
-
-        if hosts.is_empty() {
-            return Err(anyhow!("No hosts found. Try logging in with `kittycad auth login`."));
-        }
 
         let hosts_source = crate::config_file::hosts_file()?;
 

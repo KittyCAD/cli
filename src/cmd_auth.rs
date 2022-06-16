@@ -491,8 +491,7 @@ mod test {
                     host: None,
                 }),
                 stdin: "".to_string(),
-                want_out: "You are not logged into any KittyCAD hosts. Run `kittycad auth login` to authenticate.\n"
-                    .to_string(),
+                want_out: "✔ Logged in to ".to_string(),
                 want_err: "".to_string(),
             },
             TestItem {
