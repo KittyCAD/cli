@@ -7,7 +7,7 @@ use kittycad::traits::Base64Ops;
 /// Perform operations on CAD files.
 ///
 ///     # convert a step file to an obj file
-///     $ kittycad file convert ./input.step --output-format=obj
+///     $ kittycad file convert ./input.step ./output.obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFile {
