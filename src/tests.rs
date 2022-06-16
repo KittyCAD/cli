@@ -263,6 +263,20 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
+        TestItem {
+            name: "convert a file".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "file".to_string(),
+                "convert".to_string(),
+                "assets/in_obj.obj".to_string(),
+                "/tmp/thing.step".to_string(),
+            ],
+            want_out: r#""created_at": ""#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();

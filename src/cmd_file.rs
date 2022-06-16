@@ -61,10 +61,10 @@ pub struct CmdFileConvert {
     #[clap(name = "input", parse(from_os_str), required = true)]
     pub input: std::path::PathBuf,
 
-    /// The path to an output file, this is not necessary but if given it will
+    /// The path to an output file. The command will
     /// save the output of the conversion to the given path.
-    #[clap(name = "output")]
-    pub output: Option<std::path::PathBuf>,
+    #[clap(name = "output", parse(from_os_str), required = true)]
+    pub output: std::path::PathBuf,
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format")]
@@ -88,15 +88,11 @@ impl crate::cmd::Command for CmdFileConvert {
             get_source_format_from_extension(&get_extension(self.input.clone()))?
         };
 
-        if self.output_format.is_none() && self.output.is_none() {
-            anyhow::bail!("`--output-format` or `<output>` is required");
-        }
-
         // Parse the output format.
         let output_format = if let Some(output_format) = &self.output_format {
             output_format.clone()
         } else {
-            get_output_format_from_extension(&get_extension(self.input.clone()))?
+            get_output_format_from_extension(&get_extension(self.output.clone()))?
         };
 
         // Get the contents of the input file.
@@ -106,21 +102,23 @@ impl crate::cmd::Command for CmdFileConvert {
         let client = ctx.api_client("")?;
 
         // Create the file conversion.
-        let (file_conversion, contents) = client
+        let (mut file_conversion, contents) = client
             .file()
             .create_conversion_with_decode(output_format, src_format, input)
             .await?;
 
         // If they specified an output file, save the output to that file.
-        if let Some(output) = &self.output {
-            if file_conversion.status == kittycad::types::ApiCallStatus::Completed {
-                if !contents.is_empty() {
-                    std::fs::write(output, contents)?;
-                } else {
-                    anyhow::bail!("no output was generated! (this is probably a bug in the API) you should report it to support@kittycad.io");
-                }
+        if file_conversion.status == kittycad::types::ApiCallStatus::Completed {
+            if !contents.is_empty() {
+                std::fs::write(&self.output, contents)?;
+            } else {
+                anyhow::bail!("no output was generated! (this is probably a bug in the API) you should report it to support@kittycad.io");
             }
         }
+
+        // Reset the output field of the file conversion.
+        // Otherwise what we print will be crazy big.
+        file_conversion.output = Default::default();
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
@@ -335,7 +333,7 @@ fn get_output_format_from_extension(ext: &str) -> Result<kittycad::types::FileOu
                 Ok(kittycad::types::FileOutputFormat::Step)
             } else {
                 anyhow::bail!(
-                    "unknown source format for file extension: {}. Try setting the `--output-format` flag explicitly or use a valid format.",
+                    "unknown output format for file extension: {}. Try setting the `--output-format` flag explicitly or use a valid format.",
                     ext
                 )
             }
@@ -360,11 +358,12 @@ mod test {
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[serial_test::serial]
     async fn test_cmd_file() {
-        let tests: Vec<TestItem> = vec![TestItem {
-                    name: "convert with bad ext".to_string(),
+        let tests: Vec<TestItem> = vec![
+            TestItem {
+                    name: "convert input with bad ext".to_string(),
                     cmd: crate::cmd_file::SubCommand::Convert(crate::cmd_file::CmdFileConvert {
                         input: std::path::PathBuf::from("test/bad_ext.bad_ext"),
-                        output: None,
+                        output: std::path::PathBuf::from("test/out.obj"),
                         output_format: None,
                         src_format: None,
                         format: None,
@@ -373,25 +372,25 @@ mod test {
                     want_out: "".to_string(),
                     want_err: "unknown source format for file extension: bad_ext. Try setting the `--src-format` flag explicitly or use a valid format.".to_string(),
                 },
-        TestItem {
-                    name: "convert with no output_format".to_string(),
+                TestItem {
+                    name: "convert output with bad ext".to_string(),
                     cmd: crate::cmd_file::SubCommand::Convert(crate::cmd_file::CmdFileConvert {
-                        input: std::path::PathBuf::from("test/bad_ext.stp"),
-                        output: None,
+                        input: std::path::PathBuf::from("assets/in_obj.obj"),
+                        output: std::path::PathBuf::from("test/out.bad"),
                         output_format: None,
                         src_format: None,
                         format: None,
                     }),
                     stdin: "".to_string(),
                     want_out: "".to_string(),
-                    want_err: "`--output-format` or `<output>` is required".to_string(),
+                    want_err: "unknown output format for file extension: bad. Try setting the `--output-format` flag explicitly or use a valid format.".to_string(),
                 },
                 TestItem {
                     name: "convert: input file does not exist".to_string(),
                     cmd: crate::cmd_file::SubCommand::Convert(crate::cmd_file::CmdFileConvert {
                         input: std::path::PathBuf::from("test/bad_ext.stp"),
-                        output: None,
-                        output_format: Some(kittycad::types::FileOutputFormat::Obj),
+                        output: std::path::PathBuf::from("test/out.obj"),
+                        output_format: None,
                         src_format: None,
                         format: None,
                     }),

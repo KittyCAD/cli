@@ -86,7 +86,20 @@ mod test {
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[serial_test::serial]
     async fn test_cmd_user() {
-        let tests: Vec<TestItem> = vec![];
+        let tests: Vec<TestItem> = vec![TestItem {
+            name: "volume: input file does not exist".to_string(),
+            cmd: crate::cmd_user::SubCommand::Edit(crate::cmd_user::CmdUserEdit {
+                new_company: Default::default(),
+                new_discord: Default::default(),
+                new_phone: Default::default(),
+                new_last_name: Default::default(),
+                new_first_name: Default::default(),
+                new_github: Default::default(),
+            }),
+            stdin: "".to_string(),
+            want_out: "".to_string(),
+            want_err: "nothing to edit".to_string(),
+        }];
 
         let mut config = crate::config::new_blank_config().unwrap();
         let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
