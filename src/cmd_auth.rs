@@ -79,24 +79,6 @@ pub fn parse_host(input: &str) -> Result<url::Url> {
     }
 }
 
-fn parse_host_interactively(ctx: &mut crate::context::Context) -> Result<url::Url> {
-    loop {
-        match dialoguer::Input::<String>::new()
-            .with_prompt("KittyCAD instance host (this assumes https:// unless http:// is given as a part of the URL)")
-            .interact_text()
-        {
-            Ok(input) => match parse_host(&input) {
-                Ok(url) => return Ok(url),
-                Err(err) => {
-                    writeln!(ctx.io.err_out, "Invalid host specified ({err}). Try again.")?;
-                    continue;
-                }
-            },
-            Err(err) => anyhow::bail!("host prompt failed: {err}"),
-        }
-    }
-}
-
 /// Authenticate with an KittyCAD host.
 ///
 /// Alternatively, pass in a token on standard input by using `--with-token`.
@@ -120,6 +102,7 @@ pub struct CmdAuthLogin {
     pub with_token: bool,
 
     /// The host of the KittyCAD instance to authenticate with.
+    /// By default this is api.kittycad.io.
     /// This assumes the instance is an `https://` url, if not otherwise specified
     /// as `http://`.
     #[clap(short = 'H', long, env = "KITTYCAD_HOST", parse(try_from_str = parse_host))]
@@ -149,14 +132,12 @@ impl crate::cmd::Command for CmdAuthLogin {
             interactive = true;
         }
 
-        let host;
+        let default_host = parse_host(crate::DEFAULT_HOST)?;
         let host = if let Some(host) = &self.host {
             host.as_str()
-        } else if interactive {
-            host = parse_host_interactively(ctx)?;
-            host.as_str()
         } else {
-            return Err(anyhow!("--host required when not running interactively"));
+            // Set the default.
+            default_host.as_str()
         };
 
         if let Err(err) = ctx.config.check_writable(host, "token") {
@@ -332,9 +313,15 @@ impl crate::cmd::Command for CmdAuthLogout {
 
         let email = session.email;
 
+        let cs = ctx.io.color_scheme();
+
         if ctx.io.can_prompt() {
             match dialoguer::Confirm::new()
-                .with_prompt(format!("Are you sure you want to log out of {}{}?", hostname, email))
+                .with_prompt(format!(
+                    "Are you sure you want to log out of {} as {}?",
+                    hostname,
+                    cs.bold(&email)
+                ))
                 .interact()
             {
                 Ok(true) => {}
@@ -356,10 +343,10 @@ impl crate::cmd::Command for CmdAuthLogout {
         let cs = ctx.io.color_scheme();
         writeln!(
             ctx.io.out,
-            "{} Logged out of {} {}",
+            "{} Logged out of {} as {}",
             cs.success_icon(),
-            cs.bold(&hostname),
-            email
+            hostname,
+            cs.bold(&email)
         )?;
 
         Ok(())
