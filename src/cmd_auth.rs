@@ -491,8 +491,8 @@ mod test {
                     host: None,
                 }),
                 stdin: "".to_string(),
-                want_out: "✔ Logged in to ".to_string(),
-                want_err: "".to_string(),
+                want_out: "".to_string(),
+                want_err: "Try authenticating with".to_string(),
             },
             TestItem {
                 name: "login --with-token=false".to_string(),
