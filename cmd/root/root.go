@@ -3,6 +3,7 @@ package root
 import (
 	"github.com/MakeNowJust/heredoc"
 	aliasCmd "github.com/kittycad/cli/cmd/alias"
+	apiCallCmd "github.com/kittycad/cli/cmd/api-call"
 	authCmd "github.com/kittycad/cli/cmd/auth"
 	completionCmd "github.com/kittycad/cli/cmd/completion"
 	configCmd "github.com/kittycad/cli/cmd/config"
@@ -60,6 +61,7 @@ func NewCmdRoot(cli *cli.CLI) *cobra.Command {
 	// Child commands
 	cmd.AddCommand(versionCmd.NewCmdVersion(cli))
 	cmd.AddCommand(aliasCmd.NewCmdAlias(cli))
+	cmd.AddCommand(apiCallCmd.NewCmdAPICall(cli))
 	cmd.AddCommand(authCmd.NewCmdAuth(cli))
 	cmd.AddCommand(configCmd.NewCmdConfig(cli))
 	cmd.AddCommand(completionCmd.NewCmdCompletion(cli.IOStreams))
