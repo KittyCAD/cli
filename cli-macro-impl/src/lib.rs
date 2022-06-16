@@ -587,8 +587,13 @@ impl Parameter {
 impl Operation {
     /// Returns if the given operation is a root level operation on a specific tag.
     fn is_root_level_operation(&self, tag: &str) -> bool {
-        self.id
+        (self
+            .id
             .ends_with(&format!("{}_{}", self.method.to_lowercase(), singular(tag)))
+            || self
+                .id
+                .ends_with(&format!("{}_{}_self", self.method.to_lowercase(), singular(tag))))
+            && !self.op.tags.contains(&"hidden".to_string())
     }
 
     /// Returns if the given operation is a root list operation on a specific tag.
@@ -805,7 +810,7 @@ impl Operation {
 
                 let p_og = format_ident!("{}", n);
 
-                let mut new = if p == "name" { singular(tag) } else { p.to_string() };
+                let mut new = if p == "id" { singular(tag) } else { p.to_string() };
 
                 new = clean_param_name(&new);
 
@@ -1064,7 +1069,7 @@ impl Operation {
 
         let mut mutable_variables: Vec<TokenStream> = Vec::new();
         for (p, _) in self.get_all_required_param_names_and_types()? {
-            let mut p = if p == "name" { singular(tag) } else { p };
+            let mut p = if p == "id" { singular(tag) } else { p };
 
             p = clean_param_name(&p);
 
@@ -1079,7 +1084,7 @@ impl Operation {
 
         let mut required_checks: Vec<TokenStream> = Vec::new();
         for (p, t) in self.get_all_required_param_names_and_types()? {
-            let p = if p == "name" { singular(tag) } else { p };
+            let p = if p == "id" { singular(tag) } else { p };
 
             let n = clean_param_name(&p);
 
@@ -1470,14 +1475,23 @@ impl Operation {
 
         let additional_struct_params = self.get_additional_struct_params(tag)?;
 
+        let params = if tag == "users" {
+            quote!()
+        } else {
+            quote!(
+
+                #[doc = #struct_inner_name_doc]
+                #[clap(name = #singular_tag_str, required = true)]
+                pub #singular_tag_lc: String,
+            )
+        };
+
         let cmd = quote!(
             #[doc = #struct_doc]
             #[derive(clap::Parser, Debug, Clone)]
             #[clap(verbatim_doc_comment)]
             pub struct #struct_name {
-                #[doc = #struct_inner_name_doc]
-                #[clap(name = #singular_tag_str, required = true)]
-                pub #singular_tag_lc: String,
+                #params
 
                 #(#additional_struct_params)*
 
@@ -1803,12 +1817,7 @@ fn singular(s: &str) -> String {
 }
 
 fn skip_defaults(n: &str, tag: &str) -> bool {
-    n == singular(tag)
-        || n == "project"
-        || n == "organization"
-        || n == "project_name"
-        || n == "organization_name"
-        || n == "name"
+    n == singular(tag) || n == "id"
 }
 
 fn clean_text(s: &str) -> String {
