@@ -38,6 +38,8 @@ pub enum OpenShortcut {
     Blog,
     /// Open the repository for the `kittycad` CLI in your browser.
     Repo,
+    /// Open the changelog for the `kittycad` CLI in your browser.
+    Changelog,
 }
 
 impl Default for OpenShortcut {
@@ -57,6 +59,7 @@ impl OpenShortcut {
             OpenShortcut::Store => "https://store.kittycad.io".to_string(),
             OpenShortcut::Blog => "https://kittycad.io/blog".to_string(),
             OpenShortcut::Repo => "https://github.com/KittyCAD/cli".to_string(),
+            OpenShortcut::Changelog => changelog_url(clap::crate_version!()),
         }
     }
 }
