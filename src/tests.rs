@@ -20,14 +20,16 @@ struct MainContext {
 #[async_trait::async_trait]
 impl AsyncTestContext for MainContext {
     async fn setup() -> Self {
-        let test_host = std::env::var("KITTYCAD_TEST_HOST").unwrap_or(crate::DEFAULT_HOST.to_string());
+        let test_host = std::env::var("KITTYCAD_TEST_HOST").unwrap_or_default();
         let test_host = crate::cmd_auth::parse_host(&test_host)
             .expect("invalid KITTYCAD_TEST_HOST")
             .to_string();
         let test_token = std::env::var("KITTYCAD_TEST_TOKEN").expect("KITTYCAD_TEST_TOKEN is required");
 
         let mut kittycad = kittycad::Client::new(&test_token);
-        kittycad.set_host(&test_host);
+        if !test_host.is_empty() {
+            kittycad.set_host(&test_host);
+        }
 
         Self {
             test_host,

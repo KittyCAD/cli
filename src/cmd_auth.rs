@@ -37,7 +37,13 @@ impl crate::cmd::Command for CmdAuth {
 /// The returned URL if successful will be stripped of any path, username, password,
 /// fragment or query.
 pub fn parse_host(input: &str) -> Result<url::Url> {
-    match url::Url::parse(input) {
+    let mut input = input.to_string();
+    if input.is_empty() {
+        // If they didn't provide a host, set the default.
+        input = crate::DEFAULT_HOST.to_string();
+    }
+
+    match url::Url::parse(&input) {
         Ok(mut url) => {
             if !url.has_host() {
                 // We've successfully parsed a URL with no host.
@@ -485,7 +491,7 @@ mod test {
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[serial_test::serial]
     async fn test_cmd_auth() {
-        let test_host = std::env::var("KITTYCAD_TEST_HOST").unwrap_or(crate::DEFAULT_HOST.to_string());
+        let test_host = std::env::var("KITTYCAD_TEST_HOST").unwrap_or_default();
         let test_host = crate::cmd_auth::parse_host(&test_host).expect("invalid KITTYCAD_TEST_HOST");
 
         let test_token = std::env::var("KITTYCAD_TEST_TOKEN").expect("KITTYCAD_TEST_TOKEN is required");
