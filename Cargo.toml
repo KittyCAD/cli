@@ -11,7 +11,6 @@ ansi_term = "^0.12.1"
 anyhow = { version = "1", features = ["backtrace"] }
 async-trait = "^0.1.53"
 atty = "^0.2.14"
-byte-unit = "4.0.14"
 chrono = { version = "^0.4", features = ["serde"] }
 chrono-humanize = "^0.2.1"
 clap = { version = "^3.1.8", features = ["cargo", "derive", "env", "unicode"] }
@@ -24,8 +23,6 @@ dirs = "4"
 git_rev = "^0.1.0"
 heck = "^0.4.0"
 http = "^0.2.6"
-ipnetwork = "^0.18"
-Inflector = "^0.11.4"
 log = "^0.4.17"
 regex = "1"
 num-traits = "^0.2.14"
@@ -43,14 +40,12 @@ roff = { git = "https://github.com/sondr3/roff-rs", branch = "updates" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "^0.8"
-sha2 = "^0.10.2"
 shlex = "^1.1.0"
 slog = "2"
 slog-async = "2"
 slog-scope = "4"
 slog-stdlog = "4"
 slog-term = "2"
-sshkeys = "^0.3.2"
 tabwriter = "^1.2.1"
 tabled = { version = "^0.7.0", features = ["color"] }
 termbg = "^0.4.0"
