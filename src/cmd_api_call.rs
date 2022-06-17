@@ -47,28 +47,29 @@ impl crate::cmd::Command for CmdApiCallStatus {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let client = ctx.api_client("")?;
 
-        let mut api_call = client.api_calls().get_async_operation(&self.id.to_string()).await?;
+        let api_call = client.api_calls().get_async_operation(&self.id.to_string()).await?;
 
         // If it is a file conversion and there is output, we need to save that output to a file
         // for them.
-        match api_call {
-            kittycad::types::AsyncApiCallOutput::FileConversion {
-                completed_at: _,
-                created_at: _,
-                error: _,
-                id: _,
-                output,
-                output_format,
-                src_format: _,
-                started_at: _,
-                status,
-                updated_at: _,
-                user_id: _,
-            } => {
-                if status == kittycad::types::ApiCallStatus::Completed {
+        if let kittycad::types::AsyncApiCallOutput::FileConversion {
+            completed_at: _,
+            created_at: _,
+            error: _,
+            id: _,
+            output,
+            output_format,
+            src_format: _,
+            started_at: _,
+            status,
+            updated_at: _,
+            user_id: _,
+        } = &api_call
+        {
+            if status == &kittycad::types::ApiCallStatus::Completed {
+                if let Some(output) = output {
                     if !output.is_empty() {
                         let path = std::env::current_dir()?;
-                        path.join(format!("{}.{}", self.id, output_format));
+                        let path = path.join(format!("{}.{}", self.id, output_format));
                         // Decode the output from base64.
                         let contents = data_encoding::BASE64.decode(output.as_bytes())?;
                         std::fs::write(&path, contents)?;

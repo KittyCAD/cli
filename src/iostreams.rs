@@ -331,7 +331,7 @@ impl IoStreams {
         let table = tabled::Table::new(vec![value])
             .with(tabled::Rotate::Left)
             .with(
-                tabled::Modify::new(tabled::Full)
+                tabled::Modify::new(tabled::object::Segment::all())
                     .with(tabled::Alignment::left())
                     .with(tabled::Alignment::top()),
             )
