@@ -86,8 +86,8 @@ impl crate::cmd::Command for CmdApiCallStatus {
         }
 
         // Print the output of the conversion.
-        let format = ctx.format(&self.format)?;
-        ctx.io.write_output(&format, &api_call)?;
+        // TODO: make this work as a table.
+        ctx.io.write_output(&crate::types::FormatOutput::Json, &api_call)?;
 
         Ok(())
     }

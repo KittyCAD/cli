@@ -338,7 +338,7 @@ access-control-allow-credentials:  """#
                 "status".to_string(),
                 "23a9759f-ee9b-47de-9a55-deb1ed035793".to_string(),
             ],
-            want_out: r#""mass": 48.800293,"#.to_string(),
+            want_out: r#"Saved file conversion output to"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -349,9 +349,9 @@ access-control-allow-credentials:  """#
                 "kittycad".to_string(),
                 "api-call".to_string(),
                 "status".to_string(),
-                "23a9759f-ee9b-47de-9a55-deb1ed035793".to_string(),
+                "06ca3d87-3336-433a-95fc-9fac2d31e355".to_string(),
             ],
-            want_out: r#""mass": 48.800293,"#.to_string(),
+            want_out: r#""volume": 25392182.0"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
