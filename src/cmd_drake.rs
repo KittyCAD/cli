@@ -1,6 +1,5 @@
 use anyhow::Result;
 use clap::Parser;
-use parse_display::{Display, FromStr};
 
 /// Open a drake meme in your web browser.
 ///

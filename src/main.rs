@@ -9,6 +9,8 @@ mod cmd;
 pub mod cmd_alias;
 /// The api command.
 pub mod cmd_api;
+/// The api call command.
+pub mod cmd_api_call;
 /// The auth command.
 pub mod cmd_auth;
 /// The completion command.
@@ -119,6 +121,7 @@ enum SubCommand {
     #[clap(alias = "aliases")]
     Alias(cmd_alias::CmdAlias),
     Api(cmd_api::CmdApi),
+    ApiCall(cmd_api_call::CmdApiCall),
     Auth(cmd_auth::CmdAuth),
     Completion(cmd_completion::CmdCompletion),
     Config(cmd_config::CmdConfig),
@@ -235,6 +238,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
     let result = match opts.subcmd {
         SubCommand::Alias(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Api(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::ApiCall(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Auth(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Completion(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Config(cmd) => run_cmd(&cmd, ctx).await,

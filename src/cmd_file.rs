@@ -169,7 +169,6 @@ impl crate::cmd::Command for CmdFileVolume {
         // Do the operation.
         let client = ctx.api_client("")?;
 
-        // Create the file conversion.
         let file_volume = client.file().create_volume(src_format, input).await?;
 
         // Print the output of the conversion.
@@ -232,7 +231,6 @@ impl crate::cmd::Command for CmdFileMass {
         // Do the operation.
         let client = ctx.api_client("")?;
 
-        // Create the file conversion.
         let file_mass = client
             .file()
             .create_mass(self.material_density.into(), src_format, input)
@@ -298,7 +296,6 @@ impl crate::cmd::Command for CmdFileDensity {
         // Do the operation.
         let client = ctx.api_client("")?;
 
-        // Create the file conversion.
         let file_density = client
             .file()
             .create_density(self.material_mass.into(), src_format, input)
