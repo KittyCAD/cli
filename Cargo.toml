@@ -26,7 +26,7 @@ http = "^0.2.6"
 log = "^0.4.17"
 regex = "1"
 num-traits = "^0.2.14"
-open = "^2.1.1"
+open = "^3.0.1"
 kittycad = "0.1.1"
 #kittycad = { path= "../kittycad.rs/kittycad" }
 parse-display = "^0.5.5"
