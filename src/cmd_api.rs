@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt::Write as _,
     io::{Read, Write},
 };
 
@@ -138,7 +139,7 @@ impl crate::cmd::Command for CmdApi {
                     if !query_string.is_empty() {
                         query_string.push('&');
                     }
-                    query_string.push_str(&format!("{}={}", key, value));
+                    write!(query_string, "{}={}", key, value)?;
                 }
 
                 endpoint = add_query_string(&endpoint, &query_string);

@@ -98,7 +98,7 @@ impl Context<'_> {
             get_env_var("BROWSER")
         } else {
             source = crate::config_file::config_file()?;
-            self.config.get(hostname, "browser")?
+            self.config.get(hostname, "browser").unwrap_or_else(|_| "".to_string())
         };
 
         if browser.is_empty() {

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use oauth2::TokenResponse;
 
 /// Login, logout, and get the status of your authentication.
 ///
@@ -107,10 +108,9 @@ pub struct CmdAuthLogin {
     /// as `http://`.
     #[clap(short = 'H', long, env = "KITTYCAD_HOST", parse(try_from_str = parse_host))]
     pub host: Option<url::Url>,
-    // Open a browser to authenticate.
-    // TODO: Make this work when we have device auth.
-    // #[clap(short, long)]
-    // pub web: bool,
+    /// Open a browser to authenticate.
+    #[clap(short, long)]
+    pub web: bool,
 }
 
 #[async_trait::async_trait]
@@ -186,20 +186,73 @@ impl crate::cmd::Command for CmdAuthLogin {
                 }
             }
 
-            // TODO: fix this url once we know the URL in the console.
-            writeln!(
-                ctx.io.err_out,
-                "Tip: you can generate an API Token here {}account",
-                host
-            )?;
+            token = if self.web {
+                // Do an OAuth 2.0 Device Authorization Grant dance to get a token.
+                let device_auth_url = oauth2::DeviceAuthorizationUrl::new(format!("{}oauth2/device/auth", host))?;
+                // We can hardcode the client ID.
+                // This value is safe to be embedded in version control.
+                // This is the client ID of the cli.
+                let client_id = "6bd9f64f-0ed6-40c2-ada0-87e1fc699227".to_string();
+                let auth_client = oauth2::basic::BasicClient::new(
+                    oauth2::ClientId::new(client_id),
+                    None,
+                    oauth2::AuthUrl::new(format!("{}authorize", host))?,
+                    Some(oauth2::TokenUrl::new(format!("{}oauth2/device/token", host))?),
+                )
+                .set_auth_type(oauth2::AuthType::RequestBody)
+                .set_device_authorization_url(device_auth_url);
+                writeln!(
+                    ctx.io.err_out,
+                    "Tip: you can generate an API Token here {}account",
+                    host
+                )?;
 
-            token = match dialoguer::Input::<String>::new()
-                .with_prompt("Paste your authentication token")
-                .interact_text()
-            {
-                Ok(input) => input,
-                Err(err) => {
-                    return Err(anyhow!("prompt failed: {}", err));
+                let details: oauth2::devicecode::StandardDeviceAuthorizationResponse = auth_client
+                    .exchange_device_code()?
+                    .request_async(oauth2::reqwest::async_http_client)
+                    .await?;
+
+                if let Some(uri) = details.verification_uri_complete() {
+                    writeln!(
+                        ctx.io.out,
+                        "Opening {} in your browser.\n\
+                     Please verify user code: {}\n",
+                        **details.verification_uri(),
+                        details.user_code().secret()
+                    )?;
+                    ctx.browser(host, uri.secret())?;
+                } else {
+                    writeln!(
+                        ctx.io.out,
+                        "Open this URL in your browser:\n{}\n\
+                     And enter the code: {}\n",
+                        **details.verification_uri(),
+                        details.user_code().secret()
+                    )?;
+                }
+
+                auth_client
+                    .exchange_device_access_token(&details)
+                    .request_async(oauth2::reqwest::async_http_client, tokio::time::sleep, None)
+                    .await?
+                    .access_token()
+                    .secret()
+                    .to_string()
+            } else {
+                writeln!(
+                    ctx.io.err_out,
+                    "Tip: you can generate an API Token here {}account",
+                    host
+                )?;
+
+                match dialoguer::Input::<String>::new()
+                    .with_prompt("Paste your authentication token")
+                    .interact_text()
+                {
+                    Ok(input) => input,
+                    Err(err) => {
+                        return Err(anyhow!("prompt failed: {}", err));
+                    }
                 }
             };
         }
@@ -499,6 +552,7 @@ mod test {
                 cmd: crate::cmd_auth::SubCommand::Login(crate::cmd_auth::CmdAuthLogin {
                     host: Some(test_host.clone()),
                     with_token: false,
+                    web: false,
                 }),
                 stdin: test_token.to_string(),
                 want_out: "".to_string(),
@@ -509,6 +563,7 @@ mod test {
                 cmd: crate::cmd_auth::SubCommand::Login(crate::cmd_auth::CmdAuthLogin {
                     host: Some(test_host.clone()),
                     with_token: true,
+                    web: false,
                 }),
                 stdin: test_token.to_string(),
                 want_out: "✔ Logged in as ".to_string(),

@@ -14,6 +14,7 @@ pub struct TestItem {
 struct MainContext {
     test_host: String,
     test_token: String,
+    #[allow(dead_code)]
     client: kittycad::Client,
 }
 

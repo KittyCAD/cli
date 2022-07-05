@@ -232,7 +232,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         let scope_guard = slog_scope::set_global_logger(logger);
         scope_guard.cancel_reset();
 
-        let _log_guard = slog_stdlog::init_with_level(log::Level::Debug).unwrap();
+        slog_stdlog::init_with_level(log::Level::Debug).unwrap();
     }
 
     let result = match opts.subcmd {

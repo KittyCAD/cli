@@ -132,6 +132,7 @@ impl ColorScheme {
         self.red("✘")
     }
 
+    #[allow(dead_code)]
     pub fn failure_icon_with_color(&self, color: ansi_term::Colour) -> String {
         if self.enabled {
             return color.paint("✘").to_string();

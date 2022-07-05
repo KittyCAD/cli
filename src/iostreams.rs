@@ -276,6 +276,7 @@ impl IoStreams {
         crate::colors::ColorScheme::new(self.color_enabled(), self.color_support_256(), self.has_true_color())
     }
 
+    #[allow(dead_code)]
     pub fn write_output_for_vec<T: serde::Serialize + tabled::Tabled>(
         &mut self,
         format: &crate::types::FormatOutput,
@@ -319,6 +320,7 @@ impl IoStreams {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn write_output_table_for_vec<T: tabled::Tabled>(&mut self, value: impl IntoIterator<Item = T>) -> Result<()> {
         let table = tabled::Table::new(value).with(tabled::Style::psql()).to_string();
 

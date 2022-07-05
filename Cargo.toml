@@ -29,6 +29,7 @@ num-traits = "^0.2.14"
 open = "^3.0.1"
 kittycad = "0.1.2"
 #kittycad = { path= "../kittycad.rs/kittycad" }
+oauth2 = "^4.2.0"
 parse-display = "^0.5.5"
 pulldown-cmark = "^0.9.1"
 pulldown-cmark-to-cmark = "^10.0.2"

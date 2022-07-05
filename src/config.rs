@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use anyhow::{anyhow, Result};
 use thiserror::Error;
 
@@ -151,12 +153,12 @@ pub fn new_blank_root() -> Result<toml_edit::Document> {
     let mut s = String::new();
     for option in config_options() {
         if !option.comment.is_empty() {
-            s.push_str(&format!("# {}\n", option.comment));
+            writeln!(s, "# {}", option.comment)?;
             if !option.allowed_values.is_empty() {
-                s.push_str(&format!("# Supported values: {}\n", option.allowed_values.join(", ")));
+                writeln!(s, "# Supported values: {}", option.allowed_values.join(", "))?;
             }
         }
-        s.push_str(&format!("{} = \"{}\"\n\n", option.key, option.default_value));
+        writeln!(s, "{} = \"{}\"\n", option.key, option.default_value)?;
     }
 
     Ok(s.parse::<toml_edit::Document>()?)

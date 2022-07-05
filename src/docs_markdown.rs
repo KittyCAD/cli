@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use anyhow::Result;
 use clap::Command;
 use pulldown_cmark_to_cmark::cmark;
@@ -86,13 +88,15 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) {
                 def.push_str(long);
             }
 
-            html.push_str(&format!(
+            write!(
+                html,
                 r#"   <dt><code>{}</code></dt>
    <dd>{}</dd>
 "#,
                 def,
                 arg.get_help().unwrap_or_default()
-            ));
+            )
+            .unwrap_or_default();
         }
 
         html.push_str("</dl>\n\n");
