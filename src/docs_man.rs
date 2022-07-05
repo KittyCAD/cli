@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{fmt::Write as _, io::Write};
 
 use roff::{bold, escape, italic, list, paragraph, ManSection, Roff, Troffable};
 
@@ -145,12 +145,13 @@ fn synopsis(app: &clap::Command, title: &str) -> String {
 
     for arg in app.get_positionals() {
         let (lhs, rhs) = option_markers(arg);
-        res.push_str(&format!("{}{}{} ", lhs, arg.get_id(), rhs));
+        write!(res, "{}{}{} ", lhs, arg.get_id(), rhs).unwrap_or_default();
     }
 
     if app.has_subcommands() {
         let (lhs, rhs) = subcommand_markers(app);
-        res.push_str(&format!(
+        write!(
+            res,
             "{}{}{} ",
             lhs,
             escape(
@@ -159,7 +160,8 @@ fn synopsis(app: &clap::Command, title: &str) -> String {
                     .to_lowercase()
             ),
             rhs
-        ));
+        )
+        .unwrap_or_default();
     }
 
     res.trim().to_string()
