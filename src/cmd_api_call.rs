@@ -71,7 +71,11 @@ impl crate::cmd::Command for CmdApiCallStatus {
                         let path = std::env::current_dir()?;
                         let path = path.join(format!("{}.{}", self.id, output_format));
                         // Decode the output from base64.
-                        let contents = data_encoding::BASE64.decode(output.as_bytes())?;
+                        let contents = match data_encoding::BASE64.decode(output) {
+                            Ok(contents) => contents,
+                            // Try decoding into other formats.
+                            Err(..) => data_encoding::BASE64URL_NOPAD.decode(output)?,
+                        };
                         std::fs::write(&path, contents)?;
 
                         // Tell them where we saved the file.

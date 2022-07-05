@@ -1202,7 +1202,7 @@ dependencies = [
  "git_rev",
  "heck 0.4.0",
  "http",
- "kittycad 0.1.2",
+ "kittycad 0.1.3",
  "log",
  "num-traits",
  "oauth2",
@@ -1243,9 +1243,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fa149d8eadaa8d1ef98e5160e9476d2d0549d76fac1a465fc0a27f97adf95a1"
+checksum = "6d5cfbfc1824a077b54d6da2cf7fee2d2f919a0a8e14312f84ab728773dd869a"
 dependencies = [
  "anyhow",
  "async-trait",

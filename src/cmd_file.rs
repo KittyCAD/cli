@@ -115,7 +115,7 @@ impl crate::cmd::Command for CmdFileConvert {
 
         // Reset the output field of the file conversion.
         // Otherwise what we print will be crazy big.
-        file_conversion.output = self.output.to_str().unwrap_or("").to_string();
+        file_conversion.output = None;
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
