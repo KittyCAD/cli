@@ -186,7 +186,30 @@ impl crate::cmd::Command for CmdAuthLogin {
                 }
             }
 
-            token = if self.web {
+            // Check the method they would like to login, web or otherwise.
+            let mut web = self.web;
+            // Only do this if they didn't already select web, and we can run interactively.
+            if interactive && !self.web {
+                let auth_options = vec!["Login with a web browser", "Paste an authentication token"];
+                match dialoguer::Select::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                    .with_prompt("How would you like to authenticate KittyCAD CLI?")
+                    .items(&auth_options)
+                    .default(0)
+                    .interact()
+                {
+                    Ok(index) => {
+                        if index == 0 {
+                            // They want to authenticate with the web.
+                            web = true;
+                        }
+                    }
+                    Err(err) => {
+                        return Err(anyhow!("prompt failed: {}", err));
+                    }
+                }
+            }
+
+            token = if web {
                 // Do an OAuth 2.0 Device Authorization Grant dance to get a token.
                 let device_auth_url = oauth2::DeviceAuthorizationUrl::new(format!("{}oauth2/device/auth", host))?;
                 // We can hardcode the client ID.
