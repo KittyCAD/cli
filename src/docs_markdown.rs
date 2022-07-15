@@ -67,7 +67,7 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
     if !args.is_empty() {
         doc.header("Options".to_string(), pulldown_cmark::HeadingLevel::H3);
 
-        let mut html = "<p>\n<dl class=\"flags\">\n".to_string();
+        let mut html = "<dl class=\"flags\">\n".to_string();
 
         for (i, arg) in args.iter().enumerate() {
             if i > 0 {
@@ -103,7 +103,7 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
             .unwrap_or_default();
         }
 
-        html.push_str("</dl>\n</p>\n\n");
+        html.push_str("</dl>\n\n");
 
         doc.0.push(pulldown_cmark::Event::Html(html.into()));
     }

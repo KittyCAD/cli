@@ -290,7 +290,7 @@ Clones repos
    <dt><code>--version</code></dt>
    <dd>Print version information</dd>
 
-   <dt><code></code></dt>
+   <dt><code>REMOTE</code></dt>
    <dd>The remote to clone</dd>
 </dl>
 
@@ -313,7 +313,7 @@ pushes things
    <dt><code>--version</code></dt>
    <dd>Print version information</dd>
 
-   <dt><code></code></dt>
+   <dt><code>REMOTE</code></dt>
    <dd>The remote to target</dd>
 </dl>
 
@@ -340,7 +340,7 @@ adds things
    <dt><code>--version</code></dt>
    <dd>Print version information</dd>
 
-   <dt><code></code></dt>
+   <dt><code>PATH</code></dt>
    <dd>Stuff to add</dd>
 </dl>
 
