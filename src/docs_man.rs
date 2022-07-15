@@ -180,11 +180,15 @@ fn options(app: &clap::Command) -> Vec<String> {
             }
             (Some(short), None) => vec![short_option(short)],
             (None, Some(long)) => vec![long_option(long)],
-            (None, None) => vec![],
+            (None, None) => vec![opt.get_name().to_string()],
         };
 
         if let Some(value) = &opt.get_value_names() {
             header.push(format!("={}", italic(&value.join(" "))));
+        }
+
+        if let Some(defs) = option_possible_values(opt) {
+            header.push(format!(" {}", defs));
         }
 
         if let Some(defs) = option_default_values(opt) {
@@ -328,6 +332,16 @@ fn option_default_values(opt: &clap::Arg) -> Option<String> {
             .join(",");
 
         return Some(format!("[default: {}]", values));
+    }
+
+    None
+}
+
+fn option_possible_values(opt: &clap::Arg) -> Option<String> {
+    if let Some(values) = opt.get_possible_values() {
+        let values = values.iter().map(|s| s.get_name()).collect::<Vec<_>>().join(",");
+
+        return Some(format!("[possible values: {}]", values));
     }
 
     None

@@ -192,6 +192,16 @@ fn test_app() -> clap::Command<'static> {
                 .subcommand(
                     clap::Command::new("new")
                         .about("subcommand for adding new stuff")
+                        .long_about("See url: <https://example.com> and <https://example.com/thing|thing>.")
+                        // Add an enum arg.
+                        .arg(
+                            clap::Arg::new("type")
+                                .help("The type of thing to add.")
+                                .long("type")
+                                .possible_values(&["file", "dir"])
+                                .default_value("file")
+                                .required(true),
+                        )
                         .subcommand(clap::Command::new("foo").about("sub subcommand")),
                 ),
         )
@@ -366,8 +376,15 @@ subcommand for adding new stuff
 
    <dt><code>--version</code></dt>
    <dd>Print version information</dd>
+
+   <dt><code>--type</code></dt>
+   <dd>The type of thing to add.<br/>Possible values: <code>file | dir</code><br/>Default value: <code>file</code></dd>
 </dl>
 
+
+### About
+
+See url: [https://example.com](https://example.com) and [thing](https://example.com/thing).
 
 ### See also
 
@@ -574,11 +591,11 @@ Generating man page for `git add new` -> git-add-new.1
 .SH "NAME"
 git\-add\-new \- subcommand for adding new stuff
 .SH "SYNOPSIS"
-\fIgit add new\fP [\-\-help] [\-\-version] [subcommands]
+\fIgit add new\fP [\-\-help] [\-\-version] <\-\-type> [subcommands]
 .SH "DESCRIPTION"
 
 .sp
-subcommand for adding new stuff
+See url: <https://example.com> and <https://example.com/thing|thing>.
 .SH "OPTIONS"
 .TP
 \-\-\fBhelp\fP
@@ -586,6 +603,10 @@ Print help information
 .TP
 \-\-\fBversion\fP
 Print version information
+.TP
+\-\-\fBtype\fP [possible values: file,dir] [default: file]
+The type of thing to add.
+
 
 .SH "SUBCOMMANDS"
 .TP

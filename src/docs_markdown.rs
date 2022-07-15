@@ -92,13 +92,44 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                 def.push_str(arg.get_name());
             }
 
+            let mut desc = arg
+                .get_long_help()
+                .unwrap_or_else(|| arg.get_help().unwrap_or_default())
+                .to_string();
+
+            // Check if the arg is an enum and if so, add the possible values.
+            if let Some(values) = arg.get_possible_values() {
+                desc.push_str("<br/>Possible values: <code>");
+                for (i, value) in values.iter().enumerate() {
+                    if i > 0 {
+                        desc.push_str(" | ");
+                    }
+                    desc.push_str(value.get_name());
+                }
+                desc.push_str("</code>");
+            }
+
+            let values = arg.get_default_values();
+            if !values.is_empty() {
+                desc.push_str("<br/>Default value: <code>");
+                for (i, value) in values.iter().enumerate() {
+                    if i > 0 {
+                        desc.push_str(" | ");
+                    }
+                    let v = value.to_str().unwrap_or_default();
+                    if !v.is_empty() {
+                        desc.push_str(v);
+                    }
+                }
+                desc.push_str("</code>");
+            }
+
             write!(
                 html,
                 r#"   <dt><code>{}</code></dt>
    <dd>{}</dd>
 "#,
-                def,
-                arg.get_help().unwrap_or_default()
+                def, desc,
             )
             .unwrap_or_default();
         }
@@ -170,6 +201,43 @@ fn get_cmark_options() -> pulldown_cmark_to_cmark::Options<'static> {
     }
 }
 
+/// Convert rustdoc links to markdown links.
+/// For example:
+/// <https://example.com> -> [https://example.com](https://example.com)
+/// <https://example.com/thing|Foo> -> [Foo](https://example.com/thing)
+fn rustdoc_to_markdown_link(text: &str) -> Result<String> {
+    let re = regex::Regex::new(r#"<(https?://[^>]+)>"#)?;
+    Ok(re
+        .replace_all(text, |caps: &regex::Captures| {
+            let url = &caps[1];
+            let text = url.split('|').nth(1).unwrap_or(url);
+            format!("[{}]({})", text, url.split('|').next().unwrap_or(url))
+        })
+        .to_string())
+}
+
+/// Cleanup the code blocks in the markdown.
+fn cleanup_code_blocks(text: &str) -> Result<String> {
+    let regexes = vec![
+        r#"```(.*?)```"#,
+        r#"```\n(.*?)```"#,
+        r#"```(.*?)\n```"#,
+        r#"```\n(.*?)\n```"#,
+    ];
+    let mut text = text.to_string();
+    for r in regexes {
+        let re = regex::Regex::new(r)?;
+        text = re
+            .replace_all(&text, |caps: &regex::Captures| {
+                let lang = &caps[1];
+                format!("```\n{}\n```", lang)
+            })
+            .to_string();
+    }
+
+    Ok(text)
+}
+
 /// Convert a clap Command to markdown documentation.
 pub fn app_to_markdown(app: &Command, title: &str) -> Result<String> {
     let mut document = MarkdownDocument(Vec::new());
@@ -180,7 +248,56 @@ pub fn app_to_markdown(app: &Command, title: &str) -> Result<String> {
     cmark_with_options(document.0.iter(), &mut result, get_cmark_options())?;
 
     // Fix the code blocks.
-    result = result.replace("\\`", "`").replace("```", "\n```");
+    result = cleanup_code_blocks(&result)?;
+
+    // Fix the rustdoc links.
+    result = rustdoc_to_markdown_link(&result)?;
 
     Ok(result)
+}
+
+#[cfg(test)]
+mod test {
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_rustdoc_to_markdown_link() {
+        assert_eq!(
+            super::rustdoc_to_markdown_link("<https://example.com>").unwrap(),
+            "[https://example.com](https://example.com)"
+        );
+        assert_eq!(
+            super::rustdoc_to_markdown_link("<https://example.com|Foo>").unwrap(),
+            "[Foo](https://example.com)"
+        );
+        assert_eq!(
+            super::rustdoc_to_markdown_link("<https://example.com/thing|Foo Bar Baz>").unwrap(),
+            "[Foo Bar Baz](https://example.com/thing)"
+        );
+        assert_eq!(
+            super::rustdoc_to_markdown_link(
+                "Things are really cool. <https://example.com/thing|Foo Bar Baz> and <https://example.com|Foo>"
+            )
+            .unwrap(),
+            "Things are really cool. [Foo Bar Baz](https://example.com/thing) and [Foo](https://example.com)"
+        );
+    }
+
+    #[test]
+    fn test_cleanup_code_blocks() {
+        assert_eq!(
+            super::cleanup_code_blocks("```\nsome code```").unwrap(),
+            "```\nsome code\n```"
+        );
+
+        assert_eq!(
+            super::cleanup_code_blocks("```\nsome code\n```").unwrap(),
+            "```\nsome code\n```"
+        );
+
+        assert_eq!(
+            super::cleanup_code_blocks("```some code```").unwrap(),
+            "```\nsome code\n```"
+        );
+    }
 }
