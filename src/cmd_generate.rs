@@ -607,7 +607,6 @@ Print version information
 \-\-\fBtype\fP [possible values: file,dir] [default: file]
 The type of thing to add.
 
-
 .SH "SUBCOMMANDS"
 .TP
 \fBgit\-add\-new\-foo(1)\fP
