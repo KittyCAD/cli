@@ -114,7 +114,6 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) {
                 .to_string()
                 .trim_start_matches(app.get_about().unwrap_or_default())
                 .trim_start_matches('.')
-                .trim()
                 .to_string(),
         );
     }
