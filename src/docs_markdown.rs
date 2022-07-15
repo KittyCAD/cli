@@ -109,6 +109,10 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                 desc.push_str("</code>");
             }
 
+            if arg.get_long().unwrap_or_default() == "shell" {
+                println!("{:?}", arg);
+            }
+
             let values = arg.get_default_values();
             if !values.is_empty() {
                 desc.push_str("<br/>Default value: <code>");
@@ -218,19 +222,15 @@ fn rustdoc_to_markdown_link(text: &str) -> Result<String> {
 
 /// Cleanup the code blocks in the markdown.
 fn cleanup_code_blocks(text: &str) -> Result<String> {
-    let regexes = vec![
-        r#"```(.*?)```"#,
-        r#"```\n(.*?)```"#,
-        r#"```(.*?)\n```"#,
-        r#"```\n(.*?)\n```"#,
-    ];
-    let mut text = text.to_string();
+    let regexes = vec![r#"(?s)```(.*?)```"#];
+    // We need this replace since cmark seems to add a \` to ` its very weird.
+    let mut text = text.replace("\\`", "`");
     for r in regexes {
         let re = regex::Regex::new(r)?;
         text = re
             .replace_all(&text, |caps: &regex::Captures| {
                 let lang = &caps[1];
-                format!("```\n{}\n```", lang)
+                format!("```\n{}\n```", lang.trim())
             })
             .to_string();
     }
@@ -298,6 +298,10 @@ mod test {
         assert_eq!(
             super::cleanup_code_blocks("```some code```").unwrap(),
             "```\nsome code\n```"
+        );
+        assert_eq!(
+            super::cleanup_code_blocks("```some code\nsome other code```").unwrap(),
+            "```\nsome code\nsome other code\n```"
         );
     }
 }

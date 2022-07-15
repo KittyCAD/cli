@@ -14,12 +14,12 @@ use parse_display::{Display, FromStr};
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdOpen {
-    #[clap(name = "shortcut", default_value_t)]
+    #[clap(name = "shortcut", default_value_t, arg_enum)]
     shortcut: OpenShortcut,
 }
 
 /// The type of shortcut to open.
-#[derive(PartialEq, Debug, Clone, FromStr, Display)]
+#[derive(PartialEq, Debug, Clone, FromStr, Display, clap::ValueEnum)]
 #[display(style = "kebab-case")]
 pub enum OpenShortcut {
     /// Open the KittyCAD documentation in your browser.

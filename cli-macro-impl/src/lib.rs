@@ -1441,6 +1441,8 @@ impl Operation {
             )
         };
 
+        let format_flag = format_flag();
+
         let cmd = quote!(
             #[doc = #struct_doc]
             #[derive(clap::Parser, Debug, Clone)]
@@ -1454,9 +1456,7 @@ impl Operation {
                 #[clap(short, long)]
                 pub web: bool,
 
-                /// Output format.
-                #[clap(long, short)]
-                pub format: Option<crate::types::FormatOutput>,
+                #format_flag
             }
 
             #[async_trait::async_trait]
@@ -1517,6 +1517,7 @@ impl Operation {
 
         let additional_struct_params = self.get_additional_struct_params(tag)?;
 
+        let format_flag = format_flag();
         let cmd = quote!(
             #[doc = #struct_doc]
             #[derive(clap::Parser, Debug, Clone)]
@@ -1532,9 +1533,7 @@ impl Operation {
                 #[clap(long)]
                 pub paginate: bool,
 
-                /// Output format.
-                #[clap(long, short)]
-                pub format: Option<crate::types::FormatOutput>,
+                #format_flag
             }
 
             #[async_trait::async_trait]
@@ -1865,4 +1864,12 @@ fn get_flags(name: &str) -> Result<Flags> {
     }
 
     Ok(flags)
+}
+
+fn format_flag() -> TokenStream {
+    quote!(
+        /// Output format.
+        #[clap(long, short, arg_enum)]
+        pub format: Option<crate::types::FormatOutput>,
+    )
 }

@@ -253,8 +253,6 @@ mod test {
     use pretty_assertions::assert_eq;
 
     #[tokio::test]
-    #[ignore]
-    // We can unignore this test when we push a binary.
     async fn test_download_binary_to_temp_file() {
         if crate::update::is_ci() {
             return;

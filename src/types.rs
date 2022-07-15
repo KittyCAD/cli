@@ -1,6 +1,6 @@
 use parse_display::{Display, FromStr};
 
-#[derive(Debug, Clone, PartialEq, Eq, FromStr, Display)]
+#[derive(Debug, Clone, PartialEq, Eq, FromStr, Display, clap::ValueEnum)]
 #[display(style = "kebab-case")]
 pub enum FormatOutput {
     Json,

@@ -64,14 +64,14 @@ pub struct CmdFileConvert {
     pub output: std::path::PathBuf,
 
     /// A valid source file format.
-    #[clap(short = 's', long = "src-format")]
+    #[clap(short = 's', long = "src-format", arg_enum)]
     src_format: Option<kittycad::types::FileSourceFormat>,
     /// A valid output file format.
-    #[clap(short = 't', long = "output-format")]
+    #[clap(short = 't', long = "output-format", arg_enum)]
     output_format: Option<kittycad::types::FileOutputFormat>,
 
     /// Command output format.
-    #[clap(long, short)]
+    #[clap(long, short, arg_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -145,11 +145,11 @@ pub struct CmdFileVolume {
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
-    #[clap(short = 's', long = "src-format")]
+    #[clap(short = 's', long = "src-format", arg_enum)]
     src_format: Option<kittycad::types::FileSourceFormat>,
 
     /// Output format.
-    #[clap(long, short)]
+    #[clap(long, short, arg_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -199,7 +199,7 @@ pub struct CmdFileMass {
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
-    #[clap(short = 's', long = "src-format")]
+    #[clap(short = 's', long = "src-format", arg_enum)]
     src_format: Option<kittycad::types::FileSourceFormat>,
 
     /// Material density.
@@ -207,7 +207,7 @@ pub struct CmdFileMass {
     material_density: f32,
 
     /// Output format.
-    #[clap(long, short)]
+    #[clap(long, short, arg_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -272,7 +272,7 @@ pub struct CmdFileDensity {
     material_mass: f32,
 
     /// Output format.
-    #[clap(long, short)]
+    #[clap(long, short, arg_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 

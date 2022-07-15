@@ -15,7 +15,7 @@ pub struct CmdUserView {
     #[clap(short, long)]
     pub web: bool,
     #[doc = r" Output format."]
-    #[clap(long, short)]
+    #[clap(long, short, arg_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
