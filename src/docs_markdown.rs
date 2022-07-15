@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use anyhow::Result;
 use clap::Command;
-use pulldown_cmark_to_cmark::cmark;
+use pulldown_cmark_to_cmark::cmark_with_options;
 
 struct MarkdownDocument<'a>(Vec<pulldown_cmark::Event<'a>>);
 
@@ -39,7 +39,7 @@ impl MarkdownDocument<'_> {
     }
 }
 
-fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) {
+fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result<()> {
     // We don't need the header since our renderer will do that for us.
     //doc.header(app.get_name().to_string(), pulldown_cmark::HeadingLevel::H2);
 
@@ -108,14 +108,20 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) {
 
     if let Some(about) = app.get_long_about() {
         doc.header("About".to_string(), pulldown_cmark::HeadingLevel::H3);
+        let raw = about
+            .to_string()
+            .trim_start_matches(app.get_about().unwrap_or_default())
+            .trim_start_matches('.')
+            .to_string();
 
-        doc.paragraph(
-            about
-                .to_string()
-                .trim_start_matches(app.get_about().unwrap_or_default())
-                .trim_start_matches('.')
-                .to_string(),
-        );
+        // We need to parse this as markdown so any code snippets denoted by 4 spaces
+        // are rendered as code blocks. Which works better for our docs.
+        let parser = pulldown_cmark::Parser::new(&raw);
+
+        let mut result = String::new();
+        cmark_with_options(parser, &mut result, get_cmark_options())?;
+
+        doc.paragraph(result);
     }
 
     // Check if the command has a parent.
@@ -148,16 +154,29 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) {
 
         doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::List(None)));
     }
+
+    Ok(())
+}
+
+fn get_cmark_options() -> pulldown_cmark_to_cmark::Options<'static> {
+    pulldown_cmark_to_cmark::Options {
+        newlines_after_codeblock: 2,
+        code_block_token_count: 3,
+        ..Default::default()
+    }
 }
 
 /// Convert a clap Command to markdown documentation.
 pub fn app_to_markdown(app: &Command, title: &str) -> Result<String> {
     let mut document = MarkdownDocument(Vec::new());
 
-    do_markdown(&mut document, app, title);
+    do_markdown(&mut document, app, title)?;
 
     let mut result = String::new();
-    cmark(document.0.iter(), &mut result)?;
+    cmark_with_options(document.0.iter(), &mut result, get_cmark_options())?;
+
+    // Fix the code blocks.
+    result = result.replace("\\`", "`").replace("```", "\n```");
 
     Ok(result)
 }
