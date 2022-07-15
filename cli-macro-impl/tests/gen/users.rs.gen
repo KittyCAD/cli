@@ -4,6 +4,7 @@ enum SubCommand {
     #[clap(alias = "get")]
     View(CmdUserView),
     Edit(CmdUserEdit),
+    Delete(CmdUserDelete),
 }
 
 #[doc = "View user.\n\nDisplay information about a KittyCAD user.\n\nWith `--web`, open the user in a web browser instead."]
@@ -56,7 +57,7 @@ pub struct CmdUserEdit {
     pub new_last_name: String,
     #[doc = "The user's phone number."]
     #[clap(long = "phone", short = 'p', required = false, default_value_t)]
-    pub new_phone: kittycad::types::PhoneNumber,
+    pub new_phone: String,
 }
 
 #[async_trait::async_trait]
@@ -90,6 +91,57 @@ impl crate::cmd::Command for CmdUserEdit {
             "{} Edited {}",
             cs.success_icon_with_color(ansi_term::Color::Red),
             "user",
+        )?;
+        Ok(())
+    }
+}
+
+#[doc = "Delete user."]
+#[derive(clap :: Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdUserDelete {
+    #[doc = "The user to delete. Can be an ID or name."]
+    #[clap(name = "user", required = true)]
+    pub user: String,
+    #[doc = r" Confirm deletion without prompting."]
+    #[clap(long)]
+    pub confirm: bool,
+}
+
+#[async_trait::async_trait]
+impl crate::cmd::Command for CmdUserDelete {
+    async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
+        if !ctx.io.can_prompt() && !self.confirm {
+            return Err(anyhow::anyhow!(
+                "--confirm required when not running interactively"
+            ));
+        }
+
+        let client = ctx.api_client("")?;
+        if !self.confirm {
+            if let Err(err) = dialoguer::Input::<String>::new()
+                .with_prompt(format!("Type {} to confirm deletion:", self.user))
+                .validate_with(|input: &String| -> Result<(), &str> {
+                    if input.trim() == self.user {
+                        Ok(())
+                    } else {
+                        Err("mismatched confirmation")
+                    }
+                })
+                .interact_text()
+            {
+                return Err(anyhow::anyhow!("prompt failed: {}", err));
+            }
+        }
+
+        client.users().delete_self().await?;
+        let cs = ctx.io.color_scheme();
+        writeln!(
+            ctx.io.out,
+            "{} Deleted {} {}",
+            cs.success_icon_with_color(ansi_term::Color::Red),
+            "user",
+            self.user
         )?;
         Ok(())
     }

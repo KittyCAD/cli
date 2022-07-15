@@ -1049,6 +1049,8 @@ impl Operation {
     }
 
     /// Generate the create command.
+    // TODO remove below once we have examples that need an extra prompt.
+    #[allow(clippy::match_single_binding)]
     fn generate_create_command(&self, tag: &str) -> Result<(TokenStream, syn::Variant)> {
         let tag_ident = format_ident!("{}", tag);
         let singular_tag_str = singular(tag);
@@ -1575,6 +1577,12 @@ impl Operation {
     /// Generate the delete command.
     fn generate_delete_command(&self, tag: &str) -> Result<(TokenStream, syn::Variant)> {
         let tag_ident = format_ident!("{}", tag);
+        let fn_name_ident = if tag == "users" {
+            format_ident!("{}_self", "delete")
+        } else {
+            format_ident!("{}", "delete")
+        };
+
         let singular_tag_str = singular(tag);
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}Delete", to_title_case(&singular(tag)));
@@ -1673,7 +1681,7 @@ impl Operation {
 
                     client
                         .#tag_ident()
-                        .delete(#(#api_call_params),*)
+                        .#fn_name_ident(#(#api_call_params),*)
                         .await?;
 
                     let cs = ctx.io.color_scheme();

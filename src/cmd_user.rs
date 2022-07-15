@@ -24,6 +24,7 @@ impl crate::cmd::Command for CmdUser {
         match &self.subcmd {
             SubCommand::Edit(cmd) => cmd.run(ctx).await,
             SubCommand::View(cmd) => cmd.run(ctx).await,
+            SubCommand::Delete(cmd) => cmd.run(ctx).await,
         }
     }
 }
