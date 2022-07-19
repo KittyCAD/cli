@@ -289,7 +289,9 @@ impl crate::cmd::Command for CmdAuthLogin {
         let session = client.users().get_self().await?;
 
         // Set the user.
-        let email = session.email;
+        let email = session
+            .email
+            .ok_or_else(|| anyhow::anyhow!("user does not have an email"))?;
         ctx.config.set(host, "user", &email)?;
 
         // Save the config.
@@ -387,7 +389,9 @@ impl crate::cmd::Command for CmdAuthLogout {
         // Get the current user.
         let session = client.users().get_self().await?;
 
-        let email = session.email;
+        let email = session
+            .email
+            .ok_or_else(|| anyhow::anyhow!("user does not have an email"))?;
 
         let cs = ctx.io.color_scheme();
 
@@ -481,7 +485,9 @@ impl crate::cmd::Command for CmdAuthStatus {
 
             match client.users().get_self().await {
                 Ok(session) => {
-                    let email = session.email.to_string();
+                    let email = session
+                        .email
+                        .ok_or_else(|| anyhow::anyhow!("user does not have an email"))?;
 
                     host_status.push(format!(
                         "{} Logged in to {} as {} ({})",

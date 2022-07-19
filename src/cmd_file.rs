@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use anyhow::Result;
 use clap::Parser;
-use kittycad::traits::Base64Ops;
 
 /// Perform operations on CAD files.
 ///
@@ -99,15 +98,15 @@ impl crate::cmd::Command for CmdFileConvert {
         let client = ctx.api_client("")?;
 
         // Create the file conversion.
-        let (mut file_conversion, contents) = client
+        let mut file_conversion = client
             .file()
-            .create_conversion_with_decode(output_format, src_format, input)
+            .create_conversion(output_format, src_format, &input.into())
             .await?;
 
         // If they specified an output file, save the output to that file.
         if file_conversion.status == kittycad::types::ApiCallStatus::Completed {
-            if !contents.is_empty() {
-                std::fs::write(&self.output, contents)?;
+            if let Some(output) = file_conversion.output {
+                std::fs::write(&self.output, output)?;
             } else {
                 anyhow::bail!("no output was generated! (this is probably a bug in the API) you should report it to support@kittycad.io");
             }
@@ -169,7 +168,7 @@ impl crate::cmd::Command for CmdFileVolume {
         // Do the operation.
         let client = ctx.api_client("")?;
 
-        let file_volume = client.file().create_volume(src_format, input).await?;
+        let file_volume = client.file().create_volume(src_format, &input.into()).await?;
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
@@ -233,7 +232,7 @@ impl crate::cmd::Command for CmdFileMass {
 
         let file_mass = client
             .file()
-            .create_mass(self.material_density.into(), src_format, input)
+            .create_mass(self.material_density.into(), src_format, &input.into())
             .await?;
 
         // Print the output of the conversion.
@@ -298,7 +297,7 @@ impl crate::cmd::Command for CmdFileDensity {
 
         let file_density = client
             .file()
-            .create_density(self.material_mass.into(), src_format, input)
+            .create_density(self.material_mass.into(), src_format, &input.into())
             .await?;
 
         // Print the output of the conversion.

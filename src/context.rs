@@ -75,7 +75,7 @@ impl Context<'_> {
         let mut client = kittycad::Client::new(&token);
 
         if baseurl != crate::DEFAULT_HOST {
-            client.set_host(&baseurl);
+            client.set_base_url(&baseurl);
         }
 
         Ok(client)
