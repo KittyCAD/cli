@@ -391,12 +391,10 @@ impl Operation {
                     req_body_rendered.push(quote!(#p_og: "".to_string()));
                 } else if v.required {
                     req_body_rendered.push(quote!(#p_og: #p_short.clone()));
-                } else if type_name.is_option()? && rendered != "kittycad::types::phone_number::PhoneNumber" {
+                } else {
                     // We can use self here since we aren't chaing the value from
                     // a prompt.
                     // In the future should we prompt for everything we would change this.
-                    req_body_rendered.push(quote!(#p_og: Some(self.#p_short.clone())));
-                } else {
                     req_body_rendered.push(quote!(#p_og: self.#p_short.clone()));
                 }
             }

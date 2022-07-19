@@ -259,64 +259,21 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
 
     if let Err(err) = cmd.run(ctx).await {
         // If the error was from the API, let's handle it better for each type of error.
-        match err.downcast_ref::<kittycad::types::Error>() {
-            Some(kittycad::types::Error::ObjectNotFound { message }) => {
-                writeln!(ctx.io.err_out, "{} Object not found: {}", cs.failure_icon(), message,)?;
-            }
-            Some(kittycad::types::Error::ObjectAlreadyExists { message }) => {
-                writeln!(
-                    ctx.io.err_out,
-                    "{} Object already exists: {}",
-                    cs.failure_icon(),
-                    message,
-                )?;
-            }
-            Some(kittycad::types::Error::InvalidRequest { message }) => {
-                writeln!(ctx.io.err_out, "{} Invalid request: {}", cs.failure_icon(), message,)?;
-            }
-            Some(kittycad::types::Error::Unauthenticated { internal_message }) => {
-                writeln!(
-                    ctx.io.err_out,
-                    "{} You are not authenticated: {}",
-                    cs.failure_icon(),
-                    internal_message
-                )?;
+        match err.downcast_ref::<kittycad::types::error::Error>() {
+            Some(err) => {
+                if err.status() == Some(http::StatusCode::FORBIDDEN) {
+                    writeln!(
+                        ctx.io.err_out,
+                        "{} You are not authorized to perform this action",
+                        cs.failure_icon(),
+                    )?;
+                } else if err.status() == Some(http::StatusCode::UNAUTHORIZED) {
+                    writeln!(ctx.io.err_out, "{} You are not authenticated.", cs.failure_icon())?;
 
-                writeln!(ctx.io.err_out, "Try authenticating with: `kittycad auth login`")?;
-            }
-            Some(kittycad::types::Error::InvalidValue { message }) => {
-                writeln!(ctx.io.err_out, "{} Invalid value: {}", cs.failure_icon(), message)?;
-            }
-            Some(kittycad::types::Error::Forbidden) => {
-                writeln!(
-                    ctx.io.err_out,
-                    "{} You are not authorized to perform this action",
-                    cs.failure_icon(),
-                )?;
-            }
-            Some(kittycad::types::Error::InternalError { internal_message }) => {
-                writeln!(
-                    ctx.io.err_out,
-                    "{} KittyCAD API internal error: {}",
-                    cs.failure_icon(),
-                    internal_message
-                )?;
-            }
-            Some(kittycad::types::Error::ServiceUnavailable { internal_message }) => {
-                writeln!(
-                    ctx.io.err_out,
-                    "{} KittyCAD API service unavailable: {}",
-                    cs.failure_icon(),
-                    internal_message
-                )?;
-            }
-            Some(kittycad::types::Error::MethodNotAllowed { internal_message }) => {
-                writeln!(
-                    ctx.io.err_out,
-                    "{} KittyCAD API method not allowed: {}",
-                    cs.failure_icon(),
-                    internal_message
-                )?;
+                    writeln!(ctx.io.err_out, "Try authenticating with: `kittycad auth login`")?;
+                } else {
+                    writeln!(ctx.io.err_out, "{}", err)?;
+                }
             }
             None => {
                 writeln!(ctx.io.err_out, "{}", err)?;

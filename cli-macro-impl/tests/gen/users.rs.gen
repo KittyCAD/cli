@@ -77,11 +77,11 @@ impl crate::cmd::Command for CmdUserEdit {
         let result = client
             .users()
             .update_self(&kittycad::types::UpdateUser {
-                company: Some(self.new_company.clone()),
-                discord: Some(self.new_discord.clone()),
-                first_name: Some(self.new_first_name.clone()),
-                github: Some(self.new_github.clone()),
-                last_name: Some(self.new_last_name.clone()),
+                company: self.new_company.clone(),
+                discord: self.new_discord.clone(),
+                first_name: self.new_first_name.clone(),
+                github: self.new_github.clone(),
+                last_name: self.new_last_name.clone(),
                 phone: self.new_phone.clone(),
             })
             .await?;
