@@ -53,11 +53,11 @@ impl crate::cmd::Command for CmdApiCallStatus {
         // for them.
         if let kittycad::types::AsyncApiCallOutput::FileConversion(fc) = &api_call {
             if fc.status == kittycad::types::ApiCallStatus::Completed {
-                if let Some(output) = fc.output {
+                if let Some(output) = &fc.output {
                     if !output.is_empty() {
                         let path = std::env::current_dir()?;
                         let path = path.join(format!("{}.{}", self.id, fc.output_format));
-                        std::fs::write(&path, output.0)?;
+                        std::fs::write(&path, &output.0)?;
 
                         // Tell them where we saved the file.
                         writeln!(ctx.io.out, "Saved file conversion output to {}", path.display())?;
