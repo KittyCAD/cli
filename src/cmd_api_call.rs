@@ -51,32 +51,13 @@ impl crate::cmd::Command for CmdApiCallStatus {
 
         // If it is a file conversion and there is output, we need to save that output to a file
         // for them.
-        if let kittycad::types::AsyncApiCallOutput::FileConversion {
-            completed_at: _,
-            created_at: _,
-            error: _,
-            id: _,
-            output,
-            output_format,
-            src_format: _,
-            started_at: _,
-            status,
-            updated_at: _,
-            user_id: _,
-        } = &api_call
-        {
-            if status == &kittycad::types::ApiCallStatus::Completed {
-                if let Some(output) = output {
+        if let kittycad::types::AsyncApiCallOutput::FileConversion(fc) = &api_call {
+            if fc.status == kittycad::types::ApiCallStatus::Completed {
+                if let Some(output) = &fc.output {
                     if !output.is_empty() {
                         let path = std::env::current_dir()?;
-                        let path = path.join(format!("{}.{}", self.id, output_format));
-                        // Decode the output from base64.
-                        let contents = match data_encoding::BASE64.decode(output) {
-                            Ok(contents) => contents,
-                            // Try decoding into other formats.
-                            Err(..) => data_encoding::BASE64URL_NOPAD.decode(output)?,
-                        };
-                        std::fs::write(&path, contents)?;
+                        let path = path.join(format!("{}.{}", self.id, fc.output_format));
+                        std::fs::write(&path, &output.0)?;
 
                         // Tell them where we saved the file.
                         writeln!(ctx.io.out, "Saved file conversion output to {}", path.display())?;

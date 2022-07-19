@@ -29,7 +29,7 @@ impl AsyncTestContext for MainContext {
 
         let mut kittycad = kittycad::Client::new(&test_token);
         if !test_host.is_empty() {
-            kittycad.set_host(&test_host);
+            kittycad.set_base_url(&test_host);
         }
 
         Self {

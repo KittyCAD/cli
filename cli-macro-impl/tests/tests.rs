@@ -1,4 +1,4 @@
-use cli_macro_impl::{do_gen, get_text_fmt};
+use cli_macro_impl::do_gen;
 use quote::quote;
 
 #[test]
@@ -15,7 +15,10 @@ fn test_do_gen() {
     )
     .unwrap();
 
-    expectorate::assert_contents("tests/gen/users.rs.gen", &get_text_fmt(&actual).unwrap());
+    expectorate::assert_contents(
+        "tests/gen/users.rs.gen",
+        &openapitor::types::get_text_fmt(&actual).unwrap(),
+    );
 
     actual = do_gen(
         quote! {
@@ -28,5 +31,8 @@ fn test_do_gen() {
     )
     .unwrap();
 
-    expectorate::assert_contents("tests/gen/api-calls.rs.gen", &get_text_fmt(&actual).unwrap());
+    expectorate::assert_contents(
+        "tests/gen/api-calls.rs.gen",
+        &openapitor::types::get_text_fmt(&actual).unwrap(),
+    );
 }
