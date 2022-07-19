@@ -372,7 +372,7 @@ impl SchemaExt for openapiv3::Schema {
                         "uri-template" => quote!(String),
                         "url" => quote!(url::Url),
                         "email" => quote!(String),
-                        "phone" => quote!(String),
+                        "phone" => quote!(kittycad::types::phone_number::PhoneNumber),
                         "uuid" => quote!(uuid::Uuid),
                         "hostname" => quote!(String),
                         "time" => quote!(chrono::NaiveTime),
@@ -836,19 +836,13 @@ impl Operation {
                 } else if rendered == "uuid::Uuid" {
                     //if v.required {
                     req_body_rendered.push(quote!(#p_og: "".to_string()));
-                    // TODO TODO FIX ONCE SNAPSHOTS WORK.
-                    //req_body_rendered.push(quote!(#p_og: #p_short.to_string()));
-                    //} else {
-                    // TODO TODO FIX ONCE SNAPSHOTS WORK.
-                    //req_body_rendered.push(quote!(#p_og: self.#p_short.to_string()));
-                    // }
                 } else if v.required {
                     req_body_rendered.push(quote!(#p_og: #p_short.clone()));
                 } else {
                     // We can use self here since we aren't chaing the value from
                     // a prompt.
                     // In the future should we prompt for everything we would change this.
-                    req_body_rendered.push(quote!(#p_og: self.#p_short.clone()));
+                    req_body_rendered.push(quote!(#p_og: Some(self.#p_short.clone())));
                 }
             }
 

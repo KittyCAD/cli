@@ -57,7 +57,7 @@ pub struct CmdUserEdit {
     pub new_last_name: String,
     #[doc = "The user's phone number."]
     #[clap(long = "phone", short = 'p', required = false, default_value_t)]
-    pub new_phone: String,
+    pub new_phone: kittycad::types::phone_number::PhoneNumber,
 }
 
 #[async_trait::async_trait]
@@ -77,12 +77,12 @@ impl crate::cmd::Command for CmdUserEdit {
         let result = client
             .users()
             .update_self(&kittycad::types::UpdateUser {
-                company: self.new_company.clone(),
-                discord: self.new_discord.clone(),
-                first_name: self.new_first_name.clone(),
-                github: self.new_github.clone(),
-                last_name: self.new_last_name.clone(),
-                phone: self.new_phone.clone(),
+                company: Some(self.new_company),
+                discord: Some(self.new_discord),
+                first_name: Some(self.new_first_name),
+                github: Some(self.new_github),
+                last_name: Some(self.new_last_name),
+                phone: Some(self.new_phone),
             })
             .await?;
         let cs = ctx.io.color_scheme();
