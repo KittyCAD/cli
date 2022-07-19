@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use anyhow::Result;
 use inflector::cases::{kebabcase::to_kebab_case, titlecase::to_title_case};
+use openapitor::types::exts::{ParameterExt, ParameterSchemaOrContentExt, ReferenceOrExt, TokenStreamExt};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use serde::Deserialize;
@@ -17,14 +18,10 @@ struct Params {
 
 pub fn do_gen(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     // Get the data from the parameters.
-    let mut params = from_tokenstream::<Params>(&attr)?;
-
-    if params.tag.ends_with(":global") {
-        params.tag = params.tag.trim_end_matches(":global").to_string();
-    }
+    let params = from_tokenstream::<Params>(&attr)?;
 
     // Lets get the Open API spec.
-    let api = load_api_spec()?;
+    let api = openapitor::load_json_spec(include_str!("../../spec.json"))?;
 
     let ops = get_operations_with_tag(&api, &params.tag)?;
 
@@ -113,457 +110,12 @@ pub fn do_gen(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     Ok(code)
 }
 
-/// Get the OpenAPI spec from the file.
-fn load_api_spec() -> Result<openapiv3::OpenAPI> {
-    let s = include_str!("../../spec.json");
-    Ok(serde_json::from_str(s)?)
-}
-
-trait ReferenceOrExt<T> {
-    fn item(&self) -> Result<&T>;
-    fn recurse(&self) -> Result<openapiv3::Schema>;
-    fn reference(&self) -> Result<String>;
-    fn reference_render_type(&self) -> Result<TokenStream>;
-    fn get_schema_from_reference(&self, recursive: bool) -> Result<openapiv3::Schema>;
-    fn render_type(&self, required: bool) -> Result<TokenStream>;
-    fn get_is_check_fn(&self, required: bool) -> Result<proc_macro2::Ident>;
-}
-
-impl<T: SchemaExt> ReferenceOrExt<T> for openapiv3::ReferenceOr<T> {
-    /// Returns the respective `is_zero`, `is_empty`, `is_none` function for the specific type.
-    fn get_is_check_fn(&self, required: bool) -> Result<proc_macro2::Ident> {
-        let mut rendered = get_text(&self.render_type(required)?)?;
-
-        let ident = if rendered.starts_with("Option<") {
-            format_ident!("{}", "is_none")
-        } else {
-            rendered = match self.get_schema_from_reference(true) {
-                Ok(s) => get_text(&s.render_type(required)?)?,
-                Err(_) => rendered.to_string(),
-            };
-
-            if rendered.starts_with('u') || rendered.starts_with('i') || rendered.starts_with('f') {
-                // Handle numbers.
-                format_ident!("{}", "is_zero")
-            } else {
-                format_ident!("{}", "is_empty")
-            }
-        };
-
-        Ok(ident)
-    }
-
-    fn item(&self) -> Result<&T> {
-        match self {
-            openapiv3::ReferenceOr::Item(i) => Ok(i),
-            openapiv3::ReferenceOr::Reference { reference } => {
-                anyhow::bail!("reference not supported here: {}", reference);
-            }
-        }
-    }
-
-    fn recurse(&self) -> Result<openapiv3::Schema> {
-        match self {
-            openapiv3::ReferenceOr::Item(i) => Ok(i.recurse()?),
-            openapiv3::ReferenceOr::Reference { reference } => {
-                anyhow::bail!("reference not supported here: {}", reference);
-            }
-        }
-    }
-
-    fn reference(&self) -> Result<String> {
-        match self {
-            openapiv3::ReferenceOr::Item(..) => {
-                anyhow::bail!("item not supported here");
-            }
-            openapiv3::ReferenceOr::Reference { reference } => {
-                Ok(reference.trim_start_matches("#/components/schemas/").to_string())
-            }
-        }
-    }
-
-    fn reference_render_type(&self) -> Result<TokenStream> {
-        let name = self.reference()?;
-        let ident = format_ident!("{}", name);
-
-        // We want the full path to the type.
-        let rendered = quote!(kittycad::types::#ident);
-
-        // If we have a oneOf, we will want to make it an option.
-        let schema = self.get_schema_from_reference(false)?;
-        if let openapiv3::SchemaKind::OneOf { one_of: _ } = schema.schema_kind {
-            return Ok(quote! {
-                Option<#rendered>
-            });
-        }
-
-        Ok(quote!(#rendered))
-    }
-
-    fn get_schema_from_reference(&self, recursive: bool) -> Result<openapiv3::Schema> {
-        if let Ok(name) = self.reference() {
-            let spec = load_api_spec()?;
-
-            let components = spec
-                .components
-                .as_ref()
-                .ok_or_else(|| anyhow::anyhow!("components not found in spec"))?;
-
-            let schema = components
-                .schemas
-                .get(&name)
-                .ok_or_else(|| anyhow::anyhow!("could not find schema with name {}", name))?;
-
-            match schema.item() {
-                Ok(s) => Ok(s.clone()),
-                Err(_) => schema.get_schema_from_reference(recursive),
-            }
-        } else if !recursive {
-            anyhow::bail!("item not supported here");
-        } else {
-            match self.recurse() {
-                Ok(s) => Ok(s),
-                Err(_) => self.get_schema_from_reference(recursive),
-            }
-        }
-    }
-
-    fn render_type(&self, required: bool) -> Result<TokenStream> {
-        let type_name = if let Ok(t) = self.reference_render_type() {
-            t
-        } else {
-            let schema = self.item()?;
-
-            schema.render_type(required)?
-        };
-
-        Ok(type_name)
-    }
-}
-
-trait ParameterSchemaOrContentExt {
-    fn schema(&self) -> Result<openapiv3::ReferenceOr<openapiv3::Schema>>;
-}
-
-impl ParameterSchemaOrContentExt for openapiv3::ParameterSchemaOrContent {
-    fn schema(&self) -> Result<openapiv3::ReferenceOr<openapiv3::Schema>> {
-        match self {
-            openapiv3::ParameterSchemaOrContent::Schema(s) => Ok(s.clone()),
-            openapiv3::ParameterSchemaOrContent::Content(..) => {
-                anyhow::bail!("content not supported here");
-            }
-        }
-    }
-}
-
-trait ParameterExt {
-    fn data(&self) -> Option<openapiv3::ParameterData>;
-}
-
-impl ParameterExt for openapiv3::Parameter {
-    fn data(&self) -> Option<openapiv3::ParameterData> {
-        match self {
-            openapiv3::Parameter::Path {
-                parameter_data,
-                style: openapiv3::PathStyle::Simple,
-            } => return Some(parameter_data.clone()),
-            openapiv3::Parameter::Header {
-                parameter_data,
-                style: openapiv3::HeaderStyle::Simple,
-            } => return Some(parameter_data.clone()),
-            openapiv3::Parameter::Cookie {
-                parameter_data,
-                style: openapiv3::CookieStyle::Form,
-            } => return Some(parameter_data.clone()),
-            openapiv3::Parameter::Query {
-                parameter_data,
-                allow_reserved: _,
-                style: openapiv3::QueryStyle::Form,
-                allow_empty_value: _,
-            } => {
-                return Some(parameter_data.clone());
-            }
-            _ => (),
-        }
-
-        None
-    }
-}
-
-trait SchemaExt {
-    fn recurse(&self) -> Result<openapiv3::Schema>
-    where
-        Self: Sized;
-    fn render_type(&self, required: bool) -> Result<TokenStream>;
-}
-
-impl SchemaExt for openapiv3::Schema {
-    // If there is an allOf with only one item, we can just return that.
-    fn recurse(&self) -> Result<openapiv3::Schema> {
-        if let openapiv3::SchemaKind::AllOf { all_of } = &self.schema_kind {
-            if all_of.len() == 1 {
-                let first = all_of[0].clone();
-
-                let r = match first {
-                    openapiv3::ReferenceOr::Item(i) => i,
-                    openapiv3::ReferenceOr::Reference { reference: _ } => first.get_schema_from_reference(true)?,
-                };
-
-                return Ok(r);
-            }
-        }
-
-        Ok(self.clone())
-    }
-
-    fn render_type(&self, required: bool) -> Result<TokenStream> {
-        match &self.schema_kind {
-            openapiv3::SchemaKind::Type(openapiv3::Type::Boolean {}) => Ok(quote!(bool)),
-            openapiv3::SchemaKind::Type(openapiv3::Type::Array(a)) => {
-                let schema = a
-                    .items
-                    .as_ref()
-                    .ok_or_else(|| anyhow::anyhow!("no items in array `{:#?}`", a))?;
-
-                let rt = schema.render_type(required)?;
-                let mut rendered = get_text(&rt)?;
-
-                // We don't want a vec of options.
-                if rendered.starts_with("Option<") {
-                    rendered = rendered
-                        .trim_start_matches("Option<")
-                        .trim_end_matches('>')
-                        .trim_start_matches("kittycad::types::")
-                        .to_string();
-                }
-
-                let ident = format_ident!("{}", rendered);
-
-                Ok(quote!(Vec<kittycad::types::#ident>))
-            }
-            openapiv3::SchemaKind::Type(openapiv3::Type::String(st)) => {
-                if !st.enumeration.is_empty() {
-                    anyhow::bail!("enumeration not supported here yet: {:?}", st);
-                }
-
-                Ok(match &st.format {
-                    openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::StringFormat::DateTime) => {
-                        quote!(chrono::DateTime<chrono::Utc>)
-                    }
-                    openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::StringFormat::Date) => {
-                        quote!(chrono::NaiveDate)
-                    }
-                    openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::StringFormat::Password) => quote!(String),
-                    // TODO: as per the spec this is base64 encoded chars.
-                    openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::StringFormat::Byte) => {
-                        quote!(bytes::Bytes)
-                    }
-                    openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::StringFormat::Binary) => {
-                        quote!(bytes::Bytes)
-                    }
-                    openapiv3::VariantOrUnknownOrEmpty::Empty => quote!(String),
-                    openapiv3::VariantOrUnknownOrEmpty::Unknown(f) => match f.as_str() {
-                        "float" => quote!(f64),
-                        "int64" => quote!(i64),
-                        "uint64" => quote!(u64),
-                        "ipv4" => quote!(std::net::Ipv4Addr),
-                        "ip" => quote!(std::net::Ipv4Addr),
-                        "uri" => quote!(url::Url),
-                        "uri-template" => quote!(String),
-                        "url" => quote!(url::Url),
-                        "email" => quote!(String),
-                        "phone" => quote!(kittycad::types::phone_number::PhoneNumber),
-                        "uuid" => quote!(uuid::Uuid),
-                        "hostname" => quote!(String),
-                        "time" => quote!(chrono::NaiveTime),
-                        f => {
-                            anyhow::bail!("XXX unknown string format {}", f)
-                        }
-                    },
-                })
-            }
-            openapiv3::SchemaKind::Type(openapiv3::Type::Number(nt)) => Ok(match &nt.format {
-                openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::NumberFormat::Float) => {
-                    quote!(f64)
-                }
-                openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::NumberFormat::Double) => {
-                    quote!(f64)
-                }
-                openapiv3::VariantOrUnknownOrEmpty::Empty => quote!(f64),
-                openapiv3::VariantOrUnknownOrEmpty::Unknown(f) => {
-                    anyhow::bail!("XXX unknown number format {}", f)
-                }
-            }),
-            openapiv3::SchemaKind::Type(openapiv3::Type::Integer(it)) => {
-                Ok(match &it.format {
-                    openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::IntegerFormat::Int32) => {
-                        quote!(i32)
-                    }
-                    openapiv3::VariantOrUnknownOrEmpty::Item(openapiv3::IntegerFormat::Int64) => {
-                        quote!(i64)
-                    }
-                    openapiv3::VariantOrUnknownOrEmpty::Empty => quote!(i64),
-                    openapiv3::VariantOrUnknownOrEmpty::Unknown(f) => {
-                        let uint;
-                        let width;
-                        match f.as_str() {
-                            "uint" | "uint32" => {
-                                uint = true;
-                                width = 32;
-                            }
-                            "uint8" => {
-                                uint = true;
-                                width = 8;
-                            }
-                            "uint16" => {
-                                uint = true;
-                                width = 16;
-                            }
-                            "uint64" => {
-                                uint = true;
-                                width = 64;
-                            }
-                            "int8" => {
-                                uint = false;
-                                width = 8;
-                            }
-                            "int16" => {
-                                uint = false;
-                                width = 16;
-                            }
-                            /* int32 and int64 are build it and parse as the integer type */
-                            f => anyhow::bail!("unknown integer format {}", f),
-                        }
-
-                        if uint {
-                            match width {
-                                8 => quote!(u8),
-                                16 => quote!(u16),
-                                32 => quote!(u32),
-                                64 => quote!(u64),
-                                _ => anyhow::bail!("unknown uint width {}", width),
-                            }
-                        } else {
-                            match width {
-                                8 => quote!(i8),
-                                16 => quote!(i16),
-                                32 => quote!(i32),
-                                64 => quote!(i64),
-                                _ => anyhow::bail!("unknown int width {}", width),
-                            }
-                        }
-                    }
-                })
-            }
-            openapiv3::SchemaKind::OneOf { one_of: _ } => {
-                anyhow::bail!("oneOf not supported here yet: {:?}", self)
-            }
-            openapiv3::SchemaKind::Any(any) => {
-                anyhow::bail!("any not supported here yet: {:?}", any)
-            }
-            openapiv3::SchemaKind::AllOf { all_of } => {
-                if all_of.len() != 1 {
-                    anyhow::bail!(
-                        "allOf length is `{}`, only len == 1 supported: {:#?}",
-                        all_of.len(),
-                        all_of
-                    )
-                }
-
-                let schema = all_of.get(0).unwrap();
-
-                schema.render_type(required)
-            }
-            x => anyhow::bail!("unexpected type {:#?}", x),
-        }
-    }
-}
-
-impl SchemaExt for Box<openapiv3::Schema> {
-    fn recurse(&self) -> Result<openapiv3::Schema> {
-        anyhow::bail!("`recurse` not implemented for `Box<openapiv3::Schema>`")
-    }
-
-    fn render_type(&self, _required: bool) -> Result<TokenStream> {
-        anyhow::bail!("`render_type` not implemented for `Box<openapiv3::Schema>`")
-    }
-}
-
-impl SchemaExt for openapiv3::PathItem {
-    fn recurse(&self) -> Result<openapiv3::Schema> {
-        anyhow::bail!("`recurse` not implemented for `PathItem`")
-    }
-
-    fn render_type(&self, _required: bool) -> Result<TokenStream> {
-        anyhow::bail!("`render_type` not implemented for `PathItem`")
-    }
-}
-
-impl SchemaExt for openapiv3::RequestBody {
-    fn recurse(&self) -> Result<openapiv3::Schema> {
-        // Get the content type.
-        let content = self
-            .content
-            .get("application/json")
-            .ok_or_else(|| anyhow::anyhow!("RequestBody does not have a content type of `application/json`"))?;
-
-        if content.schema.is_none() {
-            anyhow::bail!("RequestBody does not have a schema")
-        }
-
-        let schema = content.schema.as_ref().unwrap();
-
-        // Recurse the schema.
-        schema.recurse()
-    }
-
-    fn render_type(&self, required: bool) -> Result<TokenStream> {
-        // Get the content type.
-        let content = self
-            .content
-            .get("application/json")
-            .ok_or_else(|| anyhow::anyhow!("RequestBody does not have a content type of `application/json`"))?;
-
-        if content.schema.is_none() {
-            anyhow::bail!("RequestBody does not have a schema")
-        }
-
-        let schema = content.schema.as_ref().unwrap();
-
-        // Return the type for the schema.
-        schema.render_type(required || self.required)
-    }
-}
-
-impl SchemaExt for openapiv3::Parameter {
-    fn recurse(&self) -> Result<openapiv3::Schema> {
-        // Get the parameter data.
-        let data = self
-            .data()
-            .ok_or_else(|| anyhow::anyhow!("Parameter does not have data"))?;
-        // Get the parameter schema.
-        let schema = data.format.schema()?;
-        // Recurse the schema.
-        schema.recurse()
-    }
-
-    fn render_type(&self, required: bool) -> Result<TokenStream> {
-        // Get the parameter data.
-        let data = self
-            .data()
-            .ok_or_else(|| anyhow::anyhow!("Parameter does not have data"))?;
-        // Get the parameter schema.
-        let schema = data.format.schema()?;
-        // Return the type for the schema.
-        schema.render_type(required || data.required)
-    }
-}
-
 struct Operation {
     op: openapiv3::Operation,
     method: String,
     path: String,
     id: String,
+    spec: openapiv3::OpenAPI,
 }
 
 struct Property {
@@ -578,8 +130,8 @@ struct Parameter {
 }
 
 impl Parameter {
-    fn data(&self) -> Option<openapiv3::ParameterData> {
-        self.parameter.data()
+    fn data(&self) -> Result<openapiv3::ParameterData> {
+        (&self.parameter).data()
     }
 }
 
@@ -621,8 +173,8 @@ impl Operation {
             let param = param.item()?;
 
             let parameter_data = match param.data() {
-                Some(s) => s,
-                None => return Ok(parameters),
+                Ok(s) => s,
+                Err(_) => return Ok(parameters),
             };
 
             parameters.insert(
@@ -645,8 +197,8 @@ impl Operation {
             };
 
             let parameter_data = match param.data() {
-                Some(s) => s,
-                None => return false,
+                Ok(s) => s,
+                Err(_) => return false,
             };
 
             if parameter_data.name == parameter || parameter_data.name.starts_with(&format!("{}_", parameter)) {
@@ -700,7 +252,7 @@ impl Operation {
             Ok(b) => b.clone(),
             Err(e) => {
                 if e.to_string().contains("reference") {
-                    schema.get_schema_from_reference(false)?
+                    schema.get_schema_from_reference(&self.spec, false)?
                 } else {
                     anyhow::bail!("could not get schema from request body: {}", e);
                 }
@@ -719,7 +271,7 @@ impl Operation {
                 Ok(s) => *s.clone(),
                 Err(e) => {
                     if e.to_string().contains("reference") {
-                        prop.get_schema_from_reference(false)?
+                        prop.get_schema_from_reference(&self.spec, false)?
                     } else {
                         anyhow::bail!("could not get schema from prop `{}`: {}", key, e);
                     }
@@ -817,9 +369,10 @@ impl Operation {
 
                 let p_short = format_ident!("{}", new);
 
-                let rendered = get_text(&v.schema.render_type(v.required)?)?;
+                let type_name = self.render_type(v.schema, v.required)?;
+                let rendered = type_name.rendered()?;
 
-                if rendered.starts_with("Option<") && v.required {
+                if type_name.is_option()? && v.required {
                     // If the rendered property is an option, we want to unwrap it before
                     // sending the request since we were only doing that for the oneOf types.
                     // And we should only unwrap it if it is a required property.
@@ -838,11 +391,13 @@ impl Operation {
                     req_body_rendered.push(quote!(#p_og: "".to_string()));
                 } else if v.required {
                     req_body_rendered.push(quote!(#p_og: #p_short.clone()));
-                } else {
+                } else if type_name.is_option()? && rendered != "kittycad::types::phone_number::PhoneNumber" {
                     // We can use self here since we aren't chaing the value from
                     // a prompt.
                     // In the future should we prompt for everything we would change this.
                     req_body_rendered.push(quote!(#p_og: Some(self.#p_short.clone())));
+                } else {
+                    req_body_rendered.push(quote!(#p_og: self.#p_short.clone()));
                 }
             }
 
@@ -866,7 +421,7 @@ impl Operation {
         let mut param_names = Vec::new();
 
         for (param, p) in self.get_parameters()? {
-            let data = if let Some(data) = p.data() {
+            let data = if let Ok(data) = p.data() {
                 data
             } else {
                 continue;
@@ -892,7 +447,7 @@ impl Operation {
 
         for (param, p) in self.get_parameters()? {
             if p.data().unwrap().required {
-                let data = if let Some(data) = p.data() {
+                let data = if let Ok(data) = p.data() {
                     data
                 } else {
                     continue;
@@ -912,11 +467,11 @@ impl Operation {
         Ok(param_names)
     }
 
-    fn render_struct_param<T: SchemaExt>(
+    fn render_struct_param(
         &self,
         name: &str,
         tag: &str,
-        schema: openapiv3::ReferenceOr<T>,
+        schema: openapiv3::ReferenceOr<openapiv3::Schema>,
         description: Option<String>,
         required: bool,
     ) -> Result<TokenStream> {
@@ -966,9 +521,9 @@ impl Operation {
             format!("The {} that holds the {}.", n, prop)
         };
 
-        let mut type_name = schema.render_type(required)?;
+        let mut type_name = self.render_type(schema, required)?;
 
-        let rendered = get_text(&type_name)?;
+        let rendered = type_name.rendered()?;
 
         let flags = get_flags(name)?;
 
@@ -1023,7 +578,7 @@ impl Operation {
         let mut params = Vec::new();
 
         for (param, p) in self.get_parameters()? {
-            let data = if let Some(data) = p.data() {
+            let data = if let Ok(data) = p.data() {
                 data
             } else {
                 continue;
@@ -1093,7 +648,7 @@ impl Operation {
 
             let error_msg = format!("{} required in non-interactive mode", formatted);
 
-            let is_check = t.get_is_check_fn(true)?;
+            let is_check = self.get_is_check_fn(t, true)?;
 
             required_checks.push(quote!(
                 if #p.#is_check() && !ctx.io.can_prompt() {
@@ -1130,10 +685,10 @@ impl Operation {
 
             let title = format!("{} {}", singular_tag_str, n);
 
-            let is_check = v.get_is_check_fn(true)?;
+            let is_check = self.get_is_check_fn(v.clone(), true)?;
 
-            let rendered = v.render_type(true)?;
-            let rendered_str = get_text(&rendered)?
+            let rendered = self.render_type(v, true)?;
+            let rendered_str = openapitor::types::get_text(&rendered)?
                 .trim_start_matches("Option<")
                 .trim_start_matches("kittycad::types::")
                 .trim_end_matches('>')
@@ -1305,7 +860,7 @@ impl Operation {
 
             let p = format_ident!("{}", n);
 
-            let is_check = v.schema.get_is_check_fn(v.required)?;
+            let is_check = self.get_is_check_fn(v.schema.clone(), v.required)?;
 
             check_nothing_to_edit = quote! {
                 #check_nothing_to_edit self.#p.#is_check()
@@ -1690,6 +1245,53 @@ impl Operation {
 
         Ok((cmd, enum_item))
     }
+
+    fn render_type(
+        &self,
+        s: openapiv3::ReferenceOr<openapiv3::Schema>,
+        required: bool,
+    ) -> Result<proc_macro2::TokenStream> {
+        let mut t = match &s {
+            openapiv3::ReferenceOr::Reference { .. } => {
+                openapitor::types::get_type_name_from_reference(&s.reference()?, &self.spec, false)?
+            }
+            openapiv3::ReferenceOr::Item(s) => openapitor::types::get_type_name_for_schema("", s, &self.spec, false)?,
+        };
+
+        if !required && !t.is_option()? {
+            t = quote!(Option<#t>)
+        }
+
+        let fix = t.rendered()?.replace("crate::types::", "kittycad::types::");
+
+        fix.parse().map_err(|err| anyhow::anyhow!("{}", err))
+    }
+
+    fn get_is_check_fn(
+        &self,
+        s: openapiv3::ReferenceOr<openapiv3::Schema>,
+        required: bool,
+    ) -> Result<proc_macro2::Ident> {
+        let rendered = &self.render_type(s.clone(), required)?;
+
+        let ident = if rendered.is_option()? {
+            format_ident!("{}", "is_none")
+        } else {
+            let rendered = match s.get_schema_from_reference(&self.spec, true) {
+                Ok(s) => openapitor::types::get_type_name_for_schema("", &s, &self.spec, true)?.rendered()?,
+                Err(_) => rendered.to_string(),
+            };
+
+            if rendered.starts_with('u') || rendered.starts_with('i') || rendered.starts_with('f') {
+                // Handle numbers.
+                format_ident!("{}", "is_zero")
+            } else {
+                format_ident!("{}", "is_empty")
+            }
+        };
+
+        Ok(ident)
+    }
 }
 
 /// Get the operations with the tag from the OpenAPI spec.
@@ -1714,6 +1316,7 @@ fn get_operations_with_tag(api: &openapiv3::OpenAPI, tag: &str) -> Result<Vec<Op
                             method: m.to_string(),
                             path: pn.to_string(),
                             id,
+                            spec: api.clone(),
                         }]);
                     }
                 }
@@ -1759,30 +1362,6 @@ fn singular(s: &str) -> String {
 
 fn skip_defaults(n: &str, tag: &str) -> bool {
     n == singular(tag) || n == "id"
-}
-
-fn clean_text(s: &str) -> String {
-    // Add newlines after end-braces at <= two levels of indentation.
-    if cfg!(not(windows)) {
-        let regex = regex::Regex::new(r#"(})(\n\s{0,8}[^} ])"#).unwrap();
-        regex.replace_all(s, "$1\n$2").to_string()
-    } else {
-        let regex = regex::Regex::new(r#"(})(\r\n\s{0,8}[^} ])"#).unwrap();
-        regex.replace_all(s, "$1\r\n$2").to_string()
-    }
-}
-
-pub fn get_text(output: &proc_macro2::TokenStream) -> Result<String> {
-    let content = output.to_string();
-
-    Ok(clean_text(&content).replace(' ', ""))
-}
-
-pub fn get_text_fmt(output: &proc_macro2::TokenStream) -> Result<String> {
-    // Format the file with rustfmt.
-    let content = rustfmt_wrapper::rustfmt(output).unwrap();
-
-    Ok(clean_text(&content))
 }
 
 fn clean_param_name(p: &str) -> String {

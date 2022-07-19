@@ -41,20 +41,20 @@ impl crate::cmd::Command for CmdUserView {
 #[clap(verbatim_doc_comment)]
 pub struct CmdUserEdit {
     #[doc = "The user's company."]
-    #[clap(long = "company", short = 'c', required = false, default_value_t)]
-    pub new_company: String,
+    #[clap(long = "company", short = 'c', required = false)]
+    pub new_company: Option<String>,
     #[doc = "The user's Discord handle."]
-    #[clap(long = "discord", required = false, default_value_t)]
-    pub new_discord: String,
+    #[clap(long = "discord", required = false)]
+    pub new_discord: Option<String>,
     #[doc = "The user's first name."]
-    #[clap(long = "first-name", short = 'f', required = false, default_value_t)]
-    pub new_first_name: String,
+    #[clap(long = "first-name", short = 'f', required = false)]
+    pub new_first_name: Option<String>,
     #[doc = "The user's GitHub handle."]
-    #[clap(long = "github", short = 'g', required = false, default_value_t)]
-    pub new_github: String,
+    #[clap(long = "github", short = 'g', required = false)]
+    pub new_github: Option<String>,
     #[doc = "The user's last name."]
-    #[clap(long = "last-name", short = 'l', required = false, default_value_t)]
-    pub new_last_name: String,
+    #[clap(long = "last-name", short = 'l', required = false)]
+    pub new_last_name: Option<String>,
     #[doc = "The user's phone number."]
     #[clap(long = "phone", short = 'p', required = false, default_value_t)]
     pub new_phone: kittycad::types::phone_number::PhoneNumber,
@@ -63,12 +63,12 @@ pub struct CmdUserEdit {
 #[async_trait::async_trait]
 impl crate::cmd::Command for CmdUserEdit {
     async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
-        if self.new_company.is_empty()
-            && self.new_discord.is_empty()
-            && self.new_first_name.is_empty()
-            && self.new_github.is_empty()
-            && self.new_last_name.is_empty()
-            && self.new_phone.is_empty()
+        if self.new_company.is_none()
+            && self.new_discord.is_none()
+            && self.new_first_name.is_none()
+            && self.new_github.is_none()
+            && self.new_last_name.is_none()
+            && self.new_phone.is_none()
         {
             return Err(anyhow::anyhow!("nothing to edit"));
         }
@@ -77,12 +77,12 @@ impl crate::cmd::Command for CmdUserEdit {
         let result = client
             .users()
             .update_self(&kittycad::types::UpdateUser {
-                company: Some(self.new_company),
-                discord: Some(self.new_discord),
-                first_name: Some(self.new_first_name),
-                github: Some(self.new_github),
-                last_name: Some(self.new_last_name),
-                phone: Some(self.new_phone),
+                company: Some(self.new_company.clone()),
+                discord: Some(self.new_discord.clone()),
+                first_name: Some(self.new_first_name.clone()),
+                github: Some(self.new_github.clone()),
+                last_name: Some(self.new_last_name.clone()),
+                phone: self.new_phone.clone(),
             })
             .await?;
         let cs = ctx.io.color_scheme();
