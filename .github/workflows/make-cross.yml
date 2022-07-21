@@ -10,6 +10,7 @@ on:
       - Makefile
       - 'rust-toolchain'
       - 'rust-toolchain.toml'
+      - 'spec.json'
   pull_request:
     paths:
       - '**.rs'
@@ -18,6 +19,7 @@ on:
       - .github/workflows/cargo-build.yml
       - 'rust-toolchain'
       - 'rust-toolchain.toml'
+      - 'spec.json'
 name: make cross
 jobs:
   cross:

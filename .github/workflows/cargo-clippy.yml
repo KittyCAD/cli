@@ -9,6 +9,7 @@ on:
       - .github/workflows/cargo-clippy.yml
       - 'rust-toolchain'
       - 'rust-toolchain.toml'
+      - 'spec.json'
   pull_request:
     paths:
       - '**.rs'
@@ -17,6 +18,7 @@ on:
       - .github/workflows/cargo-build.yml
       - 'rust-toolchain'
       - 'rust-toolchain.toml'
+      - 'spec.json'
 name: cargo clippy
 jobs:
   cargoclippy:

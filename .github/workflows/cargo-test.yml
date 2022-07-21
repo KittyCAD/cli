@@ -11,6 +11,7 @@ on:
       - 'rust-toolchain'
       - 'rust-toolchain.toml'
       - 'Makefile'
+      - 'spec.json'
   pull_request:
     paths:
       - '**.rs'
@@ -21,6 +22,7 @@ on:
       - 'rust-toolchain'
       - 'rust-toolchain.toml'
       - 'Makefile'
+      - 'spec.json'
   workflow_dispatch:
     inputs:
 permissions: read-all
