@@ -197,7 +197,7 @@ mod test {
     #[test_context(Context)]
     #[test]
     #[serial_test::serial]
-    fn test_env_color_disabled() {
+    fn test_env_color_disabled(_ctx: &mut Context) {
         let tests = vec![
             TestItem {
                 name: "pristine env".to_string(),
@@ -248,7 +248,7 @@ mod test {
 
     #[test_context(Context)]
     #[test]
-    fn test_env_color_forced() {
+    fn test_env_color_forced(_ctx: &mut Context) {
         let tests = vec![
             TestItem {
                 name: "pristine env".to_string(),

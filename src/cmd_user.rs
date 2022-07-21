@@ -86,7 +86,7 @@ mod test {
     #[test_context(TContext)]
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[serial_test::serial]
-    async fn test_cmd_user() {
+    async fn test_cmd_user(_ctx: &mut TContext) {
         let tests: Vec<TestItem> = vec![TestItem {
             name: "volume: input file does not exist".to_string(),
             cmd: crate::cmd_user::SubCommand::Edit(crate::cmd_user::CmdUserEdit {
