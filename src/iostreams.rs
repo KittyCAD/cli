@@ -337,7 +337,7 @@ impl IoStreams {
                     .with(tabled::Alignment::left())
                     .with(tabled::Alignment::top()),
             )
-            .with(tabled::Style::psql().header_off())
+            .with(tabled::Style::psql())
             .to_string();
 
         writeln!(self.out, "{}", table)?;

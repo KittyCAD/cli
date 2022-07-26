@@ -27,7 +27,7 @@ log = "^0.4.17"
 regex = "1"
 num-traits = "^0.2.14"
 open = "^3.0.2"
-kittycad = "0.1.9"
+kittycad = "0.1.10"
 #kittycad = { path= "../kittycad.rs/kittycad" }
 oauth2 = "^4.2.3"
 parse-display = "^0.5.5"
@@ -48,7 +48,7 @@ slog-scope = "4"
 slog-stdlog = "4"
 slog-term = "2"
 tabwriter = "^1.2.1"
-tabled = { version = "^0.7.0", features = ["color"] }
+tabled = { version = "^0.8.0", features = ["color"] }
 termbg = "^0.4.0"
 terminal_size = "^0.2.1"
 terminal-spinners = "^0.3.2"
