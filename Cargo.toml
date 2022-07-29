@@ -40,7 +40,7 @@ ring = "^0.16.20"
 roff = { git = "https://github.com/sondr3/roff-rs", branch = "updates" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_yaml = "^0.8"
+serde_yaml = "^0.9"
 shlex = "^1.1.0"
 slog = "2"
 slog-async = "2"
