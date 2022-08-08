@@ -9,11 +9,11 @@ build = "build.rs"
 [dependencies]
 ansi_term = "^0.12.1"
 anyhow = { version = "1", features = ["backtrace"] }
-async-trait = "^0.1.53"
+async-trait = "^0.1.57"
 atty = "^0.2.14"
 chrono = { version = "^0.4", features = ["serde"] }
 chrono-humanize = "^0.2.1"
-clap = { version = "^3.2.14", features = ["cargo", "derive", "env", "unicode"] }
+clap = { version = "^3.2.16", features = ["cargo", "derive", "env", "unicode"] }
 clap_complete = { version = "^3.2.3" }
 cli-macro = { path = "cli-macro" }
 colored_json = "^2.1.0"
@@ -40,7 +40,7 @@ ring = "^0.16.20"
 roff = { git = "https://github.com/sondr3/roff-rs", branch = "updates" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_yaml = "^0.8"
+serde_yaml = "^0.9"
 shlex = "^1.1.0"
 slog = "2"
 slog-async = "2"
