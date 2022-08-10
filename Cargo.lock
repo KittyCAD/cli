@@ -1659,9 +1659,9 @@ dependencies = [
 
 [[package]]
 name = "openapitor"
-version = "0.0.1"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a380dfc4abe6a8006bfb02b773da20e2ab06415b165ad2db946f1ec5480f0640"
+checksum = "331d5ec369cc780afd1a0e9f610b60ec78850bc050cad9e41192986556348129"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -1671,6 +1671,7 @@ dependencies = [
  "format_serde_error",
  "futures-util",
  "http",
+ "indexmap",
  "json-patch",
  "log",
  "numeral",
@@ -1681,6 +1682,7 @@ dependencies = [
  "rand",
  "regex",
  "reqwest",
+ "reqwest-middleware",
  "rustfmt-wrapper",
  "schemars",
  "serde",
@@ -2099,6 +2101,22 @@ dependencies = [
  "web-sys",
  "webpki-roots",
  "winreg",
+]
+
+[[package]]
+name = "reqwest-middleware"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69539cea4148dce683bec9dc95be3f0397a9bb2c248a49c8296a9d21659a8cdd"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures",
+ "http",
+ "reqwest",
+ "serde",
+ "task-local-extensions",
+ "thiserror",
 ]
 
 [[package]]
@@ -2666,6 +2684,15 @@ name = "take_mut"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f764005d11ee5f36500a149ace24e00e3da98b0158b3e2d53a7495660d3f4d60"
+
+[[package]]
+name = "task-local-extensions"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36794203e10c86e5998179e260869d156e0674f02d5451b4a3fb9fd86d02aaab"
+dependencies = [
+ "tokio",
+]
 
 [[package]]
 name = "tempfile"
