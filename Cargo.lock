@@ -1683,9 +1683,9 @@ dependencies = [
 
 [[package]]
 name = "openapitor"
-version = "0.0.3"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "331d5ec369cc780afd1a0e9f610b60ec78850bc050cad9e41192986556348129"
+checksum = "39d0f8f21cc754cff8f293cd885762a1618bb7b6c298f7885e5407fca5116b47"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -1711,7 +1711,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
- "serde_yaml 0.8.26",
+ "serde_yaml 0.9.4",
  "slog",
  "slog-async",
  "slog-json",
