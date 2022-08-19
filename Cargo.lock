@@ -1673,9 +1673,9 @@ dependencies = [
 
 [[package]]
 name = "openapitor"
-version = "0.0.4"
+version = "0.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39d0f8f21cc754cff8f293cd885762a1618bb7b6c298f7885e5407fca5116b47"
+checksum = "120168eae5b6485690af708bd1030547df62cca10a643763d416ab0e6831decb"
 dependencies = [
  "Inflector",
  "anyhow",
