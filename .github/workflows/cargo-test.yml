@@ -32,7 +32,7 @@ jobs:
     name: cargo test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3.1.0
       - name: Install latest rust
         uses: actions-rs/toolchain@v1
         with:
