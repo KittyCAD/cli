@@ -16,6 +16,7 @@ on:
       - '**.rs'
       - Cargo.toml
       - Cargo.lock
+      - .github/workflows/make-cross.yml
       - .github/workflows/cargo-build.yml
       - 'rust-toolchain'
       - 'rust-toolchain.toml'
