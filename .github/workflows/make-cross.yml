@@ -69,3 +69,30 @@ jobs:
           make release
           ls -la cross
         shell: bash
+      - name: Add tar.gz compression to mac release
+        shell: bash
+        run: |
+          # generate tar.gz of the mac release
+          tar -czf cross/kittycad-x86_64-apple-darwin.targ.gz cross/kittycad-x86_64-apple-darwin
+          export COMPRESSED_SHA=$(shasum -a 256 cross/cross/kittycad-x86_64-apple-darwin.targ.gz)
+          export VERSION=v$(toml get Cargo.toml package.version | jq -r .)
+          export URL="https:\/\/dl.kittycad.io\/releases\/cli\/$VERSION\/kittycad-x86_64-apple-darwin.targ.gz"
+          ls -la
+
+          # debug var checks
+          echo $COMPRESSED_SHA
+          echo $VERSION
+          echo $URL
+
+          # substitute placeholders in the template homebrew-tap-template.rb
+          cp homebrew-tap-template.rb kittycad.rb
+          sed -i "" "s/replace-with-sha/$COMPRESSED_SHA/g" kittycad.rb
+          sed -i "" "s/replace-with-semver/$VERSION/g" kittycad.rb
+          sed -i "" "s/replace-with-url/$URL/g" kittycad.rb
+
+          # send contents of kittycad.rb to stdout for debug
+          cat kittycad.rb
+
+          # TODO commit kittycad.rb to https://github.com/KittyCAD/homebrew-kittycad
+
+          
