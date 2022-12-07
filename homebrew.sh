@@ -6,14 +6,14 @@ cp homebrew-template.rb homebrew/kittycad.rb
 input_names=(
   "x86_64-apple-darwin"
   "aarch64-apple-darwin"
-  # "x86_64-unknown-linux-musl"
-  # "aarch64-unknown-linux-musl"
+  "x86_64-unknown-linux-musl"
+  "aarch64-unknown-linux-musl"
 )
 homebrew_names=(
   "x86_64_darwin"
   "aarch64_darwin"
-  # "x86_64_linux"
-  # "aarch64_linux"
+  "x86_64_linux"
+  "aarch64_linux"
 )
 
 to_zip_files=""
