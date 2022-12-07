@@ -56,3 +56,28 @@ If you want to only build one of the cross targets, supply the `CROSS_TARGETS` e
 
 
 If you get an error about md5sum on mac when running `make release`, you probably need to `brew install coreutils`
+
+### Building Homebrew artifacts and testing install
+
+Homebrew needs the same files as our cross complie step, they just need to be organised into a tarball, and have a formula for installing the cli through brew,
+Run the cross compile step
+
+```
+make release
+```
+
+This adds binaries to `./closs`, From there you should be able to run the homebrew bash script
+
+```
+sh ./homebrew.sh
+```
+
+You should now see a tarball and kittycad.rb in `./homebrew`, some of the SHAs might be missing in the formula if you're running on macos
+
+To test the brew install
+- Change `./homebrew/kittycad.rb` url to `file:///Users/<path-to-this-repo>/cli/homebrew/kittycad-cli.tar.gz`
+- Add `version "0.1.0"` below the url (it normally is able to get this from the url so usually not needed)
+- Comment out any lines with missing SHAs in the bottle section
+- run `brew install ./homebrew/kittycad.rb`
+- test with `kittycad -h`
+- clean up with `brew unintsall kittycad`
