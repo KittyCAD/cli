@@ -75,3 +75,4 @@ jobs:
         run: |
           ./homebrew.sh
           (cd ./homebrew && ls)
+          cat ./homebrew/kittycad.rb
