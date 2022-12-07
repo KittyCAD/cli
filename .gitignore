@@ -2,9 +2,14 @@
 target
 # Where our cross compiled binaries will go.
 cross
+# Where our homebrew files will go (tarball and formula.rb).
+homebrew
 # For the ci when we cross compile.
 osxcross
 # Where our generated docs will go.
 generated_docs
 # While running release github actions.
 releases
+
+# macos cruft
+.DS_Store
