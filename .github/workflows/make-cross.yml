@@ -70,9 +70,9 @@ jobs:
           make release
           ls -la cross
         shell: bash
-      - name: Run homebrew.sh
+      - if: ${{ matrix.os == 'ubuntu-latest' }}
+        name: Run homebrew.sh
         shell: bash
-        - if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           mkdir homebrew
           cp homebrew-template.rb homebrew/kittycad.rb
