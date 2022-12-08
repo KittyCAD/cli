@@ -85,7 +85,7 @@ jobs:
           mkdir homebrew
           cp homebrew-template.rb homebrew/kittycad.rb
 
-          input_names= (
+          input_names=(
             "x86_64-apple-darwin"
             "aarch64-apple-darwin"
             "x86_64-unknown-linux-musl"
