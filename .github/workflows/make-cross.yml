@@ -115,7 +115,7 @@ jobs:
             ls
             (cd ./homebrew && ls)
             cat ./homebrew/kittycad.rb
-            sed -i '' "s#replace-$homebrew_name-sha#$hash#g" "./homebrew/kittycad.rb"
+            sed -i "s#replace-$homebrew_name-sha#$hash#g" "./homebrew/kittycad.rb"
 
             # concat the strings homebrew/x86_64_darwin/kittycad into a variable to_zip_files
             to_zip_files="$to_zip_files $homebrew_name/kittycad"
@@ -127,10 +127,10 @@ jobs:
 
           sha256=$(sha256sum "./homebrew/kittycad-cli.tar.gz")
           hash=$(printf '%s\n' "$sha256" | cut -d' ' -f1)
-          sed -i '' "s#replace-tarball-sha#$hash#g" "./homebrew/kittycad.rb"
+          sed -i "s#replace-tarball-sha#$hash#g" "./homebrew/kittycad.rb"
 
           echo $version
-          sed -i '' "s#replace-semver#$version#g" "./homebrew/kittycad.rb"
+          sed -i "s#replace-semver#$version#g" "./homebrew/kittycad.rb"
 
           for homebrew_name in "${homebrew_names[@]}"; do
             rm -rf "./homebrew/$homebrew_name"
