@@ -82,7 +82,7 @@ jobs:
       - name: Run homebrew.sh
         shell: bash
         run: |
-          sh ./homebrew.sh
+          bash ./homebrew.sh
 
           echo "tarball and formula"
           (cd ./homebrew && ls)

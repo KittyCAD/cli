@@ -9,7 +9,7 @@ input_names= (
   "x86_64-unknown-linux-musl"
   "aarch64-unknown-linux-musl"
 )
-homebrew_names= (
+homebrew_names=(
   "x86_64_darwin"
   "aarch64_darwin"
   "x86_64_linux"
