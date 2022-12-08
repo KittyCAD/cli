@@ -113,6 +113,8 @@ jobs:
             sha256=$(sha256sum "./homebrew/$homebrew_name/kittycad")
             hash=$(printf '%s\n' "$sha256" | cut -d' ' -f1)
             ls
+            (cd ./homebrew && ls)
+            cat ./homebrew/kittycad.rb
             sed -i '' "s#replace-$homebrew_name-sha#$hash#g" "./homebrew/kittycad.rb"
 
             # concat the strings homebrew/x86_64_darwin/kittycad into a variable to_zip_files
