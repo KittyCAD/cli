@@ -75,7 +75,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - if: ${{ matrix.os == 'ubuntu-latest' }}
         name: Run homebrew.sh
         shell: bash
         run: |
