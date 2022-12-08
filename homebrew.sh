@@ -16,6 +16,7 @@ homebrew_names=(
   "aarch64_linux"
 )
 
+version=v$(toml get Cargo.toml package.version | jq -r .)
 to_zip_files=""
 
 # iterate over the input names
@@ -24,7 +25,7 @@ for i in "${!input_names[@]}"; do
   homebrew_name="${homebrew_names[$i]}"
   
   mkdir "./homebrew/$homebrew_name"
-  cp "./cross/kittycad-$input_name" "./homebrew/$homebrew_name/kittycad"
+  curl -L "https://dl.kittycad.io/releases/cli/$version/kittycad-$input_name" -o "./homebrew/$homebrew_name/kittycad"
 
   # create variable with the sha256sum of the file without the filename
   sha256=$(sha256sum "./homebrew/$homebrew_name/kittycad")
@@ -43,7 +44,6 @@ sha256=$(sha256sum "./homebrew/kittycad-cli.tar.gz")
 hash=$(printf '%s\n' "$sha256" | cut -d' ' -f1)
 sed -i '' "s#replace-tarball-sha#$hash#g" "./homebrew/kittycad.rb"
 
-version=v$(toml get Cargo.toml package.version | jq -r .)
 echo $version
 sed -i '' "s#replace-semver#$version#g" "./homebrew/kittycad.rb"
 

@@ -70,6 +70,11 @@ jobs:
           make release
           ls -la cross
         shell: bash
+  homebrew:
+    name: homebrew
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
       - if: ${{ matrix.os == 'ubuntu-latest' }}
         name: Run homebrew.sh
         shell: bash
