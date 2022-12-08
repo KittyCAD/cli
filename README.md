@@ -54,3 +54,6 @@ If you want to only build one of the cross targets, supply the `CROSS_TARGETS` e
 
     CROSS_TARGETS=x86_64-unknown-linux-musl make
 
+
+If you get an error about md5sum on mac when running `make release`, you probably need to `brew install coreutils`
+
