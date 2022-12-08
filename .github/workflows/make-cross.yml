@@ -75,6 +75,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - name: Install deps
+        shell: bash
+        run: |
+          ./.github/workflows/cross-deps.sh
       - name: Run homebrew.sh
         shell: bash
         run: |
