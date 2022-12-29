@@ -299,7 +299,7 @@ access-control-allow-credentials:  """#
                 "density".to_string(),
                 "assets/in_obj.obj".to_string(),
             ],
-            want_out: r#"density       | 0.02049168"#.to_string(),
+            want_out: r#"density       | 0.018656317"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
