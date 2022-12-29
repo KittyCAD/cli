@@ -286,7 +286,7 @@ access-control-allow-credentials:  """#
                 "volume".to_string(),
                 "assets/in_obj.obj".to_string(),
             ],
-            want_out: r#"volume       | 48.800293"#.to_string(),
+            want_out: r#"volume       | 53.601147"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
