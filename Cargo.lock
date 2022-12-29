@@ -1290,7 +1290,7 @@ dependencies = [
  "git_rev",
  "heck 0.4.0",
  "http",
- "kittycad 0.2.0",
+ "kittycad 0.2.2",
  "log",
  "num-traits",
  "oauth2",
@@ -1331,9 +1331,8 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ccc3af53347d63fb0e841f4d8b5c6c494c7d5d0fe0de9803b19e33c8cb48316"
+version = "0.2.2"
+source = "git+https://github.com/kittycad/kittycad.rs?branch=main#6c603aae5bf45c1afd67a264ae96f602929e5bc3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2206,9 +2205,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest-tracing"
-version = "0.2.3"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55c2af6c0571bef48275098bebe17863764989276c49433dab1d52328f744f1d"
+checksum = "64977f9a47fa7768cc88751e29026e569730ac1667c2eaeaac04b32624849fbe"
 dependencies = [
  "async-trait",
  "opentelemetry",
