@@ -312,7 +312,7 @@ access-control-allow-credentials:  """#
                 "mass".to_string(),
                 "assets/in_obj.obj".to_string(),
             ],
-            want_out: r#"mass             | 48.800293"#.to_string(),
+            want_out: r#"mass             | 53.601147"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -326,7 +326,7 @@ access-control-allow-credentials:  """#
                 "assets/in_obj.obj".to_string(),
                 "--format=json".to_string(),
             ],
-            want_out: r#""mass": 48.800293,"#.to_string(),
+            want_out: r#""mass": 53.601147,"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
