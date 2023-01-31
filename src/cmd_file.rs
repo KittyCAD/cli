@@ -19,6 +19,7 @@ enum SubCommand {
     Convert(CmdFileConvert),
     Volume(CmdFileVolume),
     Mass(CmdFileMass),
+    CenterOfMass(CmdFileCenterOfMass),
     Density(CmdFileDensity),
 }
 
@@ -29,6 +30,7 @@ impl crate::cmd::Command for CmdFile {
             SubCommand::Convert(cmd) => cmd.run(ctx).await,
             SubCommand::Volume(cmd) => cmd.run(ctx).await,
             SubCommand::Mass(cmd) => cmd.run(ctx).await,
+            SubCommand::CenterOfMass(cmd) => cmd.run(ctx).await,
             SubCommand::Density(cmd) => cmd.run(ctx).await,
         }
     }
@@ -64,10 +66,10 @@ pub struct CmdFileConvert {
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format", arg_enum)]
-    src_format: Option<kittycad::types::FileSourceFormat>,
+    src_format: Option<kittycad::types::FileImportFormat>,
     /// A valid output file format.
     #[clap(short = 't', long = "output-format", arg_enum)]
-    output_format: Option<kittycad::types::FileOutputFormat>,
+    output_format: Option<kittycad::types::FileExportFormat>,
 
     /// Command output format.
     #[clap(long, short, arg_enum)]
@@ -81,7 +83,7 @@ impl crate::cmd::Command for CmdFileConvert {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_source_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Parse the output format.
@@ -145,7 +147,7 @@ pub struct CmdFileVolume {
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format", arg_enum)]
-    src_format: Option<kittycad::types::FileSourceFormat>,
+    src_format: Option<kittycad::types::File3DImportFormat>,
 
     /// Output format.
     #[clap(long, short, arg_enum)]
@@ -159,7 +161,7 @@ impl crate::cmd::Command for CmdFileVolume {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_source_format_from_extension(&get_extension(self.input.clone()))?
+            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -199,7 +201,7 @@ pub struct CmdFileMass {
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format", arg_enum)]
-    src_format: Option<kittycad::types::FileSourceFormat>,
+    src_format: Option<kittycad::types::File3DImportFormat>,
 
     /// Material density.
     #[clap(short = 'm', long = "material-density", default_value = "1.0")]
@@ -221,7 +223,7 @@ impl crate::cmd::Command for CmdFileMass {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_source_format_from_extension(&get_extension(self.input.clone()))?
+            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -238,6 +240,63 @@ impl crate::cmd::Command for CmdFileMass {
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
         ctx.io.write_output(&format, &file_mass)?;
+
+        Ok(())
+    }
+}
+
+/// Get the center of mass of an object in a CAD file.
+///
+/// If the input file is larger than a certain size it will be
+/// performed asynchronously, you can then check the status with the
+/// `kittycad api-call status <id_of_your_operation>` command.
+///
+///     # get the mass of a file
+///     $ kittycad file center-of-mass my-file.step
+///
+///     # pass a file from stdin, the original file type is required
+///     $ cat my-obj.obj | kittycad file center-of-mass - --src-format=obj
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdFileCenterOfMass {
+    /// The path to the input file.
+    /// If you pass `-` as the path, the file will be read from stdin.
+    #[clap(name = "input", parse(from_os_str), required = true)]
+    pub input: std::path::PathBuf,
+
+    /// A valid source file format.
+    #[clap(short = 's', long = "src-format", arg_enum)]
+    src_format: Option<kittycad::types::File3DImportFormat>,
+
+    /// Output format.
+    #[clap(long, short, arg_enum)]
+    pub format: Option<crate::types::FormatOutput>,
+}
+
+#[async_trait::async_trait]
+impl crate::cmd::Command for CmdFileCenterOfMass {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Parse the source format.
+        let src_format = if let Some(src_format) = &self.src_format {
+            src_format.clone()
+        } else {
+            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
+        };
+
+        // Get the contents of the input file.
+        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
+
+        // Do the operation.
+        let client = ctx.api_client("")?;
+
+        let file_center_of_mass = client
+            .file()
+            .create_center_of_mass(src_format, &input.into())
+            .await?;
+
+        // Print the output of the conversion.
+        let format = ctx.format(&self.format)?;
+        ctx.io.write_output(&format, &file_center_of_mass)?;
 
         Ok(())
     }
@@ -264,7 +323,7 @@ pub struct CmdFileDensity {
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format")]
-    src_format: Option<kittycad::types::FileSourceFormat>,
+    src_format: Option<kittycad::types::File3DImportFormat>,
 
     /// Material mass.
     #[clap(short = 'm', long = "material-mass", default_value = "1.0")]
@@ -286,7 +345,7 @@ impl crate::cmd::Command for CmdFileDensity {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_source_format_from_extension(&get_extension(self.input.clone()))?
+            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -319,12 +378,28 @@ fn get_extension(path: std::path::PathBuf) -> String {
 }
 
 /// Get the source format from the extension.
-fn get_source_format_from_extension(ext: &str) -> Result<kittycad::types::FileSourceFormat> {
-    match kittycad::types::FileSourceFormat::from_str(ext) {
+fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileImportFormat> {
+    match kittycad::types::FileImportFormat::from_str(ext) {
         Ok(format) => Ok(format),
         Err(_) => {
             if ext == "stp" {
-                Ok(kittycad::types::FileSourceFormat::Step)
+                Ok(kittycad::types::FileImportFormat::Step)
+            } else {
+                anyhow::bail!(
+                    "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",
+                    ext
+                )
+            }
+        }
+    }
+}
+
+fn get_3d_import_format_from_extension(ext: &str) -> Result<kittycad::types::File3DImportFormat> {
+    match kittycad::types::File3DImportFormat::from_str(ext) {
+        Ok(format) => Ok(format),
+        Err(_) => {
+            if ext == "stp" {
+                Ok(kittycad::types::File3DImportFormat::Step)
             } else {
                 anyhow::bail!(
                     "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",
@@ -336,12 +411,12 @@ fn get_source_format_from_extension(ext: &str) -> Result<kittycad::types::FileSo
 }
 
 /// Get the output format from the extension.
-fn get_output_format_from_extension(ext: &str) -> Result<kittycad::types::FileOutputFormat> {
-    match kittycad::types::FileOutputFormat::from_str(ext) {
+fn get_output_format_from_extension(ext: &str) -> Result<kittycad::types::FileExportFormat> {
+    match kittycad::types::FileExportFormat::from_str(ext) {
         Ok(format) => Ok(format),
         Err(_) => {
             if ext == "stp" {
-                Ok(kittycad::types::FileOutputFormat::Step)
+                Ok(kittycad::types::FileExportFormat::Step)
             } else {
                 anyhow::bail!(
                     "unknown output format for file extension: {}. Try setting the `--output-format` flag explicitly or use a valid format.",
