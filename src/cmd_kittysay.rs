@@ -6,7 +6,11 @@ use clap::Parser;
 ///     $ kittycad kittysay
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
-pub struct CmdKittySay {}
+pub struct CmdKittySay {
+    /// What kitty says
+    #[clap(name = "input", required = true, multiple_values = true)]
+    pub input: Vec<String>,
+}
 
 #[async_trait::async_trait]
 impl crate::cmd::Command for CmdKittySay {
@@ -44,6 +48,7 @@ impl crate::cmd::Command for CmdKittySay {
                        -==++***##+:           
 ";
         writeln!(ctx.io.out, "{}", kitty_string).ok();
+        writeln!(ctx.io.out, "{}", self.input.join(" ")).ok();
         Ok(())
     }
 }
