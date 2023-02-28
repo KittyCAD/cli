@@ -23,8 +23,8 @@ pub mod cmd_drake;
 pub mod cmd_file;
 /// The generate command.
 pub mod cmd_generate;
-/// The kittysay command.
-pub mod cmd_kittysay;
+/// The say command.
+pub mod cmd_say;
 /// The open command.
 pub mod cmd_open;
 /// The update command.
@@ -130,7 +130,7 @@ enum SubCommand {
     Drake(cmd_drake::CmdDrake),
     File(cmd_file::CmdFile),
     Generate(cmd_generate::CmdGenerate),
-    KittySay(cmd_kittysay::CmdKittySay),
+    Say(cmd_say::CmdSay),
     #[clap(alias = "open")]
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
@@ -248,7 +248,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Drake(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::File(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Generate(cmd) => run_cmd(&cmd, ctx).await,
-        SubCommand::KittySay(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::Say(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::User(cmd) => run_cmd(&cmd, ctx).await,

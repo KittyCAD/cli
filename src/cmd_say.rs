@@ -3,17 +3,17 @@ use clap::Parser;
 
 /// Prints your text in a text bubble with KittyCAD as ASCII art
 ///
-///     $ kittycad kittysay
+///     $ kittycad say
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
-pub struct CmdKittySay {
+pub struct CmdSay {
     /// What kitty says
     #[clap(name = "input", required = false, multiple_values = true)]
     pub input: Vec<String>,
 }
 
 #[async_trait::async_trait]
-impl crate::cmd::Command for CmdKittySay {
+impl crate::cmd::Command for CmdSay {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let kitty_string = "                                                  
         .....                                 
