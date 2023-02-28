@@ -8,7 +8,7 @@ use clap::Parser;
 #[clap(verbatim_doc_comment)]
 pub struct CmdKittySay {
     /// What kitty says
-    #[clap(name = "input", required = true, multiple_values = true)]
+    #[clap(name = "input", required = false, multiple_values = true)]
     pub input: Vec<String>,
 }
 
