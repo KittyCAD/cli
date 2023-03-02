@@ -167,7 +167,7 @@ impl IoStreams {
         }
 
         // Remove PAGER from env.
-        let mut filtered_env: HashMap<String, String> = env::vars().filter(|&(ref k, _)| k != "PAGER").collect();
+        let mut filtered_env: HashMap<String, String> = env::vars().filter(|(k, _)| k != "PAGER").collect();
 
         if !filtered_env.contains_key("LESS") {
             filtered_env.insert("LESS".to_string(), "FRX".to_string());
@@ -324,7 +324,7 @@ impl IoStreams {
     pub fn write_output_table_for_vec<T: tabled::Tabled>(&mut self, value: impl IntoIterator<Item = T>) -> Result<()> {
         let table = tabled::Table::new(value).with(tabled::Style::psql()).to_string();
 
-        writeln!(self.out, "{}", table)?;
+        writeln!(self.out, "{table}")?;
 
         Ok(())
     }
@@ -340,7 +340,7 @@ impl IoStreams {
             .with(tabled::Style::psql())
             .to_string();
 
-        writeln!(self.out, "{}", table)?;
+        writeln!(self.out, "{table}")?;
 
         Ok(())
     }

@@ -62,9 +62,9 @@ impl Context<'_> {
         // Change the baseURL to the one we want.
         let mut baseurl = host.to_string();
         if !host.starts_with("http://") && !host.starts_with("https://") {
-            baseurl = format!("https://{}", host);
+            baseurl = format!("https://{host}");
             if host.starts_with("localhost") {
-                baseurl = format!("http://{}", host)
+                baseurl = format!("http://{host}")
             }
         }
 
@@ -72,7 +72,7 @@ impl Context<'_> {
         let token = self.config.get(&host, "token")?;
 
         // Create the client.
-        let mut client = kittycad::Client::new(&token);
+        let mut client = kittycad::Client::new(token);
 
         if baseurl != crate::DEFAULT_HOST {
             client.set_base_url(&baseurl);

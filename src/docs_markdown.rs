@@ -110,7 +110,7 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
             }
 
             if arg.get_long().unwrap_or_default() == "shell" {
-                println!("{:?}", arg);
+                println!("{arg:?}");
             }
 
             let values = arg.get_default_values();
@@ -130,10 +130,9 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
 
             write!(
                 html,
-                r#"   <dt><code>{}</code></dt>
-   <dd>{}</dd>
+                r#"   <dt><code>{def}</code></dt>
+   <dd>{desc}</dd>
 "#,
-                def, desc,
             )
             .unwrap_or_default();
         }

@@ -176,7 +176,7 @@ pub fn parse_default_config() -> Result<impl crate::config::Config> {
 }
 
 fn read_config_file(filename: &str) -> Result<String> {
-    fs::read_to_string(filename).with_context(|| format!("failed to read from {}", filename))
+    fs::read_to_string(filename).with_context(|| format!("failed to read from {filename}"))
 }
 
 pub fn write_config_file(filename: &str, data: &str) -> Result<()> {
@@ -186,12 +186,12 @@ pub fn write_config_file(filename: &str, data: &str) -> Result<()> {
 
     let mut file = fs::File::create(filename)?;
     file.write_all(data.as_bytes())
-        .with_context(|| format!("failed to write to {}", filename))
+        .with_context(|| format!("failed to write to {filename}"))
 }
 
 #[allow(dead_code)]
 fn backup_config_file(filename: String) -> Result<()> {
-    fs::rename(&filename, &format!("{}.bak", filename)).with_context(|| format!("failed to backup {}", filename))
+    fs::rename(&filename, format!("{filename}.bak")).with_context(|| format!("failed to backup {filename}"))
 }
 
 pub fn get_env_var(key: &str) -> String {

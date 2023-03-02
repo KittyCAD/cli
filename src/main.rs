@@ -159,7 +159,7 @@ async fn main() -> Result<(), ()> {
     handle_update(&mut ctx, update.await.unwrap_or_default(), build_version).unwrap();
 
     if let Err(err) = result {
-        eprintln!("{}", err);
+        eprintln!("{err}");
         std::process::exit(1);
     }
 
@@ -276,11 +276,11 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
 
                     writeln!(ctx.io.err_out, "Try authenticating with: `kittycad auth login`")?;
                 } else {
-                    writeln!(ctx.io.err_out, "{}", err)?;
+                    writeln!(ctx.io.err_out, "{err}")?;
                 }
             }
             None => {
-                writeln!(ctx.io.err_out, "{}", err)?;
+                writeln!(ctx.io.err_out, "{err}")?;
             }
         }
         return Ok(1);

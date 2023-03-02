@@ -22,12 +22,12 @@ impl crate::cmd::Command for CmdSay {
         if  kitty_speaking {
             let text = self.input.join(" ");
             let border = "-".repeat(text.len() + 2);
-            let print_text = format!("|{}|", text);
-            writeln!(ctx.io.out, "{}", border).ok();
-            writeln!(ctx.io.out, "{}", print_text).ok();
-            writeln!(ctx.io.out, "{}", border).ok();
+            let print_text = format!("|{text}|");
+            writeln!(ctx.io.out, "{border}").ok();
+            writeln!(ctx.io.out, "{print_text}").ok();
+            writeln!(ctx.io.out, "{border}").ok();
         }
-        writeln!(ctx.io.out, "{}", kitty_string).ok();
+        writeln!(ctx.io.out, "{kitty_string}").ok();
         Ok(())
     }
 }
@@ -66,8 +66,7 @@ fn format_kitty(is_speaking: bool) -> String {
                 =#########%%%+     =#%%%%%%%%%##-         
                 -++***#####=.      *############:         
                                    -==++***##+:           
-",
-        speech_bar = speech_bar
+"
     )
 }
 
@@ -93,12 +92,12 @@ mod test {
                     input: vec!["Hello".to_string(), "World!".to_string()],
                 },
                 want_out: "--------------\n|Hello World!|\n--------------\n".to_owned()
-                    + &crate::cmd_say::format_kitty(true).to_string(),
+                    + &crate::cmd_say::format_kitty(true),
             },
             TestItem {
                 name: "given input string".to_string(),
                 cmd: crate::cmd_say::CmdSay { input: vec![] },
-                want_out: crate::cmd_say::format_kitty(false).to_string(),
+                want_out: crate::cmd_say::format_kitty(false),
             },
         ];
 

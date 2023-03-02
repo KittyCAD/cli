@@ -88,7 +88,7 @@ impl crate::cmd::Command for CmdApi {
         // Make sure the endpoint starts with a slash.
         let mut endpoint = self.endpoint.to_string();
         if !self.endpoint.starts_with('/') {
-            endpoint = format!("/{}", endpoint);
+            endpoint = format!("/{endpoint}");
         }
 
         // Parse the fields.
@@ -139,7 +139,7 @@ impl crate::cmd::Command for CmdApi {
                     if !query_string.is_empty() {
                         query_string.push('&');
                     }
-                    write!(query_string, "{}={}", key, value)?;
+                    write!(query_string, "{key}={value}")?;
                 }
 
                 endpoint = add_query_string(&endpoint, &query_string);
@@ -196,7 +196,7 @@ impl crate::cmd::Command for CmdApi {
 
                 match page.next_page {
                     Some(next_page) => {
-                        endpoint = add_query_string(&endpoint, &format!("page_token={}", next_page));
+                        endpoint = add_query_string(&endpoint, &format!("page_token={next_page}"));
                     }
                     None => {
                         has_next_page = false;
@@ -317,16 +317,16 @@ fn print_headers(ctx: &mut crate::context::Context, headers: &reqwest::header::H
     tw.flush()?;
 
     let table = String::from_utf8(tw.into_inner()?)?;
-    writeln!(ctx.io.out, "{}", table)?;
+    writeln!(ctx.io.out, "{table}")?;
 
     Ok(())
 }
 
 fn add_query_string(endpoint: &str, query_string: &str) -> String {
     if endpoint.contains('?') {
-        format!("{}&{}", endpoint, query_string)
+        format!("{endpoint}&{query_string}")
     } else {
-        format!("{}?{}", endpoint, query_string)
+        format!("{endpoint}?{query_string}")
     }
 }
 
