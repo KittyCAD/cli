@@ -25,9 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          token: ${{secrets.GLOBAL_PAT}}
 
       - name: Install latest rust
         uses: actions-rs/toolchain@v1
