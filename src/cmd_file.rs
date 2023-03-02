@@ -289,10 +289,7 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
         // Do the operation.
         let client = ctx.api_client("")?;
 
-        let file_center_of_mass = client
-            .file()
-            .create_center_of_mass(src_format, &input.into())
-            .await?;
+        let file_center_of_mass = client.file().create_center_of_mass(src_format, &input.into()).await?;
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
