@@ -23,10 +23,10 @@ pub mod cmd_drake;
 pub mod cmd_file;
 /// The generate command.
 pub mod cmd_generate;
-/// The say command.
-pub mod cmd_say;
 /// The open command.
 pub mod cmd_open;
+/// The say command.
+pub mod cmd_say;
 /// The update command.
 pub mod cmd_update;
 /// The user command.

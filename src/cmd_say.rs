@@ -17,15 +17,12 @@ pub struct CmdSay {
 #[async_trait::async_trait]
 impl crate::cmd::Command for CmdSay {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        let kitty_speaking = self.input.len() > 0;
+        let kitty_speaking = !self.input.is_empty();
         let kitty_string = format_kitty(kitty_speaking);
-        if self.input.len() > 0 {
+        if  kitty_speaking {
             let text = self.input.join(" ");
-            let mut border = String::from("--");
+            let border = "-".repeat(text.len() + 2);
             let print_text = format!("|{}|", text);
-            for _i in 0..text.len() {
-                border.push('-');
-            }
             writeln!(ctx.io.out, "{}", border).ok();
             writeln!(ctx.io.out, "{}", print_text).ok();
             writeln!(ctx.io.out, "{}", border).ok();
@@ -91,20 +88,19 @@ mod test {
     async fn test_cmd_say() {
         let tests: Vec<TestItem> = vec![
             TestItem {
-                    name: "no input string".to_string(),
-                    cmd: crate::cmd_say::CmdSay{
-                        input: vec!["Hello".to_string(), "World!".to_string()],
-                    },
-                    want_out: "--------------\n|Hello World!|\n--------------\n".to_owned() + &crate::cmd_say::format_kitty(true).to_string(),
+                name: "no input string".to_string(),
+                cmd: crate::cmd_say::CmdSay {
+                    input: vec!["Hello".to_string(), "World!".to_string()],
                 },
-                TestItem {
-                    name: "given input string".to_string(),
-                    cmd: crate::cmd_say::CmdSay{
-                        input: vec![],
-                    },
-                    want_out: crate::cmd_say::format_kitty(false).to_string(),
-                }
-                ];
+                want_out: "--------------\n|Hello World!|\n--------------\n".to_owned()
+                    + &crate::cmd_say::format_kitty(true).to_string(),
+            },
+            TestItem {
+                name: "given input string".to_string(),
+                cmd: crate::cmd_say::CmdSay { input: vec![] },
+                want_out: crate::cmd_say::format_kitty(false).to_string(),
+            },
+        ];
 
         let mut config = crate::config::new_blank_config().unwrap();
         let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
@@ -122,7 +118,7 @@ mod test {
                 debug: false,
             };
 
-            let cmd_say = crate::cmd_say::CmdSay {input: t.cmd.input};
+            let cmd_say = crate::cmd_say::CmdSay { input: t.cmd.input };
             match cmd_say.run(&mut ctx).await {
                 Ok(()) => {
                     let stdout = std::fs::read_to_string(stdout_path).unwrap();
