@@ -19,7 +19,7 @@ impl crate::cmd::Command for CmdSay {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let kitty_speaking = !self.input.is_empty();
         let kitty_string = format_kitty(kitty_speaking);
-        if  kitty_speaking {
+        if kitty_speaking {
             let text = self.input.join(" ");
             let border = "-".repeat(text.len() + 2);
             let print_text = format!("|{text}|");

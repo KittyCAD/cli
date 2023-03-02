@@ -222,10 +222,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                 )
                 .set_auth_type(oauth2::AuthType::RequestBody)
                 .set_device_authorization_url(device_auth_url);
-                writeln!(
-                    ctx.io.err_out,
-                    "Tip: you can generate an API Token here {host}account"
-                )?;
+                writeln!(ctx.io.err_out, "Tip: you can generate an API Token here {host}account")?;
 
                 let details: oauth2::devicecode::StandardDeviceAuthorizationResponse = auth_client
                     .exchange_device_code()?
@@ -259,10 +256,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                     .secret()
                     .to_string()
             } else {
-                writeln!(
-                    ctx.io.err_out,
-                    "Tip: you can generate an API Token here {host}account"
-                )?;
+                writeln!(ctx.io.err_out, "Tip: you can generate an API Token here {host}account")?;
 
                 match dialoguer::Input::<String>::new()
                     .with_prompt("Paste your authentication token")
