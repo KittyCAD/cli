@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use thiserror::Error;
 
 /// This trait describes interaction with the configuration for `kittycad`.
-pub trait Config {
+pub trait Config: Send + Sync {
     /// Returns a value from the configuration by its key.
     fn get(&self, hostname: &str, key: &str) -> Result<String>;
     /// Returns a value from the configuration by its key, with the source.
