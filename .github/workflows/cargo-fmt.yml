@@ -1,0 +1,45 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.rs'
+      - 'engine'
+      - 'rust-toolchain'
+      - 'rust-toolchain.toml'
+      - .github/workflows/cargo-fmt.yml
+  pull_request:
+    paths:
+      - '**.rs'
+      - 'rust-toolchain'
+      - 'rust-toolchain.toml'
+      - .github/workflows/cargo-fmt.yml
+      - 'engine'
+permissions:
+  packages: read
+  contents: read
+name: cargo fmt
+jobs:
+  cargofmt:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{secrets.GLOBAL_PAT}}
+
+      - name: Install latest rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            override: true
+            components: rustfmt, clippy
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.2.1
+
+      - name: Run cargo fmt
+        run: |
+          cargo fmt -- --check
+        shell: bash
