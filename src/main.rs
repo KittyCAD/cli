@@ -25,6 +25,8 @@ pub mod cmd_file;
 pub mod cmd_generate;
 /// The open command.
 pub mod cmd_open;
+/// The say command.
+pub mod cmd_say;
 /// The update command.
 pub mod cmd_update;
 /// The user command.
@@ -128,6 +130,7 @@ enum SubCommand {
     Drake(cmd_drake::CmdDrake),
     File(cmd_file::CmdFile),
     Generate(cmd_generate::CmdGenerate),
+    Say(cmd_say::CmdSay),
     #[clap(alias = "open")]
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
@@ -156,7 +159,7 @@ async fn main() -> Result<(), ()> {
     handle_update(&mut ctx, update.await.unwrap_or_default(), build_version).unwrap();
 
     if let Err(err) = result {
-        eprintln!("{}", err);
+        eprintln!("{err}");
         std::process::exit(1);
     }
 
@@ -245,6 +248,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Drake(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::File(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Generate(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::Say(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::User(cmd) => run_cmd(&cmd, ctx).await,
@@ -272,11 +276,11 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
 
                     writeln!(ctx.io.err_out, "Try authenticating with: `kittycad auth login`")?;
                 } else {
-                    writeln!(ctx.io.err_out, "{}", err)?;
+                    writeln!(ctx.io.err_out, "{err}")?;
                 }
             }
             None => {
-                writeln!(ctx.io.err_out, "{}", err)?;
+                writeln!(ctx.io.err_out, "{err}")?;
             }
         }
         return Ok(1);

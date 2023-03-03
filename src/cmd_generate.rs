@@ -62,9 +62,9 @@ impl CmdGenerateMarkdown {
             p = app.get_name().to_string();
         }
 
-        let filename = format!("{}.md", p);
+        let filename = format!("{p}.md");
         let title = p.replace('_', " ");
-        writeln!(ctx.io.out, "Generating markdown for `{}` -> {}", title, filename)?;
+        writeln!(ctx.io.out, "Generating markdown for `{title}` -> {filename}")?;
 
         // Generate the markdown.
         let m = crate::docs_markdown::app_to_markdown(app, &title)?;
@@ -84,7 +84,7 @@ layout: manual
         );
         if self.dir.is_empty() {
             // TODO: glamorize markdown to the shell.
-            writeln!(ctx.io.out, "{}", markdown)?;
+            writeln!(ctx.io.out, "{markdown}")?;
         } else {
             let p = std::path::Path::new(&self.dir).join(filename);
             let mut file = std::fs::File::create(p)?;
@@ -142,9 +142,9 @@ impl CmdGenerateManPages {
             p = app.get_name().to_string();
         }
 
-        let filename = format!("{}.1", p);
+        let filename = format!("{p}.1");
         let title = p.replace('-', " ");
-        writeln!(ctx.io.out, "Generating man page for `{}` -> {}", title, filename)?;
+        writeln!(ctx.io.out, "Generating man page for `{title}` -> {filename}")?;
 
         if self.dir.is_empty() {
             crate::docs_man::generate_manpage(app, &mut ctx.io.out, &title, root);
@@ -198,7 +198,7 @@ fn test_app() -> clap::Command<'static> {
                             clap::Arg::new("type")
                                 .help("The type of thing to add.")
                                 .long("type")
-                                .possible_values(&["file", "dir"])
+                                .possible_values(["file", "dir"])
                                 .default_value("file")
                                 .required(true),
                         )

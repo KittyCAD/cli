@@ -113,7 +113,7 @@ impl crate::cmd::Command for CmdAliasSet {
             Ok(mut expansion) => {
                 let mut is_shell = self.shell;
                 if is_shell && !expansion.starts_with('!') {
-                    expansion = format!("!{}", expansion);
+                    expansion = format!("!{expansion}");
                 }
                 is_shell = expansion.starts_with('!');
 
@@ -150,7 +150,7 @@ impl crate::cmd::Command for CmdAliasSet {
 
                 match config_aliases.add(&self.alias, &expansion) {
                     Ok(_) => {
-                        writeln!(ctx.io.out, "{}", success_msg)?;
+                        writeln!(ctx.io.out, "{success_msg}")?;
                     }
                     Err(e) => {
                         bail!("could not create alias: {}", e);
@@ -185,12 +185,12 @@ impl crate::cmd::Command for CmdAliasList {
 
         let mut tw = tabwriter::TabWriter::new(vec![]);
         for (alias, expansion) in config_aliases.list().iter() {
-            writeln!(tw, "{}:\t{}", alias, expansion)?;
+            writeln!(tw, "{alias}:\t{expansion}")?;
         }
         tw.flush()?;
 
         let table = String::from_utf8(tw.into_inner()?)?;
-        writeln!(ctx.io.out, "{}", table)?;
+        writeln!(ctx.io.out, "{table}")?;
 
         Ok(())
     }

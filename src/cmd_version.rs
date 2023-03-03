@@ -18,12 +18,12 @@ impl crate::cmd::Command for CmdVersion {
         let url = changelog_url(version);
 
         if let Some(gh) = git_hash {
-            writeln!(ctx.io.out, "kittycad {} ({})", version, gh)?;
+            writeln!(ctx.io.out, "kittycad {version} ({gh})")?;
         } else {
-            writeln!(ctx.io.out, "kittycad {}", version)?;
+            writeln!(ctx.io.out, "kittycad {version}")?;
         }
 
-        writeln!(ctx.io.out, "{}", url)?;
+        writeln!(ctx.io.out, "{url}")?;
 
         if self.web {
             ctx.browser("", &url)?;
@@ -35,5 +35,5 @@ impl crate::cmd::Command for CmdVersion {
 
 /// Returns the URL to the changelog for the given version.
 pub fn changelog_url(version: &str) -> String {
-    format!("https://github.com/KittyCAD/cli/releases/tag/v{}", version)
+    format!("https://github.com/KittyCAD/cli/releases/tag/v{version}")
 }

@@ -112,7 +112,7 @@ fn subcommand_heading(app: &clap::Command) -> String {
 fn about(app: &clap::Command, title: &str) -> String {
     let t = title.replace(' ', "-");
     match app.get_about().or_else(|| app.get_long_about()) {
-        Some(about) => format!("{} - {}", t, about),
+        Some(about) => format!("{t} - {about}"),
         None => t,
     }
 }
@@ -136,9 +136,9 @@ fn synopsis(app: &clap::Command, title: &str) -> String {
     for opt in app.get_arguments() {
         let (lhs, rhs) = option_markers(opt);
         res.push_str(&match (opt.get_short(), opt.get_long()) {
-            (Some(short), Some(long)) => format!("{}-{}|--{}{} ", lhs, short, long, rhs),
-            (Some(short), None) => format!("{}-{}{} ", lhs, short, rhs),
-            (None, Some(long)) => format!("{}--{}{} ", lhs, long, rhs),
+            (Some(short), Some(long)) => format!("{lhs}-{short}|--{long}{rhs} "),
+            (Some(short), None) => format!("{lhs}-{short}{rhs} "),
+            (None, Some(long)) => format!("{lhs}--{long}{rhs} "),
             (None, None) => "".to_string(),
         });
     }
@@ -188,11 +188,11 @@ fn options(app: &clap::Command) -> Vec<String> {
         }
 
         if let Some(defs) = option_possible_values(opt) {
-            header.push(format!(" {}", defs));
+            header.push(format!(" {defs}"));
         }
 
         if let Some(defs) = option_default_values(opt) {
-            header.push(format!(" {}", defs));
+            header.push(format!(" {defs}"));
         }
 
         if let Some(help) = opt.get_long_help().or_else(|| opt.get_help()) {
@@ -217,7 +217,7 @@ fn options(app: &clap::Command) -> Vec<String> {
         let mut body = Vec::new();
 
         if let Some(defs) = option_default_values(pos) {
-            header.push(format!(" {}", defs));
+            header.push(format!(" {defs}"));
         }
 
         if let Some(help) = pos.get_long_help().or_else(|| pos.get_help()) {
@@ -269,7 +269,7 @@ fn see_also(split: Vec<&str>) -> Vec<String> {
         // TODO: we could print the description here as well, instead of empty.
         let empty: Vec<String> = vec![];
 
-        result.push(list(&[bold(&format!("{}(1)", parent))], &empty));
+        result.push(list(&[bold(&format!("{parent}(1)"))], &empty));
     }
 
     result
@@ -331,7 +331,7 @@ fn option_default_values(opt: &clap::Arg) -> Option<String> {
             .collect::<Vec<_>>()
             .join(",");
 
-        return Some(format!("[default: {}]", values));
+        return Some(format!("[default: {values}]"));
     }
 
     None
@@ -341,7 +341,7 @@ fn option_possible_values(opt: &clap::Arg) -> Option<String> {
     if let Some(values) = opt.get_possible_values() {
         let values = values.iter().map(|s| s.get_name()).collect::<Vec<_>>().join(",");
 
-        return Some(format!("[possible values: {}]", values));
+        return Some(format!("[possible values: {values}]"));
     }
 
     None

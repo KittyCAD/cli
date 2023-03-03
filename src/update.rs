@@ -135,7 +135,7 @@ fn set_state_entry(filename: &str, t: chrono::DateTime<chrono::Utc>, r: ReleaseI
     fs::create_dir_all(parent).with_context(|| format!("failed to create directory {}", parent.display()))?;
 
     // Write the file.
-    fs::write(filename, content).with_context(|| format!("failed to write file {}", filename))?;
+    fs::write(filename, content).with_context(|| format!("failed to write file {filename}"))?;
 
     Ok(())
 }
@@ -173,7 +173,7 @@ pub fn is_under_homebrew() -> Result<bool> {
 fn get_exe_download_url(version: &str) -> String {
     // Make sure the version starts with a v.
     let version = if !version.starts_with('v') {
-        format!("v{}", version)
+        format!("v{version}")
     } else {
         version.to_string()
     };
@@ -198,7 +198,7 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     let bin_body = resp.bytes().await?;
 
     // Get the contents of the sha256sum.
-    let resp = reqwest::get(&format!("{}.sha256", url)).await?;
+    let resp = reqwest::get(&format!("{url}.sha256")).await?;
     let sha256_body = resp.text().await?;
     let sha256_parts = sha256_body.split(' ').collect::<Vec<&str>>();
     let sha256_hash = sha256_parts[0];
@@ -225,7 +225,7 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     // Set the file permissions to be correct, executable, write (so we can update).
     // TODO: make this also work on windows.
     #[cfg(target_family = "unix")]
-    std::fs::set_permissions(&temp_file_path, std::fs::Permissions::from_mode(0o755))?;
+    std::fs::set_permissions(temp_file_path, std::fs::Permissions::from_mode(0o755))?;
 
     Ok(temp_file_path.to_string())
 }

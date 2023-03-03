@@ -52,7 +52,7 @@ pub struct CmdConfigGet {
 impl crate::cmd::Command for CmdConfigGet {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match ctx.config.get(&self.host, &self.key) {
-            Ok(value) => writeln!(ctx.io.out, "{}", value)?,
+            Ok(value) => writeln!(ctx.io.out, "{value}")?,
             Err(err) => {
                 bail!("{}", err);
             }

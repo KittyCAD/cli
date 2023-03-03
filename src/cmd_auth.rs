@@ -144,8 +144,7 @@ impl crate::cmd::Command for CmdAuthLogin {
             if let Some(crate::config_from_env::ReadOnlyEnvVarError::Variable(var)) = err.downcast_ref() {
                 writeln!(
                     ctx.io.err_out,
-                    "The value of the {} environment variable is being used for authentication.",
-                    var
+                    "The value of the {var} environment variable is being used for authentication."
                 )?;
                 writeln!(
                     ctx.io.err_out,
@@ -171,8 +170,7 @@ impl crate::cmd::Command for CmdAuthLogin {
             if !existing_token.is_empty() && interactive {
                 match dialoguer::Confirm::new()
                     .with_prompt(format!(
-                        "You're already logged into {}. Do you want to re-authenticate?",
-                        host
+                        "You're already logged into {host}. Do you want to re-authenticate?"
                     ))
                     .interact()
                 {
@@ -211,7 +209,7 @@ impl crate::cmd::Command for CmdAuthLogin {
 
             token = if web {
                 // Do an OAuth 2.0 Device Authorization Grant dance to get a token.
-                let device_auth_url = oauth2::DeviceAuthorizationUrl::new(format!("{}oauth2/device/auth", host))?;
+                let device_auth_url = oauth2::DeviceAuthorizationUrl::new(format!("{host}oauth2/device/auth"))?;
                 // We can hardcode the client ID.
                 // This value is safe to be embedded in version control.
                 // This is the client ID of the cli.
@@ -219,16 +217,12 @@ impl crate::cmd::Command for CmdAuthLogin {
                 let auth_client = oauth2::basic::BasicClient::new(
                     oauth2::ClientId::new(client_id),
                     None,
-                    oauth2::AuthUrl::new(format!("{}authorize", host))?,
-                    Some(oauth2::TokenUrl::new(format!("{}oauth2/device/token", host))?),
+                    oauth2::AuthUrl::new(format!("{host}authorize"))?,
+                    Some(oauth2::TokenUrl::new(format!("{host}oauth2/device/token"))?),
                 )
                 .set_auth_type(oauth2::AuthType::RequestBody)
                 .set_device_authorization_url(device_auth_url);
-                writeln!(
-                    ctx.io.err_out,
-                    "Tip: you can generate an API Token here {}account",
-                    host
-                )?;
+                writeln!(ctx.io.err_out, "Tip: you can generate an API Token here {host}account")?;
 
                 let details: oauth2::devicecode::StandardDeviceAuthorizationResponse = auth_client
                     .exchange_device_code()?
@@ -262,11 +256,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                     .secret()
                     .to_string()
             } else {
-                writeln!(
-                    ctx.io.err_out,
-                    "Tip: you can generate an API Token here {}account",
-                    host
-                )?;
+                writeln!(ctx.io.err_out, "Tip: you can generate an API Token here {host}account")?;
 
                 match dialoguer::Input::<String>::new()
                     .with_prompt("Paste your authentication token")
@@ -371,8 +361,7 @@ impl crate::cmd::Command for CmdAuthLogout {
             if let Some(crate::config_from_env::ReadOnlyEnvVarError::Variable(var)) = err.downcast_ref() {
                 writeln!(
                     ctx.io.err_out,
-                    "The value of the {} environment variable is being used for authentication.",
-                    var
+                    "The value of the {var} environment variable is being used for authentication."
                 )?;
                 writeln!(
                     ctx.io.err_out,
@@ -526,11 +515,11 @@ impl crate::cmd::Command for CmdAuthStatus {
                 Some(status) => {
                     writeln!(ctx.io.out, "{}", cs.bold(&hostname))?;
                     for line in status {
-                        writeln!(ctx.io.out, "{}", line)?;
+                        writeln!(ctx.io.out, "{line}")?;
                     }
                 }
                 None => {
-                    writeln!(ctx.io.err_out, "No status information for {}", hostname)?;
+                    writeln!(ctx.io.err_out, "No status information for {hostname}")?;
                 }
             }
         }
@@ -605,7 +594,7 @@ mod test {
                     host: Some(test_host.clone()),
                 }),
                 stdin: "".to_string(),
-                want_out: format!("{}\n✔ Logged in to {} as", test_host, test_host),
+                want_out: format!("{test_host}\n✔ Logged in to {test_host} as"),
                 want_err: "".to_string(),
             },
             TestItem {
@@ -621,7 +610,7 @@ mod test {
                     host: Some(test_host.clone()),
                 }),
                 stdin: "".to_string(),
-                want_out: format!("✔ Logged out of {}", test_host),
+                want_out: format!("✔ Logged out of {test_host}"),
                 want_err: "".to_string(),
             },
         ];

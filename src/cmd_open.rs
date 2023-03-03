@@ -73,5 +73,5 @@ impl crate::cmd::Command for CmdOpen {
 
 /// Returns the URL to the changelog for the given version.
 pub fn changelog_url(version: &str) -> String {
-    format!("https://github.com/KittyCAD/cli/releases/tag/v{}", version)
+    format!("https://github.com/KittyCAD/cli/releases/tag/v{version}")
 }
