@@ -210,3 +210,31 @@ jobs:
         with:
           path: releases
           destination: dl.kittycad.io
+      - uses: actions/checkout@v3
+        with:
+          repository: 'kittycad/homebrew-kittycad'
+          path: 'homebrew-kittycad'
+          token: ${{secrets.GLOBAL_PAT}}
+      - name: 'replacing Formula/kittycad.rb with ./hombrew/kittycad.rb'
+        shell: bash
+        run: |
+          cp ./homebrew/kittycad.rb homebrew-kittycad/Formula/kittycad.rb
+      - name: commit the changes in the repo
+        shell: bash
+        run: |
+          cd homebrew-kittycad
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -am "YOYO BREW FORMULAR! 🍻" || exit 0
+          git fetch origin
+          git rebase origin/main || exit 0
+          export NEW_BRANCH="update-tap-formula"
+          git checkout -b "$NEW_BRANCH"
+          git push -f origin "$NEW_BRANCH"
+          gh pr create --title "Update tap formula" \
+              --body "Updating the formular for our homebrew tap" \
+              --head "$NEW_BRANCH" \
+              --base main || true
+        env:
+          GITHUB_TOKEN: ${{secrets.GLOBAL_PAT}}
