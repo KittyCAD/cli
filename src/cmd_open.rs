@@ -44,8 +44,6 @@ pub enum OpenShortcut {
     Changelog,
 }
 
-
-
 impl OpenShortcut {
     fn get_url(&self) -> String {
         match self {

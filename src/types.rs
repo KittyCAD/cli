@@ -10,8 +10,6 @@ pub enum FormatOutput {
     Table,
 }
 
-
-
 impl FormatOutput {
     pub fn variants() -> Vec<String> {
         vec!["table".to_string(), "json".to_string(), "yaml".to_string()]
