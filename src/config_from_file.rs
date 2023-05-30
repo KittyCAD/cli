@@ -26,7 +26,7 @@ impl FileConfig {
                     return Ok(toml_edit::Table::new());
                 }
 
-                return Err(anyhow!("Error reading hosts table: {}", e));
+                Err(anyhow!("Error reading hosts table: {}", e))
             }
         }
     }
@@ -42,7 +42,7 @@ impl FileConfig {
                     return Ok(toml_edit::Table::new());
                 }
 
-                return Err(anyhow!("Error reading aliases table: {}", e));
+                Err(anyhow!("Error reading aliases table: {}", e))
             }
         }
     }
@@ -213,9 +213,9 @@ impl crate::config::Config for FileConfig {
             }
         }
 
-        return Err(anyhow!(
+        Err(anyhow!(
             "No host has been set as default. Try setting a default with `kittycad config set -H <host> default true`. Options for hosts are: {}", hosts.join(", ")
-        ));
+        ))
     }
 
     fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig> {
