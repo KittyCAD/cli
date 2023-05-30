@@ -21,8 +21,10 @@ pub struct CmdOpen {
 /// The type of shortcut to open.
 #[derive(PartialEq, Debug, Clone, FromStr, Display, clap::ValueEnum)]
 #[display(style = "kebab-case")]
+#[derive(Default)]
 pub enum OpenShortcut {
     /// Open the KittyCAD documentation in your browser.
+    #[default]
     Docs,
     /// Open the KittyCAD API reference in your browser.
     ApiRef,
@@ -42,11 +44,7 @@ pub enum OpenShortcut {
     Changelog,
 }
 
-impl Default for OpenShortcut {
-    fn default() -> Self {
-        OpenShortcut::Docs
-    }
-}
+
 
 impl OpenShortcut {
     fn get_url(&self) -> String {

@@ -2,17 +2,15 @@ use parse_display::{Display, FromStr};
 
 #[derive(Debug, Clone, PartialEq, Eq, FromStr, Display, clap::ValueEnum)]
 #[display(style = "kebab-case")]
+#[derive(Default)]
 pub enum FormatOutput {
     Json,
     Yaml,
+    #[default]
     Table,
 }
 
-impl Default for FormatOutput {
-    fn default() -> FormatOutput {
-        FormatOutput::Table
-    }
-}
+
 
 impl FormatOutput {
     pub fn variants() -> Vec<String> {

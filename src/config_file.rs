@@ -45,7 +45,7 @@ pub fn config_dir() -> Result<String> {
 
     // Convert the path into a string slice
     match path.to_str() {
-        None => return Err(anyhow!("path is not a valid UTF-8 sequence")),
+        None => Err(anyhow!("path is not a valid UTF-8 sequence")),
         Some(s) => Ok(s.to_string()),
     }
 }
@@ -77,7 +77,7 @@ pub fn state_dir() -> Result<String> {
 
     // Convert the path into a string slice
     match path.to_str() {
-        None => return Err(anyhow!("path is not a valid UTF-8 sequence")),
+        None => Err(anyhow!("path is not a valid UTF-8 sequence")),
         Some(s) => Ok(s.to_string()),
     }
 }
@@ -110,7 +110,7 @@ pub fn data_dir() -> Result<String> {
 
     // Convert the path into a string slice
     match path.to_str() {
-        None => return Err(anyhow!("path is not a valid UTF-8 sequence")),
+        None => Err(anyhow!("path is not a valid UTF-8 sequence")),
         Some(s) => Ok(s.to_string()),
     }
 }
@@ -121,7 +121,7 @@ pub fn config_file() -> Result<String> {
 
     // Convert the path into a string slice
     match path.to_str() {
-        None => return Err(anyhow!("path is not a valid UTF-8 sequence")),
+        None => Err(anyhow!("path is not a valid UTF-8 sequence")),
         Some(s) => Ok(s.to_string()),
     }
 }
@@ -132,7 +132,7 @@ pub fn hosts_file() -> Result<String> {
 
     // Convert the path into a string slice
     match path.to_str() {
-        None => return Err(anyhow!("path is not a valid UTF-8 sequence")),
+        None => Err(anyhow!("path is not a valid UTF-8 sequence")),
         Some(s) => Ok(s.to_string()),
     }
 }
@@ -143,7 +143,7 @@ pub fn state_file() -> Result<String> {
 
     // Convert the path into a string slice
     match path.to_str() {
-        None => return Err(anyhow!("path is not a valid UTF-8 sequence")),
+        None => Err(anyhow!("path is not a valid UTF-8 sequence")),
         Some(s) => Ok(s.to_string()),
     }
 }

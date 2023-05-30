@@ -238,7 +238,9 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         slog_stdlog::init_with_level(log::Level::Debug).unwrap();
     }
 
-    let result = match opts.subcmd {
+    
+
+    match opts.subcmd {
         SubCommand::Alias(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Api(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::ApiCall(cmd) => run_cmd(&cmd, ctx).await,
@@ -253,9 +255,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::User(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Version(cmd) => run_cmd(&cmd, ctx).await,
-    };
-
-    result
+    }
 }
 
 async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>) -> Result<i32> {
