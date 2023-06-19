@@ -34,7 +34,7 @@ jobs:
             components: rustfmt, clippy
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.4.0
+        uses: Swatinem/rust-cache@v2.5.0
 
       - name: Run cargo fmt
         run: |
