@@ -670,7 +670,7 @@
                 "description": "The unique identifier of the API call.\n\nThis is the same as the API call ID."
               },
               "output": {
-                "description": "The converted file, if completed, base64 encoded.",
+                "description": "The converted file (if single file conversion), if completed, base64 encoded. This field is deprecated, and will be removed in a future release. Use `outputs` instead.",
                 "format": "byte",
                 "nullable": true,
                 "title": "String",
@@ -684,6 +684,24 @@
                 ],
                 "description": "The output format of the file conversion."
               },
+              "output_format_options": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OutputFormat"
+                  }
+                ],
+                "description": "The output format options of the file conversion.",
+                "nullable": true
+              },
+              "outputs": {
+                "additionalProperties": {
+                  "format": "byte",
+                  "title": "String",
+                  "type": "string"
+                },
+                "description": "The converted files (if multiple file conversion), if completed, base64 encoded. The key of the map is the path of the output file.",
+                "type": "object"
+              },
               "src_format": {
                 "allOf": [
                   {
@@ -691,6 +709,15 @@
                   }
                 ],
                 "description": "The source format of the file conversion."
+              },
+              "src_format_options": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/InputFormat"
+                  }
+                ],
+                "description": "The source format options of the file conversion.",
+                "nullable": true
               },
               "started_at": {
                 "description": "The time and date the API call was started.",
@@ -1245,6 +1272,51 @@
           }
         ]
       },
+      "Axis": {
+        "description": "Co-ordinate axis specifier.\n\nSee [cglearn.eu] for background reading.\n\n[cglearn.eu]: https://cglearn.eu/pub/computer-graphics/introduction-to-geometry#material-coordinate-systems-1",
+        "oneOf": [
+          {
+            "description": "'Y' axis.",
+            "enum": [
+              "y"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "'Z' axis.",
+            "enum": [
+              "z"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "AxisDirectionPair": {
+        "description": "An [`Axis`] paired with a [`Direction`].",
+        "properties": {
+          "axis": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Axis"
+              }
+            ],
+            "description": "Axis specifier."
+          },
+          "direction": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Direction"
+              }
+            ],
+            "description": "Specifies which direction the axis is pointing."
+          }
+        },
+        "required": [
+          "axis",
+          "direction"
+        ],
+        "type": "object"
+      },
       "BillingInfo": {
         "description": "The billing information for payments.",
         "properties": {
@@ -1283,6 +1355,32 @@
           "ok"
         ],
         "type": "object"
+      },
+      "CameraDragInteractionType": {
+        "description": "The type of camera drag interaction.",
+        "oneOf": [
+          {
+            "description": "Camera pan",
+            "enum": [
+              "pan"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Camera rotate (revolve/orbit)",
+            "enum": [
+              "rotate"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Camera zoom (increase or decrease distance to reference point center)",
+            "enum": [
+              "zoom"
+            ],
+            "type": "string"
+          }
+        ]
       },
       "CardDetails": {
         "description": "The card details of a payment method.",
@@ -3514,6 +3612,34 @@
           }
         ]
       },
+      "Coupon": {
+        "description": "The resource representing a Coupon.",
+        "properties": {
+          "amount_off": {
+            "description": "Amount (in the `currency` specified) that will be taken off the subtotal of any invoices for this customer.",
+            "format": "money-usd",
+            "nullable": true,
+            "title": "Number",
+            "type": "number"
+          },
+          "deleted": {
+            "default": false,
+            "description": "Always true for a deleted object.",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Unique identifier for the object.",
+            "type": "string"
+          },
+          "percent_off": {
+            "description": "Percent that will be taken off the subtotal of any invoices for this customer for the duration of the coupon.\n\nFor example, a coupon with percent_off of 50 will make a %s100 invoice %s50 instead.",
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
       "CreatedAtSortMode": {
         "description": "Supported set of sort modes for scanning by created_at only.\n\nCurrently, we only support scanning in ascending order.",
         "oneOf": [
@@ -4702,6 +4828,42 @@
         ],
         "type": "object"
       },
+      "Direction": {
+        "description": "Specifies the sign of a co-ordinate axis.",
+        "oneOf": [
+          {
+            "description": "Increasing numbers.",
+            "enum": [
+              "positive"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Decreasing numbers.",
+            "enum": [
+              "negative"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "Discount": {
+        "description": "The resource representing a Discount.",
+        "properties": {
+          "coupon": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Coupon"
+              }
+            ],
+            "description": "The coupon that applied to create this discount."
+          }
+        },
+        "required": [
+          "coupon"
+        ],
+        "type": "object"
+      },
       "DockerSystemInfo": {
         "description": "Docker system info.",
         "properties": {
@@ -5323,6 +5485,10 @@
       "Extrude": {
         "description": "Command for extruding a solid.",
         "properties": {
+          "cap": {
+            "description": "Whether to cap the extrusion with a face, or not. If true, the resulting solid will be closed on all sides, like a dice. If false, it will be open on one side, like a drinking glass.",
+            "type": "boolean"
+          },
           "distance": {
             "description": "How far off the plane to extrude",
             "format": "double",
@@ -5334,10 +5500,11 @@
                 "$ref": "#/components/schemas/ModelingCmdId"
               }
             ],
-            "description": "Which sketch to extrude"
+            "description": "Which sketch to extrude. Must be a closed 2D solid."
           }
         },
         "required": [
+          "cap",
           "distance",
           "target"
         ],
@@ -5454,7 +5621,7 @@
             "description": "The unique identifier of the API call.\n\nThis is the same as the API call ID."
           },
           "output": {
-            "description": "The converted file, if completed, base64 encoded.",
+            "description": "The converted file (if single file conversion), if completed, base64 encoded. This field is deprecated, and will be removed in a future release. Use `outputs` instead.",
             "format": "byte",
             "nullable": true,
             "title": "String",
@@ -5468,6 +5635,24 @@
             ],
             "description": "The output format of the file conversion."
           },
+          "output_format_options": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OutputFormat"
+              }
+            ],
+            "description": "The output format options of the file conversion.",
+            "nullable": true
+          },
+          "outputs": {
+            "additionalProperties": {
+              "format": "byte",
+              "title": "String",
+              "type": "string"
+            },
+            "description": "The converted files (if multiple file conversion), if completed, base64 encoded. The key of the map is the path of the output file.",
+            "type": "object"
+          },
           "src_format": {
             "allOf": [
               {
@@ -5475,6 +5660,15 @@
               }
             ],
             "description": "The source format of the file conversion."
+          },
+          "src_format_options": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InputFormat"
+              }
+            ],
+            "description": "The source format options of the file conversion.",
+            "nullable": true
           },
           "started_at": {
             "description": "The time and date the API call was started.",
@@ -5628,7 +5822,14 @@
             "type": "string"
           },
           {
-            "description": "The OBJ file format. A zip file containing both the obj file itself and its associated mtl file for full processing. <https://en.wikipedia.org/wiki/Wavefront_.obj_file>> The OBJ file format. <https://en.wikipedia.org/wiki/Wavefront_.obj_file> It may or may not have an an attached material (mtl // mtllib) within the file, but we interact with it as if it does not.",
+            "description": "glTF 2.0. We refer to this as glTF since that is how our customers refer to it, although by default it will be in binary format and thus technically (glb).",
+            "enum": [
+              "gltf"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "The OBJ file format. <https://en.wikipedia.org/wiki/Wavefront_.obj_file> It may or may not have an an attached material (mtl // mtllib) within the file, but we interact with it as if it does not.",
             "enum": [
               "obj"
             ],
@@ -5682,9 +5883,9 @@
             "type": "string"
           },
           {
-            "description": "The OBJ file format. A zip file containing both the obj file itself and its associated mtl file for full processing. <https://en.wikipedia.org/wiki/Wavefront_.obj_file>>",
+            "description": "glTF 2.0.",
             "enum": [
-              "obj_zip"
+              "gltf"
             ],
             "type": "string"
           },
@@ -6041,6 +6242,98 @@
         },
         "type": "object"
       },
+      "InputFormat": {
+        "description": "Input format specifier.",
+        "oneOf": [
+          {
+            "description": "Binary glTF 2.0. We refer to this as glTF since that is how our customers refer to it, but this can also import binary glTF (glb).",
+            "properties": {
+              "type": {
+                "enum": [
+                  "Gltf"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "ISO 10303-21 (STEP) format.",
+            "properties": {
+              "coords": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ],
+                "description": "Co-ordinate system of input data.\n\nDefaults to the [KittyCAD co-ordinate system].\n\n[KittyCAD co-ordinate system]: ../coord/constant.KITTYCAD.html"
+              },
+              "type": {
+                "enum": [
+                  "Step"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "coords",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Wavefront OBJ format.",
+            "properties": {
+              "coords": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ],
+                "description": "Co-ordinate system of input data.\n\nDefaults to the [KittyCAD co-ordinate system].\n\n[KittyCAD co-ordinate system]: ../coord/constant.KITTYCAD.html"
+              },
+              "type": {
+                "enum": [
+                  "Obj"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "coords",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "*ST**ereo**L**ithography format.",
+            "properties": {
+              "coords": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ],
+                "description": "Co-ordinate system of input data.\n\nDefaults to the [KittyCAD co-ordinate system].\n\n[KittyCAD co-ordinate system]: ../coord/constant.KITTYCAD.html"
+              },
+              "type": {
+                "enum": [
+                  "Stl"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "coords",
+              "type"
+            ],
+            "type": "object"
+          }
+        ]
+      },
       "Invoice": {
         "description": "An invoice.",
         "properties": {
@@ -6107,6 +6400,13 @@
           "description": {
             "description": "Description of the invoice.",
             "type": "string"
+          },
+          "discounts": {
+            "description": "The discounts applied to the invoice. This is an array of discount objects.",
+            "items": {
+              "$ref": "#/components/schemas/Discount"
+            },
+            "type": "array"
           },
           "id": {
             "description": "Unique identifier for the object.",
@@ -6471,32 +6771,6 @@
         },
         "type": "object"
       },
-      "Line3d": {
-        "description": "Command for adding a line.",
-        "properties": {
-          "from": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Point3d"
-              }
-            ],
-            "description": "Start of the line"
-          },
-          "to": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Point3d"
-              }
-            ],
-            "description": "End of the line"
-          }
-        },
-        "required": [
-          "from",
-          "to"
-        ],
-        "type": "object"
-      },
       "Mesh": {
         "properties": {
           "mesh": {
@@ -6685,21 +6959,85 @@
         "description": "Commands that the KittyCAD engine can execute.",
         "oneOf": [
           {
+            "description": "Start a path.",
+            "enum": [
+              "StartPath"
+            ],
+            "type": "string"
+          },
+          {
             "additionalProperties": false,
-            "description": "Add a line",
+            "description": "Move the path's \"pen\".",
             "properties": {
-              "AddLine": {
-                "$ref": "#/components/schemas/Line3d"
+              "MovePathPen": {
+                "properties": {
+                  "path": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/ModelingCmdId"
+                      }
+                    ],
+                    "description": "The ID of the command which created the path."
+                  },
+                  "to": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "Where the path's pen should be."
+                  }
+                },
+                "required": [
+                  "path",
+                  "to"
+                ],
+                "type": "object"
               }
             },
             "required": [
-              "AddLine"
+              "MovePathPen"
             ],
             "type": "object"
           },
           {
             "additionalProperties": false,
-            "description": "Extrude a solid",
+            "description": "Extend a path by adding a new segment which starts at the path's \"pen\". If no \"pen\" location has been set before (via `MovePen`), then the pen is at the origin.",
+            "properties": {
+              "ExtendPath": {
+                "properties": {
+                  "path": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/ModelingCmdId"
+                      }
+                    ],
+                    "description": "The ID of the command which created the path."
+                  },
+                  "segment": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/PathSegment"
+                      }
+                    ],
+                    "description": "Segment to append to the path. This segment will implicitly begin at the current \"pen\" location."
+                  }
+                },
+                "required": [
+                  "path",
+                  "segment"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "ExtendPath"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Extrude a 2D solid.",
             "properties": {
               "Extrude": {
                 "$ref": "#/components/schemas/Extrude"
@@ -6712,27 +7050,136 @@
           },
           {
             "additionalProperties": false,
-            "description": "Mouse clicked on the engine window, trying to select some surface.",
+            "description": "Closes a path, converting it to a 2D solid.",
             "properties": {
-              "SelectionClick": {
+              "ClosePath": {
                 "properties": {
-                  "at": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/Point2d"
-                      }
-                    ],
-                    "description": "Where the mouse was clicked. TODO engine#1035: Choose a coordinate system for this."
+                  "path_id": {
+                    "description": "Which path to close.",
+                    "format": "uuid",
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "at"
+                  "path_id"
                 ],
                 "type": "object"
               }
             },
             "required": [
-              "SelectionClick"
+              "ClosePath"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Camera drag started.",
+            "properties": {
+              "CameraDragStart": {
+                "properties": {
+                  "interaction": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/CameraDragInteractionType"
+                      }
+                    ],
+                    "description": "The type of camera drag interaction."
+                  },
+                  "window": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point2d"
+                      }
+                    ],
+                    "description": "The initial mouse position."
+                  }
+                },
+                "required": [
+                  "interaction",
+                  "window"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "CameraDragStart"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Camera drag continued.",
+            "properties": {
+              "CameraDragMove": {
+                "properties": {
+                  "interaction": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/CameraDragInteractionType"
+                      }
+                    ],
+                    "description": "The type of camera drag interaction."
+                  },
+                  "sequence": {
+                    "description": "Logical timestamp. The client should increment this with every event in the current mouse drag. That way, if the events are being sent over an unordered channel, the API can ignore the older events.",
+                    "format": "uint32",
+                    "minimum": 0,
+                    "nullable": true,
+                    "type": "integer"
+                  },
+                  "window": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point2d"
+                      }
+                    ],
+                    "description": "The current mouse position."
+                  }
+                },
+                "required": [
+                  "interaction",
+                  "window"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "CameraDragMove"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Camera drag ended.",
+            "properties": {
+              "CameraDragEnd": {
+                "properties": {
+                  "interaction": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/CameraDragInteractionType"
+                      }
+                    ],
+                    "description": "The type of camera drag interaction."
+                  },
+                  "window": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point2d"
+                      }
+                    ],
+                    "description": "The final mouse position."
+                  }
+                },
+                "required": [
+                  "interaction",
+                  "window"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "CameraDragEnd"
             ],
             "type": "object"
           }
@@ -7001,6 +7448,235 @@
           }
         },
         "type": "object"
+      },
+      "OutputFormat": {
+        "description": "Output format specifier.",
+        "oneOf": [
+          {
+            "description": "glTF 2.0. We refer to this as glTF since that is how our customers refer to it, although by default it will be in binary format and thus technically (glb). If you prefer ascii output, you can set that option for the export.",
+            "properties": {
+              "storage": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Storage"
+                  }
+                ],
+                "description": "Specifies which kind of glTF 2.0 will be exported."
+              },
+              "type": {
+                "enum": [
+                  "Gltf"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "storage",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Wavefront OBJ format.",
+            "properties": {
+              "coords": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ],
+                "description": "Co-ordinate system of output data.\n\nDefaults to the [KittyCAD co-ordinate system].\n\n[KittyCAD co-ordinate system]: ../coord/constant.KITTYCAD.html"
+              },
+              "type": {
+                "enum": [
+                  "Obj"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "coords",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "ISO 10303-21 (STEP) format.",
+            "properties": {
+              "coords": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ],
+                "description": "Co-ordinate system of output data.\n\nDefaults to the [KittyCAD co-ordinate system].\n\n[KittyCAD co-ordinate system]: ../coord/constant.KITTYCAD.html"
+              },
+              "type": {
+                "enum": [
+                  "Step"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "coords",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "*ST**ereo**L**ithography format.",
+            "properties": {
+              "coords": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ],
+                "description": "Co-ordinate system of output data.\n\nDefaults to the [KittyCAD co-ordinate system].\n\n[KittyCAD co-ordinate system]: ../coord/constant.KITTYCAD.html"
+              },
+              "storage": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Storage"
+                  }
+                ],
+                "description": "Export storage."
+              },
+              "type": {
+                "enum": [
+                  "Stl"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "coords",
+              "storage",
+              "type"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "PathSegment": {
+        "description": "A segment of a path. Paths are composed of many segments.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "description": "A straight line segment. Goes from the current path \"pen\" to the given endpoint.",
+            "properties": {
+              "Line": {
+                "properties": {
+                  "end": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "End point of the line."
+                  }
+                },
+                "required": [
+                  "end"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Line"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "A circular arc segment.",
+            "properties": {
+              "Arc": {
+                "properties": {
+                  "angle_end": {
+                    "description": "Start of the arc along circle's perimeter.",
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "angle_start": {
+                    "description": "Start of the arc along circle's perimeter.",
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "center": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point2d"
+                      }
+                    ],
+                    "description": "Center of the circle"
+                  },
+                  "radius": {
+                    "description": "Radius of the circle",
+                    "format": "float",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "angle_end",
+                  "angle_start",
+                  "center",
+                  "radius"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Arc"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "A cubic bezier curve segment. Start at the end of the current line, go through control point 1 and 2, then end at a given point.",
+            "properties": {
+              "Bezier": {
+                "properties": {
+                  "control1": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "First control point."
+                  },
+                  "control2": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "Second control point."
+                  },
+                  "end": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "Final control point."
+                  }
+                },
+                "required": [
+                  "control1",
+                  "control2",
+                  "end"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Bezier"
+            ],
+            "type": "object"
+          }
+        ]
       },
       "PaymentIntent": {
         "description": "A payment intent response.",
@@ -7614,6 +8290,58 @@
           "expires",
           "session_token",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "Storage": {
+        "description": "Describes the storage format of a glTF 2.0 scene.",
+        "oneOf": [
+          {
+            "description": "Binary glTF 2.0.\n\nThis is a single binary with .glb extension.\n\nThis is the default setting.",
+            "enum": [
+              "binary"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Standard glTF 2.0.\n\nThis is a JSON file with .gltf extension paired with a separate binary blob file with .bin extension.",
+            "enum": [
+              "standard"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Embedded glTF 2.0.\n\nSingle JSON file with .gltf extension binary data encoded as base64 data URIs.",
+            "enum": [
+              "embedded"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "System": {
+        "description": "Co-ordinate system definition.\n\nThe `up` axis must be orthogonal to the `forward` axis.\n\nSee [cglearn.eu] for background reading.\n\n[cglearn.eu](https://cglearn.eu/pub/computer-graphics/introduction-to-geometry#material-coordinate-systems-1)",
+        "properties": {
+          "forward": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AxisDirectionPair"
+              }
+            ],
+            "description": "Axis the front face of a model looks along."
+          },
+          "up": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AxisDirectionPair"
+              }
+            ],
+            "description": "Axis pointing up and away from a model."
+          }
+        },
+        "required": [
+          "forward",
+          "up"
         ],
         "type": "object"
       },
@@ -10542,7 +11270,9 @@
           "api-calls",
           "hidden"
         ],
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": {
+          "required": []
+        }
       }
     },
     "/api-calls/{id}": {
@@ -10964,7 +11694,9 @@
           "api-calls",
           "hidden"
         ],
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": {
+          "required": []
+        }
       }
     },
     "/async/operations/{id}": {
@@ -11544,7 +12276,7 @@
         ]
       },
       "post": {
-        "description": "Convert a CAD file from one format to another. If the file being converted is larger than 25MB, it will be performed asynchronously.\nIf the conversion is performed synchronously, the contents of the converted file (`output`) will be returned as a base64 encoded string.\nIf the operation is performed asynchronously, the `id` of the operation will be returned. You can use the `id` returned from the request to get status information about the async operation from the `/async/operations/{id}` endpoint.",
+        "description": "If you wish to specify the conversion options, use the `/file/conversion` endpoint instead.\nConvert a CAD file from one format to another. If the file being converted is larger than 25MB, it will be performed asynchronously.\nIf the conversion is performed synchronously, the contents of the converted file (`output`) will be returned as a base64 encoded string.\nIf the operation is performed asynchronously, the `id` of the operation will be returned. You can use the `id` returned from the request to get status information about the async operation from the `/async/operations/{id}` endpoint.",
         "operationId": "create_file_conversion",
         "parameters": [
           {
@@ -11629,7 +12361,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "summary": "Convert CAD file.",
+        "summary": "Convert CAD file with defaults.",
         "tags": [
           "file"
         ]
@@ -14902,7 +15634,9 @@
         "tags": [
           "api-calls"
         ],
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": {
+          "required": []
+        }
       }
     },
     "/user/api-calls/{id}": {
@@ -15067,7 +15801,9 @@
         "tags": [
           "api-tokens"
         ],
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": {
+          "required": []
+        }
       },
       "options": {
         "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
@@ -16545,7 +17281,9 @@
           "users",
           "hidden"
         ],
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": {
+          "required": []
+        }
       }
     },
     "/users-extended": {
@@ -16638,7 +17376,9 @@
           "users",
           "hidden"
         ],
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": {
+          "required": []
+        }
       }
     },
     "/users-extended/{id}": {
@@ -16888,7 +17628,9 @@
           "api-calls",
           "hidden"
         ],
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": {
+          "required": []
+        }
       }
     },
     "/ws/executor/term": {
