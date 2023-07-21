@@ -70,7 +70,7 @@ impl crate::cmd::Command for CmdApiCallStatus {
                         .map(|p| p.to_string_lossy().to_string())
                         .collect_vec();
                     // Tell them where we saved the file.
-                    writeln!(ctx.io.out, "Saved file conversion output to {}", paths.join(", "))?;
+                    writeln!(ctx.io.out, "Saved file conversion output(s) to: {}", paths.join(", "))?;
 
                     // Return early.
                     return Ok(());
