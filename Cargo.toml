@@ -63,6 +63,7 @@ version-compare = "0.1.0"
 built = "0.5"
 
 [dev-dependencies]
+expectorate = "1.0.7"
 futures = "0.3"
 pretty_assertions = "1"
 serial_test = "0.9.0"

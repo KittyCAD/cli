@@ -1378,6 +1378,7 @@ dependencies = [
  "data-encoding",
  "dialoguer",
  "dirs",
+ "expectorate",
  "futures",
  "git_rev",
  "heck 0.4.1",

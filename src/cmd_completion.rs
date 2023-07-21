@@ -74,7 +74,7 @@ impl crate::cmd::Command for CmdCompletion {
 
 #[cfg(test)]
 mod test {
-    use clap::ArgEnum;
+    use clap::ValueEnum;
     use pretty_assertions::assert_eq;
 
     use crate::cmd::Command;
