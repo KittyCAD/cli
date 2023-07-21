@@ -88,19 +88,16 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                 def.push_str(long);
             }
 
-            if arg.get_long().is_none() && arg.get_short().is_none() && !arg.get_name().is_empty() {
-                def.push_str(arg.get_name());
-            }
-
             let mut desc = arg
                 .get_long_help()
                 .unwrap_or_else(|| arg.get_help().unwrap_or_default())
                 .to_string();
 
             // Check if the arg is an enum and if so, add the possible values.
-            if let Some(values) = arg.get_possible_values() {
+            let possible_values = arg.get_possible_values();
+            if !possible_values.is_empty() {
                 desc.push_str("<br/>Possible values: <code>");
-                for (i, value) in values.iter().enumerate() {
+                for (i, value) in possible_values.iter().enumerate() {
                     if i > 0 {
                         desc.push_str(" | ");
                     }
@@ -148,7 +145,7 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
         doc.header("About".to_string(), pulldown_cmark::HeadingLevel::H3);
         let raw = about
             .to_string()
-            .trim_start_matches(app.get_about().unwrap_or_default())
+            .trim_start_matches(&app.get_about().map(|s| s.to_string()).unwrap_or_default())
             .trim_start_matches('.')
             .to_string();
 

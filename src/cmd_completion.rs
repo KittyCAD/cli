@@ -52,7 +52,7 @@ use clap_complete::{generate, Shell};
 #[clap(verbatim_doc_comment)]
 pub struct CmdCompletion {
     /// The shell type.
-    #[clap(short, long, default_value = "bash", arg_enum)]
+    #[clap(short, long, default_value = "bash", value_enum)]
     pub shell: Shell,
 }
 

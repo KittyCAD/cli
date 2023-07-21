@@ -120,7 +120,8 @@ fn about(app: &clap::Command, title: &str) -> String {
 fn description(app: &clap::Command) -> Vec<String> {
     match app.get_long_about().or_else(|| app.get_about()) {
         Some(about) => about
-            .lines()
+            .to_string()
+            .split('\n')
             .filter_map(|l| (!l.trim().is_empty()).then(|| paragraph(l.trim())))
             .collect(),
         None => Vec::new(),
@@ -180,7 +181,7 @@ fn options(app: &clap::Command) -> Vec<String> {
             }
             (Some(short), None) => vec![short_option(short)],
             (None, Some(long)) => vec![long_option(long)],
-            (None, None) => vec![opt.get_name().to_string()],
+            (None, None) => panic!("Option has no short or long name"),
         };
 
         if let Some(value) = &opt.get_value_names() {
@@ -241,14 +242,17 @@ fn subcommands(app: &clap::Command, section: i8, title: &str) -> Vec<String> {
             let name = format!("{}-{}({})", title.replace(' ', "-"), command.get_name(), section);
 
             let mut body = match command.get_about().or_else(|| command.get_long_about()) {
-                Some(about) => about
-                    .lines()
-                    .filter_map(|l| (!l.trim().is_empty()).then(|| l.trim()))
-                    .collect(),
+                Some(about) => {
+                    let s = about.to_string();
+                    let split = s.split('\n');
+                    split
+                        .filter_map(|l| (!l.trim().is_empty()).then(|| l.trim().to_string()))
+                        .collect::<Vec<String>>()
+                }
                 None => Vec::new(),
             };
 
-            body.push("\n");
+            body.push("\n".to_string());
 
             list(&[bold(&name)], &body)
         })
@@ -278,7 +282,8 @@ fn see_also(split: Vec<&str>) -> Vec<String> {
 fn after_help(app: &clap::Command) -> Vec<String> {
     match app.get_after_long_help().or_else(|| app.get_after_help()) {
         Some(about) => about
-            .lines()
+            .to_string()
+            .split('\n')
             .filter_map(|l| (!l.trim().is_empty()).then(|| paragraph(l.trim())))
             .collect(),
         None => Vec::new(),
@@ -338,11 +343,16 @@ fn option_default_values(opt: &clap::Arg) -> Option<String> {
 }
 
 fn option_possible_values(opt: &clap::Arg) -> Option<String> {
-    if let Some(values) = opt.get_possible_values() {
-        let values = values.iter().map(|s| s.get_name()).collect::<Vec<_>>().join(",");
-
-        return Some(format!("[possible values: {values}]"));
+    let possible_values = opt.get_possible_values();
+    if possible_values.is_empty() {
+        return None;
     }
 
-    None
+    let values = possible_values
+        .iter()
+        .map(|s| s.get_name())
+        .collect::<Vec<_>>()
+        .join(",");
+
+    Some(format!("[possible values: {values}]"))
 }

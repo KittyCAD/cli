@@ -40,7 +40,7 @@ pub struct CmdGenerateMarkdown {
 impl crate::cmd::Command for CmdGenerateMarkdown {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let mut app: Command = crate::Opts::command();
-        app._build_all();
+        app.build();
 
         // Make sure the output directory exists.
         if !self.dir.is_empty() {
@@ -113,7 +113,7 @@ pub struct CmdGenerateManPages {
 impl crate::cmd::Command for CmdGenerateManPages {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let mut app: Command = crate::Opts::command();
-        app._build_all();
+        app.build();
 
         // Make sure the output directory exists.
         if !self.dir.is_empty() {

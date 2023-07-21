@@ -236,10 +236,10 @@ pub fn valid_command(args: &str) -> bool {
                 return match err.kind() {
                     // These come from here: https://docs.rs/clap/latest/clap/enum.ErrorKind.html#variant.DisplayHelp
                     // We basically want to ignore any errors that are valid commands but invalid args.
-                    clap::ErrorKind::DisplayHelp => true,
-                    clap::ErrorKind::DisplayVersion => true,
-                    clap::ErrorKind::MissingRequiredArgument => true,
-                    clap::ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand => true,
+                    clap::error::ErrorKind::DisplayHelp => true,
+                    clap::error::ErrorKind::DisplayVersion => true,
+                    clap::error::ErrorKind::MissingRequiredArgument => true,
+                    clap::error::ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand => true,
                     _ => {
                         // If we get here, we have an invalid command.
                         false

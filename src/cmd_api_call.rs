@@ -38,7 +38,7 @@ pub struct CmdApiCallStatus {
     pub id: uuid::Uuid,
 
     /// Command output format.
-    #[clap(long, short, arg_enum)]
+    #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
