@@ -131,7 +131,6 @@ enum SubCommand {
     File(cmd_file::CmdFile),
     Generate(cmd_generate::CmdGenerate),
     Say(cmd_say::CmdSay),
-    #[clap(alias = "open")]
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
     User(cmd_user::CmdUser),

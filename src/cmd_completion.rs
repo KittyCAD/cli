@@ -117,7 +117,7 @@ mod test {
                 name: "unsupported shell".to_string(),
                 input: "csh".to_string(),
                 want_out: "".to_string(),
-                want_err: "Invalid variant: csh".to_string(),
+                want_err: "invalid variant: csh".to_string(),
             },
         ];
 

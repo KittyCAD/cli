@@ -88,6 +88,10 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                 def.push_str(long);
             }
 
+            if arg.get_long().is_none() && arg.get_short().is_none() {
+                panic!("Option has no short or long name");
+            }
+
             let mut desc = arg
                 .get_long_help()
                 .unwrap_or_else(|| arg.get_help().unwrap_or_default())
