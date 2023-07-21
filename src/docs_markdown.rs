@@ -69,6 +69,8 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
 
         let mut html = "<dl class=\"flags\">\n".to_string();
 
+        println!("{:#?}", args);
+
         for (i, arg) in args.iter().enumerate() {
             if i > 0 {
                 html.push('\n');
@@ -88,8 +90,8 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                 def.push_str(long);
             }
 
-            if arg.get_long().is_none() && arg.get_short().is_none() {
-                panic!("Option has no short or long name");
+            if arg.get_long().is_none() && arg.get_short().is_none() && !arg.get_id().as_str().is_empty() {
+                def.push_str(arg.get_id().as_str());
             }
 
             let mut desc = arg

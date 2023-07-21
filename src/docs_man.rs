@@ -181,7 +181,7 @@ fn options(app: &clap::Command) -> Vec<String> {
             }
             (Some(short), None) => vec![short_option(short)],
             (None, Some(long)) => vec![long_option(long)],
-            (None, None) => panic!("Option has no short or long name"),
+            (None, None) => vec![opt.get_id().as_str().to_string()],
         };
 
         if let Some(value) = &opt.get_value_names() {

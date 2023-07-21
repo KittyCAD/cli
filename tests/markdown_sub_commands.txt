@@ -12,18 +12,6 @@ A fictional versioning CLI
 * [git clone](./git_clone)
 * [git push](./git_push)
 * [git add](./git_add)
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-</dl>
-
-
 Generating markdown for `git clone` -> git_clone.md
 ---
 title: "git clone"
@@ -36,12 +24,6 @@ Clones repos
 ### Options
 
 <dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
    <dt><code>REMOTE</code></dt>
    <dd>The remote to clone</dd>
 </dl>
@@ -59,12 +41,6 @@ pushes things
 ### Options
 
 <dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
    <dt><code>REMOTE</code></dt>
    <dd>The remote to target</dd>
 </dl>
@@ -86,12 +62,6 @@ adds things
 ### Options
 
 <dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
    <dt><code>PATH</code></dt>
    <dd>Stuff to add</dd>
 </dl>
@@ -113,12 +83,6 @@ subcommand for adding new stuff
 ### Options
 
 <dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
    <dt><code>--type</code></dt>
    <dd>The type of thing to add.<br/>Possible values: <code>file | dir</code><br/>Default value: <code>file</code></dd>
 </dl>
@@ -139,17 +103,6 @@ layout: manual
 ---
 
 sub subcommand
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-</dl>
-
 
 ### See also
 
