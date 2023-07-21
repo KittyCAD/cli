@@ -56,17 +56,18 @@ impl crate::cmd::Command for CmdFile {
 pub struct CmdFileConvert {
     /// The path to the input file to convert.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", value_parser, required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// The path to an output file. The command will
     /// save the output of the conversion to the given path.
-    #[clap(name = "output", value_parser, required = true)]
+    #[clap(name = "output", required = true)]
     pub output: std::path::PathBuf,
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format", value_enum)]
     src_format: Option<kittycad::types::FileImportFormat>,
+
     /// A valid output file format.
     #[clap(short = 't', long = "output-format", value_enum)]
     output_format: Option<kittycad::types::FileExportFormat>,
@@ -114,9 +115,10 @@ impl crate::cmd::Command for CmdFileConvert {
             }
         }
 
-        // Reset the output field of the file conversion.
+        // Reset the output(s) field of the file conversion.
         // Otherwise what we print will be crazy big.
         file_conversion.output = None;
+        file_conversion.outputs = std::collections::HashMap::new();
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
@@ -142,7 +144,7 @@ impl crate::cmd::Command for CmdFileConvert {
 pub struct CmdFileVolume {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", value_parser, required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
@@ -196,7 +198,7 @@ impl crate::cmd::Command for CmdFileVolume {
 pub struct CmdFileMass {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", value_parser, required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
@@ -261,7 +263,7 @@ impl crate::cmd::Command for CmdFileMass {
 pub struct CmdFileCenterOfMass {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", value_parser, required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
@@ -315,7 +317,7 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
 pub struct CmdFileDensity {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", value_parser, required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.

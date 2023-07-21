@@ -233,7 +233,7 @@ impl IoStreams {
         }
 
         let pi = terminal_spinners::SpinnerBuilder::new()
-            .spinner(&terminal_spinners::DOTS11)
+            .spinner(&terminal_spinners::DOTS)
             .text(label.to_string());
 
         Some(pi.start())
