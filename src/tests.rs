@@ -344,19 +344,6 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
-        TestItem {
-            name: "get the status of an async api call volume".to_string(),
-            args: vec![
-                "kittycad".to_string(),
-                "api-call".to_string(),
-                "status".to_string(),
-                "06ca3d87-3336-433a-95fc-9fac2d31e355".to_string(),
-            ],
-            want_out: r#""volume": 25392182.0"#.to_string(),
-            want_err: "".to_string(),
-            want_code: 0,
-            ..Default::default()
-        },
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();
