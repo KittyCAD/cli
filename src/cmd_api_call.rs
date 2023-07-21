@@ -49,8 +49,6 @@ impl crate::cmd::Command for CmdApiCallStatus {
 
         let api_call = client.api_calls().get_async_operation(&self.id.to_string()).await?;
 
-        println!("{:#?}", api_call);
-
         // If it is a file conversion and there is output, we need to save that output to a file
         // for them.
         if let kittycad::types::AsyncApiCallOutput::FileConversion(fc) = &api_call {
