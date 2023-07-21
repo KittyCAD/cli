@@ -1336,6 +1336,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1384,6 +1393,7 @@ dependencies = [
  "git_rev",
  "heck 0.4.1",
  "http",
+ "itertools 0.11.0",
  "kittycad 0.2.11",
  "log",
  "num-traits",
@@ -1439,7 +1449,7 @@ dependencies = [
  "format_serde_error",
  "futures",
  "http",
- "itertools",
+ "itertools 0.10.5",
  "log",
  "mime",
  "parse-display 0.8.2",
@@ -1970,7 +1980,7 @@ dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools",
+ "itertools 0.10.5",
  "lazy_static",
  "nom",
  "quick-xml",
@@ -3268,7 +3278,7 @@ checksum = "5376256e44f2443f8896ac012507c19a012df0fe8758b55246ae51a2279db51f"
 dependencies = [
  "combine",
  "indexmap 1.9.3",
- "itertools",
+ "itertools 0.10.5",
 ]
 
 [[package]]

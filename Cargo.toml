@@ -23,11 +23,12 @@ dirs = "4"
 git_rev = "0.1.0"
 heck = "0.4.0"
 http = "0.2.6"
+itertools = "0.11.0"
+kittycad = { version = "0.2.2", default-features = false, features = ["clap", "tabled"] }
 log = "0.4.17"
 regex = "1"
 num-traits = "0.2.14"
 open = "3.0.2"
-kittycad = { version = "0.2.2", default-features = false, features = ["clap", "tabled"] }
 oauth2 = "4.2.3"
 parse-display = "0.5.5"
 pulldown-cmark = "0.9.2"
