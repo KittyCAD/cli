@@ -14,7 +14,7 @@ use parse_display::{Display, FromStr};
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdOpen {
-    #[clap(name = "shortcut", default_value_t, arg_enum)]
+    #[clap(name = "shortcut", default_value_t, value_enum)]
     shortcut: OpenShortcut,
 }
 

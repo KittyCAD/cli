@@ -106,7 +106,7 @@ pub struct CmdAuthLogin {
     /// By default this is api.kittycad.io.
     /// This assumes the instance is an `https://` url, if not otherwise specified
     /// as `http://`.
-    #[clap(short = 'H', long, env = "KITTYCAD_HOST", parse(try_from_str = parse_host))]
+    #[clap(short = 'H', long, env = "KITTYCAD_HOST", value_parser = parse_host)]
     pub host: Option<url::Url>,
     /// Open a browser to authenticate.
     #[clap(short, long)]
@@ -307,7 +307,7 @@ impl crate::cmd::Command for CmdAuthLogin {
 #[clap(verbatim_doc_comment)]
 pub struct CmdAuthLogout {
     /// The hostname of the KittyCAD instance to log out of.
-    #[clap(short = 'H', long, env = "KITTYCAD_HOST", parse(try_from_str = parse_host))]
+    #[clap(short = 'H', long, env = "KITTYCAD_HOST", value_parser = parse_host)]
     pub host: Option<url::Url>,
 }
 
@@ -434,7 +434,7 @@ pub struct CmdAuthStatus {
     pub show_token: bool,
 
     /// Check a specific hostname's auth status.
-    #[clap(short = 'H', long, env = "KITTYCAD_HOST", parse(try_from_str = parse_host))]
+    #[clap(short = 'H', long, env = "KITTYCAD_HOST", value_parser = parse_host)]
     pub host: Option<url::Url>,
 }
 

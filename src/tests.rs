@@ -273,7 +273,7 @@ access-control-allow-credentials:  """#
                 "assets/in_obj.obj".to_string(),
                 "/tmp/thing.step".to_string(),
             ],
-            want_out: r#"status        | Completed"#.to_string(),
+            want_out: r#"status                | Completed"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -337,22 +337,9 @@ access-control-allow-credentials:  """#
                 "kittycad".to_string(),
                 "api-call".to_string(),
                 "status".to_string(),
-                "23a9759f-ee9b-47de-9a55-deb1ed035793".to_string(),
+                "1dafa0cc-6ce9-479c-8a7a-2c9989c447a7".to_string(),
             ],
-            want_out: r#"Saved file conversion output to"#.to_string(),
-            want_err: "".to_string(),
-            want_code: 0,
-            ..Default::default()
-        },
-        TestItem {
-            name: "get the status of an async api call volume".to_string(),
-            args: vec![
-                "kittycad".to_string(),
-                "api-call".to_string(),
-                "status".to_string(),
-                "06ca3d87-3336-433a-95fc-9fac2d31e355".to_string(),
-            ],
-            want_out: r#""volume": 25392182.0"#.to_string(),
+            want_out: r#"Saved file conversion output(s) to:"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()

@@ -233,7 +233,7 @@ impl IoStreams {
         }
 
         let pi = terminal_spinners::SpinnerBuilder::new()
-            .spinner(&terminal_spinners::DOTS11)
+            .spinner(&terminal_spinners::DOTS)
             .text(label.to_string());
 
         Some(pi.start())
@@ -322,7 +322,9 @@ impl IoStreams {
 
     #[allow(dead_code)]
     pub fn write_output_table_for_vec<T: tabled::Tabled>(&mut self, value: impl IntoIterator<Item = T>) -> Result<()> {
-        let table = tabled::Table::new(value).with(tabled::Style::psql()).to_string();
+        let table = tabled::Table::new(value)
+            .with(tabled::settings::Style::psql())
+            .to_string();
 
         writeln!(self.out, "{table}")?;
 
@@ -331,13 +333,13 @@ impl IoStreams {
 
     pub fn write_output_table<T: tabled::Tabled>(&mut self, value: &T) -> Result<()> {
         let table = tabled::Table::new(vec![value])
-            .with(tabled::Rotate::Left)
+            .with(tabled::settings::Rotate::Left)
             .with(
-                tabled::Modify::new(tabled::object::Segment::all())
-                    .with(tabled::Alignment::left())
-                    .with(tabled::Alignment::top()),
+                tabled::settings::Modify::new(tabled::settings::object::Segment::all())
+                    .with(tabled::settings::Alignment::left())
+                    .with(tabled::settings::Alignment::top()),
             )
-            .with(tabled::Style::psql())
+            .with(tabled::settings::Style::psql())
             .to_string();
 
         writeln!(self.out, "{table}")?;

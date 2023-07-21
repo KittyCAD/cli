@@ -52,7 +52,7 @@ use clap_complete::{generate, Shell};
 #[clap(verbatim_doc_comment)]
 pub struct CmdCompletion {
     /// The shell type.
-    #[clap(short, long, default_value = "bash", arg_enum)]
+    #[clap(short, long, default_value = "bash", value_enum)]
     pub shell: Shell,
 }
 
@@ -74,7 +74,7 @@ impl crate::cmd::Command for CmdCompletion {
 
 #[cfg(test)]
 mod test {
-    use clap::ArgEnum;
+    use clap::ValueEnum;
     use pretty_assertions::assert_eq;
 
     use crate::cmd::Command;
@@ -117,7 +117,7 @@ mod test {
                 name: "unsupported shell".to_string(),
                 input: "csh".to_string(),
                 want_out: "".to_string(),
-                want_err: "Invalid variant: csh".to_string(),
+                want_err: "invalid variant: csh".to_string(),
             },
         ];
 

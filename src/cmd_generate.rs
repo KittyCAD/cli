@@ -40,7 +40,7 @@ pub struct CmdGenerateMarkdown {
 impl crate::cmd::Command for CmdGenerateMarkdown {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let mut app: Command = crate::Opts::command();
-        app._build_all();
+        app.build();
 
         // Make sure the output directory exists.
         if !self.dir.is_empty() {
@@ -113,7 +113,7 @@ pub struct CmdGenerateManPages {
 impl crate::cmd::Command for CmdGenerateManPages {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let mut app: Command = crate::Opts::command();
-        app._build_all();
+        app.build();
 
         // Make sure the output directory exists.
         if !self.dir.is_empty() {
@@ -165,13 +165,12 @@ impl CmdGenerateManPages {
 }
 
 #[cfg(test)]
-fn test_app() -> clap::Command<'static> {
+fn test_app() -> clap::Command {
     // Define our app.
     clap::Command::new("git")
         .about("A fictional versioning CLI")
         .subcommand_required(true)
         .allow_external_subcommands(true)
-        .allow_invalid_utf8_for_external_subcommands(true)
         .subcommand(
             Command::new("clone")
                 .about("Clones repos")
@@ -188,7 +187,7 @@ fn test_app() -> clap::Command<'static> {
             clap::Command::new("add")
                 .about("adds things")
                 .arg_required_else_help(true)
-                .arg(clap::arg!(<PATH> ... "Stuff to add").allow_invalid_utf8(true))
+                .arg(clap::arg!(<PATH> ... "Stuff to add"))
                 .subcommand(
                     clap::Command::new("new")
                         .about("subcommand for adding new stuff")
@@ -198,7 +197,7 @@ fn test_app() -> clap::Command<'static> {
                             clap::Arg::new("type")
                                 .help("The type of thing to add.")
                                 .long("type")
-                                .possible_values(["file", "dir"])
+                                .value_parser(["file", "dir"])
                                 .default_value("file")
                                 .required(true),
                         )
@@ -256,169 +255,11 @@ mod test {
 
         cmd.generate(&mut ctx, &app, "").unwrap();
 
-        let expected = r#"Generating markdown for `git` -> git.md
----
-title: "git"
-excerpt: "A fictional versioning CLI"
-layout: manual
----
-
-A fictional versioning CLI
-
-### Subcommands
-
-* [git clone](./git_clone)
-* [git push](./git_push)
-* [git add](./git_add)
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-</dl>
-
-
-Generating markdown for `git clone` -> git_clone.md
----
-title: "git clone"
-excerpt: "Clones repos"
-layout: manual
----
-
-Clones repos
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
-   <dt><code>REMOTE</code></dt>
-   <dd>The remote to clone</dd>
-</dl>
-
-
-Generating markdown for `git push` -> git_push.md
----
-title: "git push"
-excerpt: "pushes things"
-layout: manual
----
-
-pushes things
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
-   <dt><code>REMOTE</code></dt>
-   <dd>The remote to target</dd>
-</dl>
-
-
-Generating markdown for `git add` -> git_add.md
----
-title: "git add"
-excerpt: "adds things"
-layout: manual
----
-
-adds things
-
-### Subcommands
-
-* [git add new](./git_add_new)
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
-   <dt><code>PATH</code></dt>
-   <dd>Stuff to add</dd>
-</dl>
-
-
-Generating markdown for `git add new` -> git_add_new.md
----
-title: "git add new"
-excerpt: "subcommand for adding new stuff"
-layout: manual
----
-
-subcommand for adding new stuff
-
-### Subcommands
-
-* [git add new foo](./git_add_new_foo)
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-
-   <dt><code>--type</code></dt>
-   <dd>The type of thing to add.<br/>Possible values: <code>file | dir</code><br/>Default value: <code>file</code></dd>
-</dl>
-
-
-### About
-
-See url: [https://example.com](https://example.com) and [thing](https://example.com/thing).
-
-### See also
-
-* [git add](./git_add)
-Generating markdown for `git add new foo` -> git_add_new_foo.md
----
-title: "git add new foo"
-excerpt: "sub subcommand"
-layout: manual
----
-
-sub subcommand
-
-### Options
-
-<dl class="flags">
-   <dt><code>--help</code></dt>
-   <dd>Print help information</dd>
-
-   <dt><code>--version</code></dt>
-   <dd>Print version information</dd>
-</dl>
-
-
-### See also
-
-* [git add](./git_add)
-* [git add new](./git_add_new)
-"#;
-
         let stdout = std::fs::read_to_string(stdout_path).unwrap();
         let stderr = std::fs::read_to_string(stderr_path).unwrap();
 
-        assert_eq!(stdout, expected);
+        expectorate::assert_contents("tests/markdown_sub_commands.txt", &stdout);
+
         assert_eq!(stderr, "");
     }
 
@@ -465,194 +306,11 @@ sub subcommand
 
         cmd.generate(&mut ctx, &app, "", &app).unwrap();
 
-        let expected = r#"Generating man page for `git` -> git.1
-.TH "GIT" "1" "" "git " "General Commands Manual"
-.ss \n[.ss] 0
-.nh
-.ad l
-.SH "NAME"
-git \- A fictional versioning CLI
-.SH "SYNOPSIS"
-\fIgit\fP [\-\-help] [\-\-version] <subcommands>
-.SH "DESCRIPTION"
-
-.sp
-A fictional versioning CLI
-.SH "OPTIONS"
-.TP
-\-\-\fBhelp\fP
-Print help information
-.TP
-\-\-\fBversion\fP
-Print version information
-
-.SH "SUBCOMMANDS"
-.TP
-\fBgit\-clone(1)\fP
-Clones repos
-.TP
-\fBgit\-push(1)\fP
-pushes things
-.TP
-\fBgit\-add(1)\fP
-adds things
-
-Generating man page for `git clone` -> git-clone.1
-.TH "GIT" "1" "" "git " "General Commands Manual"
-.ss \n[.ss] 0
-.nh
-.ad l
-.SH "NAME"
-git\-clone \- Clones repos
-.SH "SYNOPSIS"
-\fIgit clone\fP [\-\-help] [\-\-version] <REMOTE>
-.SH "DESCRIPTION"
-
-.sp
-Clones repos
-.SH "OPTIONS"
-.TP
-\-\-\fBhelp\fP
-Print help information
-.TP
-\-\-\fBversion\fP
-Print version information
-.TP
-\fB<REMOTE>\fP
-The remote to clone
-.SH "SEE ALSO"
-.TP
-\fBgit(1)\fP
-
-Generating man page for `git push` -> git-push.1
-.TH "GIT" "1" "" "git " "General Commands Manual"
-.ss \n[.ss] 0
-.nh
-.ad l
-.SH "NAME"
-git\-push \- pushes things
-.SH "SYNOPSIS"
-\fIgit push\fP [\-\-help] [\-\-version] <REMOTE>
-.SH "DESCRIPTION"
-
-.sp
-pushes things
-.SH "OPTIONS"
-.TP
-\-\-\fBhelp\fP
-Print help information
-.TP
-\-\-\fBversion\fP
-Print version information
-.TP
-\fB<REMOTE>\fP
-The remote to target
-.SH "SEE ALSO"
-.TP
-\fBgit(1)\fP
-
-Generating man page for `git add` -> git-add.1
-.TH "GIT" "1" "" "git " "General Commands Manual"
-.ss \n[.ss] 0
-.nh
-.ad l
-.SH "NAME"
-git\-add \- adds things
-.SH "SYNOPSIS"
-\fIgit add\fP [\-\-help] [\-\-version] <PATH> <subcommands>
-.SH "DESCRIPTION"
-
-.sp
-adds things
-.SH "OPTIONS"
-.TP
-\-\-\fBhelp\fP
-Print help information
-.TP
-\-\-\fBversion\fP
-Print version information
-.TP
-\fB<PATH>\fP
-Stuff to add
-.SH "SUBCOMMANDS"
-.TP
-\fBgit\-add\-new(1)\fP
-subcommand for adding new stuff
-
-.SH "SEE ALSO"
-.TP
-\fBgit(1)\fP
-
-Generating man page for `git add new` -> git-add-new.1
-.TH "GIT" "1" "" "git " "General Commands Manual"
-.ss \n[.ss] 0
-.nh
-.ad l
-.SH "NAME"
-git\-add\-new \- subcommand for adding new stuff
-.SH "SYNOPSIS"
-\fIgit add new\fP [\-\-help] [\-\-version] <\-\-type> [subcommands]
-.SH "DESCRIPTION"
-
-.sp
-See url: <https://example.com> and <https://example.com/thing|thing>.
-.SH "OPTIONS"
-.TP
-\-\-\fBhelp\fP
-Print help information
-.TP
-\-\-\fBversion\fP
-Print version information
-.TP
-\-\-\fBtype\fP [possible values: file,dir] [default: file]
-The type of thing to add.
-
-.SH "SUBCOMMANDS"
-.TP
-\fBgit\-add\-new\-foo(1)\fP
-sub subcommand
-
-.SH "SEE ALSO"
-.TP
-\fBgit(1)\fP
-.TP
-\fBgit\-add(1)\fP
-
-Generating man page for `git add new foo` -> git-add-new-foo.1
-.TH "GIT" "1" "" "git " "General Commands Manual"
-.ss \n[.ss] 0
-.nh
-.ad l
-.SH "NAME"
-git\-add\-new\-foo \- sub subcommand
-.SH "SYNOPSIS"
-\fIgit add new foo\fP [\-\-help] [\-\-version]
-.SH "DESCRIPTION"
-
-.sp
-sub subcommand
-.SH "OPTIONS"
-.TP
-\-\-\fBhelp\fP
-Print help information
-.TP
-\-\-\fBversion\fP
-Print version information
-
-.SH "SEE ALSO"
-.TP
-\fBgit(1)\fP
-.TP
-\fBgit\-add(1)\fP
-.TP
-\fBgit\-add\-new(1)\fP
-
-"#;
-
         let stdout = std::fs::read_to_string(stdout_path).unwrap();
         let stderr = std::fs::read_to_string(stderr_path).unwrap();
 
-        assert_eq!(stdout, expected);
+        expectorate::assert_contents("tests/man_pages_sub_sub_commands.txt", &stdout);
+
         assert_eq!(stderr, "");
     }
 }

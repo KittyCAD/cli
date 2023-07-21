@@ -1440,7 +1440,7 @@ fn get_flags(name: &str) -> Result<Flags> {
 fn format_flag() -> TokenStream {
     quote!(
         /// Output format.
-        #[clap(long, short, arg_enum)]
+        #[clap(long, short, value_enum)]
         pub format: Option<crate::types::FormatOutput>,
     )
 }

@@ -56,23 +56,24 @@ impl crate::cmd::Command for CmdFile {
 pub struct CmdFileConvert {
     /// The path to the input file to convert.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", parse(from_os_str), required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// The path to an output file. The command will
     /// save the output of the conversion to the given path.
-    #[clap(name = "output", parse(from_os_str), required = true)]
+    #[clap(name = "output", required = true)]
     pub output: std::path::PathBuf,
 
     /// A valid source file format.
-    #[clap(short = 's', long = "src-format", arg_enum)]
+    #[clap(short = 's', long = "src-format", value_enum)]
     src_format: Option<kittycad::types::FileImportFormat>,
+
     /// A valid output file format.
-    #[clap(short = 't', long = "output-format", arg_enum)]
+    #[clap(short = 't', long = "output-format", value_enum)]
     output_format: Option<kittycad::types::FileExportFormat>,
 
     /// Command output format.
-    #[clap(long, short, arg_enum)]
+    #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -114,9 +115,10 @@ impl crate::cmd::Command for CmdFileConvert {
             }
         }
 
-        // Reset the output field of the file conversion.
+        // Reset the output(s) field of the file conversion.
         // Otherwise what we print will be crazy big.
         file_conversion.output = None;
+        file_conversion.outputs = None;
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
@@ -142,15 +144,15 @@ impl crate::cmd::Command for CmdFileConvert {
 pub struct CmdFileVolume {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", parse(from_os_str), required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
-    #[clap(short = 's', long = "src-format", arg_enum)]
-    src_format: Option<kittycad::types::File3DImportFormat>,
+    #[clap(short = 's', long = "src-format", value_enum)]
+    src_format: Option<kittycad::types::FileImportFormat>,
 
     /// Output format.
-    #[clap(long, short, arg_enum)]
+    #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -161,7 +163,7 @@ impl crate::cmd::Command for CmdFileVolume {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -196,19 +198,19 @@ impl crate::cmd::Command for CmdFileVolume {
 pub struct CmdFileMass {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", parse(from_os_str), required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
-    #[clap(short = 's', long = "src-format", arg_enum)]
-    src_format: Option<kittycad::types::File3DImportFormat>,
+    #[clap(short = 's', long = "src-format", value_enum)]
+    src_format: Option<kittycad::types::FileImportFormat>,
 
     /// Material density.
     #[clap(short = 'm', long = "material-density", default_value = "1.0")]
     material_density: f32,
 
     /// Output format.
-    #[clap(long, short, arg_enum)]
+    #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -223,7 +225,7 @@ impl crate::cmd::Command for CmdFileMass {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -261,15 +263,15 @@ impl crate::cmd::Command for CmdFileMass {
 pub struct CmdFileCenterOfMass {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", parse(from_os_str), required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
-    #[clap(short = 's', long = "src-format", arg_enum)]
-    src_format: Option<kittycad::types::File3DImportFormat>,
+    #[clap(short = 's', long = "src-format", value_enum)]
+    src_format: Option<kittycad::types::FileImportFormat>,
 
     /// Output format.
-    #[clap(long, short, arg_enum)]
+    #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -280,7 +282,7 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -315,19 +317,19 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
 pub struct CmdFileDensity {
     /// The path to the input file.
     /// If you pass `-` as the path, the file will be read from stdin.
-    #[clap(name = "input", parse(from_os_str), required = true)]
+    #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format")]
-    src_format: Option<kittycad::types::File3DImportFormat>,
+    src_format: Option<kittycad::types::FileImportFormat>,
 
     /// Material mass.
     #[clap(short = 'm', long = "material-mass", default_value = "1.0")]
     material_mass: f32,
 
     /// Output format.
-    #[clap(long, short, arg_enum)]
+    #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
 }
 
@@ -342,7 +344,7 @@ impl crate::cmd::Command for CmdFileDensity {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_3d_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -381,22 +383,6 @@ fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileIm
         Err(_) => {
             if ext == "stp" {
                 Ok(kittycad::types::FileImportFormat::Step)
-            } else {
-                anyhow::bail!(
-                    "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",
-                    ext
-                )
-            }
-        }
-    }
-}
-
-fn get_3d_import_format_from_extension(ext: &str) -> Result<kittycad::types::File3DImportFormat> {
-    match kittycad::types::File3DImportFormat::from_str(ext) {
-        Ok(format) => Ok(format),
-        Err(_) => {
-            if ext == "stp" {
-                Ok(kittycad::types::File3DImportFormat::Step)
             } else {
                 anyhow::bail!(
                     "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",

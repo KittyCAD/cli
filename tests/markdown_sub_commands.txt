@@ -1,0 +1,110 @@
+Generating markdown for `git` -> git.md
+---
+title: "git"
+excerpt: "A fictional versioning CLI"
+layout: manual
+---
+
+A fictional versioning CLI
+
+### Subcommands
+
+* [git clone](./git_clone)
+* [git push](./git_push)
+* [git add](./git_add)
+Generating markdown for `git clone` -> git_clone.md
+---
+title: "git clone"
+excerpt: "Clones repos"
+layout: manual
+---
+
+Clones repos
+
+### Options
+
+<dl class="flags">
+   <dt><code>REMOTE</code></dt>
+   <dd>The remote to clone</dd>
+</dl>
+
+
+Generating markdown for `git push` -> git_push.md
+---
+title: "git push"
+excerpt: "pushes things"
+layout: manual
+---
+
+pushes things
+
+### Options
+
+<dl class="flags">
+   <dt><code>REMOTE</code></dt>
+   <dd>The remote to target</dd>
+</dl>
+
+
+Generating markdown for `git add` -> git_add.md
+---
+title: "git add"
+excerpt: "adds things"
+layout: manual
+---
+
+adds things
+
+### Subcommands
+
+* [git add new](./git_add_new)
+
+### Options
+
+<dl class="flags">
+   <dt><code>PATH</code></dt>
+   <dd>Stuff to add</dd>
+</dl>
+
+
+Generating markdown for `git add new` -> git_add_new.md
+---
+title: "git add new"
+excerpt: "subcommand for adding new stuff"
+layout: manual
+---
+
+subcommand for adding new stuff
+
+### Subcommands
+
+* [git add new foo](./git_add_new_foo)
+
+### Options
+
+<dl class="flags">
+   <dt><code>--type</code></dt>
+   <dd>The type of thing to add.<br/>Possible values: <code>file | dir</code><br/>Default value: <code>file</code></dd>
+</dl>
+
+
+### About
+
+See url: [https://example.com](https://example.com) and [thing](https://example.com/thing).
+
+### See also
+
+* [git add](./git_add)
+Generating markdown for `git add new foo` -> git_add_new_foo.md
+---
+title: "git add new foo"
+excerpt: "sub subcommand"
+layout: manual
+---
+
+sub subcommand
+
+### See also
+
+* [git add](./git_add)
+* [git add new](./git_add_new)
