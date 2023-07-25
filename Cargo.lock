@@ -1426,7 +1426,7 @@ dependencies = [
  "slog-scope",
  "slog-stdlog",
  "slog-term",
- "tabled",
+ "tabled 0.13.0",
  "tabwriter",
  "tempfile",
  "termbg",
@@ -1474,7 +1474,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded",
- "tabled",
+ "tabled 0.12.2",
  "thiserror",
  "tokio",
  "tracing",
@@ -1851,6 +1851,19 @@ name = "papergrid"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae7891b22598926e4398790c8fe6447930c72a67d36d983a49d6ce682ce83290"
+dependencies = [
+ "ansi-str",
+ "ansitok",
+ "bytecount",
+ "fnv",
+ "unicode-width",
+]
+
+[[package]]
+name = "papergrid"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2ccbe15f2b6db62f9a9871642746427e297b0ceb85f9a7f1ee5ff47d184d0c8"
 dependencies = [
  "ansi-str",
  "ansitok",
@@ -2917,7 +2930,20 @@ checksum = "0ce69a5028cd9576063ec1f48edb2c75339fd835e6094ef3e05b3a079bf594a6"
 dependencies = [
  "ansi-str",
  "ansitok",
- "papergrid",
+ "papergrid 0.9.1",
+ "tabled_derive",
+ "unicode-width",
+]
+
+[[package]]
+name = "tabled"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d38d39c754ae037a9bc3ca1580a985db7371cd14f1229172d1db9093feb6739"
+dependencies = [
+ "ansi-str",
+ "ansitok",
+ "papergrid 0.10.0",
  "tabled_derive",
  "unicode-width",
 ]
