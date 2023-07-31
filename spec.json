@@ -6502,11 +6502,20 @@
                   "Obj"
                 ],
                 "type": "string"
+              },
+              "units": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UnitLength"
+                  }
+                ],
+                "description": "The units of the input data. This is very important for correct scaling and when calculating physics properties like mass, etc."
               }
             },
             "required": [
               "coords",
-              "type"
+              "type",
+              "units"
             ],
             "type": "object"
           },
@@ -6526,11 +6535,20 @@
                   "Ply"
                 ],
                 "type": "string"
+              },
+              "units": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UnitLength"
+                  }
+                ],
+                "description": "The units of the input data. This is very important for correct scaling and when calculating physics properties like mass, etc."
               }
             },
             "required": [
               "coords",
-              "type"
+              "type",
+              "units"
             ],
             "type": "object"
           },
@@ -6550,11 +6568,20 @@
                   "Stl"
                 ],
                 "type": "string"
+              },
+              "units": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UnitLength"
+                  }
+                ],
+                "description": "The units of the input data. This is very important for correct scaling and when calculating physics properties like mass, etc."
               }
             },
             "required": [
               "coords",
-              "type"
+              "type",
+              "units"
             ],
             "type": "object"
           }
@@ -7406,6 +7433,138 @@
             },
             "required": [
               "CameraDragEnd"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Change what the default camera is looking at.",
+            "properties": {
+              "DefaultCameraLookAt": {
+                "properties": {
+                  "center": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "What the camera is looking at. Center of the camera's field of vision"
+                  },
+                  "up": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "Which way is \"up\", from the camera's point of view."
+                  },
+                  "vantage": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "Where the camera is positioned"
+                  }
+                },
+                "required": [
+                  "center",
+                  "up",
+                  "vantage"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "DefaultCameraLookAt"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Enable sketch mode, where users can sketch 2D geometry. Users choose a plane to sketch on.",
+            "properties": {
+              "DefaultCameraEnableSketchMode": {
+                "properties": {
+                  "distance_to_plane": {
+                    "description": "How far to the sketching plane?",
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "origin": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "What's the origin of the sketching plane?"
+                  },
+                  "ortho": {
+                    "description": "Should the camera use orthographic projection? In other words, should an object's size in the rendered image stay constant regardless of its distance from the camera.",
+                    "type": "boolean"
+                  },
+                  "x_axis": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "Which 3D axis of the scene should be the X axis of the sketching plane?"
+                  },
+                  "y_axis": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ],
+                    "description": "Which 3D axis of the scene should be the Y axis of the sketching plane?"
+                  }
+                },
+                "required": [
+                  "distance_to_plane",
+                  "origin",
+                  "ortho",
+                  "x_axis",
+                  "y_axis"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "DefaultCameraEnableSketchMode"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Disable sketch mode, from the default camera.",
+            "enum": [
+              "DefaultCameraDisableSketchMode"
+            ],
+            "type": "string"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Export the scene to a file.",
+            "properties": {
+              "Export": {
+                "properties": {
+                  "format": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/OutputFormat"
+                      }
+                    ],
+                    "description": "The file format to export to."
+                  }
+                },
+                "required": [
+                  "format"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Export"
             ],
             "type": "object"
           }
