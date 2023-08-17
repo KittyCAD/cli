@@ -275,7 +275,7 @@ access-control-allow-credentials:  """#
                 "--output-format".to_string(),
                 "stl".to_string(),
             ],
-            want_out: r#"status                | completed"#.to_string(),
+            want_out: r#"status                | Completed"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
