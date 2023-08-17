@@ -52,9 +52,25 @@ impl crate::cmd::Command for CmdApiCallStatus {
 
         // If it is a file conversion and there is output, we need to save that output to a file
         // for them.
-        if let kittycad::types::AsyncApiCallOutput::FileConversion(fc) = &api_call {
-            if fc.status == kittycad::types::ApiCallStatus::Completed {
-                if let Some(outputs) = &fc.outputs {
+        if let kittycad::types::AsyncApiCallOutput::FileConversion {
+            completed_at,
+            created_at,
+            error,
+            id,
+            output,
+            output_format,
+            output_format_options,
+            outputs,
+            src_format,
+            src_format_options,
+            started_at,
+            status,
+            updated_at,
+            user_id,
+        } = &api_call
+        {
+            if *status == kittycad::types::ApiCallStatus::Completed {
+                if let Some(outputs) = &outputs {
                     let path = std::env::current_dir()?;
                     for (name, output) in outputs {
                         if output.is_empty() {
