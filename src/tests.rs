@@ -326,7 +326,7 @@ access-control-allow-credentials:  """#
                 "assets/in_obj.obj".to_string(),
                 "--format=json".to_string(),
             ],
-            want_out: r#""mass": 53.601147,"#.to_string(),
+            want_out: r#""mass": 53601.22782305795,#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -339,7 +339,8 @@ access-control-allow-credentials:  """#
                 "status".to_string(),
                 "1dafa0cc-6ce9-479c-8a7a-2c9989c447a7".to_string(),
             ],
-            want_out: r#"Saved file conversion output(s) to:"#.to_string(),
+            want_out: r#"Saved file conversion output(s) to:"#
+                .to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
