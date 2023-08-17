@@ -21,6 +21,7 @@ enum SubCommand {
     Mass(CmdFileMass),
     CenterOfMass(CmdFileCenterOfMass),
     Density(CmdFileDensity),
+    SurfaceArea(CmdFileSurfaceArea),
 }
 
 #[async_trait::async_trait]
@@ -32,6 +33,7 @@ impl crate::cmd::Command for CmdFile {
             SubCommand::Mass(cmd) => cmd.run(ctx).await,
             SubCommand::CenterOfMass(cmd) => cmd.run(ctx).await,
             SubCommand::Density(cmd) => cmd.run(ctx).await,
+            SubCommand::SurfaceArea(cmd) => cmd.run(ctx).await,
         }
     }
 }
@@ -59,10 +61,9 @@ pub struct CmdFileConvert {
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
-    /// The path to an output file. The command will
-    /// save the output of the conversion to the given path.
-    #[clap(name = "output", required = true)]
-    pub output: std::path::PathBuf,
+    /// The path to a directory to output the files.
+    #[clap(name = "output-dir", required = true)]
+    pub output_dir: std::path::PathBuf,
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format", value_enum)]
@@ -70,7 +71,7 @@ pub struct CmdFileConvert {
 
     /// A valid output file format.
     #[clap(short = 't', long = "output-format", value_enum)]
-    output_format: Option<kittycad::types::FileExportFormat>,
+    output_format: kittycad::types::FileExportFormat,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -80,18 +81,19 @@ pub struct CmdFileConvert {
 #[async_trait::async_trait]
 impl crate::cmd::Command for CmdFileConvert {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Make sure the output dir is a directory.
+        if !self.output_dir.is_dir() {
+            anyhow::bail!(
+                "output directory `{}` does not exist or is not a directory",
+                self.output_dir.to_str().unwrap_or("")
+            );
+        }
+
         // Parse the source format.
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
             get_import_format_from_extension(&get_extension(self.input.clone()))?
-        };
-
-        // Parse the output format.
-        let output_format = if let Some(output_format) = &self.output_format {
-            output_format.clone()
-        } else {
-            get_output_format_from_extension(&get_extension(self.output.clone()))?
         };
 
         // Get the contents of the input file.
@@ -103,13 +105,23 @@ impl crate::cmd::Command for CmdFileConvert {
         // Create the file conversion.
         let mut file_conversion = client
             .file()
-            .create_conversion(output_format, src_format, &input.into())
+            .create_conversion(self.output_format.clone(), src_format, &input.into())
             .await?;
 
         // If they specified an output file, save the output to that file.
         if file_conversion.status == kittycad::types::ApiCallStatus::Completed {
-            if let Some(output) = file_conversion.output {
-                std::fs::write(&self.output, output)?;
+            if let Some(outputs) = file_conversion.outputs {
+                // Write the contents of the files to the output directory.
+                for (filename, data) in outputs.iter() {
+                    let path = self.output_dir.clone().join(filename);
+                    std::fs::write(&path, data)?;
+                    writeln!(
+                        ctx.io.out,
+                        "wrote file `{}` to {}",
+                        filename,
+                        path.to_str().unwrap_or("")
+                    )?;
+                }
             } else {
                 anyhow::bail!("no output was generated! (this is probably a bug in the API) you should report it to support@kittycad.io");
             }
@@ -154,6 +166,10 @@ pub struct CmdFileVolume {
     /// Output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Output unit.
+    #[clap(long = "output-unit", short, value_enum)]
+    pub output_unit: kittycad::types::UnitVolume,
 }
 
 #[async_trait::async_trait]
@@ -172,7 +188,10 @@ impl crate::cmd::Command for CmdFileVolume {
         // Do the operation.
         let client = ctx.api_client("")?;
 
-        let file_volume = client.file().create_volume(src_format, &input.into()).await?;
+        let file_volume = client
+            .file()
+            .create_volume(Some(self.output_unit.clone()), src_format, &input.into())
+            .await?;
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
@@ -209,9 +228,17 @@ pub struct CmdFileMass {
     #[clap(short = 'm', long = "material-density", default_value = "1.0")]
     material_density: f32,
 
+    /// Material density unit.
+    #[clap(long = "material-density-unit", short, value_enum)]
+    material_density_unit: kittycad::types::UnitDensity,
+
     /// Output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Output unit.
+    #[clap(long = "output-unit", short, value_enum)]
+    pub output_unit: kittycad::types::UnitMass,
 }
 
 #[async_trait::async_trait]
@@ -236,7 +263,13 @@ impl crate::cmd::Command for CmdFileMass {
 
         let file_mass = client
             .file()
-            .create_mass(self.material_density.into(), src_format, &input.into())
+            .create_mass(
+                self.material_density.into(),
+                Some(self.material_density_unit.clone()),
+                Some(self.output_unit.clone()),
+                src_format,
+                &input.into(),
+            )
             .await?;
 
         // Print the output of the conversion.
@@ -273,6 +306,10 @@ pub struct CmdFileCenterOfMass {
     /// Output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Output unit.
+    #[clap(long = "output-unit", short, value_enum)]
+    pub output_unit: kittycad::types::UnitLength,
 }
 
 #[async_trait::async_trait]
@@ -291,7 +328,10 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
         // Do the operation.
         let client = ctx.api_client("")?;
 
-        let file_center_of_mass = client.file().create_center_of_mass(src_format, &input.into()).await?;
+        let file_center_of_mass = client
+            .file()
+            .create_center_of_mass(Some(self.output_unit.clone()), src_format, &input.into())
+            .await?;
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
@@ -328,9 +368,17 @@ pub struct CmdFileDensity {
     #[clap(short = 'm', long = "material-mass", default_value = "1.0")]
     material_mass: f32,
 
+    /// The unit of the material mass.
+    #[clap(long = "material-mass-unit", short, value_enum)]
+    material_mass_unit: kittycad::types::UnitMass,
+
     /// Output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Output unit.
+    #[clap(long = "output-unit", short, value_enum)]
+    pub output_unit: kittycad::types::UnitDensity,
 }
 
 #[async_trait::async_trait]
@@ -355,12 +403,79 @@ impl crate::cmd::Command for CmdFileDensity {
 
         let file_density = client
             .file()
-            .create_density(self.material_mass.into(), src_format, &input.into())
+            .create_density(
+                self.material_mass.into(),
+                Some(self.material_mass_unit.clone()),
+                Some(self.output_unit.clone()),
+                src_format,
+                &input.into(),
+            )
             .await?;
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
         ctx.io.write_output(&format, &file_density)?;
+
+        Ok(())
+    }
+}
+
+/// Get the surface area of an object in a CAD file.
+///
+/// If the input file is larger than a certain size it will be
+/// performed asynchronously, you can then check the status with the
+/// `kittycad api-call status <id_of_your_operation>` command.
+///
+///     # get the surface-area of a file
+///     $ kittycad file surface-area my-file.step
+///
+///     # pass a file from stdin, the original file type is required
+///     $ cat my-obj.obj | kittycad file surface-area - --src-format=obj
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdFileSurfaceArea {
+    /// The path to the input file.
+    /// If you pass `-` as the path, the file will be read from stdin.
+    #[clap(name = "input", required = true)]
+    pub input: std::path::PathBuf,
+
+    /// A valid source file format.
+    #[clap(short = 's', long = "src-format")]
+    src_format: Option<kittycad::types::FileImportFormat>,
+
+    /// Output format.
+    #[clap(long, short, value_enum)]
+    pub format: Option<crate::types::FormatOutput>,
+
+    /// Output unit.
+    #[clap(long = "output-unit", short, value_enum)]
+    pub output_unit: kittycad::types::UnitArea,
+}
+
+#[async_trait::async_trait]
+impl crate::cmd::Command for CmdFileSurfaceArea {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Parse the source format.
+        let src_format = if let Some(src_format) = &self.src_format {
+            src_format.clone()
+        } else {
+            get_import_format_from_extension(&get_extension(self.input.clone()))?
+        };
+
+        // Get the contents of the input file.
+        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
+
+        // Do the operation.
+        let client = ctx.api_client("")?;
+
+        let file_surface_area = client
+            .file()
+            .create_surface_area(Some(self.output_unit.clone()), src_format, &input.into())
+            .await?;
+
+        // Print the output of the conversion.
+        let format = ctx.format(&self.format)?;
+        ctx.io.write_output(&format, &file_surface_area)?;
 
         Ok(())
     }
@@ -386,23 +501,6 @@ fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileIm
             } else {
                 anyhow::bail!(
                     "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",
-                    ext
-                )
-            }
-        }
-    }
-}
-
-/// Get the output format from the extension.
-fn get_output_format_from_extension(ext: &str) -> Result<kittycad::types::FileExportFormat> {
-    match kittycad::types::FileExportFormat::from_str(ext) {
-        Ok(format) => Ok(format),
-        Err(_) => {
-            if ext == "stp" {
-                Ok(kittycad::types::FileExportFormat::Step)
-            } else {
-                anyhow::bail!(
-                    "unknown output format for file extension: {}. Try setting the `--output-format` flag explicitly or use a valid format.",
                     ext
                 )
             }
