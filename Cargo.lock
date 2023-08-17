@@ -1381,7 +1381,7 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.1.9"
+version = "0.2.0"
 dependencies = [
  "ansi_term",
  "anyhow",
@@ -1403,7 +1403,7 @@ dependencies = [
  "heck 0.4.1",
  "http",
  "itertools 0.11.0",
- "kittycad 0.2.15",
+ "kittycad 0.2.16",
  "log",
  "num-traits",
  "oauth2",
@@ -1444,9 +1444,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.15"
+version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d3fec600ba644ea095dfa295a50cbc2aa354dce0c6f8043ba4f90aae826e850"
+checksum = "70ad980965d2f04d122348dfa4ea4258711c15ff7b7c343622e26ec1940cbe5f"
 dependencies = [
  "anyhow",
  "async-trait",
