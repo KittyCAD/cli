@@ -24,8 +24,7 @@ git_rev = "0.1.0"
 heck = "0.4.0"
 http = "0.2.6"
 itertools = "0.11.0"
-#kittycad = { version = "0.2.12", default-features = false, features = ["clap", "tabled"] }
-kittycad = { path = "../kittycad.rs/kittycad", default-features = false, features = ["clap", "tabled"] }
+kittycad = { version = "0.2.14", default-features = false, features = ["clap", "tabled"] }
 log = "0.4.20"
 regex = "1"
 num-traits = "0.2.14"

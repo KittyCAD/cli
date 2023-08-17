@@ -168,7 +168,7 @@ pub struct CmdFileVolume {
     pub format: Option<crate::types::FormatOutput>,
 
     /// Output unit.
-    #[clap(long = "output-unit", short, value_enum)]
+    #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitVolume,
 }
 
@@ -225,11 +225,11 @@ pub struct CmdFileMass {
     src_format: Option<kittycad::types::FileImportFormat>,
 
     /// Material density.
-    #[clap(short = 'm', long = "material-density", default_value = "1.0")]
+    #[clap(short = 'm', long = "material-density")]
     material_density: f32,
 
     /// Material density unit.
-    #[clap(long = "material-density-unit", short, value_enum)]
+    #[clap(long = "material-density-unit", value_enum)]
     material_density_unit: kittycad::types::UnitDensity,
 
     /// Output format.
@@ -237,7 +237,7 @@ pub struct CmdFileMass {
     pub format: Option<crate::types::FormatOutput>,
 
     /// Output unit.
-    #[clap(long = "output-unit", short, value_enum)]
+    #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitMass,
 }
 
@@ -308,7 +308,7 @@ pub struct CmdFileCenterOfMass {
     pub format: Option<crate::types::FormatOutput>,
 
     /// Output unit.
-    #[clap(long = "output-unit", short, value_enum)]
+    #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitLength,
 }
 
@@ -365,11 +365,11 @@ pub struct CmdFileDensity {
     src_format: Option<kittycad::types::FileImportFormat>,
 
     /// Material mass.
-    #[clap(short = 'm', long = "material-mass", default_value = "1.0")]
+    #[clap(short = 'm', long = "material-mass")]
     material_mass: f32,
 
     /// The unit of the material mass.
-    #[clap(long = "material-mass-unit", short, value_enum)]
+    #[clap(long = "material-mass-unit", value_enum)]
     material_mass_unit: kittycad::types::UnitMass,
 
     /// Output format.
@@ -377,7 +377,7 @@ pub struct CmdFileDensity {
     pub format: Option<crate::types::FormatOutput>,
 
     /// Output unit.
-    #[clap(long = "output-unit", short, value_enum)]
+    #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitDensity,
 }
 
@@ -448,7 +448,7 @@ pub struct CmdFileSurfaceArea {
     pub format: Option<crate::types::FormatOutput>,
 
     /// Output unit.
-    #[clap(long = "output-unit", short, value_enum)]
+    #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitArea,
 }
 
@@ -530,34 +530,22 @@ mod test {
                     name: "convert input with bad ext".to_string(),
                     cmd: crate::cmd_file::SubCommand::Convert(crate::cmd_file::CmdFileConvert {
                         input: std::path::PathBuf::from("test/bad_ext.bad_ext"),
-                        output: std::path::PathBuf::from("test/out.obj"),
-                        output_format: None,
+                        output_dir: std::path::PathBuf::from("tests/"),
+                        output_format: kittycad::types::FileExportFormat::Obj,
                         src_format: None,
                         format: None,
+
                     }),
                     stdin: "".to_string(),
                     want_out: "".to_string(),
                     want_err: "unknown source format for file extension: bad_ext. Try setting the `--src-format` flag explicitly or use a valid format.".to_string(),
                 },
                 TestItem {
-                    name: "convert output with bad ext".to_string(),
-                    cmd: crate::cmd_file::SubCommand::Convert(crate::cmd_file::CmdFileConvert {
-                        input: std::path::PathBuf::from("assets/in_obj.obj"),
-                        output: std::path::PathBuf::from("test/out.bad"),
-                        output_format: None,
-                        src_format: None,
-                        format: None,
-                    }),
-                    stdin: "".to_string(),
-                    want_out: "".to_string(),
-                    want_err: "unknown output format for file extension: bad. Try setting the `--output-format` flag explicitly or use a valid format.".to_string(),
-                },
-                TestItem {
                     name: "convert: input file does not exist".to_string(),
                     cmd: crate::cmd_file::SubCommand::Convert(crate::cmd_file::CmdFileConvert {
                         input: std::path::PathBuf::from("test/bad_ext.stp"),
-                        output: std::path::PathBuf::from("test/out.obj"),
-                        output_format: None,
+                        output_dir: std::path::PathBuf::from("tests/"),
+                        output_format: kittycad::types::FileExportFormat::Obj,
                         src_format: None,
                         format: None,
                     }),
@@ -568,9 +556,10 @@ mod test {
                 TestItem {
                     name: "volume with bad ext".to_string(),
                     cmd: crate::cmd_file::SubCommand::Volume(crate::cmd_file::CmdFileVolume {
-                        input: std::path::PathBuf::from("test/bad_ext.bad_ext"),
+                        input: std::path::PathBuf::from("tests/bad_ext.bad_ext"),
                         src_format: None,
                         format: None,
+                        output_unit: kittycad::types::UnitVolume::Cm3,
                     }),
                     stdin: "".to_string(),
                     want_out: "".to_string(),
@@ -582,6 +571,7 @@ mod test {
                         input: std::path::PathBuf::from("test/bad_ext.stp"),
                         src_format: None,
                         format: None,
+                        output_unit: kittycad::types::UnitVolume::Cm3,
                     }),
                     stdin: "".to_string(),
                     want_out: "".to_string(),
