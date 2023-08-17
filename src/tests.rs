@@ -286,7 +286,7 @@ access-control-allow-credentials:  """#
                 "volume".to_string(),
                 "assets/in_obj.obj".to_string(),
             ],
-            want_out: r#"volume       | 53.601147"#.to_string(),
+            want_out: r#"volume       | 53.60122782305795"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -299,7 +299,7 @@ access-control-allow-credentials:  """#
                 "density".to_string(),
                 "assets/in_obj.obj".to_string(),
             ],
-            want_out: r#"density       | 0.018656317"#.to_string(),
+            want_out: r#"density       | 1.8656289055561976e-5"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -312,7 +312,7 @@ access-control-allow-credentials:  """#
                 "mass".to_string(),
                 "assets/in_obj.obj".to_string(),
             ],
-            want_out: r#"mass             | 53.601147"#.to_string(),
+            want_out: r#"mass             | 53601.22782305795"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -326,7 +326,7 @@ access-control-allow-credentials:  """#
                 "assets/in_obj.obj".to_string(),
                 "--format=json".to_string(),
             ],
-            want_out: r#""mass": 53.601147,"#.to_string(),
+            want_out: r#""mass": 53601.22782305795,"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
