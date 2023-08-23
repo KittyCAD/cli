@@ -13,7 +13,7 @@ async-trait = "0.1.73"
 atty = "0.2.14"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 chrono-humanize = "0.2.3"
-clap = { version = "4.3.21", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
+clap = { version = "4.3.24", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
 clap_complete = { version = "4.2.4" }
 cli-macro = { path = "cli-macro" }
 colored_json = "3.2.0"
