@@ -6,7 +6,7 @@ use clap::Parser;
 /// Perform operations on CAD files.
 ///
 ///     # convert a step file to an obj file
-///     $ kittycad file convert ./input.step ./output.obj
+///     $ kittycad file convert --output-format=obj ./input.step ./
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFile {
@@ -45,14 +45,14 @@ impl crate::cmd::Command for CmdFile {
 /// `kittycad api-call status <id_of_your_operation>` command.
 ///
 ///     # convert step to obj
-///     $ kittycad file convert my-file.step my-file.obj
+///     $ kittycad file convert --output-format=obj my-file.step output_dir
 ///
 ///     # convert obj to step
-///     $ kittycad file convert my-obj.obj thing.step
+///     $ kittycad file convert --output-format=step my-obj.obj .
 ///
 ///     # pass a file to convert from stdin
 ///     # when converting from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file convert - thing.step --src-format=obj
+///     $ cat my-obj.obj | kittycad file convert --output-format=step - output_dir
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileConvert {
