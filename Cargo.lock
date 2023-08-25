@@ -1402,7 +1402,7 @@ dependencies = [
  "heck 0.4.1",
  "http",
  "itertools 0.11.0",
- "kittycad 0.2.16",
+ "kittycad 0.2.20",
  "log",
  "num-traits",
  "oauth2",
@@ -1443,9 +1443,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.16"
+version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70ad980965d2f04d122348dfa4ea4258711c15ff7b7c343622e26ec1940cbe5f"
+checksum = "e71916b50966110cb9f70aa6c310748a153fdcb0183a02615324a6f457fd18e8"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1459,14 +1459,12 @@ dependencies = [
  "http",
  "itertools 0.10.5",
  "log",
- "mime",
  "parse-display",
- "percent-encoding",
  "phonenumber",
  "rand",
  "reqwest",
  "reqwest-conditional-middleware",
- "reqwest-middleware 0.2.2",
+ "reqwest-middleware 0.2.3",
  "reqwest-retry",
  "reqwest-tracing",
  "schemars",
@@ -1475,7 +1473,6 @@ dependencies = [
  "serde_urlencoded",
  "tabled",
  "thiserror",
- "tokio",
  "tracing",
  "url",
  "uuid",
@@ -1551,9 +1548,9 @@ dependencies = [
 
 [[package]]
 name = "matchit"
-version = "0.7.0"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b87248edafb776e59e6ee64a79086f65890d3510f2c656c000bf2a7e8a0aea40"
+checksum = "ed1202b2a6f884ae56f04cff409ab315c5ce26b5e58d7412e484f01fd52f52ef"
 
 [[package]]
 name = "memchr"
@@ -1982,18 +1979,18 @@ dependencies = [
 
 [[package]]
 name = "pin-project"
-version = "1.1.2"
+version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "030ad2bc4db10a8944cb0d837f158bdfec4d4a4873ab701a95046770d11f8842"
+checksum = "fda4ed1c6c173e3fc7a83629421152e01d7b1f9b7f65fb301e490e8cfc656422"
 dependencies = [
  "pin-project-internal",
 ]
 
 [[package]]
 name = "pin-project-internal"
-version = "1.1.2"
+version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec2e072ecce94ec471b13398d5402c188e76ac03cf74dd1a975161b23a3f6d9c"
+checksum = "4359fd9c9171ec6e8c62926d6faaf553a8dc3f64e1507e76da7911b4f6a04405"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2270,7 +2267,7 @@ checksum = "59e50a2e70970896c99d1b8f20ddc30a70b30d3ac6e619a03a8353b64a49b277"
 dependencies = [
  "async-trait",
  "reqwest",
- "reqwest-middleware 0.2.2",
+ "reqwest-middleware 0.2.3",
  "task-local-extensions",
 ]
 
@@ -2292,9 +2289,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest-middleware"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4531c89d50effe1fac90d095c8b133c20c5c714204feee0bfc3fd158e784209d"
+checksum = "ff44108c7925d082f2861e683a88618b68235ad9cdc60d64d9d1188efc951cdb"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2320,7 +2317,7 @@ dependencies = [
  "hyper",
  "parking_lot 0.11.2",
  "reqwest",
- "reqwest-middleware 0.2.2",
+ "reqwest-middleware 0.2.3",
  "retry-policies",
  "task-local-extensions",
  "tokio",
@@ -2330,9 +2327,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest-tracing"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b97ad83c2fc18113346b7158d79732242002427c30f620fa817c1f32901e0a8"
+checksum = "14b1e66540e0cac90acadaf7109bf99c90d95abcc94b4c096bfa16a2d7aa7a71"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2340,7 +2337,7 @@ dependencies = [
  "matchit",
  "opentelemetry",
  "reqwest",
- "reqwest-middleware 0.2.2",
+ "reqwest-middleware 0.2.3",
  "task-local-extensions",
  "tracing",
  "tracing-opentelemetry",

@@ -33,7 +33,7 @@ impl crate::cmd::Command for CmdSay {
 }
 
 fn format_kitty(is_speaking: bool) -> String {
-    let speech_bar = if is_speaking { r#"\"# } else { " " };
+    let speech_bar = if is_speaking { r"\" } else { " " };
     format!(
         "  {speech_bar}
    {speech_bar}                .....

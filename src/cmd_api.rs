@@ -163,11 +163,11 @@ impl crate::cmd::Command for CmdApi {
             let headers = self.parse_headers()?;
             if !headers.is_empty() {
                 for (key, value) in headers {
-                    req = req.header(key, value);
+                    req = kittycad::RequestBuilder(req.0.header(key, value));
                 }
             }
 
-            let resp = req.send().await?;
+            let resp = req.0.send().await?;
 
             // Print the response headers if requested.
             if self.include {
