@@ -81,6 +81,59 @@ impl Context<'_> {
         Ok(client)
     }
 
+    pub async fn export_kcl_file(
+        &self,
+        hostname: &str,
+        code: &str,
+        output_dir: &std::path::Path,
+        format: &kittycad::types::FileExportFormat,
+    ) -> Result<kcl::engine::EngineConnection> {
+        // Use the host passed in if it's set.
+        // Otherwise, use the default host.
+        let host = if hostname.is_empty() {
+            self.config.default_host()?
+        } else {
+            hostname.to_string()
+        };
+
+        // Change the baseURL to the one we want.
+        let mut baseurl = host.to_string();
+        if !host.starts_with("http://") && !host.starts_with("https://") {
+            baseurl = format!("https://{host}");
+            if host.starts_with("localhost") {
+                baseurl = format!("http://{host}")
+            }
+        }
+
+        baseurl = baseurl.replace("http", "ws");
+
+        // Get the token for that host.
+        let auth_token = self.config.get(&host, "token")?;
+
+        let tokens = kcl::tokeniser::lexer(code);
+        let program = kcl::parser::abstract_syntax_tree(&tokens)?;
+        let mut mem: kcl::executor::ProgramMemory = Default::default();
+        let mut engine = kcl::engine::EngineConnection::new(
+            &baseurl,
+            &auth_token,
+            "kittycad-cli",
+            output_dir.display().to_string().as_str(),
+        )
+        .await?;
+        let _ = kcl::executor::execute(program, &mut mem, kcl::executor::BodyType::Root, &mut engine)?;
+        // Send an export request to the engine.
+        engine.send_modeling_cmd(
+            uuid::Uuid::new_v4(),
+            kcl::executor::SourceRange::default(),
+            kittycad::types::ModelingCmd::Export {
+                entity_ids: vec![],
+                format: get_output_format(format),
+            },
+        )?;
+
+        Ok(engine)
+    }
+
     /// This function opens a browser that is based on the configured
     /// environment to the specified path.
     ///
@@ -150,6 +203,45 @@ impl Context<'_> {
         }
 
         std::fs::read(filename).map_err(Into::into)
+    }
+}
+
+fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::types::OutputFormat {
+    // KittyCAD co-ordinate system.
+    //
+    // * Forward: -Y
+    // * Up: +Z
+    // * Handedness: Right
+    let coords = kittycad::types::System {
+        forward: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Y,
+            direction: kittycad::types::Direction::Negative,
+        },
+        up: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Z,
+            direction: kittycad::types::Direction::Positive,
+        },
+    };
+
+    match format {
+        kittycad::types::FileExportFormat::Glb => kittycad::types::OutputFormat::Gltf {
+            storage: kittycad::types::Storage::Binary,
+            presentation: kittycad::types::Presentation::Compact,
+        },
+        kittycad::types::FileExportFormat::Gltf => kittycad::types::OutputFormat::Gltf {
+            storage: kittycad::types::Storage::Embedded,
+            presentation: kittycad::types::Presentation::Pretty,
+        },
+        kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj { coords },
+        kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
+            storage: kittycad::types::Storage::Binary,
+            coords,
+        },
+        kittycad::types::FileExportFormat::Step => kittycad::types::OutputFormat::Step { coords },
+        kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
+            storage: kittycad::types::Storage::Binary,
+            coords,
+        },
     }
 }
 

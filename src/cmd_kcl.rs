@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::Parser;
 
 /// Perform actions on `kcl` files.
@@ -67,9 +67,25 @@ impl crate::cmd::Command for CmdKclExport {
 
         // Get the contents of the input file.
         let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
+        // Parse the input as a string.
+        let input = std::str::from_utf8(&input)?;
 
         // Spin up websockets and do the conversion.
-        todo!();
+        let engine = ctx
+            .export_kcl_file("", input, &self.output_dir, &self.output_format)
+            .await?;
+
+        // Now we need to wait for the engine to finish.
+        // Sleep for a bit to give the engine time to start.
+        tokio::time::sleep(std::time::Duration::from_secs(120)).await;
+
+        // Check if we have files in our output directory.
+        let files = std::fs::read_dir(&self.output_dir)?
+            .map(|res| res.map(|e| e.path()))
+            .collect::<Result<Vec<_>, std::io::Error>>()?;
+        println!("files: {:?}", files);
+
+        drop(engine);
 
         Ok(())
     }
