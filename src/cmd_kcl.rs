@@ -71,21 +71,15 @@ impl crate::cmd::Command for CmdKclExport {
         let input = std::str::from_utf8(&input)?;
 
         // Spin up websockets and do the conversion.
-        let engine = ctx
-            .export_kcl_file("", input, &self.output_dir, &self.output_format)
+        // This will not return until there are files.
+        ctx.export_kcl_file("", input, &self.output_dir, &self.output_format)
             .await?;
-
-        // Now we need to wait for the engine to finish.
-        // Sleep for a bit to give the engine time to start.
-        tokio::time::sleep(std::time::Duration::from_secs(120)).await;
 
         // Check if we have files in our output directory.
         let files = std::fs::read_dir(&self.output_dir)?
             .map(|res| res.map(|e| e.path()))
             .collect::<Result<Vec<_>, std::io::Error>>()?;
         println!("files: {:?}", files);
-
-        drop(engine);
 
         Ok(())
     }

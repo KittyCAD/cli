@@ -68,11 +68,25 @@ impl Context<'_> {
             }
         }
 
+        let user_agent = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"),);
+        let http_client = reqwest::Client::builder()
+            .user_agent(user_agent)
+            // For file conversions we need this to be long.
+            .timeout(std::time::Duration::from_secs(600))
+            .connect_timeout(std::time::Duration::from_secs(60));
+        let ws_client = reqwest::Client::builder()
+            .user_agent(user_agent)
+            // For file conversions we need this to be long.
+            .timeout(std::time::Duration::from_secs(600))
+            .connect_timeout(std::time::Duration::from_secs(60))
+            .tcp_keepalive(std::time::Duration::from_secs(600))
+            .http1_only();
+
         // Get the token for that host.
         let token = self.config.get(&host, "token")?;
 
         // Create the client.
-        let mut client = kittycad::Client::new(token);
+        let mut client = kittycad::Client::new_from_reqwest(token, http_client, ws_client);
 
         if baseurl != crate::DEFAULT_HOST {
             client.set_base_url(&baseurl);
@@ -87,39 +101,17 @@ impl Context<'_> {
         code: &str,
         output_dir: &std::path::Path,
         format: &kittycad::types::FileExportFormat,
-    ) -> Result<kcl::engine::EngineConnection> {
-        // Use the host passed in if it's set.
-        // Otherwise, use the default host.
-        let host = if hostname.is_empty() {
-            self.config.default_host()?
-        } else {
-            hostname.to_string()
-        };
-
-        // Change the baseURL to the one we want.
-        let mut baseurl = host.to_string();
-        if !host.starts_with("http://") && !host.starts_with("https://") {
-            baseurl = format!("https://{host}");
-            if host.starts_with("localhost") {
-                baseurl = format!("http://{host}")
-            }
-        }
-
-        baseurl = baseurl.replace("http", "ws");
-
-        // Get the token for that host.
-        let auth_token = self.config.get(&host, "token")?;
+    ) -> Result<()> {
+        let client = self.api_client("http://system76-pc:8080")?;
+        let ws = client
+            .modeling()
+            .commands_ws(None, None, None, None, Some(false))
+            .await?;
 
         let tokens = kcl::tokeniser::lexer(code);
         let program = kcl::parser::abstract_syntax_tree(&tokens)?;
         let mut mem: kcl::executor::ProgramMemory = Default::default();
-        let mut engine = kcl::engine::EngineConnection::new(
-            &baseurl,
-            &auth_token,
-            "kittycad-cli",
-            output_dir.display().to_string().as_str(),
-        )
-        .await?;
+        let mut engine = kcl::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str()).await?;
         let _ = kcl::executor::execute(program, &mut mem, kcl::executor::BodyType::Root, &mut engine)?;
         // Send an export request to the engine.
         engine.send_modeling_cmd(
@@ -131,7 +123,9 @@ impl Context<'_> {
             },
         )?;
 
-        Ok(engine)
+        engine.wait_for_files().await;
+
+        Ok(())
     }
 
     /// This function opens a browser that is based on the configured
