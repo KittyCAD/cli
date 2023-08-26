@@ -75,12 +75,6 @@ impl crate::cmd::Command for CmdKclExport {
         ctx.export_kcl_file("", input, &self.output_dir, &self.output_format)
             .await?;
 
-        // Check if we have files in our output directory.
-        let files = std::fs::read_dir(&self.output_dir)?
-            .map(|res| res.map(|e| e.path()))
-            .collect::<Result<Vec<_>, std::io::Error>>()?;
-        println!("files: {:?}", files);
-
         Ok(())
     }
 }
