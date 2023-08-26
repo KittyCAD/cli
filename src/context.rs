@@ -102,7 +102,7 @@ impl Context<'_> {
         output_dir: &std::path::Path,
         format: &kittycad::types::FileExportFormat,
     ) -> Result<()> {
-        let client = self.api_client("http://system76-pc:8080")?;
+        let client = self.api_client(hostname)?;
         let ws = client
             .modeling()
             .commands_ws(None, None, None, None, Some(false))
