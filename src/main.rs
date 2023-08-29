@@ -35,6 +35,8 @@ pub mod cmd_update;
 pub mod cmd_user;
 /// The version command.
 pub mod cmd_version;
+/// Formatting for `kcl` errors.
+pub mod kcl_error_fmt;
 
 // Use of a mod or pub mod is not actually necessary.
 mod built_info {
