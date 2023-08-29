@@ -52,42 +52,7 @@ impl KclError {
         let error = err.into();
 
         let (message, line, column) = match error {
-            ErrorTypes::Kcl(err) => {
-                let (type_, source_range, message) = match &err {
-                    kcl_lib::errors::KclError::Syntax(e) => ("syntax", e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::Semantic(e) => ("semantic", e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::Type(e) => ("type", e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::Unimplemented(e) => {
-                        ("unimplemented", e.source_ranges.clone(), e.message.clone())
-                    }
-                    kcl_lib::errors::KclError::Unexpected(e) => {
-                        ("unexpected", e.source_ranges.clone(), e.message.clone())
-                    }
-                    kcl_lib::errors::KclError::ValueAlreadyDefined(e) => {
-                        ("value already defined", e.source_ranges.clone(), e.message.clone())
-                    }
-                    kcl_lib::errors::KclError::UndefinedValue(e) => {
-                        ("undefined value", e.source_ranges.clone(), e.message.clone())
-                    }
-                    kcl_lib::errors::KclError::InvalidExpression(_e) => (
-                        "invalid math expression",
-                        vec![kcl_lib::executor::SourceRange([0, 0])],
-                        err.to_string(),
-                    ),
-                    kcl_lib::errors::KclError::Engine(e) => ("engine", e.source_ranges.clone(), e.message.clone()),
-                };
-
-                // Calculate the line and column of the error from the source range.
-                let (line, column) = if let Some(range) = source_range.first() {
-                    let line = input[..range.0[0]].lines().count();
-                    let column = input[..range.0[0]].lines().last().map(|l| l.len()).unwrap_or_default();
-
-                    (Some(line), Some(column))
-                } else {
-                    (None, None)
-                };
-                (format!("{}: {}", type_, message), line, column)
-            }
+            ErrorTypes::Kcl(err) => err.get_message_line_column(&input),
         };
 
         Self {
