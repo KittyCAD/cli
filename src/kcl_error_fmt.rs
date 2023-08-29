@@ -53,18 +53,28 @@ impl KclError {
 
         let (message, line, column) = match error {
             ErrorTypes::Kcl(err) => {
-                let (source_range, message) = match &err {
-                    kcl_lib::errors::KclError::Syntax(e) => (e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::Semantic(e) => (e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::Type(e) => (e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::Unimplemented(e) => (e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::Unexpected(e) => (e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::ValueAlreadyDefined(e) => (e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::UndefinedValue(e) => (e.source_ranges.clone(), e.message.clone()),
-                    kcl_lib::errors::KclError::InvalidExpression(_e) => {
-                        (vec![kcl_lib::executor::SourceRange([0, 0])], err.to_string())
+                let (type_, source_range, message) = match &err {
+                    kcl_lib::errors::KclError::Syntax(e) => ("syntax", e.source_ranges.clone(), e.message.clone()),
+                    kcl_lib::errors::KclError::Semantic(e) => ("semantic", e.source_ranges.clone(), e.message.clone()),
+                    kcl_lib::errors::KclError::Type(e) => ("type", e.source_ranges.clone(), e.message.clone()),
+                    kcl_lib::errors::KclError::Unimplemented(e) => {
+                        ("unimplemented", e.source_ranges.clone(), e.message.clone())
                     }
-                    kcl_lib::errors::KclError::Engine(e) => (e.source_ranges.clone(), e.message.clone()),
+                    kcl_lib::errors::KclError::Unexpected(e) => {
+                        ("unexpected", e.source_ranges.clone(), e.message.clone())
+                    }
+                    kcl_lib::errors::KclError::ValueAlreadyDefined(e) => {
+                        ("value already defined", e.source_ranges.clone(), e.message.clone())
+                    }
+                    kcl_lib::errors::KclError::UndefinedValue(e) => {
+                        ("undefined value", e.source_ranges.clone(), e.message.clone())
+                    }
+                    kcl_lib::errors::KclError::InvalidExpression(_e) => (
+                        "invalid math expression",
+                        vec![kcl_lib::executor::SourceRange([0, 0])],
+                        err.to_string(),
+                    ),
+                    kcl_lib::errors::KclError::Engine(e) => ("engine", e.source_ranges.clone(), e.message.clone()),
                 };
 
                 // Calculate the line and column of the error from the source range.
@@ -76,7 +86,7 @@ impl KclError {
                 } else {
                     (None, None)
                 };
-                (message.to_string(), line, column)
+                (format!("{}: {}", type_, message), line, column)
             }
         };
 
