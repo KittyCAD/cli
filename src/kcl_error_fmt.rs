@@ -1,9 +1,6 @@
-use colored::Colorize;
+use std::fmt;
 
-use std::{
-    fmt,
-    sync::atomic::{AtomicBool, AtomicUsize, Ordering},
-};
+use colored::Colorize;
 
 /// Separator used between the line numbering and the lines.
 const SEPARATOR: &str = " | ";
@@ -52,22 +49,22 @@ impl KclError {
 
         let (message, line, column) = match error {
             ErrorTypes::Kcl(e) => {
-                let source_range = match e {
-                    kcl_lib::errors::KclError::Syntax(e) => e.source_ranges(),
-                    kcl_lib::errors::KclError::Semantic(e) => e.source_ranges(),
-                    kcl_lib::errors::KclError::Type(e) => e.source_ranges(),
-                    kcl_lib::errors::KclError::Unimplemented(e) => e.source_ranges(),
-                    kcl_lib::errors::KclError::Unexpected(e) => e.source_ranges(),
-                    kcl_lib::errors::KclError::ValueAlreadyDefined(e) => e.source_ranges(),
-                    kcl_lib::errors::KclError::UndefinedValue(e) => e.source_ranges(),
-                    kcl_lib::errors::KclError::InvalidExpression(e) => vec![kcl_lib::executor::SourceRange([0, 0])],
-                    kcl_lib::errors::KclError::Engine(e) => e.source_ranges(),
+                let source_range = match &e {
+                    kcl_lib::errors::KclError::Syntax(e) => e.source_ranges.clone(),
+                    kcl_lib::errors::KclError::Semantic(e) => e.source_ranges.clone(),
+                    kcl_lib::errors::KclError::Type(e) => e.source_ranges.clone(),
+                    kcl_lib::errors::KclError::Unimplemented(e) => e.source_ranges.clone(),
+                    kcl_lib::errors::KclError::Unexpected(e) => e.source_ranges.clone(),
+                    kcl_lib::errors::KclError::ValueAlreadyDefined(e) => e.source_ranges.clone(),
+                    kcl_lib::errors::KclError::UndefinedValue(e) => e.source_ranges.clone(),
+                    kcl_lib::errors::KclError::InvalidExpression(_e) => vec![kcl_lib::executor::SourceRange([0, 0])],
+                    kcl_lib::errors::KclError::Engine(e) => e.source_ranges.clone(),
                 };
 
                 // Calculate the line and column of the error from the source range.
                 let (line, column) = if let Some(range) = source_range.first() {
-                    let line = input[..range.start].lines().count();
-                    let column = input[..range.start].lines().last().map(|l| l.len()).unwrap_or_default();
+                    let line = input[..range.0[0]].lines().count();
+                    let column = input[..range.0[0]].lines().last().map(|l| l.len()).unwrap_or_default();
 
                     (Some(line), Some(column))
                 } else {
@@ -82,9 +79,13 @@ impl KclError {
             message,
             line,
             column,
-            contextualize: CONTEXTUALIZE.load(Ordering::Relaxed),
-            context_lines: CONTEXT_LINES.load(Ordering::Relaxed),
-            context_characters: CONTEXT_CHARACTERS.load(Ordering::Relaxed),
+            // If the output should be contextualized or not.
+            contextualize: true,
+            // Amount of lines to show before and after the line containing the error.
+            context_lines: 3,
+            // Amount of characters to show before and after the column containing the
+            // error.
+            context_characters: 30,
         }
     }
 
