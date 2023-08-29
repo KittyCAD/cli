@@ -222,22 +222,25 @@ fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::ty
     };
 
     match format {
+        kittycad::types::FileExportFormat::Fbx => kittycad::types::OutputFormat::Fbx {
+            storage: kittycad::types::FbxStorage::Binary,
+        },
         kittycad::types::FileExportFormat::Glb => kittycad::types::OutputFormat::Gltf {
-            storage: kittycad::types::Storage::Binary,
-            presentation: kittycad::types::Presentation::Compact,
+            storage: kittycad::types::GltfStorage::Binary,
+            presentation: kittycad::types::GltfPresentation::Compact,
         },
         kittycad::types::FileExportFormat::Gltf => kittycad::types::OutputFormat::Gltf {
-            storage: kittycad::types::Storage::Embedded,
-            presentation: kittycad::types::Presentation::Pretty,
+            storage: kittycad::types::GltfStorage::Embedded,
+            presentation: kittycad::types::GltfPresentation::Pretty,
         },
         kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj { coords },
         kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
-            storage: kittycad::types::Storage::Binary,
+            storage: kittycad::types::PlyStorage::Ascii,
             coords,
         },
         kittycad::types::FileExportFormat::Step => kittycad::types::OutputFormat::Step { coords },
         kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
-            storage: kittycad::types::Storage::Binary,
+            storage: kittycad::types::StlStorage::Ascii,
             coords,
         },
     }
