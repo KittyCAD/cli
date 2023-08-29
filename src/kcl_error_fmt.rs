@@ -1,3 +1,6 @@
+// A lot of the below is based upon https://github.com/AlexanderThaller/format_serde_error/tree/main
+// which is licensed under the MIT license. Thank you!
+
 use std::fmt;
 
 use colored::Colorize;
