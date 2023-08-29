@@ -165,7 +165,7 @@ impl KclError {
             .lines()
             .skip(skip)
             .take(take)
-            .map(|line| line.replace("\t", " "))
+            .map(|line| line.replace('\t', " "))
             .collect::<Vec<_>>();
 
         // If the minimized_input is empty we can assume that the input was empty as
@@ -201,7 +201,6 @@ impl KclError {
 
         self.input
             .lines()
-            .into_iter()
             .enumerate()
             .skip(skip)
             .take(take)
@@ -213,7 +212,7 @@ impl KclError {
                     text.chars()
                         .skip(whitespace_count)
                         .collect::<String>()
-                        .replace("\t", " "),
+                        .replace('\t', " "),
                 )
             })
             .try_for_each(|(line_position, text)| {
@@ -340,7 +339,7 @@ impl KclError {
 
         fill_line_position: &str,
     ) -> Result<(), std::fmt::Error> {
-        return writeln!(f, " {}{}{}", fill_line_position, separator, text.yellow());
+        writeln!(f, " {}{}{}", fill_line_position, separator, text.yellow())
     }
 
     fn context_long_line(text: &str, error_column: usize, context_chars: usize) -> (String, usize, bool, bool) {

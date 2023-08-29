@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 
-use crate::{config::Config, config_file::get_env_var, types::FormatOutput};
+use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
 pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
@@ -109,19 +109,23 @@ impl Context<'_> {
             .await?;
 
         let tokens = kcl_lib::tokeniser::lexer(code);
-        let program = kcl_lib::parser::abstract_syntax_tree(&tokens)?;
+        let program = kcl_lib::parser::abstract_syntax_tree(&tokens)
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
         let mut engine = kcl_lib::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str()).await?;
-        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)?;
+        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         // Send an export request to the engine.
-        engine.send_modeling_cmd(
-            uuid::Uuid::new_v4(),
-            kcl_lib::executor::SourceRange::default(),
-            kittycad::types::ModelingCmd::Export {
-                entity_ids: vec![],
-                format: get_output_format(format),
-            },
-        )?;
+        engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                kittycad::types::ModelingCmd::Export {
+                    entity_ids: vec![],
+                    format: get_output_format(format),
+                },
+            )
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         engine.wait_for_files().await;
 
