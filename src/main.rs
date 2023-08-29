@@ -23,6 +23,8 @@ pub mod cmd_drake;
 pub mod cmd_file;
 /// The generate command.
 pub mod cmd_generate;
+/// The kcl command.
+pub mod cmd_kcl;
 /// The open command.
 pub mod cmd_open;
 /// The say command.
@@ -33,6 +35,8 @@ pub mod cmd_update;
 pub mod cmd_user;
 /// The version command.
 pub mod cmd_version;
+/// Formatting for `kcl` errors.
+pub mod kcl_error_fmt;
 
 // Use of a mod or pub mod is not actually necessary.
 mod built_info {
@@ -130,6 +134,7 @@ enum SubCommand {
     Drake(cmd_drake::CmdDrake),
     File(cmd_file::CmdFile),
     Generate(cmd_generate::CmdGenerate),
+    Kcl(cmd_kcl::CmdKcl),
     Say(cmd_say::CmdSay),
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
@@ -247,6 +252,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Drake(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::File(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Generate(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::Kcl(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Say(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,

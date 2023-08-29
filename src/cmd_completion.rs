@@ -92,7 +92,7 @@ mod test {
             TestItem {
                 name: "bash completion".to_string(),
                 input: "bash".to_string(),
-                want_out: "complete -F _kittycad -o bashdefault -o default kittycad".to_string(),
+                want_out: "complete -F _kittycad -o nosort -o bashdefault -o default kittycad".to_string(),
                 want_err: "".to_string(),
             },
             TestItem {

@@ -1,9 +1,8 @@
 [package]
 name = "kittycad"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 build = "build.rs"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -14,8 +13,9 @@ atty = "0.2.14"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 chrono-humanize = "0.2.3"
 clap = { version = "4.4.1", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
-clap_complete = { version = "4.2.4" }
+clap_complete = { version = "4.4.0" }
 cli-macro = { path = "cli-macro" }
+colored = "2.0.4"
 colored_json = "3.2.0"
 data-encoding = "2"
 dialoguer = "0.10.2"
@@ -24,15 +24,16 @@ git_rev = "0.1.0"
 heck = "0.4.0"
 http = "0.2.6"
 itertools = "0.11.0"
+kcl-lib =  { version = "0.1.0" }
 kittycad = { version = "0.2.20", features = ["clap", "tabled", "requests", "retry"] }
 log = "0.4.20"
-regex = "1"
 num-traits = "0.2.14"
-open = "5.0.0"
 oauth2 = "4.2.3"
+open = "5.0.0"
 parse-display = "0.8.2"
 pulldown-cmark = "0.9.2"
 pulldown-cmark-to-cmark = "11.0.0"
+regex = "1"
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 ring = "0.16.20"
 #roff = { version = "0.2.1" }
@@ -47,16 +48,17 @@ slog-async = "2"
 slog-scope = "4"
 slog-stdlog = "4"
 slog-term = "2"
-tabwriter = "1.3.0"
 tabled = { version = "0.14.0", features = ["color"] }
+tabwriter = "1.3.0"
 termbg = "0.4.0"
-terminal_size = "0.2.1"
 terminal-spinners = "0.3.2"
+terminal_size = "0.2.1"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
 toml = "0.7.6"
 toml_edit = "0.19.14"
 url = "2.4.1"
+unicode-segmentation = "1.10.1"
 uuid = { version = "1.1", features = ["serde", "v4"] }
 version-compare = "0.1.0"
 

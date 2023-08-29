@@ -52,7 +52,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "existing command".to_string(),
             args: vec!["kittycad".to_string(), "completion".to_string()],
-            want_out: "complete -F _kittycad -o bashdefault -o default kittycad\n".to_string(),
+            want_out: "complete -F _kittycad -o nosort -o bashdefault -o default kittycad\n".to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -364,6 +364,36 @@ access-control-allow-credentials:  """#
             want_out: r#"Saved file conversion output(s) to:"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "export a kcl file as gltf".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "export".to_string(),
+                "--output-format=gltf".to_string(),
+                "tests/gear.kcl".to_string(),
+                "tests/".to_string(),
+            ],
+            want_out: r#""#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "export a kcl file with a parse error".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "export".to_string(),
+                "--output-format=gltf".to_string(),
+                "tests/parse_error.kcl".to_string(),
+                "tests/".to_string(),
+            ],
+            want_out: r#""#.to_string(),
+            want_err: "syntax: unexpected token".to_string(),
+            want_code: 1,
             ..Default::default()
         },
     ];

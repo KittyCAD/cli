@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 
-use crate::{config::Config, config_file::get_env_var, types::FormatOutput};
+use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
 pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
@@ -68,17 +68,68 @@ impl Context<'_> {
             }
         }
 
+        let user_agent = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"),);
+        let http_client = reqwest::Client::builder()
+            .user_agent(user_agent)
+            // For file conversions we need this to be long.
+            .timeout(std::time::Duration::from_secs(600))
+            .connect_timeout(std::time::Duration::from_secs(60));
+        let ws_client = reqwest::Client::builder()
+            .user_agent(user_agent)
+            // For file conversions we need this to be long.
+            .timeout(std::time::Duration::from_secs(600))
+            .connect_timeout(std::time::Duration::from_secs(60))
+            .tcp_keepalive(std::time::Duration::from_secs(600))
+            .http1_only();
+
         // Get the token for that host.
         let token = self.config.get(&host, "token")?;
 
         // Create the client.
-        let mut client = kittycad::Client::new(token);
+        let mut client = kittycad::Client::new_from_reqwest(token, http_client, ws_client);
 
         if baseurl != crate::DEFAULT_HOST {
             client.set_base_url(&baseurl);
         }
 
         Ok(client)
+    }
+
+    pub async fn export_kcl_file(
+        &self,
+        hostname: &str,
+        code: &str,
+        output_dir: &std::path::Path,
+        format: &kittycad::types::FileExportFormat,
+    ) -> Result<()> {
+        let client = self.api_client(hostname)?;
+        let ws = client
+            .modeling()
+            .commands_ws(None, None, None, None, Some(false))
+            .await?;
+
+        let tokens = kcl_lib::tokeniser::lexer(code);
+        let program = kcl_lib::parser::abstract_syntax_tree(&tokens)
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+        let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
+        let mut engine = kcl_lib::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str()).await?;
+        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+        // Send an export request to the engine.
+        engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                kittycad::types::ModelingCmd::Export {
+                    entity_ids: vec![],
+                    format: get_output_format(format),
+                },
+            )
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+
+        engine.wait_for_files().await;
+
+        Ok(())
     }
 
     /// This function opens a browser that is based on the configured
@@ -150,6 +201,48 @@ impl Context<'_> {
         }
 
         std::fs::read(filename).map_err(Into::into)
+    }
+}
+
+fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::types::OutputFormat {
+    // KittyCAD co-ordinate system.
+    //
+    // * Forward: -Y
+    // * Up: +Z
+    // * Handedness: Right
+    let coords = kittycad::types::System {
+        forward: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Y,
+            direction: kittycad::types::Direction::Negative,
+        },
+        up: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Z,
+            direction: kittycad::types::Direction::Positive,
+        },
+    };
+
+    match format {
+        kittycad::types::FileExportFormat::Fbx => kittycad::types::OutputFormat::Fbx {
+            storage: kittycad::types::FbxStorage::Binary,
+        },
+        kittycad::types::FileExportFormat::Glb => kittycad::types::OutputFormat::Gltf {
+            storage: kittycad::types::GltfStorage::Binary,
+            presentation: kittycad::types::GltfPresentation::Compact,
+        },
+        kittycad::types::FileExportFormat::Gltf => kittycad::types::OutputFormat::Gltf {
+            storage: kittycad::types::GltfStorage::Embedded,
+            presentation: kittycad::types::GltfPresentation::Pretty,
+        },
+        kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj { coords },
+        kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
+            storage: kittycad::types::PlyStorage::Ascii,
+            coords,
+        },
+        kittycad::types::FileExportFormat::Step => kittycad::types::OutputFormat::Step { coords },
+        kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
+            storage: kittycad::types::StlStorage::Ascii,
+            coords,
+        },
     }
 }
 
