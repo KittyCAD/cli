@@ -21,6 +21,7 @@ pub struct KclError {
     context_characters: usize,
 }
 
+/// The error types that we can pretty format.
 #[derive(Debug)]
 pub enum ErrorTypes {
     /// Contains [`kcl_lib::errors::KclError`].
