@@ -52,7 +52,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "existing command".to_string(),
             args: vec!["kittycad".to_string(), "completion".to_string()],
-            want_out: "complete -F _kittycad -o bashdefault -o default kittycad\n".to_string(),
+            want_out: "complete -F _kittycad -o nosort -o bashdefault -o default kittycad\n".to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
