@@ -108,15 +108,15 @@ impl Context<'_> {
             .commands_ws(None, None, None, None, Some(false))
             .await?;
 
-        let tokens = kcl::tokeniser::lexer(code);
-        let program = kcl::parser::abstract_syntax_tree(&tokens)?;
-        let mut mem: kcl::executor::ProgramMemory = Default::default();
-        let mut engine = kcl::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str()).await?;
-        let _ = kcl::executor::execute(program, &mut mem, kcl::executor::BodyType::Root, &mut engine)?;
+        let tokens = kcl_lib::tokeniser::lexer(code);
+        let program = kcl_lib::parser::abstract_syntax_tree(&tokens)?;
+        let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
+        let mut engine = kcl_lib::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str()).await?;
+        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)?;
         // Send an export request to the engine.
         engine.send_modeling_cmd(
             uuid::Uuid::new_v4(),
-            kcl::executor::SourceRange::default(),
+            kcl_lib::executor::SourceRange::default(),
             kittycad::types::ModelingCmd::Export {
                 entity_ids: vec![],
                 format: get_output_format(format),
