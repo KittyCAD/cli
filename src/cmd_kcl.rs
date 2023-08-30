@@ -200,8 +200,9 @@ impl crate::cmd::Command for CmdKclView {
             y: offset_y,
             // set dimensions
             width: Some(width as u32 - (offset_x * 2) as u32),
-            // Leave some rows at the bottom thats what the sub is for.
-            height: Some(height as u32 - ((offset_y * 2) - 2) as u32),
+            // Make sure to leave the last row at the bottom for the prompt.
+            // Which is what the +1 is.
+            height: Some(height as u32 - ((offset_y * 2) + 1) as u32),
             ..Default::default()
         };
         viuer::print_from_file(&tmp_file, &image_conf)?;
