@@ -191,8 +191,8 @@ impl crate::cmd::Command for CmdKclView {
 
         let (width, height) = (ctx.io.tty_size)()?;
 
-        let offset_x = 10;
-        let offset_y = 4;
+        let offset_x = 0;
+        let offset_y = 0;
         // Now we setup the terminal viewer.
         let image_conf = viuer::Config {
             // set offset
@@ -200,7 +200,8 @@ impl crate::cmd::Command for CmdKclView {
             y: offset_y,
             // set dimensions
             width: Some(width as u32 - (offset_x * 2) as u32),
-            height: Some(height as u32 - (offset_y * 2) as u32),
+            // Leave some rows at the bottom thats what the sub is for.
+            height: Some(height as u32 - ((offset_y * 2) - 2) as u32),
             ..Default::default()
         };
         viuer::print_from_file(&tmp_file, &image_conf)?;
