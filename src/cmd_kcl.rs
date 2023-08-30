@@ -116,12 +116,14 @@ pub struct CmdKclSnapshot {
 #[async_trait::async_trait]
 impl crate::cmd::Command for CmdKclSnapshot {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        // Make sure the output dir is a file.
-        if !self.output_file.is_file() {
-            anyhow::bail!(
-                "output file `{}` does not exist or is not a file",
-                self.output_file.to_str().unwrap_or("")
-            );
+        // Make sure the parent directory is a directory and exists.
+        if let Some(parent) = self.output_file.parent() {
+            if !parent.is_dir() {
+                anyhow::bail!(
+                    "directory `{}` does not exist or is not a directory",
+                    parent.to_str().unwrap_or("")
+                );
+            }
         }
 
         // Parse the image format.
@@ -140,6 +142,12 @@ impl crate::cmd::Command for CmdKclSnapshot {
         // This will not return until there are files.
         ctx.snapshot_kcl_file("", input, &self.output_file, &output_format)
             .await?;
+
+        writeln!(
+            ctx.io.out,
+            "Snapshot saved to `{}`",
+            self.output_file.to_str().unwrap_or("")
+        )?;
 
         Ok(())
     }
@@ -180,6 +188,19 @@ impl crate::cmd::Command for CmdKclView {
         // This will not return until there are files.
         ctx.snapshot_kcl_file("", input, &tmp_file, &kittycad::types::ImageFormat::Png)
             .await?;
+
+        // Now we setup the terminal viewer.
+        let image_conf = viuer::Config {
+            // set offset
+            x: 20,
+            y: 4,
+            // set dimensions
+            // TODO: get these from the current session.
+            width: Some(80),
+            height: Some(25),
+            ..Default::default()
+        };
+        viuer::print_from_file(&tmp_file, &image_conf)?;
 
         // Remove the temporary file.
         std::fs::remove_file(&tmp_file)?;
