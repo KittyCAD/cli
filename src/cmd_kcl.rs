@@ -189,15 +189,18 @@ impl crate::cmd::Command for CmdKclView {
         ctx.snapshot_kcl_file("", input, &tmp_file, &kittycad::types::ImageFormat::Png)
             .await?;
 
+        let (width, height) = (ctx.io.tty_size)()?;
+
+        let offset_x = 10;
+        let offset_y = 4;
         // Now we setup the terminal viewer.
         let image_conf = viuer::Config {
             // set offset
-            x: 20,
-            y: 4,
+            x: offset_x,
+            y: offset_y,
             // set dimensions
-            // TODO: get these from the current session.
-            width: Some(80),
-            height: Some(25),
+            width: Some(width as u32 - (offset_x * 2) as u32),
+            height: Some(height as u32 - (offset_y * 2) as u32),
             ..Default::default()
         };
         viuer::print_from_file(&tmp_file, &image_conf)?;
