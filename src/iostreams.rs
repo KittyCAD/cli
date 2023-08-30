@@ -27,7 +27,7 @@ pub struct IoStreams {
     stderr_is_tty: bool,
 
     terminal_width_override: i32,
-    tty_size: fn() -> Result<(i32, i32)>,
+    pub tty_size: fn() -> Result<(i32, i32)>,
 
     pager_command: String,
     pager_process: Option<std::process::Child>,

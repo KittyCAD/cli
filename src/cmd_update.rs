@@ -47,7 +47,7 @@ impl crate::cmd::Command for CmdUpdate {
             ctx.io.out,
             "{} Updated to v{}!",
             cs.success_icon(),
-            latest_release.version
+            latest_release.version.trim_start_matches('v')
         )?;
 
         Ok(())

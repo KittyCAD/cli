@@ -482,7 +482,7 @@ impl crate::cmd::Command for CmdFileSurfaceArea {
 }
 
 /// Get the extension for a path buffer.
-fn get_extension(path: std::path::PathBuf) -> String {
+pub fn get_extension(path: std::path::PathBuf) -> String {
     path.into_boxed_path()
         .extension()
         .unwrap_or_default()
