@@ -101,7 +101,7 @@ pub struct CmdKclSnapshot {
     pub input: std::path::PathBuf,
 
     /// The path to a file to output the image.
-    #[clap(name = "output-dir", required = true)]
+    #[clap(name = "output-file", required = true)]
     pub output_file: std::path::PathBuf,
 
     /// A valid output image format.
