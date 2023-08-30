@@ -95,6 +95,46 @@ impl Context<'_> {
         Ok(client)
     }
 
+    pub async fn snapshot_kcl_file(
+        &self,
+        hostname: &str,
+        code: &str,
+        output_file: &std::path::Path,
+        format: &kittycad::types::ImageFormat,
+    ) -> Result<()> {
+        let client = self.api_client(hostname)?;
+        let ws = client
+            .modeling()
+            .commands_ws(None, None, None, None, Some(false))
+            .await?;
+
+        let tokens = kcl_lib::tokeniser::lexer(code);
+        let program = kcl_lib::parser::abstract_syntax_tree(&tokens)
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+        let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
+        let mut engine = kcl_lib::engine::EngineConnection::new(
+            ws,
+            std::env::temp_dir().display().to_string().as_str(),
+            output_file.display().to_string().as_str(),
+        )
+        .await?;
+        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+
+        // Send a snapshot request to the engine.
+        engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                kittycad::types::ModelingCmd::TakeSnapshot { format: format.clone() },
+            )
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+
+        engine.wait_for_snapshot().await;
+
+        Ok(())
+    }
+
     pub async fn export_kcl_file(
         &self,
         hostname: &str,
@@ -112,9 +152,11 @@ impl Context<'_> {
         let program = kcl_lib::parser::abstract_syntax_tree(&tokens)
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
-        let mut engine = kcl_lib::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str()).await?;
+        let mut engine =
+            kcl_lib::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str(), "").await?;
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+
         // Send an export request to the engine.
         engine
             .send_modeling_cmd(
@@ -127,7 +169,7 @@ impl Context<'_> {
             )
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
-        engine.wait_for_files().await;
+        engine.wait_for_export().await;
 
         Ok(())
     }
