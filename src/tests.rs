@@ -410,6 +410,20 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
+        TestItem {
+            name: "snapshot a kcl file as png".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "snapshot".to_string(),
+                "tests/gear.kcl".to_string(),
+                "gear.png".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `gear.png`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();
