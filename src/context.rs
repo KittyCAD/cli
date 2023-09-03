@@ -109,7 +109,9 @@ impl Context<'_> {
             .await?;
 
         let tokens = kcl_lib::tokeniser::lexer(code);
-        let program = kcl_lib::parser::abstract_syntax_tree(&tokens)
+        let parser = kcl_lib::parser::Parser::new(tokens);
+        let program = parser
+            .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
         let mut engine = kcl_lib::engine::EngineConnection::new(
@@ -149,7 +151,9 @@ impl Context<'_> {
             .await?;
 
         let tokens = kcl_lib::tokeniser::lexer(code);
-        let program = kcl_lib::parser::abstract_syntax_tree(&tokens)
+        let parser = kcl_lib::parser::Parser::new(tokens);
+        let program = parser
+            .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
         let mut engine =
