@@ -74,6 +74,12 @@ jobs:
         with:
           path: releases
           destination: dl.kittycad.io
+      # Store the binary artifacts for retrival later.
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: release-${{ matrix.os }}-${{github.ref_name}}
+          path: ./cross
       # Store the readme as an artifact so we can combine the two.
       - name: Archive the README.md data
         uses: actions/upload-artifact@v3
@@ -92,6 +98,14 @@ jobs:
             toolchain: nightly
             override: true
             components: rustfmt, clippy
+      - uses: actions/download-artifact@v3
+        with:
+          name:  release-ubuntu-latest-${{github.ref_name}}
+          path: build
+      - uses: actions/download-artifact@v3
+        with:
+          name:  release-ubuntu-latest-${{github.ref_name}}
+          path: build
       - uses: actions/download-artifact@v3
         with:
           name:  ubuntu-latest-${{github.ref_name}}-README.md
@@ -127,6 +141,7 @@ jobs:
         with:
           body_path: ${{github.workspace}}/release.md
           prerelease: ${{steps.extract_prerelease.outputs.prerelease}}
+          files: ./build/*
   createhomebrew:
     runs-on: ubuntu-latest
     needs: [makerelease]
@@ -171,7 +186,7 @@ jobs:
           for i in "${!input_names[@]}"; do
             input_name="${input_names[$i]}"
             homebrew_name="${homebrew_names[$i]}"
-            
+
             mkdir "./homebrew/$homebrew_name"
             curl -L "https://dl.kittycad.io/releases/cli/$version/kittycad-$input_name" -o "./homebrew/$homebrew_name/kittycad"
 
@@ -193,7 +208,7 @@ jobs:
             rm -rf "./homebrew/$homebrew_name"
           done
 
-          # verify output, debug code remove later. 
+          # verify output, debug code remove later.
           echo "tarball and formula"
           (cd ./homebrew && ls)
           echo "formula contents"
