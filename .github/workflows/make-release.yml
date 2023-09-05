@@ -121,6 +121,8 @@ jobs:
           cat macos-latest-${{github.ref_name}}-README.md  \
             ubuntu-latest-${{github.ref_name}}-README.md \
               >> release.md
+          rm build/*-README.md
+          rm build/README.md
       - name: Get if prerelease
         shell: bash
         id: extract_prerelease
