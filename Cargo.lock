@@ -457,7 +457,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "time 0.3.23",
+ "time",
  "uuid",
 ]
 
@@ -535,11 +535,8 @@ checksum = "95ed24df0632f708f5f6d8082675bef2596f7084dee3dd55f632290bf35bfe0f"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
- "js-sys",
  "num-traits",
  "serde",
- "time 0.1.45",
- "wasm-bindgen",
  "windows-targets 0.48.1",
 ]
 
@@ -554,30 +551,12 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ea181bf566f71cb9a5d17a59e1871af638180a18fb0035c92ae62b705207123"
-dependencies = [
- "atty",
- "bitflags 1.3.2",
- "clap_derive 3.2.25",
- "clap_lex 0.2.4",
- "indexmap 1.9.3",
- "once_cell",
- "strsim",
- "termcolor",
- "textwrap",
- "unicase",
-]
-
-[[package]]
-name = "clap"
 version = "4.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a13b88d2c62ff462f88e4a121f17a82c1af05693a2f192b5c38d14de73c19f6"
 dependencies = [
  "clap_builder",
- "clap_derive 4.4.2",
+ "clap_derive",
 ]
 
 [[package]]
@@ -588,7 +567,7 @@ checksum = "2bb9faaa7c2ef94b2743a21f5a29e6f0010dff4caa69ac8e9d6cf8b6fa74da08"
 dependencies = [
  "anstream",
  "anstyle",
- "clap_lex 0.5.0",
+ "clap_lex",
  "strsim",
  "terminal_size",
  "unicase",
@@ -601,20 +580,7 @@ version = "4.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "586a385f7ef2f8b4d86bddaa0c094794e7ccbfe5ffef1f434fe928143fc783a5"
 dependencies = [
- "clap 4.4.2",
-]
-
-[[package]]
-name = "clap_derive"
-version = "3.2.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae6371b8bdc8b7d3959e9cf7b22d4435ef3e79e138688421ec654acf8c81b008"
-dependencies = [
- "heck 0.4.1",
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
+ "clap",
 ]
 
 [[package]]
@@ -627,15 +593,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.29",
-]
-
-[[package]]
-name = "clap_lex"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2850f2f5a82cbf437dd5af4d49848fbdfc27c157c3d010345776f952765261c5"
-dependencies = [
- "os_str_bytes",
 ]
 
 [[package]]
@@ -1298,7 +1255,7 @@ dependencies = [
  "cfg-if",
  "js-sys",
  "libc",
- "wasi 0.11.0+wasi-snapshot-preview1",
+ "wasi",
  "wasm-bindgen",
 ]
 
@@ -1686,7 +1643,7 @@ checksum = "24b4ed55c97b748f60446666595166ff685db4d2c456e8b7ae806622a9f8efc0"
 dependencies = [
  "anyhow",
  "bson",
- "clap 4.4.2",
+ "clap",
  "dashmap",
  "derive-docs",
  "futures",
@@ -1720,7 +1677,7 @@ dependencies = [
  "built",
  "chrono",
  "chrono-humanize",
- "clap 4.4.2",
+ "clap",
  "clap_complete",
  "cli-macro",
  "colored",
@@ -1787,7 +1744,7 @@ dependencies = [
  "base64 0.21.2",
  "bytes",
  "chrono",
- "clap 4.4.2",
+ "clap",
  "data-encoding",
  "format_serde_error",
  "futures",
@@ -1799,7 +1756,7 @@ dependencies = [
  "rand",
  "reqwest",
  "reqwest-conditional-middleware",
- "reqwest-middleware 0.2.3",
+ "reqwest-middleware",
  "reqwest-retry",
  "reqwest-tracing",
  "schemars",
@@ -1975,7 +1932,7 @@ checksum = "927a765cd3fc26206e66b296465fa9d3e5ab003e651c1b3c060e7956d96b19d2"
 dependencies = [
  "libc",
  "log",
- "wasi 0.11.0+wasi-snapshot-preview1",
+ "wasi",
  "windows-sys 0.48.0",
 ]
 
@@ -2145,14 +2102,13 @@ dependencies = [
 
 [[package]]
 name = "openapitor"
-version = "0.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "120168eae5b6485690af708bd1030547df62cca10a643763d416ab0e6831decb"
+version = "0.0.9"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#15c68afa52ab62dbfd332de03d2cd0978996cb35"
 dependencies = [
  "Inflector",
  "anyhow",
  "chrono",
- "clap 3.2.25",
+ "clap",
  "data-encoding",
  "format_serde_error",
  "futures-util",
@@ -2161,6 +2117,7 @@ dependencies = [
  "json-patch",
  "log",
  "numeral",
+ "once_cell",
  "openapiv3",
  "phonenumber",
  "proc-macro2",
@@ -2168,7 +2125,7 @@ dependencies = [
  "rand",
  "regex",
  "reqwest",
- "reqwest-middleware 0.1.6",
+ "reqwest-middleware",
  "rustfmt-wrapper",
  "schemars",
  "serde",
@@ -2181,7 +2138,6 @@ dependencies = [
  "slog-stdlog",
  "slog-term",
  "thiserror",
- "tokio",
  "url",
  "uuid",
 ]
@@ -2227,12 +2183,6 @@ name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
-
-[[package]]
-name = "os_str_bytes"
-version = "6.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d5d9eb14b174ee9aa2ef96dc2b94637a2d4b6e7cb873c7e171f0c20c6cf3eac"
 
 [[package]]
 name = "papergrid"
@@ -2709,24 +2659,8 @@ checksum = "59e50a2e70970896c99d1b8f20ddc30a70b30d3ac6e619a03a8353b64a49b277"
 dependencies = [
  "async-trait",
  "reqwest",
- "reqwest-middleware 0.2.3",
+ "reqwest-middleware",
  "task-local-extensions",
-]
-
-[[package]]
-name = "reqwest-middleware"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69539cea4148dce683bec9dc95be3f0397a9bb2c248a49c8296a9d21659a8cdd"
-dependencies = [
- "anyhow",
- "async-trait",
- "futures",
- "http",
- "reqwest",
- "serde",
- "task-local-extensions",
- "thiserror",
 ]
 
 [[package]]
@@ -2759,7 +2693,7 @@ dependencies = [
  "hyper",
  "parking_lot 0.11.2",
  "reqwest",
- "reqwest-middleware 0.2.3",
+ "reqwest-middleware",
  "retry-policies",
  "task-local-extensions",
  "tokio",
@@ -2779,7 +2713,7 @@ dependencies = [
  "matchit",
  "opentelemetry",
  "reqwest",
- "reqwest-middleware 0.2.3",
+ "reqwest-middleware",
  "task-local-extensions",
  "tracing",
  "tracing-opentelemetry",
@@ -3328,7 +3262,7 @@ dependencies = [
  "serde",
  "serde_json",
  "slog",
- "time 0.3.23",
+ "time",
 ]
 
 [[package]]
@@ -3363,7 +3297,7 @@ dependencies = [
  "slog",
  "term",
  "thread_local",
- "time 0.3.23",
+ "time",
 ]
 
 [[package]]
@@ -3644,15 +3578,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "textwrap"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
-dependencies = [
- "unicode-width",
-]
-
-[[package]]
 name = "thiserror"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3691,17 +3616,6 @@ dependencies = [
  "flate2",
  "jpeg-decoder",
  "weezl",
-]
-
-[[package]]
-name = "time"
-version = "0.1.45"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b797afad3f312d1c66a56d11d0316f916356d11bd158fbc6ca6389ff6bf805a"
-dependencies = [
- "libc",
- "wasi 0.10.0+wasi-snapshot-preview1",
- "winapi",
 ]
 
 [[package]]
@@ -4249,12 +4163,6 @@ checksum = "bfa7760aed19e106de2c7c0b581b509f2f25d3dacaf737cb82ac61bc6d760b0e"
 dependencies = [
  "try-lock",
 ]
-
-[[package]]
-name = "wasi"
-version = "0.10.0+wasi-snapshot-preview1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
 
 [[package]]
 name = "wasi"
