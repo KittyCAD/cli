@@ -11,7 +11,7 @@ jobs:
     name: make release
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1.1.1'
         with:
@@ -91,7 +91,7 @@ jobs:
     needs: [makerelease]
     name: createrelease
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Install latest nightly
         uses: actions-rs/toolchain@v1
         with:
@@ -227,7 +227,7 @@ jobs:
         with:
           path: releases
           destination: dl.kittycad.io
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: 'kittycad/homebrew-kittycad'
           path: 'homebrew-kittycad'
