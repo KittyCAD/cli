@@ -57,7 +57,6 @@ impl crate::cmd::Command for CmdApiCallStatus {
             created_at: _,
             error: _,
             id: _,
-            output: _,
             output_format: _,
             output_format_options: _,
             outputs,

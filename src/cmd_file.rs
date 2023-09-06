@@ -127,9 +127,8 @@ impl crate::cmd::Command for CmdFileConvert {
             }
         }
 
-        // Reset the output(s) field of the file conversion.
+        // Reset the outputs field of the file conversion.
         // Otherwise what we print will be crazy big.
-        file_conversion.output = None;
         file_conversion.outputs = None;
 
         // Print the output of the conversion.
