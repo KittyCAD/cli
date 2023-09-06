@@ -13,3 +13,4 @@ releases
 
 # macos cruft
 .DS_Store
+/gear.png
