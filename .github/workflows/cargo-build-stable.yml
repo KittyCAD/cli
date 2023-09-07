@@ -7,7 +7,6 @@ on:
       - Cargo.toml
       - Cargo.lock
       - .github/workflows/cargo-build.yml
-      - 'rust-toolchain'
       - 'rust-toolchain.toml'
       - 'spec.json'
   pull_request:
@@ -16,7 +15,6 @@ on:
       - Cargo.toml
       - Cargo.lock
       - .github/workflows/cargo-build.yml
-      - 'rust-toolchain'
       - 'rust-toolchain.toml'
       - 'spec.json'
 name: cargo build (stable)
