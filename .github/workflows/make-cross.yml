@@ -8,7 +8,6 @@ on:
       - Cargo.lock
       - .github/workflows/make-cross.yml
       - Makefile
-      - 'rust-toolchain'
       - 'rust-toolchain.toml'
       - 'spec.json'
   pull_request:
@@ -16,8 +15,7 @@ on:
       - '**.rs'
       - Cargo.toml
       - Cargo.lock
-      - .github/workflows/cargo-build.yml
-      - 'rust-toolchain'
+      - .github/workflows/make-cross.yml
       - 'rust-toolchain.toml'
       - 'spec.json'
 name: make cross
@@ -35,7 +33,6 @@ jobs:
         with:
             toolchain: stable
             override: true
-            components: rustfmt, clippy
       - if: ${{ matrix.os == 'ubuntu-latest' }}
         name: Install deps
         shell: bash

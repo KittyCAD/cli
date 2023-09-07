@@ -8,7 +8,6 @@ on:
       - Cargo.toml
       - Cargo.lock
       - .github/workflows/cargo-test.yml
-      - 'rust-toolchain'
       - 'rust-toolchain.toml'
       - 'Makefile'
       - 'spec.json'
@@ -18,13 +17,11 @@ on:
       - '**.rs.gen'
       - Cargo.toml
       - Cargo.lock
-      - .github/workflows/cargo-build.yml
-      - 'rust-toolchain'
+      - .github/workflows/cargo-test.yml
       - 'rust-toolchain.toml'
       - 'Makefile'
       - 'spec.json'
   workflow_dispatch:
-    inputs:
 permissions: read-all
 name: cargo test
 jobs:
@@ -38,7 +35,6 @@ jobs:
         with:
             toolchain: stable
             override: true
-            components: rustfmt, clippy
       - name: Cache cargo registry
         uses: actions/cache@v3
         with:
