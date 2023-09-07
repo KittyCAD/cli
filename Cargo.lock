@@ -1521,6 +1521,7 @@ checksum = "d5477fe2230a79769d8dc68e0eabf5437907c0457a5614a9e8dddb67f65eb65d"
 dependencies = [
  "equivalent",
  "hashbrown 0.14.0",
+ "serde",
 ]
 
 [[package]]
@@ -2103,7 +2104,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#15c68afa52ab62dbfd332de03d2cd0978996cb35"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#d3819e86e45475203dd57f1ed647ea1e72a8a916"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -2113,7 +2114,7 @@ dependencies = [
  "format_serde_error",
  "futures-util",
  "http",
- "indexmap 1.9.3",
+ "indexmap 2.0.0",
  "json-patch",
  "log",
  "numeral",
