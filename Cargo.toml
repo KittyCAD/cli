@@ -56,7 +56,7 @@ terminal-spinners = "0.3.2"
 terminal_size = "0.2.1"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
-toml = "0.7.6"
+toml = "0.7.7"
 toml_edit = "0.19.14"
 url = "2.4.1"
 unicode-segmentation = "1.10.1"
