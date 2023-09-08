@@ -13,7 +13,7 @@ atty = "0.2.14"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 chrono-humanize = "0.2.3"
 clap = { version = "4.4.2", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
-clap_complete = { version = "4.4.0" }
+clap_complete = { version = "4.4.1" }
 cli-macro = { path = "cli-macro" }
 colored = "2.0.4"
 colored_json = "3.2.0"
