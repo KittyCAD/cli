@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use anyhow::Result;
 use clap::Parser;
+use kittycad::types::error::Error as KcError;
 
 /// Perform operations on CAD files.
 ///
@@ -103,10 +104,19 @@ impl crate::cmd::Command for CmdFileConvert {
         let client = ctx.api_client("")?;
 
         // Create the file conversion.
-        let mut file_conversion = client
+        let file_conversion_res = client
             .file()
             .create_conversion(self.output_format.clone(), src_format, &input.into())
-            .await?;
+            .await;
+
+        let mut file_conversion = match file_conversion_res {
+            Ok(f) => f,
+            Err(KcError::UnexpectedResponse(err_resp)) => {
+                let body = err_resp.text().await?;
+                anyhow::bail!("Error:\n{body:#}")
+            }
+            Err(e) => return Err(e.into()),
+        };
 
         // If they specified an output file, save the output to that file.
         if file_conversion.status == kittycad::types::ApiCallStatus::Completed {
