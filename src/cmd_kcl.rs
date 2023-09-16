@@ -78,8 +78,27 @@ impl crate::cmd::Command for CmdKclExport {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        ctx.export_kcl_file("", input, &self.output_dir, &self.output_format)
+        let resp = ctx
+            .send_modeling_cmd(
+                "",
+                input,
+                kittycad::types::ModelingCmd::Export {
+                    entity_ids: vec![],
+                    format: get_output_format(&self.output_format),
+                },
+            )
             .await?;
+
+        if let kittycad::types::OkWebSocketResponseData::Export { files } = resp {
+            // Save the files to our export directory.
+            for file in files {
+                let path = self.output_dir.join(file.name);
+                std::fs::write(&path, file.contents)?;
+                println!("Wrote file: {}", path.display());
+            }
+        } else {
+            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        }
 
         Ok(())
     }
@@ -140,8 +159,23 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        ctx.snapshot_kcl_file("", input, &self.output_file, &output_format)
+        let resp = ctx
+            .send_modeling_cmd(
+                "",
+                input,
+                kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+            )
             .await?;
+
+        if let kittycad::types::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+        } = &resp
+        {
+            // Save the snapshot locally.
+            std::fs::write(&self.output_file, &data.contents.0)?;
+        } else {
+            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        }
 
         writeln!(
             ctx.io.out,
@@ -186,8 +220,25 @@ impl crate::cmd::Command for CmdKclView {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        ctx.snapshot_kcl_file("", input, &tmp_file, &kittycad::types::ImageFormat::Png)
+        let resp = ctx
+            .send_modeling_cmd(
+                "",
+                input,
+                kittycad::types::ModelingCmd::TakeSnapshot {
+                    format: kittycad::types::ImageFormat::Png,
+                },
+            )
             .await?;
+
+        if let kittycad::types::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+        } = &resp
+        {
+            // Save the snapshot locally.
+            std::fs::write(&tmp_file, &data.contents.0)?;
+        } else {
+            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        }
 
         let (width, height) = (ctx.io.tty_size)()?;
 
@@ -224,5 +275,47 @@ fn get_image_format_from_extension(ext: &str) -> Result<kittycad::types::ImageFo
                     ext
                 )
         }
+    }
+}
+
+fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::types::OutputFormat {
+    // KittyCAD co-ordinate system.
+    //
+    // * Forward: -Y
+    // * Up: +Z
+    // * Handedness: Right
+    let coords = kittycad::types::System {
+        forward: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Y,
+            direction: kittycad::types::Direction::Negative,
+        },
+        up: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Z,
+            direction: kittycad::types::Direction::Positive,
+        },
+    };
+
+    match format {
+        kittycad::types::FileExportFormat::Fbx => kittycad::types::OutputFormat::Fbx {
+            storage: kittycad::types::FbxStorage::Binary,
+        },
+        kittycad::types::FileExportFormat::Glb => kittycad::types::OutputFormat::Gltf {
+            storage: kittycad::types::GltfStorage::Binary,
+            presentation: kittycad::types::GltfPresentation::Compact,
+        },
+        kittycad::types::FileExportFormat::Gltf => kittycad::types::OutputFormat::Gltf {
+            storage: kittycad::types::GltfStorage::Embedded,
+            presentation: kittycad::types::GltfPresentation::Pretty,
+        },
+        kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj { coords },
+        kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
+            storage: kittycad::types::PlyStorage::Ascii,
+            coords,
+        },
+        kittycad::types::FileExportFormat::Step => kittycad::types::OutputFormat::Step { coords },
+        kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
+            storage: kittycad::types::StlStorage::Ascii,
+            coords,
+        },
     }
 }

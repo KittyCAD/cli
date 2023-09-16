@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
+use kittycad::types::OkWebSocketResponseData;
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
@@ -95,13 +96,12 @@ impl Context<'_> {
         Ok(client)
     }
 
-    pub async fn snapshot_kcl_file(
+    pub async fn send_modeling_cmd(
         &self,
         hostname: &str,
         code: &str,
-        output_file: &std::path::Path,
-        format: &kittycad::types::ImageFormat,
-    ) -> Result<()> {
+        cmd: kittycad::types::ModelingCmd,
+    ) -> Result<OkWebSocketResponseData> {
         let client = self.api_client(hostname)?;
         let ws = client
             .modeling()
@@ -114,68 +114,15 @@ impl Context<'_> {
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
-        let mut engine = kcl_lib::engine::EngineConnection::new(
-            ws,
-            std::env::temp_dir().display().to_string().as_str(),
-            output_file.display().to_string().as_str(),
-        )
-        .await?;
+        let mut engine = kcl_lib::engine::EngineConnection::new(ws).await?;
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         // Send a snapshot request to the engine.
-        engine
-            .send_modeling_cmd(
-                uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::TakeSnapshot { format: format.clone() },
-            )
+        let resp = engine
+            .send_modeling_cmd_get_response(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-
-        engine.wait_for_snapshot().await;
-
-        Ok(())
-    }
-
-    pub async fn export_kcl_file(
-        &self,
-        hostname: &str,
-        code: &str,
-        output_dir: &std::path::Path,
-        format: &kittycad::types::FileExportFormat,
-    ) -> Result<()> {
-        let client = self.api_client(hostname)?;
-        let ws = client
-            .modeling()
-            .commands_ws(None, None, None, None, Some(false))
-            .await?;
-
-        let tokens = kcl_lib::tokeniser::lexer(code);
-        let parser = kcl_lib::parser::Parser::new(tokens);
-        let program = parser
-            .ast()
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-        let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
-        let mut engine =
-            kcl_lib::engine::EngineConnection::new(ws, output_dir.display().to_string().as_str(), "").await?;
-        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-
-        // Send an export request to the engine.
-        engine
-            .send_modeling_cmd(
-                uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::Export {
-                    entity_ids: vec![],
-                    format: get_output_format(format),
-                },
-            )
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-
-        engine.wait_for_export().await;
-
-        Ok(())
+        Ok(resp)
     }
 
     /// This function opens a browser that is based on the configured
@@ -247,48 +194,6 @@ impl Context<'_> {
         }
 
         std::fs::read(filename).map_err(Into::into)
-    }
-}
-
-fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::types::OutputFormat {
-    // KittyCAD co-ordinate system.
-    //
-    // * Forward: -Y
-    // * Up: +Z
-    // * Handedness: Right
-    let coords = kittycad::types::System {
-        forward: kittycad::types::AxisDirectionPair {
-            axis: kittycad::types::Axis::Y,
-            direction: kittycad::types::Direction::Negative,
-        },
-        up: kittycad::types::AxisDirectionPair {
-            axis: kittycad::types::Axis::Z,
-            direction: kittycad::types::Direction::Positive,
-        },
-    };
-
-    match format {
-        kittycad::types::FileExportFormat::Fbx => kittycad::types::OutputFormat::Fbx {
-            storage: kittycad::types::FbxStorage::Binary,
-        },
-        kittycad::types::FileExportFormat::Glb => kittycad::types::OutputFormat::Gltf {
-            storage: kittycad::types::GltfStorage::Binary,
-            presentation: kittycad::types::GltfPresentation::Compact,
-        },
-        kittycad::types::FileExportFormat::Gltf => kittycad::types::OutputFormat::Gltf {
-            storage: kittycad::types::GltfStorage::Embedded,
-            presentation: kittycad::types::GltfPresentation::Pretty,
-        },
-        kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj { coords },
-        kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
-            storage: kittycad::types::PlyStorage::Ascii,
-            coords,
-        },
-        kittycad::types::FileExportFormat::Step => kittycad::types::OutputFormat::Step { coords },
-        kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
-            storage: kittycad::types::StlStorage::Ascii,
-            coords,
-        },
     }
 }
 
