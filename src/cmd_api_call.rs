@@ -18,7 +18,7 @@ enum SubCommand {
     Status(CmdApiCallStatus),
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdApiCall {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
@@ -43,7 +43,7 @@ pub struct CmdApiCallStatus {
     pub format: Option<crate::types::FormatOutput>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdApiCallStatus {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let client = ctx.api_client("")?;

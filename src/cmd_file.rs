@@ -25,7 +25,7 @@ enum SubCommand {
     SurfaceArea(CmdFileSurfaceArea),
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFile {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
@@ -79,7 +79,7 @@ pub struct CmdFileConvert {
     pub format: Option<crate::types::FormatOutput>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFileConvert {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Make sure the output dir is a directory.
@@ -181,7 +181,7 @@ pub struct CmdFileVolume {
     pub output_unit: kittycad::types::UnitVolume,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFileVolume {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Parse the source format.
@@ -250,7 +250,7 @@ pub struct CmdFileMass {
     pub output_unit: kittycad::types::UnitMass,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFileMass {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         if self.material_density == 0.0 {
@@ -321,7 +321,7 @@ pub struct CmdFileCenterOfMass {
     pub output_unit: kittycad::types::UnitLength,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFileCenterOfMass {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Parse the source format.
@@ -390,7 +390,7 @@ pub struct CmdFileDensity {
     pub output_unit: kittycad::types::UnitDensity,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFileDensity {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         if self.material_mass == 0.0 {
@@ -461,7 +461,7 @@ pub struct CmdFileSurfaceArea {
     pub output_unit: kittycad::types::UnitArea,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFileSurfaceArea {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Parse the source format.

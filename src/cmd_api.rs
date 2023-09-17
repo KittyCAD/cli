@@ -79,7 +79,7 @@ pub struct PaginatableResponse {
     pub next_page: Option<String>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdApi {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Let's get the api client.

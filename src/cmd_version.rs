@@ -10,7 +10,7 @@ pub struct CmdVersion {
     pub web: bool,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdVersion {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let version = clap::crate_version!();

@@ -14,7 +14,7 @@ pub struct CmdSay {
     pub input: Vec<String>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdSay {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let kitty_speaking = !self.input.is_empty();

@@ -18,7 +18,7 @@ pub struct CmdUser {
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {}
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdUser {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {

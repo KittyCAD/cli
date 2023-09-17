@@ -790,7 +790,7 @@ impl Operation {
                 #(#additional_struct_params)*
             }
 
-            #[async_trait::async_trait]
+            #[async_trait::async_trait(?Send)]
             impl crate::cmd::Command for #struct_name {
                 async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
                     #(#mutable_variables)*
@@ -913,7 +913,7 @@ impl Operation {
                 #(#additional_struct_params)*
             }
 
-            #[async_trait::async_trait]
+            #[async_trait::async_trait(?Send)]
             impl crate::cmd::Command for #struct_name {
                 async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
                     #check_nothing_to_edit
@@ -1006,7 +1006,7 @@ impl Operation {
                 #format_flag
             }
 
-            #[async_trait::async_trait]
+            #[async_trait::async_trait(?Send)]
             impl crate::cmd::Command for #struct_name {
                 async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
                     if self.web {
@@ -1083,7 +1083,7 @@ impl Operation {
                 #format_flag
             }
 
-            #[async_trait::async_trait]
+            #[async_trait::async_trait(?Send)]
             impl crate::cmd::Command for #struct_name {
                 async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
                     if self.limit < 1 {
@@ -1197,7 +1197,7 @@ impl Operation {
                 pub confirm: bool,
             }
 
-            #[async_trait::async_trait]
+            #[async_trait::async_trait(?Send)]
             impl crate::cmd::Command for #struct_name {
                 async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
                     if !ctx.io.can_prompt() && !self.confirm {

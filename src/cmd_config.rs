@@ -24,7 +24,7 @@ enum SubCommand {
     Get(CmdConfigGet),
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdConfig {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
@@ -48,7 +48,7 @@ pub struct CmdConfigGet {
     pub host: String,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdConfigGet {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match ctx.config.get(&self.host, &self.key) {
@@ -79,7 +79,7 @@ pub struct CmdConfigSet {
     pub host: String,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdConfigSet {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let cs = ctx.io.color_scheme();
@@ -124,7 +124,7 @@ pub struct CmdConfigList {
     pub host: String,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdConfigList {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let host = if self.host.is_empty() {

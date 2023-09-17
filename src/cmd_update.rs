@@ -9,7 +9,7 @@ use clap::Parser;
 #[clap(verbatim_doc_comment)]
 pub struct CmdUpdate {}
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdUpdate {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         if crate::update::is_under_homebrew()? {

@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
+use kcl_lib::engine::EngineManager;
 use kittycad::types::OkWebSocketResponseData;
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
@@ -121,6 +122,7 @@ impl Context<'_> {
         // Send a snapshot request to the engine.
         let resp = engine
             .send_modeling_cmd_get_response(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         Ok(resp)
     }

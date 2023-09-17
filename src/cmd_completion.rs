@@ -56,7 +56,7 @@ pub struct CmdCompletion {
     pub shell: Shell,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdCompletion {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Convert our opts into a clap app.

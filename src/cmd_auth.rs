@@ -21,7 +21,7 @@ enum SubCommand {
     Status(CmdAuthStatus),
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAuth {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
@@ -113,7 +113,7 @@ pub struct CmdAuthLogin {
     pub web: bool,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAuthLogin {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         if !ctx.io.can_prompt() && !self.with_token {
@@ -311,7 +311,7 @@ pub struct CmdAuthLogout {
     pub host: Option<url::Url>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAuthLogout {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         if self.host.is_none() && !ctx.io.can_prompt() {
@@ -438,7 +438,7 @@ pub struct CmdAuthStatus {
     pub host: Option<url::Url>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAuthStatus {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let cs = ctx.io.color_scheme();

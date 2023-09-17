@@ -60,7 +60,7 @@ impl OpenShortcut {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdOpen {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         ctx.browser("", &self.shortcut.get_url())

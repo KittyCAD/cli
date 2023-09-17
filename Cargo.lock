@@ -1639,11 +1639,12 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.28"
+version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff7bc0c8fe6b2748432649007dbbb53a1815f7c1295d988d7a2fbd008cdf1e4c"
+checksum = "45d87aa5de0ef9ddc4def7cf8e36c3f6e7953275cb16ab2fa91a367b9656a671"
 dependencies = [
  "anyhow",
+ "async-trait",
  "bson",
  "clap",
  "dashmap",
@@ -1666,6 +1667,7 @@ dependencies = [
  "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

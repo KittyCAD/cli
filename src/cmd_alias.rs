@@ -21,7 +21,7 @@ enum SubCommand {
     List(CmdAliasList),
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAlias {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
@@ -41,7 +41,7 @@ pub struct CmdAliasDelete {
     pub alias: String,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAliasDelete {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let mut alias_config = ctx.config.aliases()?;
@@ -102,7 +102,7 @@ pub struct CmdAliasSet {
     pub shell: bool,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAliasSet {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let cs = ctx.io.color_scheme();
@@ -173,7 +173,7 @@ impl crate::cmd::Command for CmdAliasSet {
 #[clap(verbatim_doc_comment)]
 pub struct CmdAliasList {}
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAliasList {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let config_aliases = ctx.config.aliases()?;

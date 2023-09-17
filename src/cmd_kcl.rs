@@ -18,7 +18,7 @@ enum SubCommand {
     View(CmdKclView),
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKcl {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
@@ -60,7 +60,7 @@ pub struct CmdKclExport {
     pub format: Option<crate::types::FormatOutput>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclExport {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Make sure the output dir is a directory.
@@ -132,7 +132,7 @@ pub struct CmdKclSnapshot {
     pub format: Option<crate::types::FormatOutput>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclSnapshot {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Make sure the parent directory is a directory and exists.
@@ -206,7 +206,7 @@ pub struct CmdKclView {
     pub format: Option<crate::types::FormatOutput>,
 }
 
-#[async_trait::async_trait]
+#[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclView {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Get the contents of the input file.

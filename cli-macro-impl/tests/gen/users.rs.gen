@@ -19,7 +19,7 @@ pub struct CmdUserView {
     pub format: Option<crate::types::FormatOutput>,
 }
 
-#[async_trait::async_trait]
+# [async_trait :: async_trait (? Send)]
 impl crate::cmd::Command for CmdUserView {
     async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
         if self.web {
@@ -60,7 +60,7 @@ pub struct CmdUserEdit {
     pub new_phone: kittycad::types::phone_number::PhoneNumber,
 }
 
-#[async_trait::async_trait]
+# [async_trait :: async_trait (? Send)]
 impl crate::cmd::Command for CmdUserEdit {
     async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
         if self.new_company.is_none()
@@ -108,7 +108,7 @@ pub struct CmdUserDelete {
     pub confirm: bool,
 }
 
-#[async_trait::async_trait]
+# [async_trait :: async_trait (? Send)]
 impl crate::cmd::Command for CmdUserDelete {
     async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
         if !ctx.io.can_prompt() && !self.confirm {
