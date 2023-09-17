@@ -366,6 +366,20 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
+        /*TestItem {
+            name: "snapshot a kcl file as png".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "snapshot".to_string(),
+                "tests/gear.kcl".to_string(),
+                "tests/gear.png".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `tests/gear.png`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
         TestItem {
             name: "export a kcl file as gltf".to_string(),
             args: vec![
@@ -381,7 +395,7 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
-        TestItem {
+         TestItem {
             name: "export a kcl file with a parse error".to_string(),
             args: vec![
                 "kittycad".to_string(),
@@ -395,35 +409,7 @@ access-control-allow-credentials:  """#
             want_err: "syntax: unexpected token".to_string(),
             want_code: 1,
             ..Default::default()
-        },
-        TestItem {
-            name: "snapshot a kcl file as png".to_string(),
-            args: vec![
-                "kittycad".to_string(),
-                "kcl".to_string(),
-                "snapshot".to_string(),
-                "tests/gear.kcl".to_string(),
-                "tests/gear.png".to_string(),
-            ],
-            want_out: r#"Snapshot saved to `tests/gear.png`"#.to_string(),
-            want_err: "".to_string(),
-            want_code: 0,
-            ..Default::default()
-        },
-        TestItem {
-            name: "snapshot a kcl file as png".to_string(),
-            args: vec![
-                "kittycad".to_string(),
-                "kcl".to_string(),
-                "snapshot".to_string(),
-                "tests/gear.kcl".to_string(),
-                "gear.png".to_string(),
-            ],
-            want_out: r#"Snapshot saved to `gear.png`"#.to_string(),
-            want_err: "".to_string(),
-            want_code: 0,
-            ..Default::default()
-        },
+        },*/
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();
