@@ -6488,6 +6488,36 @@
             "type": "object"
           },
           {
+            "description": "Get curves for vertices within a path",
+            "properties": {
+              "path_id": {
+                "description": "Which path to query",
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "path_get_curve_uuids_for_vertices"
+                ],
+                "type": "string"
+              },
+              "vertex_ids": {
+                "description": "IDs of the vertices for which to obtain curve ids from",
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "path_id",
+              "type",
+              "vertex_ids"
+            ],
+            "type": "object"
+          },
+          {
             "description": "Start dragging mouse.",
             "properties": {
               "type": {
@@ -7333,6 +7363,25 @@
             "type": "object"
           },
           {
+            "description": "The response from the `Path Get Curve UUIDs for Vertices` command.",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/PathGetCurveUuidsForVertices"
+              },
+              "type": {
+                "enum": [
+                  "path_get_curve_uuids_for_vertices"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
             "description": "The response from the `PlaneIntersectAndProject` command.",
             "properties": {
               "data": {
@@ -7774,6 +7823,23 @@
           "add_arc"
         ],
         "type": "string"
+      },
+      "PathGetCurveUuidsForVertices": {
+        "description": "The response from the `PathGetCurveUuidsForVertices` command.",
+        "properties": {
+          "curve_ids": {
+            "description": "The UUIDs of the curve entities.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "curve_ids"
+        ],
+        "type": "object"
       },
       "PathGetInfo": {
         "description": "The response from the `PathGetInfo` command.",
