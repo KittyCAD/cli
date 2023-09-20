@@ -64,7 +64,7 @@ version-compare = "0.1.0"
 viuer = { version = "0.6.2", features = [] }
 
 [build-dependencies]
-built = "0.6"
+built = "0.7"
 
 [dev-dependencies]
 expectorate = "1.0.7"
