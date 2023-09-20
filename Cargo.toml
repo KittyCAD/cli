@@ -53,7 +53,7 @@ tabled = { version = "0.14.0", features = ["color"] }
 tabwriter = "1.3.0"
 termbg = "0.4.0"
 terminal-spinners = "0.3.2"
-terminal_size = "0.2.1"
+terminal_size = "0.3.0"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
 toml = "0.8.0"
