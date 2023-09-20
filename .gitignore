@@ -10,6 +10,9 @@ osxcross
 generated_docs
 # While running release github actions.
 releases
+# IDE folders
+.vscode
+.idea
 
 # macos cruft
 .DS_Store
