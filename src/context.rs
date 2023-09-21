@@ -117,11 +117,12 @@ impl Context<'_> {
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
         let mut engine = kcl_lib::engine::EngineConnection::new(ws).await?;
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &mut engine)
+            .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         // Send a snapshot request to the engine.
         let resp = engine
-            .send_modeling_cmd_get_response(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         Ok(resp)
