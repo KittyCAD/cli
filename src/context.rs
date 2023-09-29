@@ -109,7 +109,7 @@ impl Context<'_> {
             .commands_ws(None, None, None, None, Some(false))
             .await?;
 
-        let tokens = kcl_lib::tokeniser::lexer(code);
+        let tokens = kcl_lib::token::lexer(code);
         let parser = kcl_lib::parser::Parser::new(tokens);
         let program = parser
             .ast()

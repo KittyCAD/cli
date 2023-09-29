@@ -55,6 +55,10 @@ pub struct CmdKclExport {
     #[clap(short = 't', long = "output-format", value_enum)]
     output_format: kittycad::types::FileExportFormat,
 
+    /// The source unit to use for the kcl file.
+    #[clap(long, short = 's', value_enum)]
+    pub src_unit: kittycad::types::UnitLength,
+
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
@@ -84,7 +88,8 @@ impl crate::cmd::Command for CmdKclExport {
                 input,
                 kittycad::types::ModelingCmd::Export {
                     entity_ids: vec![],
-                    format: get_output_format(&self.output_format),
+                    format: get_output_format(&self.output_format, self.src_unit.clone()),
+                    source_unit: self.src_unit.clone(),
                 },
             )
             .await?;
@@ -278,7 +283,10 @@ fn get_image_format_from_extension(ext: &str) -> Result<kittycad::types::ImageFo
     }
 }
 
-fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::types::OutputFormat {
+fn get_output_format(
+    format: &kittycad::types::FileExportFormat,
+    src_unit: kittycad::types::UnitLength,
+) -> kittycad::types::OutputFormat {
     // KittyCAD co-ordinate system.
     //
     // * Forward: -Y
@@ -307,7 +315,10 @@ fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::ty
             storage: kittycad::types::GltfStorage::Embedded,
             presentation: kittycad::types::GltfPresentation::Pretty,
         },
-        kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj { coords },
+        kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj {
+            coords,
+            units: src_unit,
+        },
         kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
             storage: kittycad::types::PlyStorage::Ascii,
             coords,
@@ -316,6 +327,7 @@ fn get_output_format(format: &kittycad::types::FileExportFormat) -> kittycad::ty
         kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
             storage: kittycad::types::StlStorage::Ascii,
             coords,
+            units: src_unit,
         },
     }
 }
