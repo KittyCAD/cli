@@ -67,7 +67,7 @@ viuer = { version = "0.6.2", features = [] }
 built = "0.7"
 
 [dev-dependencies]
-expectorate = "1.0.7"
+expectorate = "1.1.0"
 futures = "0.3"
 pretty_assertions = "1"
 serial_test = "2.0.0"
