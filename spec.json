@@ -3755,6 +3755,41 @@
         ],
         "type": "object"
       },
+      "GetSketchModePlane": {
+        "description": "The plane for sketch mode.",
+        "properties": {
+          "x_axis": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ],
+            "description": "The x axis."
+          },
+          "y_axis": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ],
+            "description": "The y axis."
+          },
+          "z_axis": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ],
+            "description": "The z axis (normal)."
+          }
+        },
+        "required": [
+          "x_axis",
+          "y_axis",
+          "z_axis"
+        ],
+        "type": "object"
+      },
       "GltfPresentation": {
         "description": "Describes the presentation style of the glTF JSON.",
         "oneOf": [
@@ -5809,6 +5844,11 @@
                 "description": "If true, any existing drawables within the obj will be replaced (the object will be reset)",
                 "type": "boolean"
               },
+              "hide": {
+                "description": "If true, the plane will be created but hidden initially.",
+                "nullable": true,
+                "type": "boolean"
+              },
               "origin": {
                 "allOf": [
                   {
@@ -5970,6 +6010,15 @@
               "animated": {
                 "description": "Animate the transition to sketch mode.",
                 "type": "boolean"
+              },
+              "disable_camera_with_plane": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point3d"
+                  }
+                ],
+                "description": "Disable the camera entirely for sketch mode and sketch on a plane (this would be the normal of that plane).",
+                "nullable": true
               },
               "ortho": {
                 "description": "Use an orthographic camera.",
@@ -6602,6 +6651,21 @@
               "entity_ids",
               "output_unit",
               "source_unit",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Get the plane of the sketch mode. This is useful for getting the normal of the plane after a user selects a plane.",
+            "properties": {
+              "type": {
+                "enum": [
+                  "get_sketch_mode_plane"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
               "type"
             ],
             "type": "object"
@@ -7251,6 +7315,25 @@
               "type": {
                 "enum": [
                   "center_of_mass"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "The response from the `GetSketchModePlane` command.",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/GetSketchModePlane"
+              },
+              "type": {
+                "enum": [
+                  "get_sketch_mode_plane"
                 ],
                 "type": "string"
               }
