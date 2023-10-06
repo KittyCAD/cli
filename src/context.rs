@@ -116,7 +116,12 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
         let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
-        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &engine)
+        let planes = kcl_lib::executor::DefaultPlanes::new(&engine).await?;
+        let ctx = kcl_lib::executor::ExecutorContext {
+            engine: engine.clone(),
+            planes,
+        };
+        let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &ctx)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
