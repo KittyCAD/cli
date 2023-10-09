@@ -122,7 +122,8 @@ fn description(app: &clap::Command) -> Vec<String> {
         Some(about) => about
             .to_string()
             .split('\n')
-            .filter_map(|l| (!l.trim().is_empty()).then(|| paragraph(l.trim())))
+            .filter(|&l| (!l.trim().is_empty()))
+            .map(|l| paragraph(l.trim()))
             .collect(),
         None => Vec::new(),
     }
@@ -246,7 +247,8 @@ fn subcommands(app: &clap::Command, section: i8, title: &str) -> Vec<String> {
                     let s = about.to_string();
                     let split = s.split('\n');
                     split
-                        .filter_map(|l| (!l.trim().is_empty()).then(|| l.trim().to_string()))
+                        .filter(|&l| (!l.trim().is_empty()))
+                        .map(|l| l.trim().to_string())
                         .collect::<Vec<String>>()
                 }
                 None => Vec::new(),
@@ -284,7 +286,8 @@ fn after_help(app: &clap::Command) -> Vec<String> {
         Some(about) => about
             .to_string()
             .split('\n')
-            .filter_map(|l| (!l.trim().is_empty()).then(|| paragraph(l.trim())))
+            .filter(|&l| (!l.trim().is_empty()))
+            .map(|l| paragraph(l.trim()))
             .collect(),
         None => Vec::new(),
     }
