@@ -61,7 +61,7 @@ url = "2.4.1"
 unicode-segmentation = "1.10.1"
 uuid = { version = "1.1", features = ["serde", "v4"] }
 version-compare = "0.1.0"
-viuer = { version = "0.6.2", features = [] }
+viuer = { version = "0.7.1", features = [] }
 
 [build-dependencies]
 built = "0.7"
