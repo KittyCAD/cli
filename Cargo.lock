@@ -799,11 +799,11 @@ dependencies = [
 
 [[package]]
 name = "crossterm"
-version = "0.25.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e64e6c0fbe2c17357405f7c758c1ef960fce08bdfb2c03d88d2a18d7e09c4b67"
+checksum = "f476fe445d41c9e991fd07515a6f463074b782242ccf4a5b7b1d1012e70824df"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.4.0",
  "crossterm_winapi 0.9.1",
  "libc",
  "mio 0.8.8",
@@ -4164,14 +4164,14 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "viuer"
-version = "0.6.2"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b511f7e9ae27b5750f12ca50c353a1179bd4cc964a47294eb0d2cdad40cb41c0"
+checksum = "ec2ede5c8814363f92f862892dfe71a266f6816b649ca435aed1ff5e2cf3454e"
 dependencies = [
  "ansi_colours",
- "base64 0.13.1",
+ "base64 0.21.4",
  "console",
- "crossterm 0.25.0",
+ "crossterm 0.27.0",
  "image",
  "lazy_static",
  "tempfile",
