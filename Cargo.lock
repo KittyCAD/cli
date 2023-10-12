@@ -1635,9 +1635,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.33"
+version = "0.1.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b9b611befbace409ea5df404dfea39a1ae4144ee01d13941892542934e681bf"
+checksum = "205582a578327644619a782de63bb33bae480b12b5eb39dfa90bce35d8adb063"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1647,7 +1647,7 @@ dependencies = [
  "derive-docs",
  "futures",
  "js-sys",
- "kittycad 0.2.31",
+ "kittycad 0.2.32",
  "lazy_static",
  "parse-display",
  "reqwest",
@@ -1691,7 +1691,7 @@ dependencies = [
  "http",
  "itertools 0.11.0",
  "kcl-lib",
- "kittycad 0.2.31",
+ "kittycad 0.2.32",
  "log",
  "num-traits",
  "oauth2",
@@ -1734,9 +1734,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.31"
+version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "539b323537b877fc8dd130362b8f1af9af8051c19208bb8bfd816ab7c330f2bb"
+checksum = "c2b6004ce120245048ab47f2eda8f5f253221b5c37f2aceb62e9412eb150110a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4507,9 +4507,9 @@ checksum = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538"
 
 [[package]]
 name = "winnow"
-version = "0.5.15"
+version = "0.5.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c2e3184b9c4e92ad5167ca73039d0c42476302ab603e2fec4487511f38ccefc"
+checksum = "037711d82167854aff2018dfd193aa0fef5370f456732f0d5a0c59b0f1b4b907"
 dependencies = [
  "memchr",
 ]
