@@ -315,6 +315,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c59bdb34bc650a32731b31bd8f0829cc15d24a708ee31559e0bb34f2bc320cba"
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1647,7 +1653,7 @@ dependencies = [
  "derive-docs",
  "futures",
  "js-sys",
- "kittycad 0.2.33",
+ "kittycad 0.2.41",
  "lazy_static",
  "parse-display",
  "reqwest",
@@ -1691,7 +1697,7 @@ dependencies = [
  "http",
  "itertools 0.11.0",
  "kcl-lib",
- "kittycad 0.2.33",
+ "kittycad 0.2.41",
  "log",
  "num-traits",
  "oauth2",
@@ -1734,9 +1740,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.33"
+version = "0.2.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d341a81a4dfef43460d395c87d86c17e24affb96db0e7f4a35e8688f0e092344"
+checksum = "874914cd40bfd43674406683bb3f0924d41780698a4ade96f2e180a73678bdd1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2306,7 +2312,7 @@ dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools 0.10.5",
+ "itertools 0.11.0",
  "lazy_static",
  "nom",
  "quick-xml",
@@ -4133,6 +4139,7 @@ version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 dependencies = [
+ "atomic",
  "getrandom",
  "serde",
  "wasm-bindgen",
