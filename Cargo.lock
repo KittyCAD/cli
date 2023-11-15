@@ -1702,7 +1702,7 @@ dependencies = [
  "pulldown-cmark-to-cmark",
  "regex",
  "reqwest",
- "ring 0.17.3",
+ "ring 0.17.5",
  "roff",
  "serde",
  "serde_json",
@@ -2306,7 +2306,7 @@ dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools 0.10.5",
+ "itertools 0.11.0",
  "lazy_static",
  "nom",
  "quick-xml",
@@ -2760,9 +2760,9 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.3"
+version = "0.17.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9babe80d5c16becf6594aa32ad2be8fe08498e7ae60b77de8df700e67f191d7e"
+checksum = "fb0205304757e5d899b9c2e448b867ffd03ae7f988002e47cd24954391394d0b"
 dependencies = [
  "cc",
  "getrandom",
