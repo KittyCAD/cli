@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use kcl_lib::engine::EngineManager;
@@ -119,6 +119,7 @@ impl Context<'_> {
         let planes = kcl_lib::executor::DefaultPlanes::new(&engine).await?;
         let ctx = kcl_lib::executor::ExecutorContext {
             engine: engine.clone(),
+            stdlib: Arc::new(kcl_lib::std::StdLib::default()),
             planes,
         };
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &ctx)
