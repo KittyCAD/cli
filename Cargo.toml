@@ -22,7 +22,7 @@ dirs = "5"
 git_rev = "0.1.0"
 heck = "0.4.0"
 http = "0.2.6"
-itertools = "0.11.0"
+itertools = "0.12.0"
 kcl-lib = { version = "0.1.35" }
 #kcl-lib =  { path = "../modeling-app/src/wasm-lib/kcl" }
 kittycad = { version = "0.2.33", features = ["clap", "tabled", "requests", "retry"] }

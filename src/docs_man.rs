@@ -29,7 +29,7 @@ impl Man {
     /// Write the manpage to a buffer.
     pub fn render(self, app: &clap::Command, buf: &mut dyn std::io::Write, title: &str, root: &clap::Command) {
         let mut page = Roff::new(root.get_name(), self.get_section())
-            .source(&format!(
+            .source(format!(
                 "{} {}",
                 root.get_name(),
                 root.get_version().unwrap_or_default()
