@@ -899,21 +899,20 @@ checksum = "c2e66c9d817f1720209181c316d28635c050fa304f9c79e47a520882661b7308"
 
 [[package]]
 name = "databake"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "959b676312ba1aaafb2219c475560082e6b20c3bc572ec1483f93cecd748cf3d"
+checksum = "82175d72e69414ceafbe2b49686794d3a8bed846e0d50267355f83ea8fdd953a"
 dependencies = [
  "databake-derive",
  "proc-macro2",
  "quote",
- "syn 2.0.39",
 ]
 
 [[package]]
 name = "databake-derive"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f0694dfe255f1af0289d3d1b40787bb955e8603d96e96a6b14b225926e108fb"
+checksum = "377af281d8f23663862a7c84623bc5dcf7f8c44b13c7496a590bdc157f941a43"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1722,9 +1721,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.36"
+version = "0.1.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4705c35ed4ea74580303b46ead6fe86dbd850b15a542a0c71443371ffcc7eecf"
+checksum = "e5264d9a1669f96fa6dd1ce8ee5db8de98af4b18550fcb150b4469c9c27ee45f"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1735,7 +1734,7 @@ dependencies = [
  "derive-docs",
  "futures",
  "js-sys",
- "kittycad 0.2.41",
+ "kittycad 0.2.43",
  "lazy_static",
  "parse-display",
  "reqwest",
@@ -1756,7 +1755,7 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "ansi_term",
  "anyhow",
@@ -1779,7 +1778,7 @@ dependencies = [
  "http",
  "itertools 0.12.0",
  "kcl-lib",
- "kittycad 0.2.41",
+ "kittycad 0.2.43",
  "log",
  "num-traits",
  "oauth2",
@@ -1822,9 +1821,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.41"
+version = "0.2.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "874914cd40bfd43674406683bb3f0924d41780698a4ade96f2e180a73678bdd1"
+checksum = "41ab6de34cc4ab06519d65a613d4030ade14036ac619d8fee5ce6f35d1766c11"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4209,9 +4208,9 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 
 [[package]]
 name = "uuid"
-version = "1.5.0"
+version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88ad59a7560b41a70d191093a945f0b87bc1deeda46fb237479708a1d6b6cdfc"
+checksum = "5e395fcf16a7a3d8127ec99782007af141946b4795001f876d54fb0d55978560"
 dependencies = [
  "atomic",
  "getrandom",

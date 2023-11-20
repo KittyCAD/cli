@@ -18,6 +18,7 @@ pub struct CmdFile {
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
     Convert(CmdFileConvert),
+    Snapshot(CmdFileSnapshot),
     Volume(CmdFileVolume),
     Mass(CmdFileMass),
     CenterOfMass(CmdFileCenterOfMass),
@@ -30,6 +31,7 @@ impl crate::cmd::Command for CmdFile {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
             SubCommand::Convert(cmd) => cmd.run(ctx).await,
+            SubCommand::Snapshot(cmd) => cmd.run(ctx).await,
             SubCommand::Volume(cmd) => cmd.run(ctx).await,
             SubCommand::Mass(cmd) => cmd.run(ctx).await,
             SubCommand::CenterOfMass(cmd) => cmd.run(ctx).await,
@@ -144,6 +146,133 @@ impl crate::cmd::Command for CmdFileConvert {
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
         ctx.io.write_output(&format, &file_conversion)?;
+
+        Ok(())
+    }
+}
+
+/// Snapshot a render of a CAD file as any supported image format.
+///
+///     # snapshot as png
+///     $ kittycad file snapshot my-file.obj my-file.png
+///
+///     # pass a file to snapshot from stdin
+///     $ cat my-obj.obj | kittycad file snapshot --output-format=png - my-file.png
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdFileSnapshot {
+    /// The path to the input file to snapshot.
+    /// If you pass `-` as the path, the file will be read from stdin.
+    #[clap(name = "input", required = true)]
+    pub input: std::path::PathBuf,
+
+    /// A valid source file format.
+    #[clap(short = 's', long = "src-format", value_enum)]
+    src_format: Option<kittycad::types::FileImportFormat>,
+
+    /// The path to a file to output the image.
+    #[clap(name = "output-file", required = true)]
+    pub output_file: std::path::PathBuf,
+
+    /// A valid output image format.
+    #[clap(short = 't', long = "output-format", value_enum)]
+    output_format: Option<kittycad::types::ImageFormat>,
+
+    /// Command output format.
+    #[clap(long, short, value_enum)]
+    pub format: Option<crate::types::FormatOutput>,
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdFileSnapshot {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Make sure the parent directory is a directory and exists.
+        if let Some(parent) = self.output_file.parent() {
+            if !parent.is_dir() && parent.to_str().unwrap_or("") != "" {
+                anyhow::bail!(
+                    "directory `{}` does not exist or is not a directory",
+                    parent.to_str().unwrap_or("")
+                );
+            }
+        }
+
+        // Parse the image format.
+        let output_format = if let Some(output_format) = &self.output_format {
+            output_format.clone()
+        } else {
+            crate::cmd_kcl::get_image_format_from_extension(&crate::cmd_file::get_extension(self.output_file.clone()))?
+        };
+        // Parse the source format.
+        let src_format = if let Some(src_format) = &self.src_format {
+            src_format.clone()
+        } else {
+            get_import_format_from_extension(&get_extension(self.input.clone()))?
+        };
+
+        // TODO: let user choose the units.
+        let src_format = get_input_format(src_format, kittycad::types::UnitLength::Mm)?;
+
+        // Get the contents of the input file.
+        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
+        let filename = self.input.file_name().unwrap_or_default().to_str().unwrap_or("");
+
+        // Send an import request to the engine.
+        let resp = ctx
+            .send_modeling_cmd(
+                "",
+                "",
+                kittycad::types::ModelingCmd::ImportFiles {
+                    files: vec![kittycad::types::ImportFile {
+                        path: filename.to_string(),
+                        data: input,
+                    }],
+                    format: src_format,
+                },
+            )
+            .await?;
+
+        let kittycad::types::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad::types::OkModelingCmdResponse::ImportFiles { data },
+        } = &resp
+        else {
+            anyhow::bail!("Unexpected response from engine import: {:?}", resp);
+        };
+
+        let object_id = data.object_id;
+
+        // Zoom on the object.
+        ctx.send_modeling_cmd(
+            "",
+            "",
+            kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
+        )
+        .await?;
+
+        // Spin up websockets and do the conversion.
+        // This will not return until there are files.
+        let resp = ctx
+            .send_modeling_cmd(
+                "",
+                "",
+                kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+            )
+            .await?;
+
+        if let kittycad::types::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+        } = &resp
+        {
+            // Save the snapshot locally.
+            std::fs::write(&self.output_file, &data.contents.0)?;
+        } else {
+            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        }
+
+        writeln!(
+            ctx.io.out,
+            "Snapshot saved to `{}`",
+            self.output_file.to_str().unwrap_or("")
+        )?;
 
         Ok(())
     }
@@ -514,6 +643,37 @@ fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileIm
                 )
             }
         }
+    }
+}
+
+/// Get the source format from the extension.
+fn get_input_format(
+    format: kittycad::types::FileImportFormat,
+    ul: kittycad::types::UnitLength,
+) -> Result<kittycad::types::InputFormat> {
+    // KittyCAD co-ordinate system.
+    //
+    // * Forward: -Y
+    // * Up: +Z
+    // * Handedness: Right
+    let coords = kittycad::types::System {
+        forward: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Y,
+            direction: kittycad::types::Direction::Negative,
+        },
+        up: kittycad::types::AxisDirectionPair {
+            axis: kittycad::types::Axis::Z,
+            direction: kittycad::types::Direction::Positive,
+        },
+    };
+    match format {
+        kittycad::types::FileImportFormat::Step => Ok(kittycad::types::InputFormat::Step {}),
+        kittycad::types::FileImportFormat::Stl => Ok(kittycad::types::InputFormat::Stl { coords, units: ul }),
+        kittycad::types::FileImportFormat::Obj => Ok(kittycad::types::InputFormat::Obj { coords, units: ul }),
+        kittycad::types::FileImportFormat::Gltf => Ok(kittycad::types::InputFormat::Gltf {}),
+        kittycad::types::FileImportFormat::Ply => Ok(kittycad::types::InputFormat::Ply { coords, units: ul }),
+        kittycad::types::FileImportFormat::Fbx => Ok(kittycad::types::InputFormat::Fbx {}),
+        kittycad::types::FileImportFormat::Sldprt => Ok(kittycad::types::InputFormat::Sldprt {}),
     }
 }
 

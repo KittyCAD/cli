@@ -281,7 +281,7 @@ impl crate::cmd::Command for CmdKclView {
 }
 
 /// Get the  image format from the extension.
-fn get_image_format_from_extension(ext: &str) -> Result<kittycad::types::ImageFormat> {
+pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad::types::ImageFormat> {
     match kittycad::types::ImageFormat::from_str(ext) {
         Ok(format) => Ok(format),
         Err(_) => {
@@ -332,12 +332,15 @@ fn get_output_format(
         kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
             storage: kittycad::types::PlyStorage::Ascii,
             coords,
+            selection: kittycad::types::Selection::DefaultScene {},
+            units: src_unit,
         },
         kittycad::types::FileExportFormat::Step => kittycad::types::OutputFormat::Step { coords },
         kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
             storage: kittycad::types::StlStorage::Ascii,
             coords,
             units: src_unit,
+            selection: kittycad::types::Selection::DefaultScene {},
         },
     }
 }
