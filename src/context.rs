@@ -100,6 +100,26 @@ impl Context<'_> {
     pub async fn send_modeling_cmd(
         &self,
         hostname: &str,
+        cmd: kittycad::types::ModelingCmd,
+    ) -> Result<OkWebSocketResponseData> {
+        let client = self.api_client(hostname)?;
+        let ws = client
+            .modeling()
+            .commands_ws(None, None, None, None, Some(false))
+            .await?;
+
+        let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
+
+        // Send a snapshot request to the engine.
+        let resp = engine
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .await?;
+        Ok(resp)
+    }
+
+    pub async fn send_kcl_modeling_cmd(
+        &self,
+        hostname: &str,
         code: &str,
         cmd: kittycad::types::ModelingCmd,
     ) -> Result<OkWebSocketResponseData> {

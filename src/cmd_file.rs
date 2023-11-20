@@ -220,7 +220,6 @@ impl crate::cmd::Command for CmdFileSnapshot {
         let resp = ctx
             .send_modeling_cmd(
                 "",
-                "",
                 kittycad::types::ModelingCmd::ImportFiles {
                     files: vec![kittycad::types::ImportFile {
                         path: filename.to_string(),
@@ -243,7 +242,6 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // Zoom on the object.
         ctx.send_modeling_cmd(
             "",
-            "",
             kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
         )
         .await?;
@@ -251,11 +249,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
-                "",
-                "",
-                kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
-            )
+            .send_modeling_cmd("", kittycad::types::ModelingCmd::TakeSnapshot { format: output_format })
             .await?;
 
         if let kittycad::types::OkWebSocketResponseData::Modeling {

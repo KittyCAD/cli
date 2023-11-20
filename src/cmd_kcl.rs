@@ -93,7 +93,7 @@ impl crate::cmd::Command for CmdKclExport {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::Export {
@@ -175,7 +175,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
@@ -236,7 +236,7 @@ impl crate::cmd::Command for CmdKclView {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::TakeSnapshot {
@@ -384,7 +384,7 @@ impl crate::cmd::Command for CmdKclVolume {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::Volume {
@@ -461,7 +461,7 @@ impl crate::cmd::Command for CmdKclMass {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::Mass {
@@ -528,7 +528,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::CenterOfMass {
@@ -605,7 +605,7 @@ impl crate::cmd::Command for CmdKclDensity {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::Density {
@@ -672,7 +672,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let resp = ctx
-            .send_modeling_cmd(
+            .send_kcl_modeling_cmd(
                 "",
                 input,
                 kittycad::types::ModelingCmd::SurfaceArea {
