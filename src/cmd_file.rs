@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use anyhow::Result;
 use clap::Parser;
+use kcl_lib::engine::EngineManager;
 use kittycad::types::error::Error as KcError;
 
 /// Perform operations on CAD files.
@@ -216,10 +217,19 @@ impl crate::cmd::Command for CmdFileSnapshot {
         let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
         let filename = self.input.file_name().unwrap_or_default().to_str().unwrap_or("");
 
+        let client = ctx.api_client("")?;
+        let ws = client
+            .modeling()
+            .commands_ws(None, None, None, None, Some(false))
+            .await?;
+
+        let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
+
         // Send an import request to the engine.
-        let resp = ctx
+        let resp = engine
             .send_modeling_cmd(
-                "",
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::ImportFiles {
                     files: vec![kittycad::types::ImportFile {
                         path: filename.to_string(),
@@ -240,16 +250,22 @@ impl crate::cmd::Command for CmdFileSnapshot {
         let object_id = data.object_id;
 
         // Zoom on the object.
-        ctx.send_modeling_cmd(
-            "",
-            kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
-        )
-        .await?;
+        engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
+            )
+            .await?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
-            .send_modeling_cmd("", kittycad::types::ModelingCmd::TakeSnapshot { format: output_format })
+        let resp = engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+            )
             .await?;
 
         if let kittycad::types::OkWebSocketResponseData::Modeling {

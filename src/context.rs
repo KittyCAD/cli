@@ -97,7 +97,8 @@ impl Context<'_> {
         Ok(client)
     }
 
-    pub async fn send_modeling_cmd(
+    #[allow(dead_code)]
+    pub async fn send_single_modeling_cmd(
         &self,
         hostname: &str,
         cmd: kittycad::types::ModelingCmd,
@@ -110,7 +111,6 @@ impl Context<'_> {
 
         let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
 
-        // Send a snapshot request to the engine.
         let resp = engine
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
             .await?;
@@ -146,7 +146,6 @@ impl Context<'_> {
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
-        // Send a snapshot request to the engine.
         let resp = engine
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
             .await
