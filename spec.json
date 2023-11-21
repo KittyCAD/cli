@@ -1407,7 +1407,7 @@
           "beta"
         ],
         "summary": "Get CAD file center of mass.",
-        "description": "We assume any file given to us has one consistent unit throughout. We also assume the file is at the proper scale.\nThis endpoint returns the cartesian co-ordinate in world space measure units.\nIn the future, we will use the units inside the file if they are given and do any conversions if necessary for the calculation. But currently, that is not supported.\nGet the center of mass of an object in a CAD file. If the file is larger than 25MB, it will be performed asynchronously.\nIf the operation is performed asynchronously, the `id` of the operation will be returned. You can use the `id` returned from the request to get status information about the async operation from the `/async/operations/{id}` endpoint.",
+        "description": "We assume any file given to us has one consistent unit throughout. We also assume the file is at the proper scale.\nThis endpoint returns the cartesian coordinate in world space measure units.\nIn the future, we will use the units inside the file if they are given and do any conversions if necessary for the calculation. But currently, that is not supported.\nGet the center of mass of an object in a CAD file. If the file is larger than 25MB, it will be performed asynchronously.\nIf the operation is performed asynchronously, the `id` of the operation will be returned. You can use the `id` returned from the request to get status information about the async operation from the `/async/operations/{id}` endpoint.",
         "operationId": "create_file_center_of_mass",
         "parameters": [
           {
@@ -7821,7 +7821,7 @@
         }
       },
       "AnnotationTextAlignmentX": {
-        "description": "Horizontal Text aligment",
+        "description": "Horizontal Text alignment",
         "type": "string",
         "enum": [
           "left",
@@ -7830,7 +7830,7 @@
         ]
       },
       "AnnotationTextAlignmentY": {
-        "description": "Vertical Text aligment",
+        "description": "Vertical Text alignment",
         "type": "string",
         "enum": [
           "bottom",
@@ -8053,7 +8053,7 @@
             "type": "boolean"
           },
           "method": {
-            "description": "The HTTP method requsted by the API call.",
+            "description": "The HTTP method requested by the API call.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/Method"
@@ -12800,6 +12800,27 @@
             ]
           },
           {
+            "description": "Focus default camera on object.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "default_camera_focus_on"
+                ]
+              },
+              "uuid": {
+                "description": "UUID of object to focus on.",
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "type",
+              "uuid"
+            ]
+          },
+          {
             "description": "Export the scene to a file.",
             "type": "object",
             "properties": {
@@ -14430,6 +14451,45 @@
             "required": [
               "type"
             ]
+          },
+          {
+            "description": "Constrain a curve.",
+            "type": "object",
+            "properties": {
+              "constraint_bound": {
+                "description": "Which constraint to apply.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PathComponentConstraintBound"
+                  }
+                ]
+              },
+              "constraint_type": {
+                "description": "What part of the curve should be constrained.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PathComponentConstraintType"
+                  }
+                ]
+              },
+              "object_id": {
+                "description": "Which curve to constrain.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "curve_set_constraint"
+                ]
+              }
+            },
+            "required": [
+              "constraint_bound",
+              "constraint_type",
+              "object_id",
+              "type"
+            ]
           }
         ]
       },
@@ -15603,6 +15663,27 @@
           "bez_curve_to",
           "nurbs_curve_to",
           "add_arc"
+        ]
+      },
+      "PathComponentConstraintBound": {
+        "description": "The path component constraint bounds type",
+        "type": "string",
+        "enum": [
+          "unconstrained",
+          "partially_constrained",
+          "fully_constrained"
+        ]
+      },
+      "PathComponentConstraintType": {
+        "description": "The path component constraint type",
+        "type": "string",
+        "enum": [
+          "unconstrained",
+          "vertical",
+          "horizontal",
+          "equal_length",
+          "parallel",
+          "angle_between"
         ]
       },
       "PathGetCurveUuidsForVertices": {
