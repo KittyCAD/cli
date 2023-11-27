@@ -401,7 +401,7 @@ impl crate::cmd::Command for CmdKclVolume {
         {
             // Print the output.
             let format = ctx.format(&self.format)?;
-            ctx.io.write_output(&format, &data.volume)?;
+            ctx.io.write_output(&format, &data)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
@@ -480,7 +480,7 @@ impl crate::cmd::Command for CmdKclMass {
         {
             // Print the output.
             let format = ctx.format(&self.format)?;
-            ctx.io.write_output(&format, &data.mass)?;
+            ctx.io.write_output(&format, &data)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
@@ -545,7 +545,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         {
             // Print the output.
             let format = ctx.format(&self.format)?;
-            ctx.io.write_output(&format, &data.center_of_mass)?;
+            ctx.io.write_output(&format, &data)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
@@ -624,7 +624,7 @@ impl crate::cmd::Command for CmdKclDensity {
         {
             // Print the output.
             let format = ctx.format(&self.format)?;
-            ctx.io.write_output(&format, &data.density)?;
+            ctx.io.write_output(&format, &data)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
@@ -689,7 +689,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         {
             // Print the output.
             let format = ctx.format(&self.format)?;
-            ctx.io.write_output(&format, &data.surface_area)?;
+            ctx.io.write_output(&format, &data)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }

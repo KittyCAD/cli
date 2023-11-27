@@ -43,7 +43,7 @@ impl AsyncTestContext for MainContext {
 }
 
 #[test_context(MainContext)]
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
 async fn test_main(ctx: &mut MainContext) {
     let version = clap::crate_version!();
@@ -334,6 +334,36 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "get the file surface-area".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "file".to_string(),
+                "surface-area".to_string(),
+                "assets/in_obj.obj".to_string(),
+                "--output-unit".to_string(),
+                "cm2".to_string(),
+            ],
+            want_out: r#"surface_area | 1088815.3373205569"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the file center-of-mass".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "file".to_string(),
+                "center-of-mass".to_string(),
+                "assets/in_obj.obj".to_string(),
+                "--output-unit".to_string(),
+                "cm".to_string(),
+            ],
+            want_out: r#"center_of_mass | Point3D { x: -13.353775, y: 1.1221564, z: -0.016602868 }"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "get the file mass as json".to_string(),
             args: vec![
                 "kittycad".to_string(),
@@ -381,6 +411,95 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "get the mass of a kcl file".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "mass".to_string(),
+                "tests/gear.kcl".to_string(),
+                "--src-unit=ft".to_string(),
+                "--format=json".to_string(),
+                "--output-unit".to_string(),
+                "g".to_string(),
+                "--material-density".to_string(),
+                "1.0".to_string(),
+                "--material-density-unit".to_string(),
+                "lb-ft3".to_string(),
+            ],
+            want_out: r#"0.0"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the density of a kcl file".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "density".to_string(),
+                "tests/gear.kcl".to_string(),
+                "--src-unit=mm".to_string(),
+                "--output-unit".to_string(),
+                "lb-ft3".to_string(),
+                "--material-mass-unit".to_string(),
+                "g".to_string(),
+                "--material-mass".to_string(),
+                "1.0".to_string(),
+            ],
+            want_out: r#"0"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the volume of a kcl file".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "volume".to_string(),
+                "tests/gear.kcl".to_string(),
+                "--src-unit=mm".to_string(),
+                "--output-unit".to_string(),
+                "cm3".to_string(),
+            ],
+            want_out: r#"0"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the surface-area of a kcl file".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "surface-area".to_string(),
+                "tests/gear.kcl".to_string(),
+                "--src-unit=mm".to_string(),
+                "--output-unit".to_string(),
+                "cm2".to_string(),
+            ],
+            want_out: r#"surface_area | 0.0"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "get the center-of-mass of a kcl file".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "kcl".to_string(),
+                "center-of-mass".to_string(),
+                "tests/gear.kcl".to_string(),
+                "--src-unit=mm".to_string(),
+                "--output-unit".to_string(),
+                "cm".to_string(),
+            ],
+            want_out: r#"center_of_mass | Point3D { x: 0.0, y: 0.0, z: 0.0 }"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "export a kcl file as gltf".to_string(),
             args: vec![
                 "kittycad".to_string(),
@@ -412,20 +531,20 @@ access-control-allow-credentials:  """#
             want_code: 1,
             ..Default::default()
         },
-        /*TestItem {
-            name: "snapshot an obj".to_string(),
+        TestItem {
+            name: "snapshot a gltf".to_string(),
             args: vec![
                 "kittycad".to_string(),
                 "file".to_string(),
                 "snapshot".to_string(),
-                "assets/in_obj.obj".to_string(),
-                "tests/in_obj.png".to_string(),
+                "tests/output.gltf".to_string(),
+                "tests/output.png".to_string(),
             ],
-            want_out: r#"mass                  | 858609.1238345467"#.to_string(),
+            want_out: r#"Snapshot saved to `tests/output.png`"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
-        },*/
+        },
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();
