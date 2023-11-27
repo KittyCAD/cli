@@ -16,4 +16,7 @@ releases
 
 # macos cruft
 .DS_Store
-/gear.png
+
+# test files
+gear.png
+in_obj.png

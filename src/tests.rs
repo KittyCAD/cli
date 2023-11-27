@@ -43,7 +43,7 @@ impl AsyncTestContext for MainContext {
 }
 
 #[test_context(MainContext)]
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[serial_test::serial]
 async fn test_main(ctx: &mut MainContext) {
     let version = clap::crate_version!();
@@ -366,7 +366,7 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
-        /*TestItem {
+        TestItem {
             name: "snapshot a kcl file as png".to_string(),
             args: vec![
                 "kittycad".to_string(),
@@ -396,7 +396,7 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
-         TestItem {
+        TestItem {
             name: "export a kcl file with a parse error".to_string(),
             args: vec![
                 "kittycad".to_string(),
@@ -408,8 +408,22 @@ access-control-allow-credentials:  """#
                 "tests/".to_string(),
             ],
             want_out: r#""#.to_string(),
-            want_err: "syntax: unexpected token".to_string(),
+            want_err: "syntax: Unexpected token".to_string(),
             want_code: 1,
+            ..Default::default()
+        },
+        /*TestItem {
+            name: "snapshot an obj".to_string(),
+            args: vec![
+                "kittycad".to_string(),
+                "file".to_string(),
+                "snapshot".to_string(),
+                "assets/in_obj.obj".to_string(),
+                "tests/in_obj.png".to_string(),
+            ],
+            want_out: r#"mass                  | 858609.1238345467"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
             ..Default::default()
         },*/
     ];
