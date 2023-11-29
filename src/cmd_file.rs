@@ -646,6 +646,8 @@ fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileIm
         Err(_) => {
             if ext == "stp" {
                 Ok(kittycad::types::FileImportFormat::Step)
+            } else if ext == "glb" {
+                Ok(kittycad::types::FileImportFormat::Gltf)
             } else {
                 anyhow::bail!(
                     "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",
