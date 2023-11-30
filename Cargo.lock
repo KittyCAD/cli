@@ -1725,7 +1725,7 @@ dependencies = [
  "derive-docs",
  "futures",
  "js-sys",
- "kittycad 0.2.43",
+ "kittycad 0.2.44",
  "lazy_static",
  "parse-display",
  "reqwest",
@@ -1769,7 +1769,7 @@ dependencies = [
  "http",
  "itertools 0.12.0",
  "kcl-lib",
- "kittycad 0.2.43",
+ "kittycad 0.2.44",
  "log",
  "num-traits",
  "oauth2",
@@ -1812,9 +1812,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.43"
+version = "0.2.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41ab6de34cc4ab06519d65a613d4030ade14036ac619d8fee5ce6f35d1766c11"
+checksum = "ff968a1b90af9a16f162c7bb57d7725ee8d4eeae939a998c82b48129802a2804"
 dependencies = [
  "anyhow",
  "async-trait",
