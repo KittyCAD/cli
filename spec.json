@@ -5474,70 +5474,6 @@
         }
       }
     },
-    "/user/front-hash": {
-      "get": {
-        "tags": [
-          "users",
-          "hidden"
-        ],
-        "summary": "Get your user's front verification hash.",
-        "description": "This info is sent to front when initialing the front chat, it prevents impersonations using js hacks in the browser",
-        "operationId": "get_user_front_hash_self",
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "headers": {
-              "Access-Control-Allow-Credentials": {
-                "description": "Access-Control-Allow-Credentials header.",
-                "style": "simple",
-                "required": true,
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
-                "style": "simple",
-                "required": true,
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "description": "Access-Control-Allow-Methods header.",
-                "style": "simple",
-                "required": true,
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Origin": {
-                "description": "Access-Control-Allow-Origin header.",
-                "style": "simple",
-                "required": true,
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "String",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "$ref": "#/components/responses/Error"
-          },
-          "5XX": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
     "/user/onboarding": {
       "get": {
         "tags": [
@@ -10283,6 +10219,50 @@
           "coupon"
         ]
       },
+      "DistanceType": {
+        "description": "The type of distance Distances can vary depending on the objects used as input.",
+        "oneOf": [
+          {
+            "description": "Euclidean Distance.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "euclidean"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "The distance between objects along the specified axis",
+            "type": "object",
+            "properties": {
+              "axis": {
+                "description": "Global axis",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/GlobalAxis"
+                  }
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "on_axis"
+                ]
+              }
+            },
+            "required": [
+              "axis",
+              "type"
+            ]
+          }
+        ]
+      },
       "EmailAuthenticationForm": {
         "description": "The body of the form for email authentication.",
         "type": "object",
@@ -10332,6 +10312,26 @@
         },
         "required": [
           "entity_id"
+        ]
+      },
+      "EntityGetDistance": {
+        "description": "The response from the `EntitiesGetDistance` command.",
+        "type": "object",
+        "properties": {
+          "max_distance": {
+            "description": "The maximum distance between the input entities.",
+            "type": "number",
+            "format": "double"
+          },
+          "min_distance": {
+            "description": "The minimum distance between the input entities.",
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "max_distance",
+          "min_distance"
         ]
       },
       "EntityGetNumChildren": {
@@ -11503,6 +11503,32 @@
           "z_axis"
         ]
       },
+      "GlobalAxis": {
+        "description": "An enum that contains the three global axes.",
+        "oneOf": [
+          {
+            "description": "The X axis",
+            "type": "string",
+            "enum": [
+              "x"
+            ]
+          },
+          {
+            "description": "The Y axis",
+            "type": "string",
+            "enum": [
+              "y"
+            ]
+          },
+          {
+            "description": "The Z axis",
+            "type": "string",
+            "enum": [
+              "z"
+            ]
+          }
+        ]
+      },
       "GltfPresentation": {
         "description": "Describes the presentation style of the glTF JSON.",
         "oneOf": [
@@ -11613,7 +11639,7 @@
         ]
       },
       "ImportFile": {
-        "description": "File to import into the current model",
+        "description": "File to import into the current model If you are sending binary data for a file, be sure to send the WebSocketRequest as binary/bson, not text/json.",
         "type": "object",
         "properties": {
           "data": {
@@ -12843,7 +12869,7 @@
                 ]
               },
               "source_unit": {
-                "description": "Select the unit interpretation of exported objects.\n\nThis is not the same as the export units. Setting export units is part of the format options.",
+                "description": "Select the unit interpretation of exported objects.",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/UnitLength"
@@ -14492,6 +14518,121 @@
               "object_id",
               "type"
             ]
+          },
+          {
+            "description": "Sketch on some entity (e.g. a plane, a face)",
+            "type": "object",
+            "properties": {
+              "animated": {
+                "description": "Should we animate or snap for the camera transition?",
+                "type": "boolean"
+              },
+              "entity_id": {
+                "description": "Which entity to sketch on.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "ortho": {
+                "description": "Should the camera use orthographic projection? In other words, should an object's size in the rendered image stay constant regardless of its distance from the camera.",
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "enable_sketch_mode"
+                ]
+              }
+            },
+            "required": [
+              "animated",
+              "entity_id",
+              "ortho",
+              "type"
+            ]
+          },
+          {
+            "description": "Set the material properties of an object",
+            "type": "object",
+            "properties": {
+              "ambient_occlusion": {
+                "description": "Ambient Occlusion of the new material",
+                "type": "number",
+                "format": "float"
+              },
+              "color": {
+                "description": "Color of the new material",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Color"
+                  }
+                ]
+              },
+              "metalness": {
+                "description": "Metalness of the new material",
+                "type": "number",
+                "format": "float"
+              },
+              "object_id": {
+                "description": "Which object to change",
+                "type": "string",
+                "format": "uuid"
+              },
+              "roughness": {
+                "description": "Roughness of the new material",
+                "type": "number",
+                "format": "float"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "object_set_material_params_pbr"
+                ]
+              }
+            },
+            "required": [
+              "ambient_occlusion",
+              "color",
+              "metalness",
+              "object_id",
+              "roughness",
+              "type"
+            ]
+          },
+          {
+            "description": "What is the distance between these two entities?",
+            "type": "object",
+            "properties": {
+              "distance_type": {
+                "description": "Type of distance to be measured.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/DistanceType"
+                  }
+                ]
+              },
+              "entity_id1": {
+                "description": "ID of the first entity being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "entity_id2": {
+                "description": "ID of the second entity being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_get_distance"
+                ]
+              }
+            },
+            "required": [
+              "distance_type",
+              "entity_id1",
+              "entity_id2",
+              "type"
+            ]
           }
         ]
       },
@@ -14810,6 +14951,25 @@
                 "type": "string",
                 "enum": [
                   "get_entity_type"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response from the `EntityGetDistance` command.",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/EntityGetDistance"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_get_distance"
                 ]
               }
             },
@@ -15463,7 +15623,7 @@
             ]
           },
           {
-            "description": "glTF 2.0. We refer to this as glTF since that is how our customers refer to it, although by default it will be in binary format and thus technically (glb). If you prefer ascii output, you can set that option for the export.",
+            "description": "glTF 2.0. We refer to this as glTF since that is how our customers refer to it, although by default it will be in binary format and thus technically (glb). If you prefer ASCII output, you can set that option for the export.",
             "type": "object",
             "properties": {
               "presentation": {
@@ -16172,7 +16332,7 @@
         ]
       },
       "RawFile": {
-        "description": "A raw file with unencoded contents to be passed over binary websockets.",
+        "description": "A raw file with unencoded contents to be passed over binary websockets. When raw files come back for exports it is sent as binary/bson, not text/json.",
         "type": "object",
         "properties": {
           "contents": {
