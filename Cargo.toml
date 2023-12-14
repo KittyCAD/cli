@@ -14,7 +14,7 @@ chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = { version = "4.4.11", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
 clap_complete = { version = "4.4.3" }
 cli-macro = { path = "cli-macro" }
-colored = "2.0.4"
+colored = "2.1.0"
 colored_json = "4.1"
 data-encoding = "2.5.0"
 dialoguer = "0.11.0"
