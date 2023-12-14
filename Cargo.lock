@@ -643,7 +643,7 @@ dependencies = [
  "anyhow",
  "expectorate",
  "openapitor",
- "openapiv3",
+ "openapiv3 2.0.0",
  "proc-macro2",
  "quote",
  "regex",
@@ -1585,6 +1585,7 @@ checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
 dependencies = [
  "autocfg",
  "hashbrown 0.12.3",
+ "serde",
 ]
 
 [[package]]
@@ -2204,7 +2205,7 @@ dependencies = [
  "log",
  "numeral",
  "once_cell",
- "openapiv3",
+ "openapiv3 1.0.4",
  "phonenumber",
  "proc-macro2",
  "quote",
@@ -2230,9 +2231,20 @@ dependencies = [
 
 [[package]]
 name = "openapiv3"
-version = "1.0.3"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75e56d5c441965b6425165b7e3223cc933ca469834f4a8b4786817a1f9dc4f13"
+checksum = "33b83630305ecc3355e998ddd2f926f98aae8e105eb42652174a58757851ba47"
+dependencies = [
+ "indexmap 1.9.3",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "openapiv3"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc02deea53ffe807708244e5914f6b099ad7015a207ee24317c22112e17d9c5c"
 dependencies = [
  "indexmap 2.1.0",
  "serde",
