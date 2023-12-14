@@ -160,13 +160,21 @@ pub fn is_under_homebrew() -> Result<bool> {
     let binary_path = std::env::current_exe()?;
     let binary_path_str = binary_path.to_str().unwrap();
 
-    let output = std::process::Command::new("brew").args(vec!["--prefix"]).output()?;
-
-    let homebrew_prefix = String::from_utf8(output.stdout)?;
-
-    let brew_bin_prefix = std::path::Path::new(homebrew_prefix.trim()).join("bin");
-
-    Ok(binary_path_str.starts_with(brew_bin_prefix.to_str().unwrap()))
+    match std::process::Command::new("brew").args(vec!["--prefix"]).output() {
+        Ok(output) => {
+            let homebrew_prefix = String::from_utf8(output.stdout)?;
+            let brew_bin_prefix = std::path::Path::new(homebrew_prefix.trim()).join("bin");
+            Ok(binary_path_str.starts_with(brew_bin_prefix.to_str().unwrap()))
+        }
+        Err(e) => {
+            // brew wasn't found, so cli can't be running under homebrew.
+            if e.kind() == std::io::ErrorKind::NotFound {
+                Ok(false)
+            } else {
+                Err(e.into())
+            }
+        }
+    }
 }
 
 /// Takes a version string and returns the URL to download the latest release.
