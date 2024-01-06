@@ -18,6 +18,9 @@ on:
       - .github/workflows/make-cross.yml
       - 'rust-toolchain.toml'
       - 'spec.json'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 name: make cross
 jobs:
   cross:
