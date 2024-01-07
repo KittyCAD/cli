@@ -4,7 +4,7 @@ The KittyCAD command line tool.
 
 The instructions below refer to instructions for contributing to the repo.
 
-For the CLI docs for end users refer to: https://docs.kittycad.io/cli/manual
+For the CLI docs for end users refer to: https://docs.zoo.dev/cli/manual
 
 ### Installing
 
