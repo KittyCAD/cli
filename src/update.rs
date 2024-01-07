@@ -261,13 +261,12 @@ mod test {
     use pretty_assertions::assert_eq;
 
     #[tokio::test]
-    #[ignore] // Ignore this test until we have a new release with the new name.
     async fn test_download_binary_to_temp_file() {
         if crate::update::is_ci() {
             return;
         }
 
-        let file = super::download_binary_to_temp_file("v0.1.0").await.unwrap();
+        let file = super::download_binary_to_temp_file("v0.2.18").await.unwrap();
 
         assert_eq!(
             file,
