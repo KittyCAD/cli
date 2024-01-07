@@ -65,7 +65,7 @@ jobs:
         run: |
           cargo test --all
         env:
-          KITTYCAD_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
+          ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           RUST_BACKTRACE: 1
 
@@ -75,7 +75,7 @@ jobs:
           version: '0.15.0'
           args: '--all --timeout 2000'
         env:
-          KITTYCAD_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
+          ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           RUST_BACKTRACE: 1
 
