@@ -266,8 +266,8 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
 
     if let Err(err) = cmd.run(ctx).await {
         // If the error was from the API, let's handle it better for each type of error.
-        match err.downcast_ref::<kittycad::types::error::Error>() {
-            Some(err) => {
+        match err.downcast::<kittycad::types::error::Error>() {
+            Ok(err) => {
                 if err.status() == Some(http::StatusCode::FORBIDDEN) {
                     writeln!(
                         ctx.io.err_out,
@@ -282,7 +282,7 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
                     writeln!(ctx.io.err_out, "{err}")?;
                 }
             }
-            None => {
+            Err(err) => {
                 writeln!(ctx.io.err_out, "{err}")?;
             }
         }
