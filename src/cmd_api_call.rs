@@ -73,7 +73,7 @@ impl crate::cmd::Command for CmdApiCallStatus {
                     let path = std::env::current_dir()?;
                     for (name, output) in outputs {
                         if output.is_empty() {
-                            anyhow::bail!("no output was generated for the file conversion! (this is probably a bug in the API) you should report it to support@kittycad.io");
+                            anyhow::bail!("no output was generated for the file conversion! (this is probably a bug in the API) you should report it to support@zoo.dev");
                         }
                         let path = path.join(name);
                         std::fs::write(&path, &output.0)?;

@@ -2,14 +2,14 @@ use anyhow::Result;
 use clap::Parser;
 use parse_display::{Display, FromStr};
 
-/// Shortcut to open the KittyCAD documentation or Account in your browser.
+/// Shortcut to open the Zoo documentation or Account in your browser.
 ///
-/// If no arguments are given, the default is to open the KittyCAD documentation.
+/// If no arguments are given, the default is to open the Zoo documentation.
 ///
-///     # open the KittyCAD docs in your browser
+///     # open the Zoo docs in your browser
 ///     $ kittycad open docs
 ///
-///     # open your KittyCAD account in your browser
+///     # open your Zoo account in your browser
 ///     $ kittycad open account
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -23,20 +23,20 @@ pub struct CmdOpen {
 #[display(style = "kebab-case")]
 #[derive(Default)]
 pub enum OpenShortcut {
-    /// Open the KittyCAD documentation in your browser.
+    /// Open the Zoo documentation in your browser.
     #[default]
     Docs,
-    /// Open the KittyCAD API reference in your browser.
+    /// Open the Zoo API reference in your browser.
     ApiRef,
-    /// Open the KittyCAD CLI reference in your browser.
+    /// Open the Zoo CLI reference in your browser.
     CliRef,
-    /// Open your KittyCAD account in your browser.
+    /// Open your Zoo account in your browser.
     Account,
-    /// Open the KittyCAD Discord in your browser.
+    /// Open the Zoo Discord in your browser.
     Discord,
-    /// Open the KittyCAD store in your browser.
+    /// Open the Zoo store in your browser.
     Store,
-    /// Open the KittyCAD blog in your browser.
+    /// Open the Zoo blog in your browser.
     Blog,
     /// Open the repository for the `kittycad` CLI in your browser.
     Repo,
@@ -47,13 +47,13 @@ pub enum OpenShortcut {
 impl OpenShortcut {
     fn get_url(&self) -> String {
         match self {
-            OpenShortcut::Docs => "https://docs.kittycad.io".to_string(),
-            OpenShortcut::ApiRef => "https://docs.kittycad.io/api".to_string(),
-            OpenShortcut::CliRef => "https://docs.kittycad.io/cli".to_string(),
-            OpenShortcut::Account => "https://kittycad.io/account".to_string(),
+            OpenShortcut::Docs => "https://zoo.dev/docs".to_string(),
+            OpenShortcut::ApiRef => "https://zoo.dev/docs/api".to_string(),
+            OpenShortcut::CliRef => "https://zoo.dev/docs/cli".to_string(),
+            OpenShortcut::Account => "https://zoo.dev/account".to_string(),
             OpenShortcut::Discord => "https://discord.com/invite/Bee65eqawJ".to_string(),
-            OpenShortcut::Store => "https://store.kittycad.io".to_string(),
-            OpenShortcut::Blog => "https://kittycad.io/blog".to_string(),
+            OpenShortcut::Store => "https://store.zoo.dev".to_string(),
+            OpenShortcut::Blog => "https://zoo.dev/blog".to_string(),
             OpenShortcut::Repo => "https://github.com/KittyCAD/cli".to_string(),
             OpenShortcut::Changelog => changelog_url(clap::crate_version!()),
         }

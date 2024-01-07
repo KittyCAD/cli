@@ -2,7 +2,7 @@
 name = "cli-macro"
 description = "Macro for our CLI generation"
 version = "0.1.0"
-authors = ["Jess Frazelle <jess@kittycad.io>"]
+authors = ["Jess Frazelle <jess@zoo.dev>"]
 edition = "2018"
 
 [lib]

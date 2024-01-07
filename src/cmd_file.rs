@@ -136,7 +136,7 @@ impl crate::cmd::Command for CmdFileConvert {
                     )?;
                 }
             } else {
-                anyhow::bail!("no output was generated! (this is probably a bug in the API) you should report it to support@kittycad.io");
+                anyhow::bail!("no output was generated! (this is probably a bug in the API) you should report it to support@zoo.dev");
             }
         }
 
@@ -663,7 +663,7 @@ fn get_input_format(
     format: kittycad::types::FileImportFormat,
     ul: kittycad::types::UnitLength,
 ) -> Result<kittycad::types::InputFormat> {
-    // KittyCAD co-ordinate system.
+    // Zoo co-ordinate system.
     //
     // * Forward: -Y
     // * Up: +Z

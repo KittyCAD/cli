@@ -951,7 +951,7 @@ impl Operation {
         let struct_name = format_ident!("Cmd{}View", to_title_case(&singular(tag)));
 
         let struct_doc = format!(
-            "View {}.\n\nDisplay information about a KittyCAD {}.\n\nWith `--web`, open the {} in a web browser instead.",
+            "View {}.\n\nDisplay information about a Zoo {}.\n\nWith `--web`, open the {} in a web browser instead.",
             singular_tag_str, singular_tag_str, singular_tag_str
         );
 
@@ -975,7 +975,7 @@ impl Operation {
 
         let url = if tag == "users" {
             quote!(
-                    let url = "https://kittycad.io/account".to_string();
+                    let url = "https://zoo.dev/account".to_string();
             )
         } else {
             let path = &self.path;

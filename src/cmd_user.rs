@@ -45,40 +45,40 @@ mod test {
     }
 
     struct TContext {
-        orig_kittycad_host: Result<String, std::env::VarError>,
-        orig_kittycad_token: Result<String, std::env::VarError>,
+        orig_zoo_host: Result<String, std::env::VarError>,
+        orig_zoo_token: Result<String, std::env::VarError>,
     }
 
     #[async_trait::async_trait]
     impl AsyncTestContext for TContext {
         async fn setup() -> TContext {
             let orig = TContext {
-                orig_kittycad_host: std::env::var("KITTYCAD_HOST"),
-                orig_kittycad_token: std::env::var("KITTYCAD_TOKEN"),
+                orig_zoo_host: std::env::var("ZOO_HOST"),
+                orig_zoo_token: std::env::var("ZOO_TOKEN"),
             };
 
             // Set our test values.
-            let test_host = std::env::var("KITTYCAD_TEST_HOST").unwrap_or_default();
+            let test_host = std::env::var("ZOO_TEST_HOST").unwrap_or_default();
 
-            let test_token = std::env::var("KITTYCAD_TEST_TOKEN").expect("KITTYCAD_TEST_TOKEN is required");
-            std::env::set_var("KITTYCAD_HOST", test_host);
-            std::env::set_var("KITTYCAD_TOKEN", test_token);
+            let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
+            std::env::set_var("ZOO_HOST", test_host);
+            std::env::set_var("ZOO_TOKEN", test_token);
 
             orig
         }
 
         async fn teardown(self) {
             // Put the original env var back.
-            if let Ok(ref val) = self.orig_kittycad_host {
-                std::env::set_var("KITTYCAD_HOST", val);
+            if let Ok(ref val) = self.orig_zoo_host {
+                std::env::set_var("ZOO_HOST", val);
             } else {
-                std::env::remove_var("KITTYCAD_HOST");
+                std::env::remove_var("ZOO_HOST");
             }
 
-            if let Ok(ref val) = self.orig_kittycad_token {
-                std::env::set_var("KITTYCAD_TOKEN", val);
+            if let Ok(ref val) = self.orig_zoo_token {
+                std::env::set_var("ZOO_TOKEN", val);
             } else {
-                std::env::remove_var("KITTYCAD_TOKEN");
+                std::env::remove_var("ZOO_TOKEN");
             }
         }
     }

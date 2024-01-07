@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::{anyhow, Context, Result};
 
-const KITTYCAD_CONFIG_DIR: &str = "KITTYCAD_CONFIG_DIR";
+const ZOO_CONFIG_DIR: &str = "ZOO_CONFIG_DIR";
 const XDG_CONFIG_HOME: &str = "XDG_CONFIG_HOME";
 const XDG_STATE_HOME: &str = "XDG_STATE_HOME";
 #[allow(dead_code)]
@@ -15,23 +15,23 @@ const APP_DATA: &str = "CommandData";
 const LOCAL_APP_DATA: &str = "LocalCommandData";
 
 // Config path precedence
-// 1. KITTYCAD_CONFIG_DIR
+// 1. ZOO_CONFIG_DIR
 // 2. XDG_CONFIG_HOME
 // 3. CommandData (windows only)
 // 4. HOME
 pub fn config_dir() -> Result<String> {
     let path: PathBuf;
 
-    let kittycad_config_dir = get_env_var(KITTYCAD_CONFIG_DIR);
+    let zoo_config_dir = get_env_var(ZOO_CONFIG_DIR);
     let xdg_config_home = get_env_var(XDG_CONFIG_HOME);
     let app_data = get_env_var(APP_DATA);
 
-    if !kittycad_config_dir.is_empty() {
-        path = Path::new(&kittycad_config_dir).to_path_buf();
+    if !zoo_config_dir.is_empty() {
+        path = Path::new(&zoo_config_dir).to_path_buf();
     } else if !xdg_config_home.is_empty() {
         path = Path::new(&xdg_config_home).join("kittycad");
     } else if !app_data.is_empty() && std::env::consts::OS == "windows" {
-        path = Path::new(&app_data).join("KittyCAD CLI");
+        path = Path::new(&app_data).join("Zoo CLI");
     } else {
         match dirs::home_dir() {
             Some(home) => {
@@ -63,7 +63,7 @@ pub fn state_dir() -> Result<String> {
     if !xdg_state_home.is_empty() {
         path = Path::new(&xdg_state_home).join("kittycad");
     } else if !local_app_data.is_empty() && std::env::consts::OS == "windows" {
-        path = Path::new(&local_app_data).join("KittyCAD CLI");
+        path = Path::new(&local_app_data).join("Zoo CLI");
     } else {
         match dirs::home_dir() {
             Some(home) => {
@@ -96,7 +96,7 @@ pub fn data_dir() -> Result<String> {
     if !xdg_data_home.is_empty() {
         path = Path::new(&xdg_data_home).join("kittycad");
     } else if !local_app_data.is_empty() && std::env::consts::OS == "windows" {
-        path = Path::new(&local_app_data).join("KittyCAD CLI");
+        path = Path::new(&local_app_data).join("Zoo CLI");
     } else {
         match dirs::home_dir() {
             Some(home) => {

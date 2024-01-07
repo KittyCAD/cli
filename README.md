@@ -1,6 +1,6 @@
 # cli
 
-The KittyCAD command line tool.
+The Zoo command line tool.
 
 The instructions below refer to instructions for contributing to the repo.
 
@@ -26,7 +26,7 @@ repo as well since that is where the API client comes from.
 
 ### Running the tests
 
-The tests use the `KITTYCAD_TEST_TOKEN`  variables for knowing how to authenticate.
+The tests use the `ZOO_TEST_TOKEN`  variables for knowing how to authenticate.
 
 ### Releasing a new version
 

@@ -8,9 +8,9 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-/// Makes an authenticated HTTP request to the KittyCAD API and prints the response.
+/// Makes an authenticated HTTP request to the Zoo API and prints the response.
 ///
-/// The endpoint argument should be a path of a KittyCAD API endpoint.
+/// The endpoint argument should be a path of a Zoo API endpoint.
 ///
 /// The default HTTP request method is "GET" normally and "POST" if any parameters
 /// were added. Override the method with `--method`.

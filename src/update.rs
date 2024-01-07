@@ -63,7 +63,7 @@ pub async fn check_for_update(current_version: &str, force: bool) -> Result<Opti
 
 /// If we should check for an update to the cli.
 fn should_check_for_update() -> bool {
-    if !get_env_var("KITTYCAD_NO_UPDATE_NOTIFIER").is_empty() {
+    if !get_env_var("ZOO_NO_UPDATE_NOTIFIER").is_empty() {
         return false;
     }
 
@@ -187,7 +187,7 @@ fn get_exe_download_url(version: &str) -> String {
     };
 
     format!(
-        "https://dl.kittycad.io/releases/cli/{}/kittycad-{}",
+        "https://dl.zoo.dev/releases/cli/{}/kittycad-{}",
         version,
         crate::built_info::TARGET
     )
@@ -283,7 +283,7 @@ mod test {
         assert_eq!(
             url,
             format!(
-                "https://dl.kittycad.io/releases/cli/v0.1.0/kittycad-{}",
+                "https://dl.zoo.dev/releases/cli/v0.1.0/kittycad-{}",
                 crate::built_info::TARGET
             )
         );
@@ -292,7 +292,7 @@ mod test {
         assert_eq!(
             url,
             format!(
-                "https://dl.kittycad.io/releases/cli/v0.2.0/kittycad-{}",
+                "https://dl.zoo.dev/releases/cli/v0.2.0/kittycad-{}",
                 crate::built_info::TARGET
             )
         );

@@ -5,8 +5,8 @@ use thiserror::Error;
 
 use crate::config_file::get_env_var;
 
-const KITTYCAD_HOST: &str = "KITTYCAD_HOST";
-const KITTYCAD_TOKEN: &str = "KITTYCAD_TOKEN";
+const ZOO_HOST: &str = "ZOO_HOST";
+const ZOO_TOKEN: &str = "ZOO_TOKEN";
 
 pub struct EnvConfig<'a> {
     pub config: &'a mut (dyn crate::config::Config + 'a),
@@ -33,12 +33,12 @@ impl crate::config::Config for EnvConfig<'_> {
     fn get_with_source(&self, hostname: &str, key: &str) -> Result<(String, String)> {
         // If they are asking specifically for the token, return the value.
         if key == "token" {
-            let token = get_env_var(KITTYCAD_TOKEN);
+            let token = get_env_var(ZOO_TOKEN);
             if !token.is_empty() {
-                return Ok((token, KITTYCAD_TOKEN.to_string()));
+                return Ok((token, ZOO_TOKEN.to_string()));
             }
         } else {
-            let var = format!("KITTYCAD_{}", heck::AsShoutySnakeCase(key));
+            let var = format!("ZOO_{}", heck::AsShoutySnakeCase(key));
             let val = get_env_var(&var);
             if !val.is_empty() {
                 return Ok((val, var));
@@ -66,8 +66,8 @@ impl crate::config::Config for EnvConfig<'_> {
     }
 
     fn default_host_with_source(&self) -> Result<(String, String)> {
-        if let Ok(host) = env::var(KITTYCAD_HOST) {
-            Ok((host, KITTYCAD_HOST.to_string()))
+        if let Ok(host) = env::var(ZOO_HOST) {
+            Ok((host, ZOO_HOST.to_string()))
         } else {
             self.config.default_host_with_source()
         }
@@ -88,9 +88,9 @@ impl crate::config::Config for EnvConfig<'_> {
     fn check_writable(&self, hostname: &str, key: &str) -> Result<()> {
         // If they are asking specifically for the token, return the value.
         if key == "token" {
-            let token = get_env_var(KITTYCAD_TOKEN);
+            let token = get_env_var(ZOO_TOKEN);
             if !token.is_empty() {
-                return Err(ReadOnlyEnvVarError::Variable(KITTYCAD_TOKEN.to_string()).into());
+                return Err(ReadOnlyEnvVarError::Variable(ZOO_TOKEN.to_string()).into());
             }
         }
 

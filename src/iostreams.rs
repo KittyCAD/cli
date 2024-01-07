@@ -178,7 +178,7 @@ impl IoStreams {
         }
 
         // TODO: fix this, either make the pager stuff work or remove it everwhere, see
-        // KITTYCAD_PAGER.
+        // ZOO_PAGER.
         let pager_cmd = Command::new(pager_args.first().unwrap())
             .args(pager_args.iter().skip(1))
             .env_clear()

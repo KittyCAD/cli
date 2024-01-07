@@ -80,20 +80,20 @@ pub fn parse_host(input: &str) -> Result<url::Url> {
     }
 }
 
-/// Authenticate with an KittyCAD host.
+/// Authenticate with an Zoo host.
 ///
 /// Alternatively, pass in a token on standard input by using `--with-token`.
 ///
 ///     # start interactive setup
 ///     $ kittycad auth login
 ///
-///     # authenticate against a specific KittyCAD instance by reading the token from a file
+///     # authenticate against a specific Zoo instance by reading the token from a file
 ///     $ kittycad auth login --with-token --host kittycad.internal < mytoken.txt
 ///
-///     # authenticate with a specific KittyCAD instance
+///     # authenticate with a specific Zoo instance
 ///     $ kittycad auth login --host kittycad.internal
 ///
-///     # authenticate with an insecure KittyCAD instance (not recommended)
+///     # authenticate with an insecure Zoo instance (not recommended)
 ///     $ kittycad auth login --host http://kittycad.internal
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -102,11 +102,11 @@ pub struct CmdAuthLogin {
     #[clap(long)]
     pub with_token: bool,
 
-    /// The host of the KittyCAD instance to authenticate with.
-    /// By default this is api.kittycad.io.
+    /// The host of the Zoo instance to authenticate with.
+    /// By default this is api.zoo.dev.
     /// This assumes the instance is an `https://` url, if not otherwise specified
     /// as `http://`.
-    #[clap(short = 'H', long, env = "KITTYCAD_HOST", value_parser = parse_host)]
+    #[clap(short = 'H', long, env = "ZOO_HOST", value_parser = parse_host)]
     pub host: Option<url::Url>,
     /// Open a browser to authenticate.
     #[clap(short, long)]
@@ -148,7 +148,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                 )?;
                 writeln!(
                     ctx.io.err_out,
-                    "To have KittyCAD CLI store credentials instead, first clear the value from the environment."
+                    "To have Zoo CLI store credentials instead, first clear the value from the environment."
                 )?;
                 return Err(anyhow!(""));
             }
@@ -190,7 +190,7 @@ impl crate::cmd::Command for CmdAuthLogin {
             if interactive && !self.web {
                 let auth_options = vec!["Login with a web browser", "Paste an authentication token"];
                 match dialoguer::Select::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                    .with_prompt("How would you like to authenticate KittyCAD CLI?")
+                    .with_prompt("How would you like to authenticate Zoo CLI?")
                     .items(&auth_options)
                     .default(0)
                     .interact()
@@ -293,7 +293,7 @@ impl crate::cmd::Command for CmdAuthLogin {
     }
 }
 
-/// Log out of an KittyCAD host.
+/// Log out of an Zoo host.
 ///
 /// This command removes the authentication configuration for a host either specified
 /// interactively or via `--host`.
@@ -306,8 +306,8 @@ impl crate::cmd::Command for CmdAuthLogin {
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAuthLogout {
-    /// The hostname of the KittyCAD instance to log out of.
-    #[clap(short = 'H', long, env = "KITTYCAD_HOST", value_parser = parse_host)]
+    /// The hostname of the Zoo instance to log out of.
+    #[clap(short = 'H', long, env = "ZOO_HOST", value_parser = parse_host)]
     pub host: Option<url::Url>,
 }
 
@@ -365,7 +365,7 @@ impl crate::cmd::Command for CmdAuthLogout {
                 )?;
                 writeln!(
                     ctx.io.err_out,
-                    "To erase credentials stored in KittyCAD CLI, first clear the value from the environment."
+                    "To erase credentials stored in Zoo CLI, first clear the value from the environment."
                 )?;
                 return Err(anyhow!(""));
             }
@@ -424,7 +424,7 @@ impl crate::cmd::Command for CmdAuthLogout {
 
 /// Verifies and displays information about your authentication state.
 ///
-/// This command will test your authentication state for each KittyCAD host that `kittycad`
+/// This command will test your authentication state for each Zoo host that `kittycad`
 /// knows about and report on any issues.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -434,7 +434,7 @@ pub struct CmdAuthStatus {
     pub show_token: bool,
 
     /// Check a specific hostname's auth status.
-    #[clap(short = 'H', long, env = "KITTYCAD_HOST", value_parser = parse_host)]
+    #[clap(short = 'H', long, env = "ZOO_HOST", value_parser = parse_host)]
     pub host: Option<url::Url>,
 }
 
@@ -450,7 +450,7 @@ impl crate::cmd::Command for CmdAuthStatus {
         if hostnames.is_empty() {
             writeln!(
                 ctx.io.out,
-                "You are not logged into any KittyCAD hosts. Run `{}` to authenticate.",
+                "You are not logged into any Zoo hosts. Run `{}` to authenticate.",
                 cs.bold("kittycad auth login")
             )?;
             return Ok(());
@@ -504,7 +504,7 @@ impl crate::cmd::Command for CmdAuthStatus {
         if !hostname_found {
             writeln!(
                 ctx.io.err_out,
-                "Hostname {} not found among authenticated KittyCAD hosts",
+                "Hostname {} not found among authenticated Zoo hosts",
                 self.host.as_ref().unwrap().as_str(),
             )?;
             return Err(anyhow!(""));
@@ -549,10 +549,10 @@ mod test {
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[serial_test::serial]
     async fn test_cmd_auth() {
-        let test_host = std::env::var("KITTYCAD_TEST_HOST").unwrap_or_default();
-        let test_host = crate::cmd_auth::parse_host(&test_host).expect("invalid KITTYCAD_TEST_HOST");
+        let test_host = std::env::var("ZOO_TEST_HOST").unwrap_or_default();
+        let test_host = crate::cmd_auth::parse_host(&test_host).expect("invalid ZOO_TEST_HOST");
 
-        let test_token = std::env::var("KITTYCAD_TEST_TOKEN").expect("KITTYCAD_TEST_TOKEN is required");
+        let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
 
         let tests: Vec<TestItem> = vec![
             TestItem {

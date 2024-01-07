@@ -1,4 +1,4 @@
-//! The KittyCAD command line tool.
+//! The Zoo command line tool.
 #![deny(missing_docs)]
 
 // Always export the cmd_* modules as public so that it tells us when we are
@@ -69,28 +69,28 @@ use anyhow::Result;
 use clap::Parser;
 use slog::Drain;
 
-/// The default host for the KittyCAD API.
-pub const DEFAULT_HOST: &str = "https://api.kittycad.io";
+/// The default host for the Zoo API.
+pub const DEFAULT_HOST: &str = "https://api.zoo.dev";
 
-/// Work seamlessly with KittyCAD from the command line.
+/// Work seamlessly with Zoo from the command line.
 ///
 /// You've never CAD it so good.
 ///
 /// Environment variables that can be used with `kittycad`.
 ///
-/// KITTYCAD_TOKEN: an authentication token for KittyCAD API requests. Setting this
+/// ZOO_TOKEN: an authentication token for Zoo API requests. Setting this
 /// avoids being prompted to authenticate and takes precedence over previously
 /// stored credentials.
 ///
-/// KITTYCAD_HOST: specify the KittyCAD hostname for commands that would otherwise assume
-/// the "api.kittycad.io" host.
+/// ZOO_HOST: specify the Zoo hostname for commands that would otherwise assume
+/// the "api.zoo.dev" host.
 ///
-/// KITTYCAD_BROWSER, BROWSER (in order of precedence): the web browser to use for opening
+/// ZOO_BROWSER, BROWSER (in order of precedence): the web browser to use for opening
 /// links.
 ///
 /// DEBUG: set to any value to enable verbose output to standard error.
 ///
-/// KITTYCAD_PAGER, PAGER (in order of precedence): a terminal paging program to send
+/// ZOO_PAGER, PAGER (in order of precedence): a terminal paging program to send
 /// standard output to, e.g. "less".
 ///
 /// NO_COLOR: set to any value to avoid printing ANSI escape sequences for color output.
@@ -100,16 +100,16 @@ pub const DEFAULT_HOST: &str = "https://api.kittycad.io";
 /// CLICOLOR_FORCE: set to a value other than "0" to keep ANSI colors in output
 /// even when the output is piped.
 ///
-/// KITTYCAD_FORCE_TTY: set to any value to force terminal-style output even when the
+/// ZOO_FORCE_TTY: set to any value to force terminal-style output even when the
 /// output is redirected. When the value is a number, it is interpreted as the number of
 /// columns available in the viewport. When the value is a percentage, it will be applied
 /// against the number of columns available in the current viewport.
 ///
-/// KITTYCAD_NO_UPDATE_NOTIFIER: set to any value to disable update notifications. By
+/// ZOO_NO_UPDATE_NOTIFIER: set to any value to disable update notifications. By
 /// default, `kittycad` checks for new releases once every 24 hours and displays an upgrade
 /// notice on standard error if a newer version was found.
 ///
-/// KITTYCAD_CONFIG_DIR: the directory where `kittycad` will store configuration files.
+/// ZOO_CONFIG_DIR: the directory where `kittycad` will store configuration files.
 /// Default: `$XDG_CONFIG_HOME/kittycad` or `$HOME/.config/kittycad`.
 #[derive(Parser, Debug, Clone)]
 #[clap(version = clap::crate_version!(), author = clap::crate_authors!("\n"))]
@@ -228,7 +228,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
     ctx.debug = opts.debug;
 
     // Setup our logger. This is mainly for debug purposes.
-    // And getting debug logs from other libraries we consume, like even KittyCAD.
+    // And getting debug logs from other libraries we consume, like even Zoo.
     if ctx.debug {
         let decorator = slog_term::TermDecorator::new().build();
         let drain = slog_term::FullFormat::new(decorator).build().fuse();

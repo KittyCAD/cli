@@ -7,7 +7,7 @@ enum SubCommand {
     Delete(CmdUserDelete),
 }
 
-#[doc = "View user.\n\nDisplay information about a KittyCAD user.\n\nWith `--web`, open the user in a web browser instead."]
+#[doc = "View user.\n\nDisplay information about a Zoo user.\n\nWith `--web`, open the user in a web browser instead."]
 #[derive(clap :: Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdUserView {
@@ -23,7 +23,7 @@ pub struct CmdUserView {
 impl crate::cmd::Command for CmdUserView {
     async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
         if self.web {
-            let url = "https://kittycad.io/account".to_string();
+            let url = "https://zoo.dev/account".to_string();
             ctx.browser("", &url)?;
             return Ok(());
         }

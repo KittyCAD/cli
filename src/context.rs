@@ -25,11 +25,11 @@ impl Context<'_> {
 
         // Set the pager.
         // Pager precedence
-        // 1. KITTYCAD_PAGER
+        // 1. ZOO_PAGER
         // 2. pager from config
         // 3. PAGER
-        if let Ok(kittycad_pager) = std::env::var("KITTYCAD_PAGER") {
-            io.set_pager(kittycad_pager);
+        if let Ok(zoo_pager) = std::env::var("ZOO_PAGER") {
+            io.set_pager(zoo_pager);
         } else if let Ok(pager) = config.get("", "pager") {
             if !pager.is_empty() {
                 io.set_pager(pager);
@@ -37,9 +37,9 @@ impl Context<'_> {
         }
 
         // Check if we should force use the tty.
-        if let Ok(kittycad_force_tty) = std::env::var("KITTYCAD_FORCE_TTY") {
-            if !kittycad_force_tty.is_empty() {
-                io.force_terminal(&kittycad_force_tty);
+        if let Ok(zoo_force_tty) = std::env::var("ZOO_FORCE_TTY") {
+            if !zoo_force_tty.is_empty() {
+                io.force_terminal(&zoo_force_tty);
             }
         }
 
@@ -50,7 +50,7 @@ impl Context<'_> {
         }
     }
 
-    /// This function returns an API client for KittyCAD that is based on the configured
+    /// This function returns an API client for Zoo that is based on the configured
     /// user.
     pub fn api_client(&self, hostname: &str) -> Result<kittycad::Client> {
         // Use the host passed in if it's set.
@@ -157,14 +157,14 @@ impl Context<'_> {
     /// environment to the specified path.
     ///
     /// Browser precedence:
-    /// 1. KITTYCAD_BROWSER
+    /// 1. ZOO_BROWSER
     /// 2. BROWSER
     /// 3. browser from config
     pub fn browser(&self, hostname: &str, url: &str) -> Result<()> {
         let source: String;
-        let browser = if !get_env_var("KITTYCAD_BROWSER").is_empty() {
-            source = "KITTYCAD_BROWSER".to_string();
-            get_env_var("KITTYCAD_BROWSER")
+        let browser = if !get_env_var("ZOO_BROWSER").is_empty() {
+            source = "ZOO_BROWSER".to_string();
+            get_env_var("ZOO_BROWSER")
         } else if !get_env_var("BROWSER").is_empty() {
             source = "BROWSER".to_string();
             get_env_var("BROWSER")
@@ -233,38 +233,38 @@ mod test {
     use super::*;
 
     struct TContext {
-        orig_kittycad_pager_env: Result<String, std::env::VarError>,
-        orig_kittycad_force_tty_env: Result<String, std::env::VarError>,
+        orig_zoo_pager_env: Result<String, std::env::VarError>,
+        orig_zoo_force_tty_env: Result<String, std::env::VarError>,
     }
 
     impl TestContext for TContext {
         fn setup() -> TContext {
             TContext {
-                orig_kittycad_pager_env: std::env::var("KITTYCAD_PAGER"),
-                orig_kittycad_force_tty_env: std::env::var("KITTYCAD_FORCE_TTY"),
+                orig_zoo_pager_env: std::env::var("ZOO_PAGER"),
+                orig_zoo_force_tty_env: std::env::var("ZOO_FORCE_TTY"),
             }
         }
 
         fn teardown(self) {
             // Put the original env var back.
-            if let Ok(ref val) = self.orig_kittycad_pager_env {
-                std::env::set_var("KITTYCAD_PAGER", val);
+            if let Ok(ref val) = self.orig_zoo_pager_env {
+                std::env::set_var("ZOO_PAGER", val);
             } else {
-                std::env::remove_var("KITTYCAD_PAGER");
+                std::env::remove_var("ZOO_PAGER");
             }
 
-            if let Ok(ref val) = self.orig_kittycad_force_tty_env {
-                std::env::set_var("KITTYCAD_FORCE_TTY", val);
+            if let Ok(ref val) = self.orig_zoo_force_tty_env {
+                std::env::set_var("ZOO_FORCE_TTY", val);
             } else {
-                std::env::remove_var("KITTYCAD_FORCE_TTY");
+                std::env::remove_var("ZOO_FORCE_TTY");
             }
         }
     }
 
     pub struct TestItem {
         name: String,
-        kittycad_pager_env: String,
-        kittycad_force_tty_env: String,
+        zoo_pager_env: String,
+        zoo_force_tty_env: String,
         pager: String,
         prompt: String,
         want_pager: String,
@@ -278,9 +278,9 @@ mod test {
     fn test_context(_ctx: &mut TContext) {
         let tests = vec![
             TestItem {
-                name: "KITTYCAD_PAGER env".to_string(),
-                kittycad_pager_env: "more".to_string(),
-                kittycad_force_tty_env: "".to_string(),
+                name: "ZOO_PAGER env".to_string(),
+                zoo_pager_env: "more".to_string(),
+                zoo_force_tty_env: "".to_string(),
                 prompt: "".to_string(),
                 pager: "".to_string(),
                 want_pager: "more".to_string(),
@@ -288,9 +288,9 @@ mod test {
                 want_terminal_width_override: 0,
             },
             TestItem {
-                name: "KITTYCAD_PAGER env override".to_string(),
-                kittycad_pager_env: "more".to_string(),
-                kittycad_force_tty_env: "".to_string(),
+                name: "ZOO_PAGER env override".to_string(),
+                zoo_pager_env: "more".to_string(),
+                zoo_force_tty_env: "".to_string(),
                 prompt: "".to_string(),
                 pager: "less".to_string(),
                 want_pager: "more".to_string(),
@@ -299,8 +299,8 @@ mod test {
             },
             TestItem {
                 name: "config pager".to_string(),
-                kittycad_pager_env: "".to_string(),
-                kittycad_force_tty_env: "".to_string(),
+                zoo_pager_env: "".to_string(),
+                zoo_force_tty_env: "".to_string(),
                 prompt: "".to_string(),
                 pager: "less".to_string(),
                 want_pager: "less".to_string(),
@@ -309,8 +309,8 @@ mod test {
             },
             TestItem {
                 name: "config prompt".to_string(),
-                kittycad_pager_env: "".to_string(),
-                kittycad_force_tty_env: "".to_string(),
+                zoo_pager_env: "".to_string(),
+                zoo_force_tty_env: "".to_string(),
                 prompt: "disabled".to_string(),
                 pager: "less".to_string(),
                 want_pager: "less".to_string(),
@@ -318,9 +318,9 @@ mod test {
                 want_terminal_width_override: 0,
             },
             TestItem {
-                name: "KITTYCAD_FORCE_TTY env".to_string(),
-                kittycad_pager_env: "".to_string(),
-                kittycad_force_tty_env: "120".to_string(),
+                name: "ZOO_FORCE_TTY env".to_string(),
+                zoo_pager_env: "".to_string(),
+                zoo_force_tty_env: "120".to_string(),
                 prompt: "disabled".to_string(),
                 pager: "less".to_string(),
                 want_pager: "less".to_string(),
@@ -341,16 +341,16 @@ mod test {
                 c.set("", "prompt", &t.prompt).unwrap();
             }
 
-            if !t.kittycad_pager_env.is_empty() {
-                std::env::set_var("KITTYCAD_PAGER", t.kittycad_pager_env.clone());
+            if !t.zoo_pager_env.is_empty() {
+                std::env::set_var("ZOO_PAGER", t.zoo_pager_env.clone());
             } else {
-                std::env::remove_var("KITTYCAD_PAGER");
+                std::env::remove_var("ZOO_PAGER");
             }
 
-            if !t.kittycad_force_tty_env.is_empty() {
-                std::env::set_var("KITTYCAD_FORCE_TTY", t.kittycad_force_tty_env.clone());
+            if !t.zoo_force_tty_env.is_empty() {
+                std::env::set_var("ZOO_FORCE_TTY", t.zoo_force_tty_env.clone());
             } else {
-                std::env::remove_var("KITTYCAD_FORCE_TTY");
+                std::env::remove_var("ZOO_FORCE_TTY");
             }
 
             let ctx = Context::new(&mut c);

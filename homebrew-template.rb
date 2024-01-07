@@ -1,7 +1,7 @@
 class Kittycad < Formula
-  desc " is a command-line interface to KittyCAD for use in your terminal or your scripts."
-  homepage "https://kittycad.io/docs/cli/manual"
-  url "https://dl.kittycad.io/releases/cli/replace-semver/kittycad-cli.tar.gz"
+  desc " is a command-line interface to Zoo for use in your terminal or your scripts."
+  homepage "https://zoo.dev/docs/cli/manual"
+  url "https://dl.zoo.dev/releases/cli/replace-semver/kittycad-cli.tar.gz"
   sha256 "replace-tarball-sha"
 
 

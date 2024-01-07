@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 
-/// Prints your text in a text bubble with KittyCAD as ASCII art
+/// Prints your text in a text bubble with Zoo as ASCII art
 ///
 ///     $ kittycad say
 ///     $ kittycad say hello!

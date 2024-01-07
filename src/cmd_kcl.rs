@@ -297,7 +297,7 @@ fn get_output_format(
     format: &kittycad::types::FileExportFormat,
     src_unit: kittycad::types::UnitLength,
 ) -> kittycad::types::OutputFormat {
-    // KittyCAD co-ordinate system.
+    // Zoo co-ordinate system.
     //
     // * Forward: -Y
     // * Up: +Z

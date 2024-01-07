@@ -129,7 +129,7 @@ impl crate::cmd::Command for CmdConfigList {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let host = if self.host.is_empty() {
             // We don't want to do the default host here since we want to show the default's for
-            // all hosts, even if KITTYCAD_HOST is set.
+            // all hosts, even if ZOO_HOST is set.
             // TODO: in this case we should print all the hosts configs, not just the default.
             "".to_string()
         } else {
