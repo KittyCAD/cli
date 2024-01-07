@@ -278,6 +278,9 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
                     writeln!(ctx.io.err_out, "{} You are not authenticated.", cs.failure_icon())?;
 
                     writeln!(ctx.io.err_out, "Try authenticating with: `zoo auth login`")?;
+                } else if let kittycad::types::error::Error::UnexpectedResponse(resp) = err {
+                    let body = resp.text().await?;
+                    writeln!(ctx.io.err_out, "zoo.dev api error: {}", body)?;
                 } else {
                     writeln!(ctx.io.err_out, "{err}")?;
                 }
