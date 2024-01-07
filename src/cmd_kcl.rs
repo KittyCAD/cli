@@ -42,13 +42,13 @@ impl crate::cmd::Command for CmdKcl {
 /// Export a `kcl` file as any other supported CAD file format.
 ///
 ///     # convert kcl to obj
-///     $ kittycad kcl export --output-format=obj my-file.kcl output_dir
+///     $ zoo kcl export --output-format=obj my-file.kcl output_dir
 ///
 ///     # convert kcl to step
-///     $ kittycad kcl export --output-format=step my-obj.kcl .
+///     $ zoo kcl export --output-format=step my-obj.kcl .
 ///
 ///     # pass a file to convert from stdin
-///     $ cat my-obj.kcl | kittycad kcl export --output-format=step - output_dir
+///     $ cat my-obj.kcl | zoo kcl export --output-format=step - output_dir
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclExport {
@@ -122,10 +122,10 @@ impl crate::cmd::Command for CmdKclExport {
 /// Snapshot a render of a `kcl` file as any supported image format.
 ///
 ///     # snapshot as png
-///     $ kittycad kcl snapshot my-file.kcl my-file.png
+///     $ zoo kcl snapshot my-file.kcl my-file.png
 ///
 ///     # pass a file to snapshot from stdin
-///     $ cat my-obj.kcl | kittycad kcl snapshot --output-format=png - my-file.png
+///     $ cat my-obj.kcl | zoo kcl snapshot --output-format=png - my-file.png
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSnapshot {
@@ -204,10 +204,10 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
 /// View a render of a `kcl` file in your terminal.
 ///
-///     $ kittycad kcl view my-file.kcl
+///     $ zoo kcl view my-file.kcl
 ///
 ///     # pass a file to view from stdin
-///     $ cat my-obj.kcl | kittycad kcl view -
+///     $ cat my-obj.kcl | zoo kcl view -
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclView {
@@ -231,7 +231,7 @@ impl crate::cmd::Command for CmdKclView {
 
         // Create a temporary file to write the snapshot to.
         let mut tmp_file = std::env::temp_dir();
-        tmp_file.push(&format!("kittycad-kcl-view-{}.png", uuid::Uuid::new_v4()));
+        tmp_file.push(&format!("zoo-kcl-view-{}.png", uuid::Uuid::new_v4()));
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -348,10 +348,10 @@ fn get_output_format(
 /// Get the volume of an object in a kcl file.
 ///
 ///     # get the volume of a file
-///     $ kittycad kcl volume --src_unit=m my-file.kcl
+///     $ zoo kcl volume --src_unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | kittycad kcl volume --src_unit=m
+///     $ cat my-file.kcl | zoo kcl volume --src_unit=m
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclVolume {
@@ -413,10 +413,10 @@ impl crate::cmd::Command for CmdKclVolume {
 /// Get the mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ kittycad kcl mass --src_unit=m my-file.kcl
+///     $ zoo kcl mass --src_unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | kittycad kcl mass --src_unit=m
+///     $ cat my-file.kcl | zoo kcl mass --src_unit=m
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclMass {
@@ -492,10 +492,10 @@ impl crate::cmd::Command for CmdKclMass {
 /// Get the center of mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ kittycad kcl center-of-mass --src_unit=m my-file.kcl
+///     $ zoo kcl center-of-mass --src_unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | kittycad kcl center-of-mass --src_unit=m
+///     $ cat my-file.kcl | zoo kcl center-of-mass --src_unit=m
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclCenterOfMass {
@@ -557,10 +557,10 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 /// Get the density of objects in a kcl file.
 ///
 ///     # get the density of a file
-///     $ kittycad kcl density --src_unit=m my-file.kcl
+///     $ zoo kcl density --src_unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | kittycad kcl density --src_unit=m
+///     $ cat my-file.kcl | zoo kcl density --src_unit=m
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclDensity {
@@ -636,10 +636,10 @@ impl crate::cmd::Command for CmdKclDensity {
 /// Get the surface area of objects in a kcl file.
 ///
 ///     # get the surface-area of a file
-///     $ kittycad kcl surface-area --src_unit=m my-file.kcl
+///     $ zoo kcl surface-area --src_unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | kittycad kcl surface-area --src_unit=m
+///     $ cat my-file.kcl | zoo kcl surface-area --src_unit=m
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSurfaceArea {

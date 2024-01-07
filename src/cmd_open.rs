@@ -7,10 +7,10 @@ use parse_display::{Display, FromStr};
 /// If no arguments are given, the default is to open the Zoo documentation.
 ///
 ///     # open the Zoo docs in your browser
-///     $ kittycad open docs
+///     $ zoo open docs
 ///
 ///     # open your Zoo account in your browser
-///     $ kittycad open account
+///     $ zoo open account
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdOpen {
@@ -38,9 +38,9 @@ pub enum OpenShortcut {
     Store,
     /// Open the Zoo blog in your browser.
     Blog,
-    /// Open the repository for the `kittycad` CLI in your browser.
+    /// Open the repository for the `zoo` CLI in your browser.
     Repo,
-    /// Open the changelog for the `kittycad` CLI in your browser.
+    /// Open the changelog for the `zoo` CLI in your browser.
     Changelog,
 }
 

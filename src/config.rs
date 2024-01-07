@@ -3,7 +3,7 @@ use std::fmt::Write;
 use anyhow::{anyhow, Result};
 use thiserror::Error;
 
-/// This trait describes interaction with the configuration for `kittycad`.
+/// This trait describes interaction with the configuration for `zoo`.
 pub trait Config: Send + Sync {
     /// Returns a value from the configuration by its key.
     fn get(&self, hostname: &str, key: &str) -> Result<String>;
@@ -28,7 +28,7 @@ pub trait Config: Send + Sync {
     fn save_aliases(&mut self, aliases: &crate::config_map::ConfigMap) -> Result<()>;
     /// expand_alias processes argv to see if it should be rewritten according to a user's aliases. The
     /// second return value indicates whether the alias should be executed in a new shell process instead
-    /// of running `kittycad` itself.
+    /// of running `zoo` itself.
     fn expand_alias(&mut self, args: Vec<String>) -> Result<(Vec<String>, bool)>;
 
     /// Check if the configuration can be written to.
@@ -57,7 +57,7 @@ pub fn config_options() -> Vec<ConfigOption> {
         ConfigOption {
             key: "editor".to_string(),
             description: "the text editor program to use for authoring text".to_string(),
-            comment: "What editor kittycad should run when creating text, etc. If blank, will refer to environment."
+            comment: "What editor zoo should run when creating text, etc. If blank, will refer to environment."
                 .to_string(),
             default_value: "".to_string(),
             allowed_values: vec![],
@@ -80,14 +80,14 @@ pub fn config_options() -> Vec<ConfigOption> {
         ConfigOption {
             key: "browser".to_string(),
             description: "the web browser to use for opening URLs".to_string(),
-            comment: "What web browser kittycad should use when opening URLs. If blank, will refer to environment.".to_string(),
+            comment: "What web browser zoo should use when opening URLs. If blank, will refer to environment.".to_string(),
             default_value: "".to_string(),
             allowed_values: vec![],
         },
         ConfigOption {
             key: "format".to_string(),
             description: "the formatting style for command output".to_string(),
-            comment: "What formatting kittycad should use when printing text.".to_string(),
+            comment: "What formatting zoo should use when printing text.".to_string(),
             default_value: crate::types::FormatOutput::default().to_string(),
             allowed_values: crate::types::FormatOutput::variants(),
         },
@@ -200,7 +200,7 @@ mod test {
         assert!(c.set("example.com", "prompt", "disabled").is_ok());
         assert!(c.set("example.com", "pager", "less").is_ok());
         assert!(c.set("example.com", "browser", "firefox").is_ok());
-        assert!(c.set("kittycad.computer", "browser", "chrome").is_ok());
+        assert!(c.set("zoo.computer", "browser", "chrome").is_ok());
 
         let doc = c.hosts_to_string().unwrap();
 
@@ -210,14 +210,14 @@ prompt = "disabled"
 pager = "less"
 browser = "firefox"
 
-["kittycad.computer"]
+["zoo.computer"]
 browser = "chrome""#;
         assert_eq!(doc, expected);
 
         let hosts = c.hosts().unwrap();
         assert_eq!(hosts.len(), 2);
         assert_eq!(hosts[0], "example.com".to_string());
-        assert_eq!(hosts[1], "kittycad.computer".to_string());
+        assert_eq!(hosts[1], "zoo.computer".to_string());
     }
 
     #[test]
@@ -225,7 +225,7 @@ browser = "chrome""#;
         let c = new_blank_config().unwrap();
         let doc_config = c.config_to_string().unwrap();
 
-        let expected = r#"# What editor kittycad should run when creating text, etc. If blank, will refer to environment.
+        let expected = r#"# What editor zoo should run when creating text, etc. If blank, will refer to environment.
 editor = ""
 
 # When to interactively prompt. This is a global config that cannot be overridden by hostname.
@@ -235,10 +235,10 @@ prompt = "enabled"
 # A pager program to send command output to, e.g. "less". Set the value to "cat" to disable the pager.
 pager = ""
 
-# What web browser kittycad should use when opening URLs. If blank, will refer to environment.
+# What web browser zoo should use when opening URLs. If blank, will refer to environment.
 browser = ""
 
-# What formatting kittycad should use when printing text.
+# What formatting zoo should use when printing text.
 # Supported values: table, json, yaml
 format = "table""#;
         assert_eq!(doc_config, expected);
@@ -295,7 +295,7 @@ token = "MY_TOKEN""#,
         // Getting the default host should return an error.
         assert_eq!(c.default_host().is_err(), true);
         if let Err(e) = c.default_host() {
-            assert_eq!(e.to_string(), "No host has been set as default. Try setting a default with `kittycad config set -H <host> default true`. Options for hosts are: example.org, thing.com");
+            assert_eq!(e.to_string(), "No host has been set as default. Try setting a default with `zoo config set -H <host> default true`. Options for hosts are: example.org, thing.com");
         }
 
         c.set("example.org", "default", "true").unwrap();
@@ -362,22 +362,22 @@ default = true"#;
             },
             TestItem {
                 name: "too few arguments".to_string(),
-                args: vec!["kittycad".to_string()],
+                args: vec!["zoo".to_string()],
                 want_expanded: vec![],
                 want_is_shell: false,
                 want_err: "".to_string(),
             },
             TestItem {
                 name: "no expansion".to_string(),
-                args: vec!["kittycad".to_string(), "config".to_string(), "set".to_string()],
-                want_expanded: vec!["kittycad".to_string(), "config".to_string(), "set".to_string()],
+                args: vec!["zoo".to_string(), "config".to_string(), "set".to_string()],
+                want_expanded: vec!["zoo".to_string(), "config".to_string(), "set".to_string()],
                 want_is_shell: false,
                 want_err: "".to_string(),
             },
             TestItem {
                 name: "simple expansion".to_string(),
-                args: vec!["kittycad".to_string(), "cs".to_string()],
-                want_expanded: vec!["kittycad".to_string(), "config".to_string(), "set".to_string()],
+                args: vec!["zoo".to_string(), "cs".to_string()],
+                want_expanded: vec!["zoo".to_string(), "config".to_string(), "set".to_string()],
                 want_is_shell: false,
                 want_err: "".to_string(),
             },
@@ -391,13 +391,13 @@ default = true"#;
             TestItem {
                 name: "adding arguments after expansion".to_string(),
                 args: vec![
-                    "kittycad".to_string(),
+                    "zoo".to_string(),
                     "cs".to_string(),
                     "foo".to_string(),
                     "bar".to_string(),
                 ],
                 want_expanded: vec![
-                    "kittycad".to_string(),
+                    "zoo".to_string(),
                     "config".to_string(),
                     "set".to_string(),
                     "foo".to_string(),
@@ -408,14 +408,14 @@ default = true"#;
             },
             TestItem {
                 name: "not enough arguments for expansion".to_string(),
-                args: vec!["kittycad".to_string(), "ca".to_string()],
+                args: vec!["zoo".to_string(), "ca".to_string()],
                 want_expanded: vec![],
                 want_is_shell: false,
                 want_err: "not enough arguments for alias: config set $1 $2".to_string(),
             },
             TestItem {
                 name: "not enough arguments for expansion, again".to_string(),
-                args: vec!["kittycad".to_string(), "ca".to_string(), "foo".to_string()],
+                args: vec!["zoo".to_string(), "ca".to_string(), "foo".to_string()],
                 want_expanded: vec![],
                 want_is_shell: false,
                 want_err: "not enough arguments for alias: config set foo $2".to_string(),
@@ -423,13 +423,13 @@ default = true"#;
             TestItem {
                 name: "satisfy expansion arguments".to_string(),
                 args: vec![
-                    "kittycad".to_string(),
+                    "zoo".to_string(),
                     "ca".to_string(),
                     "foo".to_string(),
                     "bar".to_string(),
                 ],
                 want_expanded: vec![
-                    "kittycad".to_string(),
+                    "zoo".to_string(),
                     "config".to_string(),
                     "set".to_string(),
                     "foo".to_string(),
@@ -441,7 +441,7 @@ default = true"#;
             TestItem {
                 name: "mixed positional and non-positional arguments".to_string(),
                 args: vec![
-                    "kittycad".to_string(),
+                    "zoo".to_string(),
                     "ca".to_string(),
                     "foo".to_string(),
                     "bar".to_string(),
@@ -449,7 +449,7 @@ default = true"#;
                     "example.org".to_string(),
                 ],
                 want_expanded: vec![
-                    "kittycad".to_string(),
+                    "zoo".to_string(),
                     "config".to_string(),
                     "set".to_string(),
                     "foo".to_string(),
@@ -462,9 +462,9 @@ default = true"#;
             },
             TestItem {
                 name: "dolla dolla bills in expansion".to_string(),
-                args: vec!["kittycad".to_string(), "ci".to_string(), "$foo$".to_string()],
+                args: vec!["zoo".to_string(), "ci".to_string(), "$foo$".to_string()],
                 want_expanded: vec![
-                    "kittycad".to_string(),
+                    "zoo".to_string(),
                     "config".to_string(),
                     "set".to_string(),
                     "$foo$".to_string(),

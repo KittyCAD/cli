@@ -89,7 +89,7 @@ pub async fn get_latest_release_info() -> Result<ReleaseInfo> {
     let mut req = reqwest::Client::new().get(url);
 
     // Set the user agent.
-    req = req.header("User-Agent", format!("kittycad/{}", clap::crate_version!()));
+    req = req.header("User-Agent", format!("zoo/{}", clap::crate_version!()));
 
     if !github_token.is_empty() {
         req = req.bearer_auth(github_token);
@@ -155,7 +155,7 @@ pub fn is_recent_release(published_at: chrono::DateTime<chrono::Utc>) -> bool {
     duration.num_days() < 1
 }
 
-/// Check whether the `kittycad` binary was found under the Homebrew prefix.
+/// Check whether the `zoo` binary was found under the Homebrew prefix.
 pub fn is_under_homebrew() -> Result<bool> {
     let binary_path = std::env::current_exe()?;
     let binary_path_str = binary_path.to_str().unwrap();
@@ -187,7 +187,7 @@ fn get_exe_download_url(version: &str) -> String {
     };
 
     format!(
-        "https://dl.zoo.dev/releases/cli/{}/kittycad-{}",
+        "https://dl.zoo.dev/releases/cli/{}/zoo-{}",
         version,
         crate::built_info::TARGET
     )
@@ -197,7 +197,7 @@ fn get_exe_download_url(version: &str) -> String {
 /// This also checks the SHA256 hash of the file.
 pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     let temp_dir = std::env::temp_dir();
-    let temp_file = temp_dir.join("kittycad");
+    let temp_file = temp_dir.join("zoo");
 
     let url = get_exe_download_url(version);
 
@@ -261,6 +261,7 @@ mod test {
     use pretty_assertions::assert_eq;
 
     #[tokio::test]
+    #[ignore] // Ignore this test until we have a new release with the new name.
     async fn test_download_binary_to_temp_file() {
         if crate::update::is_ci() {
             return;
@@ -270,10 +271,7 @@ mod test {
 
         assert_eq!(
             file,
-            format!(
-                "{}/kittycad",
-                std::env::temp_dir().to_str().unwrap().trim_end_matches('/')
-            )
+            format!("{}/zoo", std::env::temp_dir().to_str().unwrap().trim_end_matches('/'))
         );
     }
 
@@ -283,7 +281,7 @@ mod test {
         assert_eq!(
             url,
             format!(
-                "https://dl.zoo.dev/releases/cli/v0.1.0/kittycad-{}",
+                "https://dl.zoo.dev/releases/cli/v0.1.0/zoo-{}",
                 crate::built_info::TARGET
             )
         );
@@ -292,7 +290,7 @@ mod test {
         assert_eq!(
             url,
             format!(
-                "https://dl.zoo.dev/releases/cli/v0.2.0/kittycad-{}",
+                "https://dl.zoo.dev/releases/cli/v0.2.0/zoo-{}",
                 crate::built_info::TARGET
             )
         );

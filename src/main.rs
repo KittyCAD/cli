@@ -76,7 +76,7 @@ pub const DEFAULT_HOST: &str = "https://api.zoo.dev";
 ///
 /// You've never CAD it so good.
 ///
-/// Environment variables that can be used with `kittycad`.
+/// Environment variables that can be used with `zoo`.
 ///
 /// ZOO_TOKEN: an authentication token for Zoo API requests. Setting this
 /// avoids being prompted to authenticate and takes precedence over previously
@@ -106,11 +106,11 @@ pub const DEFAULT_HOST: &str = "https://api.zoo.dev";
 /// against the number of columns available in the current viewport.
 ///
 /// ZOO_NO_UPDATE_NOTIFIER: set to any value to disable update notifications. By
-/// default, `kittycad` checks for new releases once every 24 hours and displays an upgrade
+/// default, `zoo` checks for new releases once every 24 hours and displays an upgrade
 /// notice on standard error if a newer version was found.
 ///
-/// ZOO_CONFIG_DIR: the directory where `kittycad` will store configuration files.
-/// Default: `$XDG_CONFIG_HOME/kittycad` or `$HOME/.config/kittycad`.
+/// ZOO_CONFIG_DIR: the directory where `zoo` will store configuration files.
+/// Default: `$XDG_CONFIG_HOME/zoo` or `$HOME/.config/zoo`.
 #[derive(Parser, Debug, Clone)]
 #[clap(version = clap::crate_version!(), author = clap::crate_authors!("\n"))]
 struct Opts {
@@ -277,7 +277,7 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
                 } else if err.status() == Some(http::StatusCode::UNAUTHORIZED) {
                     writeln!(ctx.io.err_out, "{} You are not authenticated.", cs.failure_icon())?;
 
-                    writeln!(ctx.io.err_out, "Try authenticating with: `kittycad auth login`")?;
+                    writeln!(ctx.io.err_out, "Try authenticating with: `zoo auth login`")?;
                 } else {
                     writeln!(ctx.io.err_out, "{err}")?;
                 }
@@ -307,18 +307,15 @@ fn handle_update(
             writeln!(
                 ctx.io.err_out,
                 "\n\n{} {} → {}\n",
-                cs.yellow("A new release of kittycad is available:"),
+                cs.yellow("A new release of zoo is available:"),
                 cs.cyan(build_version),
                 cs.purple(&latest_release.version)
             )?;
 
             if is_homebrew {
-                writeln!(
-                    ctx.io.err_out,
-                    "To upgrade, run: `brew update && brew upgrade kittycad`"
-                )?;
+                writeln!(ctx.io.err_out, "To upgrade, run: `brew update && brew upgrade zoo`")?;
             } else {
-                writeln!(ctx.io.err_out, "To upgrade, run: `kittycad update`")?;
+                writeln!(ctx.io.err_out, "To upgrade, run: `zoo update`")?;
             }
 
             writeln!(ctx.io.err_out, "{}\n\n", cs.yellow(&latest_release.url))?;

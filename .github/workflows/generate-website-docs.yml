@@ -63,8 +63,9 @@ jobs:
         run: |
           # cleanup old
           rm -rf docs/content/pages/docs/cli/manual/kittycad*.md
+          rm -rf docs/content/pages/docs/cli/manual/zoo*.md
           # move new
-          mv -f generated_docs/md/kittycad*.md docs/content/pages/docs/cli/manual/
+          mv -f generated_docs/md/zoo*.md docs/content/pages/docs/cli/manual/
       - name: commit the changes in the docs repo
         shell: bash
         run: |

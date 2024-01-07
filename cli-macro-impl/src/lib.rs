@@ -605,7 +605,7 @@ impl Operation {
         let struct_name = format_ident!("Cmd{}Create", to_title_case(&singular(tag)));
 
         let struct_doc = format!(
-            "Create a new {}.\n\nTo create a {} interactively, use `kittycad {} create` with no arguments.",
+            "Create a new {}.\n\nTo create a {} interactively, use `zoo {} create` with no arguments.",
             singular_tag_str,
             singular_tag_str,
             &singular(tag)

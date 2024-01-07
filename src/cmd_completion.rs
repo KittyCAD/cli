@@ -4,7 +4,7 @@ use clap_complete::{generate, Shell};
 
 /// Generate shell completion scripts.
 ///
-/// When installing `kittycad` CLI through a package manager, it's possible that
+/// When installing `zoo` CLI through a package manager, it's possible that
 /// no additional shell configuration is necessary to gain completion support. For
 /// Homebrew, see <https://docs.brew.sh/Shell-Completion>.
 ///
@@ -18,12 +18,12 @@ use clap_complete::{generate, Shell};
 ///
 /// After, add this to your `~/.bash_profile`:
 ///
-///     eval "$(kittycad completion -s bash)"
+///     eval "$(zoo completion -s bash)"
 ///
 /// ### zsh
-/// Generate a `_kittycad` completion script and put it somewhere in your `$fpath`:
+/// Generate a `_zoo` completion script and put it somewhere in your `$fpath`:
 ///
-///     kittycad completion -s zsh > /usr/local/share/zsh/site-functions/_kittycad
+///     zoo completion -s zsh > /usr/local/share/zsh/site-functions/_zoo
 ///
 /// Ensure that the following is present in your `~/.zshrc`:
 ///
@@ -34,9 +34,9 @@ use clap_complete::{generate, Shell};
 ///
 /// ### fish
 ///
-/// Generate a `kittycad.fish` completion script:
+/// Generate a `zoo.fish` completion script:
 ///
-///     kittycad completion -s fish > ~/.config/fish/completions/kittycad.fish
+///     zoo completion -s fish > ~/.config/fish/completions/zoo.fish
 ///
 /// ### PowerShell
 ///
@@ -47,7 +47,7 @@ use clap_complete::{generate, Shell};
 ///
 /// Add the line and save the file:
 ///
-///     Invoke-Expression -Command $(kittycad completion -s powershell | Out-String)
+///     Invoke-Expression -Command $(zoo completion -s powershell | Out-String)
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdCompletion {
@@ -92,19 +92,19 @@ mod test {
             TestItem {
                 name: "bash completion".to_string(),
                 input: "bash".to_string(),
-                want_out: "complete -F _kittycad -o nosort -o bashdefault -o default kittycad".to_string(),
+                want_out: "complete -F _zoo -o nosort -o bashdefault -o default zoo".to_string(),
                 want_err: "".to_string(),
             },
             TestItem {
                 name: "zsh completion".to_string(),
                 input: "zsh".to_string(),
-                want_out: "#compdef kittycad".to_string(),
+                want_out: "#compdef zoo".to_string(),
                 want_err: "".to_string(),
             },
             TestItem {
                 name: "fish completion".to_string(),
                 input: "fish".to_string(),
-                want_out: "complete -c kittycad ".to_string(),
+                want_out: "complete -c zoo ".to_string(),
                 want_err: "".to_string(),
             },
             TestItem {

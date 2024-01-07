@@ -5,7 +5,7 @@ use itertools::Itertools;
 /// Perform operations on CAD files.
 ///
 ///     # convert a step file to an obj file
-///     $ kittycad file convert ./input.step ./output.obj
+///     $ zoo file convert ./input.step ./output.obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApiCall {
@@ -30,7 +30,7 @@ impl crate::cmd::Command for CmdApiCall {
 /// Perform operations for API calls.
 ///
 ///     # get the status of an async API call
-///     $ kittycad api-call status <id>
+///     $ zoo api-call status <id>
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApiCallStatus {

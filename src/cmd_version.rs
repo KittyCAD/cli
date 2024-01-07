@@ -18,9 +18,9 @@ impl crate::cmd::Command for CmdVersion {
         let url = changelog_url(version);
 
         if let Some(gh) = git_hash {
-            writeln!(ctx.io.out, "kittycad {version} ({gh})")?;
+            writeln!(ctx.io.out, "zoo {version} ({gh})")?;
         } else {
-            writeln!(ctx.io.out, "kittycad {version}")?;
+            writeln!(ctx.io.out, "zoo {version}")?;
         }
 
         writeln!(ctx.io.out, "{url}")?;

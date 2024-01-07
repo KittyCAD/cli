@@ -88,7 +88,7 @@ mod test {
         assert_eq!(aliases.get("alias_3"), ("".to_string(), false));
 
         // Print the config.
-        let expected = r#"# What editor kittycad should run when creating text, etc. If blank, will refer to environment.
+        let expected = r#"# What editor zoo should run when creating text, etc. If blank, will refer to environment.
 editor = ""
 
 # When to interactively prompt. This is a global config that cannot be overridden by hostname.
@@ -98,10 +98,10 @@ prompt = "enabled"
 # A pager program to send command output to, e.g. "less". Set the value to "cat" to disable the pager.
 pager = ""
 
-# What web browser kittycad should use when opening URLs. If blank, will refer to environment.
+# What web browser zoo should use when opening URLs. If blank, will refer to environment.
 browser = ""
 
-# What formatting kittycad should use when printing text.
+# What formatting zoo should use when printing text.
 # Supported values: table, json, yaml
 format = "table"
 

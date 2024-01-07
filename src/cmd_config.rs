@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 
 // TODO: make this doc a function that parses from the config the options so it's not hardcoded
-/// Manage configuration for `kittycad`.
+/// Manage configuration for `zoo`.
 ///
 /// Current respected settings:
 /// - editor: the text editor program to use for authoring text

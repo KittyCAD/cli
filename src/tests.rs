@@ -27,15 +27,15 @@ impl AsyncTestContext for MainContext {
             .to_string();
         let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
 
-        let mut kittycad = kittycad::Client::new(&test_token);
+        let mut zoo = kittycad::Client::new(&test_token);
         if !test_host.is_empty() {
-            kittycad.set_base_url(&test_host);
+            zoo.set_base_url(&test_host);
         }
 
         Self {
             test_host,
             test_token,
-            client: kittycad,
+            client: zoo,
         }
     }
 
@@ -51,8 +51,8 @@ async fn test_main(ctx: &mut MainContext) {
     let tests: Vec<TestItem> = vec![
         TestItem {
             name: "existing command".to_string(),
-            args: vec!["kittycad".to_string(), "completion".to_string()],
-            want_out: "complete -F _kittycad -o nosort -o bashdefault -o default kittycad\n".to_string(),
+            args: vec!["zoo".to_string(), "completion".to_string()],
+            want_out: "complete -F _zoo -o nosort -o bashdefault -o default zoo\n".to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -60,12 +60,12 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "existing command with args".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "completion".to_string(),
                 "-s".to_string(),
                 "zsh".to_string(),
             ],
-            want_out: "_kittycad \"$@\"\n".to_string(),
+            want_out: "_zoo \"$@\"\n".to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -73,7 +73,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "add an alias".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "alias".to_string(),
                 "set".to_string(),
                 "foo".to_string(),
@@ -87,7 +87,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "add a shell alias".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "alias".to_string(),
                 "set".to_string(),
                 "-s".to_string(),
@@ -101,7 +101,7 @@ async fn test_main(ctx: &mut MainContext) {
         },
         TestItem {
             name: "list our aliases".to_string(),
-            args: vec!["kittycad".to_string(), "alias".to_string(), "list".to_string()],
+            args: vec!["zoo".to_string(), "alias".to_string(), "list".to_string()],
             want_out: "\"completion -s zsh\"".to_string(),
             want_err: "".to_string(),
             want_code: 0,
@@ -109,23 +109,23 @@ async fn test_main(ctx: &mut MainContext) {
         },
         TestItem {
             name: "call alias".to_string(),
-            args: vec!["kittycad".to_string(), "foo".to_string()],
-            want_out: "_kittycad \"$@\"\n".to_string(),
+            args: vec!["zoo".to_string(), "foo".to_string()],
+            want_out: "_zoo \"$@\"\n".to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
         },
         TestItem {
             name: "call alias with different binary name".to_string(),
-            args: vec!["/bin/thing/kittycad".to_string(), "foo".to_string()],
-            want_out: "_kittycad \"$@\"\n".to_string(),
+            args: vec!["/bin/thing/zoo".to_string(), "foo".to_string()],
+            want_out: "_zoo \"$@\"\n".to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
         },
         TestItem {
             name: "call shell alias".to_string(),
-            args: vec!["kittycad".to_string(), "bar".to_string()],
+            args: vec!["zoo".to_string(), "bar".to_string()],
             want_out: "/bash".to_string(),
             want_err: "".to_string(),
             want_code: 0,
@@ -133,9 +133,9 @@ async fn test_main(ctx: &mut MainContext) {
         },
         TestItem {
             name: "version".to_string(),
-            args: vec!["kittycad".to_string(), "version".to_string()],
+            args: vec!["zoo".to_string(), "version".to_string()],
             want_out: format!(
-                "kittycad {} ({})\n{}",
+                "zoo {} ({})\n{}",
                 version,
                 git_rev::revision_string!(),
                 crate::cmd_version::changelog_url(version)
@@ -147,7 +147,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "login".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "auth".to_string(),
                 "login".to_string(),
                 "--host".to_string(),
@@ -161,7 +161,7 @@ async fn test_main(ctx: &mut MainContext) {
         },
         TestItem {
             name: "api /user".to_string(),
-            args: vec!["kittycad".to_string(), "api".to_string(), "/user".to_string()],
+            args: vec!["zoo".to_string(), "api".to_string(), "/user".to_string()],
             want_out: r#""created_at": ""#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
@@ -169,7 +169,7 @@ async fn test_main(ctx: &mut MainContext) {
         },
         TestItem {
             name: "api user (no leading /)".to_string(),
-            args: vec!["kittycad".to_string(), "api".to_string(), "user".to_string()],
+            args: vec!["zoo".to_string(), "api".to_string(), "user".to_string()],
             want_out: r#""created_at": ""#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
@@ -178,7 +178,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "api user with header".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "api".to_string(),
                 "user".to_string(),
                 "-H".to_string(),
@@ -192,7 +192,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "api user with headers".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "api".to_string(),
                 "user".to_string(),
                 "-H".to_string(),
@@ -208,7 +208,7 @@ async fn test_main(ctx: &mut MainContext) {
         TestItem {
             name: "api user with output headers".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "api".to_string(),
                 "user".to_string(),
                 "--include".to_string(),
@@ -222,7 +222,7 @@ access-control-allow-credentials:  """#
         },
         TestItem {
             name: "api endpoint does not exist".to_string(),
-            args: vec!["kittycad".to_string(), "api".to_string(), "foo/bar".to_string()],
+            args: vec!["zoo".to_string(), "api".to_string(), "foo/bar".to_string()],
             want_out: "".to_string(),
             want_err: "404 Not Found Not Found".to_string(),
             want_code: 1,
@@ -231,7 +231,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "try to paginate over a post".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "api".to_string(),
                 "organizations".to_string(),
                 "--method".to_string(),
@@ -245,7 +245,7 @@ access-control-allow-credentials:  """#
         },
         TestItem {
             name: "get your user".to_string(),
-            args: vec!["kittycad".to_string(), "user".to_string(), "view".to_string()],
+            args: vec!["zoo".to_string(), "user".to_string(), "view".to_string()],
             want_out: "name           |".to_string(),
             want_err: "".to_string(),
             want_code: 0,
@@ -254,7 +254,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get your user as json".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "user".to_string(),
                 "view".to_string(),
                 "--format=json".to_string(),
@@ -267,7 +267,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "convert a file".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "convert".to_string(),
                 "assets/in_obj.obj".to_string(),
@@ -283,7 +283,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the file volume".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "volume".to_string(),
                 "assets/in_obj.obj".to_string(),
@@ -298,7 +298,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the file density".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "density".to_string(),
                 "assets/in_obj.obj".to_string(),
@@ -317,7 +317,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the file mass".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "mass".to_string(),
                 "assets/in_obj.obj".to_string(),
@@ -336,7 +336,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the file surface-area".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "surface-area".to_string(),
                 "assets/in_obj.obj".to_string(),
@@ -351,7 +351,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the file center-of-mass".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "center-of-mass".to_string(),
                 "assets/in_obj.obj".to_string(),
@@ -366,7 +366,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the file mass as json".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "mass".to_string(),
                 "assets/in_obj.obj".to_string(),
@@ -386,7 +386,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the status of an async api call conversion".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "api-call".to_string(),
                 "status".to_string(),
                 "1dafa0cc-6ce9-479c-8a7a-2c9989c447a7".to_string(),
@@ -399,7 +399,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "snapshot a kcl file as png".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "snapshot".to_string(),
                 "tests/gear.kcl".to_string(),
@@ -413,7 +413,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the mass of a kcl file".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "mass".to_string(),
                 "tests/gear.kcl".to_string(),
@@ -434,7 +434,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the density of a kcl file".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "density".to_string(),
                 "tests/gear.kcl".to_string(),
@@ -454,7 +454,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the volume of a kcl file".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "volume".to_string(),
                 "tests/gear.kcl".to_string(),
@@ -470,7 +470,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the surface-area of a kcl file".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "surface-area".to_string(),
                 "tests/gear.kcl".to_string(),
@@ -486,7 +486,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get the center-of-mass of a kcl file".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "center-of-mass".to_string(),
                 "tests/gear.kcl".to_string(),
@@ -502,7 +502,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "export a kcl file as gltf".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "export".to_string(),
                 "--output-format=gltf".to_string(),
@@ -518,7 +518,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "export a kcl file with a parse error".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "kcl".to_string(),
                 "export".to_string(),
                 "--output-format=gltf".to_string(),
@@ -534,7 +534,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "snapshot a gltf".to_string(),
             args: vec![
-                "kittycad".to_string(),
+                "zoo".to_string(),
                 "file".to_string(),
                 "snapshot".to_string(),
                 "tests/output.gltf".to_string(),

@@ -6,7 +6,7 @@ use oauth2::TokenResponse;
 
 /// Login, logout, and get the status of your authentication.
 ///
-/// Manage `kittycad`'s authentication state.
+/// Manage `zoo`'s authentication state.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAuth {
@@ -85,16 +85,16 @@ pub fn parse_host(input: &str) -> Result<url::Url> {
 /// Alternatively, pass in a token on standard input by using `--with-token`.
 ///
 ///     # start interactive setup
-///     $ kittycad auth login
+///     $ zoo auth login
 ///
 ///     # authenticate against a specific Zoo instance by reading the token from a file
-///     $ kittycad auth login --with-token --host kittycad.internal < mytoken.txt
+///     $ zoo auth login --with-token --host zoo.internal < mytoken.txt
 ///
 ///     # authenticate with a specific Zoo instance
-///     $ kittycad auth login --host kittycad.internal
+///     $ zoo auth login --host zoo.internal
 ///
 ///     # authenticate with an insecure Zoo instance (not recommended)
-///     $ kittycad auth login --host http://kittycad.internal
+///     $ zoo auth login --host http://zoo.internal
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAuthLogin {
@@ -298,10 +298,10 @@ impl crate::cmd::Command for CmdAuthLogin {
 /// This command removes the authentication configuration for a host either specified
 /// interactively or via `--host`.
 ///
-///     $ kittycad auth logout
+///     $ zoo auth logout
 ///     # => select what host to log out of via a prompt
 ///
-///     $ kittycad auth logout --host kittycad.internal
+///     $ zoo auth logout --host zoo.internal
 ///     # => log out of specified host
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -424,7 +424,7 @@ impl crate::cmd::Command for CmdAuthLogout {
 
 /// Verifies and displays information about your authentication state.
 ///
-/// This command will test your authentication state for each Zoo host that `kittycad`
+/// This command will test your authentication state for each Zoo host that `zoo`
 /// knows about and report on any issues.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -451,7 +451,7 @@ impl crate::cmd::Command for CmdAuthStatus {
             writeln!(
                 ctx.io.out,
                 "You are not logged into any Zoo hosts. Run `{}` to authenticate.",
-                cs.bold("kittycad auth login")
+                cs.bold("zoo auth login")
             )?;
             return Ok(());
         }

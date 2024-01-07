@@ -3,7 +3,7 @@ use std::{fs, io::Write};
 use anyhow::{Context, Result};
 use clap::{Command, CommandFactory, Parser};
 
-/// Generate various documentation files for the `kittycad` command line.
+/// Generate various documentation files for the `zoo` command line.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdGenerate {
@@ -282,7 +282,7 @@ mod test {
         let stdout = std::fs::read_to_string(stdout_path).unwrap();
         let stderr = std::fs::read_to_string(stderr_path).unwrap();
 
-        assert!(stdout.contains("kittycad(1)"), "");
+        assert!(stdout.contains("zoo(1)"), "");
 
         assert_eq!(stderr, "");
     }

@@ -1,5 +1,5 @@
 [package]
-name = "kittycad"
+name = "zoo"
 version = "0.2.18"
 edition = "2021"
 build = "build.rs"

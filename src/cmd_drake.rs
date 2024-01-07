@@ -3,7 +3,7 @@ use clap::Parser;
 
 /// Open a drake meme in your web browser.
 ///
-///     $ kittycad drake
+///     $ zoo drake
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdDrake {}

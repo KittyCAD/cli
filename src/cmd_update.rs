@@ -13,7 +13,7 @@ pub struct CmdUpdate {}
 impl crate::cmd::Command for CmdUpdate {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         if crate::update::is_under_homebrew()? {
-            anyhow::bail!("You are running under Homebrew. Please run `brew update && brew upgrade kittycad` instead.");
+            anyhow::bail!("You are running under Homebrew. Please run `brew update && brew upgrade zoo` instead.");
         }
 
         // Get the latest release.
@@ -22,7 +22,7 @@ impl crate::cmd::Command for CmdUpdate {
 
         if !crate::update::version_greater_then(&latest_release.version, current_version)? {
             anyhow::bail!(
-                "You are already running the latest version ({}) of `kittycad`.",
+                "You are already running the latest version ({}) of `zoo`.",
                 current_version
             );
         }

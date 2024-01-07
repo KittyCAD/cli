@@ -3,9 +3,9 @@ use clap::Parser;
 
 /// Prints your text in a text bubble with Zoo as ASCII art
 ///
-///     $ kittycad say
-///     $ kittycad say hello!
-///     $ kittycad say Hello World!
+///     $ zoo say
+///     $ zoo say hello!
+///     $ zoo say Hello World!
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdSay {

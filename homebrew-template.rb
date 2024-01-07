@@ -17,15 +17,15 @@ class Kittycad < Formula
     # check if the user is using Linux and their hardware and install the appropriate binary
     if OS.linux?
       if Hardware::CPU.type == :intel
-        bin.install "x86_64_linux/kittycad"
+        bin.install "x86_64_linux/zoo"
       elsif Hardware::CPU.type == :arm
-        bin.install "aarch64_linux/kittycad"
+        bin.install "aarch64_linux/zoo"
       end
     else
       if Hardware::CPU.type == :intel
-        bin.install "x86_64_darwin/kittycad"
+        bin.install "x86_64_darwin/zoo"
       elsif Hardware::CPU.type == :arm
-        bin.install "aarch64_darwin/kittycad"
+        bin.install "aarch64_darwin/zoo"
       end
     end
   end

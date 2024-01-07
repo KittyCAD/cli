@@ -8,7 +8,7 @@ use kittycad::types::error::Error as KcError;
 /// Perform operations on CAD files.
 ///
 ///     # convert a step file to an obj file
-///     $ kittycad file convert --output-format=obj ./input.step ./
+///     $ zoo file convert --output-format=obj ./input.step ./
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFile {
@@ -46,17 +46,17 @@ impl crate::cmd::Command for CmdFile {
 ///
 /// If the file being converted is larger than a certain size it will be
 /// performed asynchronously, you can then check its status with the
-/// `kittycad api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command.
 ///
 ///     # convert step to obj
-///     $ kittycad file convert --output-format=obj my-file.step output_dir
+///     $ zoo file convert --output-format=obj my-file.step output_dir
 ///
 ///     # convert obj to step
-///     $ kittycad file convert --output-format=step my-obj.obj .
+///     $ zoo file convert --output-format=step my-obj.obj .
 ///
 ///     # pass a file to convert from stdin
 ///     # when converting from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file convert --output-format=step - output_dir
+///     $ cat my-obj.obj | zoo file convert --output-format=step - output_dir
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileConvert {
@@ -155,10 +155,10 @@ impl crate::cmd::Command for CmdFileConvert {
 /// Snapshot a render of a CAD file as any supported image format.
 ///
 ///     # snapshot as png
-///     $ kittycad file snapshot my-file.obj my-file.png
+///     $ zoo file snapshot my-file.obj my-file.png
 ///
 ///     # pass a file to snapshot from stdin
-///     $ cat my-obj.obj | kittycad file snapshot --output-format=png - my-file.png
+///     $ cat my-obj.obj | zoo file snapshot --output-format=png - my-file.png
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileSnapshot {
@@ -292,13 +292,13 @@ impl crate::cmd::Command for CmdFileSnapshot {
 ///
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
-/// `kittycad api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command.
 ///
 ///     # get the volume of a file
-///     $ kittycad file volume my-file.step
+///     $ zoo file volume my-file.step
 ///
 ///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file volume - --src-format=obj
+///     $ cat my-obj.obj | zoo file volume - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileVolume {
@@ -353,13 +353,13 @@ impl crate::cmd::Command for CmdFileVolume {
 ///
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
-/// `kittycad api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command.
 ///
 ///     # get the mass of a file
-///     $ kittycad file mass my-file.step
+///     $ zoo file mass my-file.step
 ///
 ///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file mass - --src-format=obj
+///     $ cat my-obj.obj | zoo file mass - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileMass {
@@ -432,13 +432,13 @@ impl crate::cmd::Command for CmdFileMass {
 ///
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
-/// `kittycad api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command.
 ///
 ///     # get the mass of a file
-///     $ kittycad file center-of-mass my-file.step
+///     $ zoo file center-of-mass my-file.step
 ///
 ///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file center-of-mass - --src-format=obj
+///     $ cat my-obj.obj | zoo file center-of-mass - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileCenterOfMass {
@@ -493,13 +493,13 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
 ///
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
-/// `kittycad api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command.
 ///
 ///     # get the density of a file
-///     $ kittycad file density my-file.step
+///     $ zoo file density my-file.step
 ///
 ///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file density - --src-format=obj
+///     $ cat my-obj.obj | zoo file density - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileDensity {
@@ -572,13 +572,13 @@ impl crate::cmd::Command for CmdFileDensity {
 ///
 /// If the input file is larger than a certain size it will be
 /// performed asynchronously, you can then check the status with the
-/// `kittycad api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command.
 ///
 ///     # get the surface-area of a file
-///     $ kittycad file surface-area my-file.step
+///     $ zoo file surface-area my-file.step
 ///
 ///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | kittycad file surface-area - --src-format=obj
+///     $ cat my-obj.obj | zoo file surface-area - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileSurfaceArea {

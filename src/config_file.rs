@@ -29,13 +29,13 @@ pub fn config_dir() -> Result<String> {
     if !zoo_config_dir.is_empty() {
         path = Path::new(&zoo_config_dir).to_path_buf();
     } else if !xdg_config_home.is_empty() {
-        path = Path::new(&xdg_config_home).join("kittycad");
+        path = Path::new(&xdg_config_home).join("zoo");
     } else if !app_data.is_empty() && std::env::consts::OS == "windows" {
         path = Path::new(&app_data).join("Zoo CLI");
     } else {
         match dirs::home_dir() {
             Some(home) => {
-                path = home.join(".config").join("kittycad");
+                path = home.join(".config").join("zoo");
             }
             None => {
                 return Err(anyhow!("could not find home directory"));
@@ -61,13 +61,13 @@ pub fn state_dir() -> Result<String> {
     let local_app_data = get_env_var(LOCAL_APP_DATA);
 
     if !xdg_state_home.is_empty() {
-        path = Path::new(&xdg_state_home).join("kittycad");
+        path = Path::new(&xdg_state_home).join("zoo");
     } else if !local_app_data.is_empty() && std::env::consts::OS == "windows" {
         path = Path::new(&local_app_data).join("Zoo CLI");
     } else {
         match dirs::home_dir() {
             Some(home) => {
-                path = home.join(".local").join("state").join("kittycad");
+                path = home.join(".local").join("state").join("zoo");
             }
             None => {
                 return Err(anyhow!("could not find home directory"));
@@ -94,13 +94,13 @@ pub fn data_dir() -> Result<String> {
     let local_app_data = get_env_var(LOCAL_APP_DATA);
 
     if !xdg_data_home.is_empty() {
-        path = Path::new(&xdg_data_home).join("kittycad");
+        path = Path::new(&xdg_data_home).join("zoo");
     } else if !local_app_data.is_empty() && std::env::consts::OS == "windows" {
         path = Path::new(&local_app_data).join("Zoo CLI");
     } else {
         match dirs::home_dir() {
             Some(home) => {
-                path = home.join(".local").join("share").join("kittycad");
+                path = home.join(".local").join("share").join("zoo");
             }
             None => {
                 return Err(anyhow!("could not find home directory"));

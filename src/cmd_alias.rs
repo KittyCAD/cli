@@ -5,8 +5,8 @@ use clap::{Command, CommandFactory, Parser};
 
 /// Create command shortcuts.
 ///
-/// Aliases can be used to make shortcuts for `kittycad` commands or to compose multiple commands.
-/// Run `kittycad help alias set` to learn more.
+/// Aliases can be used to make shortcuts for `zoo` commands or to compose multiple commands.
+/// Run `zoo help alias set` to learn more.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAlias {
@@ -71,9 +71,9 @@ impl crate::cmd::Command for CmdAliasDelete {
     }
 }
 
-/// Create a shortcut for a `kittycad` command.
+/// Create a shortcut for a `zoo` command.
 ///
-/// Define a word that will expand to a full `kittycad` command when invoked.
+/// Define a word that will expand to a full `zoo` command when invoked.
 ///
 /// The expansion may specify additional arguments and flags. If the expansion includes
 /// positional placeholders such as "$1", extra arguments that follow the alias will be
@@ -119,12 +119,12 @@ impl crate::cmd::Command for CmdAliasSet {
 
                 // Check if already exists.
                 if valid_command(&self.alias) {
-                    bail!("could not create alias: {} is already a kittycad command", self.alias);
+                    bail!("could not create alias: {} is already a zoo command", self.alias);
                 }
 
                 if !is_shell && !valid_command(&expansion) {
                     bail!(
-                        "could not create alias: {} does not correspond to a kittycad command",
+                        "could not create alias: {} does not correspond to a zoo command",
                         expansion
                     );
                 }
@@ -168,7 +168,7 @@ impl crate::cmd::Command for CmdAliasSet {
 
 /// List your aliases.
 ///
-/// This command prints out all of the aliases `kittycad` is configured to use.
+/// This command prints out all of the aliases `zoo` is configured to use.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAliasList {}
@@ -206,7 +206,7 @@ fn get_expansion(cmd: &CmdAliasSet) -> Result<String> {
     }
 }
 
-/// Check if a set of arguments is a valid `kittycad` command.
+/// Check if a set of arguments is a valid `zoo` command.
 pub fn valid_command(args: &str) -> bool {
     let s = shlex::split(args);
     if s.is_none() {
@@ -367,7 +367,7 @@ mod test {
                     shell: false,
                 }),
                 want_out: "".to_string(),
-                want_err: "could not create alias: config is already a kittycad command".to_string(),
+                want_err: "could not create alias: config is already a zoo command".to_string(),
             },
             TestAlias {
                 name: "add already command -> completion".to_string(),
@@ -377,7 +377,7 @@ mod test {
                     shell: false,
                 }),
                 want_out: "".to_string(),
-                want_err: "could not create alias: completion is already a kittycad command".to_string(),
+                want_err: "could not create alias: completion is already a zoo command".to_string(),
             },
             TestAlias {
                 name: "add does not exist".to_string(),
@@ -387,7 +387,7 @@ mod test {
                     shell: false,
                 }),
                 want_out: "".to_string(),
-                want_err: "could not create alias: dne thing does not correspond to a kittycad command".to_string(),
+                want_err: "could not create alias: dne thing does not correspond to a zoo command".to_string(),
             },
             TestAlias {
                 name: "list all".to_string(),
