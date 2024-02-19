@@ -1,7 +1,7 @@
-use std::str::FromStr;
+
 
 use anyhow::Result;
-use clap::{Parser, ValueEnum};
+use clap::{Parser};
 use kcl_lib::engine::EngineManager;
 
 /// Perform Text-to-CAD commands.
@@ -178,12 +178,12 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
             anyhow::bail!("Your design completed, but no gltf outputs were found");
         }
 
-        let output_file = prompt.replace(" ", "_").to_lowercase() + "." + &self.output_format.to_string();
+        let output_file = prompt.replace(' ', "_").to_lowercase() + "." + &self.output_format.to_string();
         let output_file_path = output_dir.join(&output_file);
 
         let image_bytes = get_image_bytes(ctx, &gltf_bytes, self.output_format.clone()).await?;
         // Save the snapshot locally.
-        std::fs::write(&output_file_path, &image_bytes)?;
+        std::fs::write(&output_file_path, image_bytes)?;
 
         writeln!(
             ctx.io.out,
@@ -243,7 +243,7 @@ impl crate::cmd::Command for CmdTextToCadView {
         let image_bytes = get_image_bytes(ctx, &gltf_bytes, kittycad::types::ImageFormat::Png).await?;
 
         // Save the snapshot locally.
-        std::fs::write(&tmp_file, &image_bytes)?;
+        std::fs::write(&tmp_file, image_bytes)?;
 
         let (width, height) = (ctx.io.tty_size)()?;
 
