@@ -177,7 +177,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
     // they are calling it.
     args.remove(0);
 
-    let args_str = shlex::join(args.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+    let args_str = shlex::try_join(args.iter().map(|s| s.as_str()).collect::<Vec<&str>>())?;
 
     // Check if the user is passing in an alias.
     if !crate::cmd_alias::valid_command(&args_str) {
