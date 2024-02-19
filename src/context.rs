@@ -136,11 +136,11 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
         let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
-        let planes = kcl_lib::executor::DefaultPlanes::new(&engine).await?;
+        let fs = kcl_lib::fs::FileManager::new();
         let ctx = kcl_lib::executor::ExecutorContext {
             engine: engine.clone(),
             stdlib: Arc::new(kcl_lib::std::StdLib::default()),
-            planes,
+            fs,
         };
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &ctx)
             .await

@@ -390,7 +390,11 @@ impl Operation {
                     //if v.required {
                     req_body_rendered.push(quote!(#p_og: "".to_string()));
                 } else if v.required {
-                    req_body_rendered.push(quote!(#p_og: #p_short.clone()));
+                    if self.method == "PUT" {
+                        req_body_rendered.push(quote!(#p_og: self.#p_short.clone()));
+                    } else {
+                        req_body_rendered.push(quote!(#p_og: #p_short.clone()));
+                    }
                 } else {
                     // We can use self here since we aren't chaing the value from
                     // a prompt.

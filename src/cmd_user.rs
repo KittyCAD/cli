@@ -96,6 +96,7 @@ mod test {
                 new_last_name: Default::default(),
                 new_first_name: Default::default(),
                 new_github: Default::default(),
+                new_image: Default::default(),
             }),
             stdin: "".to_string(),
             want_out: "".to_string(),
