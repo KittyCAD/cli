@@ -27,7 +27,7 @@ kcl-lib = { version = "0.1.40" }
 #kcl-lib =  { path = "../modeling-app/src/wasm-lib/kcl" }
 kittycad = { version = "0.2.44", features = ["clap", "tabled", "requests", "retry"] }
 log = "0.4.20"
-num-traits = "0.2.17"
+num-traits = "0.2.18"
 oauth2 = "4.4.2"
 open = "5.0.1"
 parse-display = "0.8.2"
