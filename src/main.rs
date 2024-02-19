@@ -25,6 +25,8 @@ pub mod cmd_file;
 pub mod cmd_generate;
 /// The kcl command.
 pub mod cmd_kcl;
+/// The ml command.
+pub mod cmd_ml;
 /// The open command.
 pub mod cmd_open;
 /// The say command.

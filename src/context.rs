@@ -153,6 +153,96 @@ impl Context<'_> {
         Ok(resp)
     }
 
+    pub async fn get_model_for_prompt(
+        &self,
+        hostname: &str,
+        prompt: &str,
+        format: kittycad::types::FileExportFormat,
+    ) -> Result<kittycad::types::TextToCad> {
+        let client = self.api_client(hostname)?;
+
+        // Create the text-to-cad request.
+        let mut model: kittycad::types::TextToCad = client
+            .ai()
+            .create_text_to_cad(
+                format,
+                &kittycad::types::TextToCadCreateBody {
+                    prompt: prompt.to_string(),
+                },
+            )
+            .await?;
+
+        // Poll until the model is ready.
+        let mut status = model.status.clone();
+        // Get the current time.
+        let start = std::time::Instant::now();
+        // Give it 5 minutes to complete. That should be way
+        // more than enough!
+        while status != kittycad::types::ApiCallStatus::Completed
+            && status != kittycad::types::ApiCallStatus::Failed
+            && start.elapsed().as_secs() < 60 * 5
+        {
+            // Poll for the status.
+            let result = client.api_calls().get_async_operation(&model.id.to_string()).await?;
+
+            if let kittycad::types::AsyncApiCallOutput::TextToCad {
+                completed_at,
+                created_at,
+                error,
+                feedback,
+                id,
+                model_version,
+                output_format,
+                outputs,
+                prompt,
+                started_at,
+                status,
+                updated_at,
+                user_id,
+            } = result
+            {
+                model = kittycad::types::TextToCad {
+                    completed_at,
+                    created_at,
+                    error,
+                    feedback,
+                    id,
+                    model_version,
+                    output_format,
+                    outputs,
+                    prompt,
+                    started_at,
+                    status,
+                    updated_at,
+                    user_id,
+                };
+            } else {
+                anyhow::bail!("Unexpected response type: {:?}", result);
+            }
+
+            status = model.status.clone();
+
+            // Wait for a bit before polling again.
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        }
+
+        // If the model failed we will want to tell the user.
+        if model.status == kittycad::types::ApiCallStatus::Failed {
+            if let Some(error) = model.error {
+                anyhow::bail!("Your prompt returned an error: ```\n{}\n```", error);
+            } else {
+                anyhow::bail!("Your prompt returned an error, but no error message. :(");
+            }
+        }
+
+        if model.status != kittycad::types::ApiCallStatus::Completed {
+            anyhow::bail!("Your prompt timed out");
+        }
+
+        // Okay, we successfully got a model!
+        Ok(model)
+    }
+
     /// This function opens a browser that is based on the configured
     /// environment to the specified path.
     ///
