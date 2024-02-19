@@ -545,6 +545,41 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
+        TestItem {
+            name: "snapshot a text-to-cad prompt as png".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "snapshot".to_string(),
+                "a".to_string(),
+                "2x4".to_string(),
+                "lego".to_string(),
+                "brick".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "export a text-to-cad prompt as obj".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "export".to_string(),
+                "--output-format=obj".to_string(),
+                "a".to_string(),
+                "2x4".to_string(),
+                "lego".to_string(),
+                "brick".to_string(),
+            ],
+            want_out: r#"wrote file "#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();
