@@ -66,7 +66,7 @@ pub struct CmdKclExport {
     output_format: kittycad::types::FileExportFormat,
 
     /// The source unit to use for the kcl file.
-    #[clap(long, short = 's', value_enum)]
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
     pub src_unit: kittycad::types::UnitLength,
 
     /// Command output format.
@@ -101,6 +101,7 @@ impl crate::cmd::Command for CmdKclExport {
                     format: get_output_format(&self.output_format, self.src_unit.clone()),
                     source_unit: self.src_unit.clone(),
                 },
+                self.src_unit.clone(),
             )
             .await?;
 
@@ -142,6 +143,10 @@ pub struct CmdKclSnapshot {
     #[clap(short = 't', long = "output-format", value_enum)]
     output_format: Option<kittycad::types::ImageFormat>,
 
+    /// The source unit to use for the kcl file.
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
+    pub src_unit: kittycad::types::UnitLength,
+
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
@@ -179,6 +184,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                 "",
                 input,
                 kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+                self.src_unit.clone(),
             )
             .await?;
 
@@ -216,6 +222,10 @@ pub struct CmdKclView {
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
 
+    /// The source unit to use for the kcl file.
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
+    pub src_unit: kittycad::types::UnitLength,
+
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
@@ -242,6 +252,7 @@ impl crate::cmd::Command for CmdKclView {
                 kittycad::types::ModelingCmd::TakeSnapshot {
                     format: kittycad::types::ImageFormat::Png,
                 },
+                self.src_unit.clone(),
             )
             .await?;
 
@@ -365,7 +376,7 @@ pub struct CmdKclVolume {
     pub format: Option<crate::types::FormatOutput>,
 
     /// The source unit to use for the kcl file.
-    #[clap(long, short = 's', value_enum)]
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
     pub src_unit: kittycad::types::UnitLength,
 
     /// Output unit.
@@ -392,6 +403,7 @@ impl crate::cmd::Command for CmdKclVolume {
                     output_unit: self.output_unit.clone(),
                     source_unit: self.src_unit.clone(),
                 },
+                self.src_unit.clone(),
             )
             .await?;
 
@@ -434,7 +446,7 @@ pub struct CmdKclMass {
     material_density_unit: kittycad::types::UnitDensity,
 
     /// The source unit to use for the kcl file.
-    #[clap(long, short = 's', value_enum)]
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
     pub src_unit: kittycad::types::UnitLength,
 
     /// Output format.
@@ -471,6 +483,7 @@ impl crate::cmd::Command for CmdKclMass {
                     output_unit: self.output_unit.clone(),
                     source_unit: self.src_unit.clone(),
                 },
+                self.src_unit.clone(),
             )
             .await?;
 
@@ -505,7 +518,7 @@ pub struct CmdKclCenterOfMass {
     pub input: std::path::PathBuf,
 
     /// The source unit to use for the kcl file.
-    #[clap(long, short = 's', value_enum)]
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
     pub src_unit: kittycad::types::UnitLength,
 
     /// Output format.
@@ -536,6 +549,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
                     output_unit: self.output_unit.clone(),
                     source_unit: self.src_unit.clone(),
                 },
+                self.src_unit.clone(),
             )
             .await?;
 
@@ -570,7 +584,7 @@ pub struct CmdKclDensity {
     pub input: std::path::PathBuf,
 
     /// The source unit to use for the kcl file.
-    #[clap(long, short = 's', value_enum)]
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
     pub src_unit: kittycad::types::UnitLength,
 
     /// Material mass.
@@ -615,6 +629,7 @@ impl crate::cmd::Command for CmdKclDensity {
                     output_unit: self.output_unit.clone(),
                     source_unit: self.src_unit.clone(),
                 },
+                self.src_unit.clone(),
             )
             .await?;
 
@@ -649,7 +664,7 @@ pub struct CmdKclSurfaceArea {
     pub input: std::path::PathBuf,
 
     /// The source unit to use for the kcl file.
-    #[clap(long, short = 's', value_enum)]
+    #[clap(long, short = 's', value_enum, default_value = "mm")]
     pub src_unit: kittycad::types::UnitLength,
 
     /// Output format.
@@ -680,6 +695,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
                     output_unit: self.output_unit.clone(),
                     source_unit: self.src_unit.clone(),
                 },
+                self.src_unit.clone(),
             )
             .await?;
 
