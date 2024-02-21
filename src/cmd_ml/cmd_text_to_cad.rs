@@ -1,7 +1,5 @@
-
-
 use anyhow::Result;
-use clap::{Parser};
+use clap::Parser;
 use kcl_lib::engine::EngineManager;
 
 /// Perform Text-to-CAD commands.
@@ -33,7 +31,6 @@ impl crate::cmd::Command for CmdTextToCad {
 /// Run a Text-to-CAD prompt and export it as any other supported CAD file format.
 ///
 ///     $ zoo ml text-to-cad export --output-format=obj A 2x4 lego brick
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdTextToCadExport {
@@ -116,7 +113,6 @@ impl crate::cmd::Command for CmdTextToCadExport {
 ///
 ///     # snapshot as png
 ///     $ zoo ml text-to-cad snapshot A 2x4 lego brick
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdTextToCadSnapshot {
