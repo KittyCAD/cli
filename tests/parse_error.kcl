@@ -64,5 +64,3 @@ const part001 = startSketchAt([0.0000000000, 5.0000000000])
     |> line([0.5824390901, 0.0863966776], %)
     |> close(%)
     |> extrude(1, %)"things"
-
-show(part001)
