@@ -1805,9 +1805,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.43"
+version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59e471b015603e59fb92f80b89b91d8e3039aad4b3842944b5d531a66a950cb9"
+checksum = "9a5087096fa2ec03598fb505c15dbe5aeab7e78ce3614c0c1eed3d22184cec4f"
 dependencies = [
  "anyhow",
  "approx",
@@ -4586,9 +4586,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.68"
+version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96565907687f7aceb35bc5fc03770a8a0471d82e479f25832f54a0e3f4b28446"
+checksum = "77afa9a11836342370f4817622a2f0f418b134426d91a82dfb48f532d2ec13ef"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
