@@ -4952,7 +4952,7 @@ dependencies = [
  "num-traits",
  "oauth2",
  "open",
- "parse-display 0.8.2",
+ "parse-display 0.9.0",
  "pretty_assertions",
  "pulldown-cmark",
  "pulldown-cmark-to-cmark",
