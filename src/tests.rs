@@ -246,7 +246,7 @@ access-control-allow-credentials:  """#
         TestItem {
             name: "get your user".to_string(),
             args: vec!["zoo".to_string(), "user".to_string(), "view".to_string()],
-            want_out: "name           |".to_string(),
+            want_out: "name               |".to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
