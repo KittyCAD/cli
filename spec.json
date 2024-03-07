@@ -1746,6 +1746,126 @@
         }
       }
     },
+    "/events": {
+      "post": {
+        "tags": [
+          "meta",
+          "hidden"
+        ],
+        "summary": "Creates an internal telemetry event.",
+        "description": "We collect anonymous telemetry data for improving our product.",
+        "operationId": "create_event",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "resource updated",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_create_event",
+        "responses": {
+          "204": {
+            "description": "successful operation, no content",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/file/center-of-mass": {
       "post": {
         "tags": [
@@ -2260,8 +2380,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "successful operation",
+          "201": {
+            "description": "successful creation",
             "headers": {
               "Access-Control-Allow-Credentials": {
                 "description": "Access-Control-Allow-Credentials header.",
@@ -4300,7 +4420,7 @@
             "name": "role",
             "description": "The organization role to filter by.",
             "schema": {
-              "$ref": "#/components/schemas/OrgRole"
+              "$ref": "#/components/schemas/UserOrgRole"
             }
           }
         ],
@@ -5587,7 +5707,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ZooProductSubscriptions"
+                "$ref": "#/components/schemas/ZooProductSubscriptionsOrgRequest"
               }
             }
           },
@@ -5657,7 +5777,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ZooProductSubscriptions"
+                "$ref": "#/components/schemas/ZooProductSubscriptionsOrgRequest"
               }
             }
           },
@@ -5779,6 +5899,191 @@
         "summary": "Validate an orgs's information is correct and valid for automatic tax.",
         "description": "This endpoint requires authentication by an org admin. It will return an error if the org's information is not valid for automatic tax. Otherwise, it will return an empty successful response.",
         "operationId": "validate_customer_tax_information_for_org",
+        "responses": {
+          "204": {
+            "description": "successful operation, no content",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/org/privacy": {
+      "get": {
+        "tags": [
+          "orgs"
+        ],
+        "summary": "Get the privacy settings for an org.",
+        "description": "This endpoint requires authentication by an org admin. It gets the privacy settings for the authenticated user's org.",
+        "operationId": "get_org_privacy_settings",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettings"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "orgs"
+        ],
+        "summary": "Update the privacy settings for an org.",
+        "description": "This endpoint requires authentication by an org admin. It updates the privacy settings for the authenticated user's org.",
+        "operationId": "update_org_privacy_settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacySettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettings"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_org_privacy_settings",
         "responses": {
           "204": {
             "description": "successful operation, no content",
@@ -6556,6 +6861,543 @@
         }
       }
     },
+    "/orgs": {
+      "get": {
+        "tags": [
+          "orgs",
+          "hidden"
+        ],
+        "summary": "List orgs.",
+        "description": "This endpoint requires authentication by a Zoo employee. The orgs are returned in order of creation, with the most recently created orgs first.",
+        "operationId": "list_orgs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "description": "Maximum number of items returned by a single call",
+            "schema": {
+              "nullable": true,
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_token",
+            "description": "Token returned by previous call to retrieve the subsequent page",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "schema": {
+              "$ref": "#/components/schemas/CreatedAtSortMode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgResultsPage"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "x-dropshot-pagination": {
+          "required": []
+        }
+      }
+    },
+    "/orgs/{id}": {
+      "get": {
+        "tags": [
+          "orgs",
+          "hidden"
+        ],
+        "summary": "Get an org.",
+        "description": "This endpoint requires authentication by a Zoo employee. It gets the information for the specified org.",
+        "operationId": "get_any_org",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The organization ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Org"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/orgs/{id}/enterprise/pricing": {
+      "put": {
+        "tags": [
+          "orgs",
+          "hidden"
+        ],
+        "summary": "Set the enterprise price for an organization.",
+        "description": "You must be a Zoo employee to perform this request.",
+        "operationId": "update_enterprise_pricing_for_org",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The organization ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionTierPrice"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZooProductSubscriptions"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_enterprise_pricing_for_org",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The organization ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful operation, no content",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/orgs/{id}/payment/balance": {
+      "get": {
+        "tags": [
+          "payments",
+          "hidden"
+        ],
+        "summary": "Get balance for an org.",
+        "description": "This endpoint requires authentication by a Zoo employee. It gets the balance information for the specified org.",
+        "operationId": "get_payment_balance_for_any_org",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The organization ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerBalance"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "payments",
+          "hidden"
+        ],
+        "summary": "Update balance for an org.",
+        "description": "This endpoint requires authentication by a Zoo employee. It updates the balance information for the specified org.",
+        "operationId": "update_payment_balance_for_any_org",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The organization ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePaymentBalance"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerBalance"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_payment_balance_for_any_org",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The organization ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful operation, no content",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/ping": {
       "get": {
         "tags": [
@@ -6674,6 +7516,132 @@
                       "$ref": "#/components/schemas/ZooProductSubscription"
                     }
                   }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/store/coupon": {
+      "post": {
+        "tags": [
+          "store",
+          "hidden"
+        ],
+        "summary": "Create a new store coupon.",
+        "description": "This endpoint requires authentication by a Zoo employee. It creates a new store coupon.",
+        "operationId": "create_store_coupon",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCouponParams"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "successful creation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountCode"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_store_coupon",
+        "responses": {
+          "204": {
+            "description": "successful operation, no content",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -9786,7 +10754,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ZooProductSubscriptions"
+                "$ref": "#/components/schemas/ZooProductSubscriptionsUserRequest"
               }
             }
           },
@@ -9856,7 +10824,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ZooProductSubscriptions"
+                "$ref": "#/components/schemas/ZooProductSubscriptionsUserRequest"
               }
             }
           },
@@ -9978,6 +10946,191 @@
         "summary": "Validate a user's information is correct and valid for automatic tax.",
         "description": "This endpoint requires authentication by any Zoo user. It will return an error if the user's information is not valid for automatic tax. Otherwise, it will return an empty successful response.",
         "operationId": "validate_customer_tax_information_for_user",
+        "responses": {
+          "204": {
+            "description": "successful operation, no content",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/user/privacy": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get the privacy settings for a user.",
+        "description": "This endpoint requires authentication by any Zoo user. It gets the privacy settings for the user.",
+        "operationId": "get_user_privacy_settings",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettings"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update the user's privacy settings.",
+        "description": "This endpoint requires authentication by any Zoo user. It updates the privacy settings for the user.",
+        "operationId": "update_user_privacy_settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacySettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettings"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_user_privacy_settings",
         "responses": {
           "204": {
             "description": "successful operation, no content",
@@ -10422,7 +11575,7 @@
           "hidden"
         ],
         "summary": "List users.",
-        "description": "This endpoint required authentication by a Zoo employee. The users are returned in order of creation, with the most recently created users first.",
+        "description": "This endpoint requires authentication by a Zoo employee. The users are returned in order of creation, with the most recently created users first.",
         "operationId": "list_users",
         "parameters": [
           {
@@ -10517,7 +11670,7 @@
           "hidden"
         ],
         "summary": "List users with extended information.",
-        "description": "This endpoint required authentication by a Zoo employee. The users are returned in order of creation, with the most recently created users first.",
+        "description": "This endpoint requires authentication by a Zoo employee. The users are returned in order of creation, with the most recently created users first.",
         "operationId": "list_users_extended",
         "parameters": [
           {
@@ -10857,6 +12010,226 @@
         }
       }
     },
+    "/users/{id}/payment/balance": {
+      "get": {
+        "tags": [
+          "payments",
+          "hidden"
+        ],
+        "summary": "Get balance for an user.",
+        "description": "This endpoint requires authentication by a Zoo employee. It gets the balance information for the specified user.",
+        "operationId": "get_payment_balance_for_any_user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The user ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerBalance"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "payments",
+          "hidden"
+        ],
+        "summary": "Update balance for an user.",
+        "description": "This endpoint requires authentication by a Zoo employee. It updates the balance information for the specified user.",
+        "operationId": "update_payment_balance_for_any_user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The user ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePaymentBalance"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerBalance"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_payment_balance_for_any_user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The user ID.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful operation, no content",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/ws/executor/term": {
       "get": {
         "tags": [
@@ -11032,7 +12405,7 @@
             "description": "The organization role to give the user.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/OrgRole"
+                "$ref": "#/components/schemas/UserOrgRole"
               }
             ]
           }
@@ -12864,6 +14237,23 @@
           "ok"
         ]
       },
+      "CameraDragEnd": {
+        "description": "The response from the `CameraDragEnd` command.",
+        "type": "object",
+        "properties": {
+          "settings": {
+            "description": "Camera settings",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CameraSettings"
+              }
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
       "CameraDragInteractionType": {
         "description": "The type of camera drag interaction.",
         "oneOf": [
@@ -12888,6 +14278,75 @@
               "zoom"
             ]
           }
+        ]
+      },
+      "CameraDragMove": {
+        "description": "The response from the `CameraDragMove` command. Note this is an \"unreliable\" channel message, so this data may need more data like a \"sequence\"",
+        "type": "object",
+        "properties": {
+          "settings": {
+            "description": "Camera settings",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CameraSettings"
+              }
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "CameraSettings": {
+        "description": "Camera settings including position, center, fov etc",
+        "type": "object",
+        "properties": {
+          "center": {
+            "description": "Camera's look-at center (center-pos gives viewing vector)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "fov_y": {
+            "nullable": true,
+            "description": "Camera's field-of-view angle (if ortho is false)",
+            "type": "number",
+            "format": "float"
+          },
+          "ortho": {
+            "description": "Whether or not the camera is in ortho mode",
+            "type": "boolean"
+          },
+          "ortho_scale": {
+            "nullable": true,
+            "description": "The camera's ortho scale (derived from viewing distance if ortho is true)",
+            "type": "number",
+            "format": "float"
+          },
+          "pos": {
+            "description": "Camera position (vantage)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "up": {
+            "description": "Camera's world-space up vector",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          }
+        },
+        "required": [
+          "center",
+          "ortho",
+          "pos",
+          "up"
         ]
       },
       "CardDetails": {
@@ -13715,12 +15174,12 @@
               }
             ]
           },
-          "modeling_app_subscription_type": {
+          "modeling_app_enterprise_price": {
             "nullable": true,
-            "description": "The Modeling App Subscription type for the user.",
+            "description": "The enterprise price for the Modeling App subscription, if they are on the enterprise plan.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/ModelingAppSubscriptionTierName"
+                "$ref": "#/components/schemas/SubscriptionTierPrice"
               }
             ]
           },
@@ -13741,6 +15200,15 @@
             "description": "The amount of credits remaining in the balance. This is typically the amount of cash * some multiplier they get for pre-paying their account. This number lowers every time a bill is paid with the balance. This number increases every time a customer adds funds to their balance. This may be through a subscription or a one off payment.",
             "type": "number",
             "format": "money-usd"
+          },
+          "subscription_details": {
+            "nullable": true,
+            "description": "Details about the subscription.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ZooProductSubscriptions"
+              }
+            ]
           },
           "subscription_id": {
             "nullable": true,
@@ -13769,6 +15237,40 @@
           "pre_pay_credits_remaining",
           "total_due",
           "updated_at"
+        ]
+      },
+      "DefaultCameraGetSettings": {
+        "description": "The response from the `DefaultCameraGetSettings` command.",
+        "type": "object",
+        "properties": {
+          "settings": {
+            "description": "Camera settings",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CameraSettings"
+              }
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "DefaultCameraZoom": {
+        "description": "The response from the `DefaultCameraZoom` command.",
+        "type": "object",
+        "properties": {
+          "settings": {
+            "description": "Camera settings",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CameraSettings"
+              }
+            ]
+          }
+        },
+        "required": [
+          "settings"
         ]
       },
       "Density": {
@@ -13906,6 +15408,32 @@
         },
         "required": [
           "coupon"
+        ]
+      },
+      "DiscountCode": {
+        "description": "A discount code for a store.",
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "The code for the discount.",
+            "type": "string"
+          },
+          "expires_at": {
+            "nullable": true,
+            "description": "The date the discount code expires.",
+            "type": "string",
+            "format": "date-time"
+          },
+          "percent_off": {
+            "description": "The percent off for the discount.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "code",
+          "percent_off"
         ]
       },
       "DistanceType": {
@@ -14328,6 +15856,11 @@
             "type": "string",
             "format": "uri"
           },
+          "is_service_account": {
+            "description": "If the user is tied to a service account.",
+            "default": false,
+            "type": "boolean"
+          },
           "last_name": {
             "description": "The user's last name.",
             "type": "string"
@@ -14442,6 +15975,100 @@
         "required": [
           "cap"
         ]
+      },
+      "FaceGetGradient": {
+        "description": "The gradient (dFdu, dFdv) + normal vector on a brep face",
+        "type": "object",
+        "properties": {
+          "df_du": {
+            "description": "dFdu",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "df_dv": {
+            "description": "dFdv",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "normal": {
+            "description": "Normal (||dFdu x dFdv||)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          }
+        },
+        "required": [
+          "df_du",
+          "df_dv",
+          "normal"
+        ]
+      },
+      "FaceGetPosition": {
+        "description": "The 3D position on the surface that was evaluated",
+        "type": "object",
+        "properties": {
+          "pos": {
+            "description": "The 3D position on the surface that was evaluated",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          }
+        },
+        "required": [
+          "pos"
+        ]
+      },
+      "FaceIsPlanar": {
+        "description": "Surface-local planar axes (if available)",
+        "type": "object",
+        "properties": {
+          "origin": {
+            "nullable": true,
+            "description": "plane's origin",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "x_axis": {
+            "nullable": true,
+            "description": "plane's local x-axis",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "y_axis": {
+            "nullable": true,
+            "description": "plane's local y-axis",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "z_axis": {
+            "nullable": true,
+            "description": "plane's local z-axis (normal)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          }
+        }
       },
       "FailureWebSocketResponse": {
         "description": "Unsuccessful Websocket response.",
@@ -15487,7 +17114,7 @@
         ]
       },
       "ImportFile": {
-        "description": "File to import into the current model If you are sending binary data for a file, be sure to send the WebSocketRequest as binary/bson, not text/json.",
+        "description": "File to import into the current model. If you are sending binary data for a file, be sure to send the WebSocketRequest as binary/bson, not text/json.",
         "type": "object",
         "properties": {
           "data": {
@@ -15806,7 +17433,7 @@
           },
           "status": {
             "nullable": true,
-            "description": "The status of the invoice, one of `draft`, `open`, `paid`, `uncollectible`, or `void`.\n\n[Learn more](https://stripe.com/docs/billing/invoices/workflow#workflow-overview).",
+            "description": "The status of the invoice, one of `draft`, `open`, `paid`, `uncollectible`, or `void`.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/InvoiceStatus"
@@ -15878,7 +17505,7 @@
             "type": "string"
           },
           "metadata": {
-            "description": "Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object.\n\nSet of key-value pairs.",
+            "description": "Set of key-value pairs.",
             "default": {},
             "type": "object",
             "additionalProperties": {
@@ -16510,8 +18137,46 @@
           }
         ]
       },
+      "ModelingAppIndividualSubscriptionTier": {
+        "description": "The subscription tiers we offer for the Modeling App to individuals.",
+        "oneOf": [
+          {
+            "description": "The free tier.",
+            "type": "string",
+            "enum": [
+              "free"
+            ]
+          },
+          {
+            "description": "The pro tier.",
+            "type": "string",
+            "enum": [
+              "pro"
+            ]
+          }
+        ]
+      },
+      "ModelingAppOrganizationSubscriptionTier": {
+        "description": "The subscription tiers we offer for the Modeling App to organizations.",
+        "oneOf": [
+          {
+            "description": "The team tier.",
+            "type": "string",
+            "enum": [
+              "team"
+            ]
+          },
+          {
+            "description": "The enterprise tier.",
+            "type": "string",
+            "enum": [
+              "enterprise"
+            ]
+          }
+        ]
+      },
       "ModelingAppSubscriptionTier": {
-        "description": "A subscription tier we offer for the modeling app.",
+        "description": "A subscription tier we offer for the Modeling App.",
         "type": "object",
         "properties": {
           "description": {
@@ -16572,11 +18237,17 @@
                 "$ref": "#/components/schemas/SubscriptionTierType"
               }
             ]
+          },
+          "zoo_tools_included": {
+            "description": "The Zoo tools that you can call unlimited times with this tier.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ZooTool"
+            }
           }
         },
         "required": [
           "description",
-          "features",
           "name",
           "pay_as_you_go_credits",
           "price",
@@ -16586,7 +18257,7 @@
         ]
       },
       "ModelingAppSubscriptionTierName": {
-        "description": "An enum representing a subscription tier name.",
+        "description": "An enum representing a Modeling App subscription tier name.",
         "oneOf": [
           {
             "description": "The free tier.",
@@ -16622,7 +18293,7 @@
         "description": "Commands that the KittyCAD engine can execute.",
         "oneOf": [
           {
-            "description": "Start a path.",
+            "description": "Start a new path.",
             "type": "object",
             "properties": {
               "type": {
@@ -16703,7 +18374,7 @@
             ]
           },
           {
-            "description": "Extrude a 2D solid.",
+            "description": "Command for extruding a solid.",
             "type": "object",
             "properties": {
               "cap": {
@@ -16835,7 +18506,7 @@
             ]
           },
           {
-            "description": "Camera drag ended.",
+            "description": "Camera drag ended",
             "type": "object",
             "properties": {
               "interaction": {
@@ -16865,6 +18536,21 @@
               "interaction",
               "type",
               "window"
+            ]
+          },
+          {
+            "description": "Gets the default camera's camera settings",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "default_camera_get_settings"
+                ]
+              }
+            },
+            "required": [
+              "type"
             ]
           },
           {
@@ -16917,7 +18603,7 @@
             ]
           },
           {
-            "description": "Change all perspective camera settings",
+            "description": "Change what the default camera is looking at.",
             "type": "object",
             "properties": {
               "center": {
@@ -17078,27 +18764,6 @@
             ]
           },
           {
-            "description": "Focus default camera on object.",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "default_camera_focus_on"
-                ]
-              },
-              "uuid": {
-                "description": "UUID of object to focus on.",
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            "required": [
-              "type",
-              "uuid"
-            ]
-          },
-          {
             "description": "Export the scene to a file.",
             "type": "object",
             "properties": {
@@ -17232,6 +18897,145 @@
             ]
           },
           {
+            "description": "What is the distance between these two entities?",
+            "type": "object",
+            "properties": {
+              "distance_type": {
+                "description": "Type of distance to be measured.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/DistanceType"
+                  }
+                ]
+              },
+              "entity_id1": {
+                "description": "ID of the first entity being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "entity_id2": {
+                "description": "ID of the second entity being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_get_distance"
+                ]
+              }
+            },
+            "required": [
+              "distance_type",
+              "entity_id1",
+              "entity_id2",
+              "type"
+            ]
+          },
+          {
+            "description": "Create a linear pattern using this entity (currently only valid for 3D solids).",
+            "type": "object",
+            "properties": {
+              "axis": {
+                "description": "Axis along which to make the copies",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point3d"
+                  }
+                ]
+              },
+              "entity_id": {
+                "description": "ID of the entity being copied.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "num_repetitions": {
+                "description": "Number of repetitions to make.",
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0
+              },
+              "spacing": {
+                "description": "Spacing between repetitions.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LengthUnit"
+                  }
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_linear_pattern"
+                ]
+              }
+            },
+            "required": [
+              "axis",
+              "entity_id",
+              "num_repetitions",
+              "spacing",
+              "type"
+            ]
+          },
+          {
+            "description": "Create a circular pattern using this entity (currently only valid for 3D solids).",
+            "type": "object",
+            "properties": {
+              "arc_degrees": {
+                "description": "Arc angle (in degrees) to place repetitions along.",
+                "type": "number",
+                "format": "double"
+              },
+              "axis": {
+                "description": "Axis around which to make the copies",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point3d"
+                  }
+                ]
+              },
+              "center": {
+                "description": "Point around which to make the copies",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point3d"
+                  }
+                ]
+              },
+              "entity_id": {
+                "description": "ID of the entity being copied.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "num_repetitions": {
+                "description": "Number of repetitions to make.",
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0
+              },
+              "rotate_duplicates": {
+                "description": "Whether or not to rotate the objects as they are copied.",
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_circular_pattern"
+                ]
+              }
+            },
+            "required": [
+              "arc_degrees",
+              "axis",
+              "center",
+              "entity_id",
+              "num_repetitions",
+              "rotate_duplicates",
+              "type"
+            ]
+          },
+          {
             "description": "Enter edit mode",
             "type": "object",
             "properties": {
@@ -17249,21 +19053,6 @@
             },
             "required": [
               "target",
-              "type"
-            ]
-          },
-          {
-            "description": "Exit edit mode",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "edit_mode_exit"
-                ]
-              }
-            },
-            "required": [
               "type"
             ]
           },
@@ -17297,21 +19086,6 @@
             "required": [
               "selected_at_window",
               "selection_type",
-              "type"
-            ]
-          },
-          {
-            "description": "Clear the selection",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "select_clear"
-                ]
-              }
-            },
-            "required": [
               "type"
             ]
           },
@@ -17364,7 +19138,7 @@
             ]
           },
           {
-            "description": "Replaces the current selection with these new entities (by UUID). Equivalent to doing SelectClear then SelectAdd.",
+            "description": "Replaces current selection with these entities (by UUID).",
             "type": "object",
             "properties": {
               "entities": {
@@ -17385,45 +19159,6 @@
             "required": [
               "entities",
               "type"
-            ]
-          },
-          {
-            "description": "Find all IDs of selected entities",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "select_get"
-                ]
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          {
-            "description": "Set the units of the scene. For all following commands, the units will be interpreted as the given units.",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "set_scene_units"
-                ]
-              },
-              "unit": {
-                "description": "Which units the scene uses.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/UnitLength"
-                  }
-                ]
-              }
-            },
-            "required": [
-              "type",
-              "unit"
             ]
           },
           {
@@ -17597,6 +19332,54 @@
             ]
           },
           {
+            "description": "Set the material properties of an object",
+            "type": "object",
+            "properties": {
+              "ambient_occlusion": {
+                "description": "Ambient Occlusion of the new material",
+                "type": "number",
+                "format": "float"
+              },
+              "color": {
+                "description": "Color of the new material",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Color"
+                  }
+                ]
+              },
+              "metalness": {
+                "description": "Metalness of the new material",
+                "type": "number",
+                "format": "float"
+              },
+              "object_id": {
+                "description": "Which object to change",
+                "type": "string",
+                "format": "uuid"
+              },
+              "roughness": {
+                "description": "Roughness of the new material",
+                "type": "number",
+                "format": "float"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "object_set_material_params_pbr"
+                ]
+              }
+            },
+            "required": [
+              "ambient_occlusion",
+              "color",
+              "metalness",
+              "object_id",
+              "roughness",
+              "type"
+            ]
+          },
+          {
             "description": "What type of entity is this?",
             "type": "object",
             "properties": {
@@ -17614,33 +19397,6 @@
             },
             "required": [
               "entity_id",
-              "type"
-            ]
-          },
-          {
-            "description": "Add a hole to a Solid2d object before extruding it.",
-            "type": "object",
-            "properties": {
-              "hole_id": {
-                "description": "The id of the path to use as the inner profile (hole).",
-                "type": "string",
-                "format": "uuid"
-              },
-              "object_id": {
-                "description": "Which object to add the hole to.",
-                "type": "string",
-                "format": "uuid"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "solid2d_add_hole"
-                ]
-              }
-            },
-            "required": [
-              "hole_id",
-              "object_id",
               "type"
             ]
           },
@@ -17667,6 +19423,33 @@
             },
             "required": [
               "edge_id",
+              "object_id",
+              "type"
+            ]
+          },
+          {
+            "description": "Add a hole to a Solid2d object before extruding it.",
+            "type": "object",
+            "properties": {
+              "hole_id": {
+                "description": "The id of the path to use as the inner profile (hole).",
+                "type": "string",
+                "format": "uuid"
+              },
+              "object_id": {
+                "description": "Which object to add the hole to.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "solid2d_add_hole"
+                ]
+              }
+            },
+            "required": [
+              "hole_id",
               "object_id",
               "type"
             ]
@@ -17807,7 +19590,7 @@
             ]
           },
           {
-            "description": "Fillets the specified edge with the given radius.",
+            "description": "Fillets the given edge with the specified radius.",
             "type": "object",
             "properties": {
               "edge_id": {
@@ -17828,6 +19611,14 @@
                   }
                 ]
               },
+              "tolerance": {
+                "description": "The maximum acceptable surface gap computed between the filleted surfaces. Must be positive (i.e. greater than zero).",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LengthUnit"
+                  }
+                ]
+              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -17839,11 +19630,93 @@
               "edge_id",
               "object_id",
               "radius",
+              "tolerance",
               "type"
             ]
           },
           {
-            "description": "Sends object to front or back.",
+            "description": "Determines whether a brep face is planar and returns its surface-local planar axes if so",
+            "type": "object",
+            "properties": {
+              "object_id": {
+                "description": "Which face is being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "face_is_planar"
+                ]
+              }
+            },
+            "required": [
+              "object_id",
+              "type"
+            ]
+          },
+          {
+            "description": "Determines a position on a brep face evaluated by parameters u,v",
+            "type": "object",
+            "properties": {
+              "object_id": {
+                "description": "Which face is being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "face_get_position"
+                ]
+              },
+              "uv": {
+                "description": "The 2D paramter-space u,v position to evaluate the surface at",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point2d"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "object_id",
+              "type",
+              "uv"
+            ]
+          },
+          {
+            "description": "Determines the gradient (dFdu, dFdv) + normal vector on a brep face evaluated by parameters u,v",
+            "type": "object",
+            "properties": {
+              "object_id": {
+                "description": "Which face is being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "face_get_gradient"
+                ]
+              },
+              "uv": {
+                "description": "The 2D paramter-space u,v position to evaluate the surface at",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point2d"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "object_id",
+              "type",
+              "uv"
+            ]
+          },
+          {
+            "description": "Send object to front or back.",
             "type": "object",
             "properties": {
               "front": {
@@ -17896,7 +19769,7 @@
             ]
           },
           {
-            "description": "Fade the entity in or out.",
+            "description": "Fade entity in or out.",
             "type": "object",
             "properties": {
               "duration_seconds": {
@@ -17928,7 +19801,7 @@
             ]
           },
           {
-            "description": "Make a plane.",
+            "description": "Make a new plane",
             "type": "object",
             "properties": {
               "clobber": {
@@ -17989,7 +19862,7 @@
             ]
           },
           {
-            "description": "Set the plane's color.",
+            "description": "Set the color of a plane.",
             "type": "object",
             "properties": {
               "color": {
@@ -18019,7 +19892,7 @@
             ]
           },
           {
-            "description": "Set the active tool.",
+            "description": "Set the current tool.",
             "type": "object",
             "properties": {
               "tool": {
@@ -18043,7 +19916,7 @@
             ]
           },
           {
-            "description": "Send a mouse move event.",
+            "description": "Send a mouse move event",
             "type": "object",
             "properties": {
               "sequence": {
@@ -18074,7 +19947,7 @@
             ]
           },
           {
-            "description": "Send a mouse click event. Updates modified/selected entities.",
+            "description": "Send a mouse click event Updates modified/selected entities.",
             "type": "object",
             "properties": {
               "type": {
@@ -18098,7 +19971,7 @@
             ]
           },
           {
-            "description": "Enable sketch mode on the given plane.",
+            "description": "Enable sketch mode on the given plane. If you want to sketch on a face, use `enable_sketch_mode` instead.",
             "type": "object",
             "properties": {
               "animated": {
@@ -18138,7 +20011,7 @@
             ]
           },
           {
-            "description": "Disable sketch mode.",
+            "description": "Disable sketch mode. If you are sketching on a face, be sure to not disable sketch mode until you have extruded. Otherwise, your object will not be fused with the face.",
             "type": "object",
             "properties": {
               "type": {
@@ -18153,7 +20026,97 @@
             ]
           },
           {
-            "description": "Get type of a given curve.",
+            "description": "Get the plane for sketch mode.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "get_sketch_mode_plane"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "Get the plane for sketch mode.",
+            "type": "object",
+            "properties": {
+              "constraint_bound": {
+                "description": "Which constraint to apply.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PathComponentConstraintBound"
+                  }
+                ]
+              },
+              "constraint_type": {
+                "description": "What part of the curve should be constrained.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PathComponentConstraintType"
+                  }
+                ]
+              },
+              "object_id": {
+                "description": "Which curve to constrain.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "curve_set_constraint"
+                ]
+              }
+            },
+            "required": [
+              "constraint_bound",
+              "constraint_type",
+              "object_id",
+              "type"
+            ]
+          },
+          {
+            "description": "Sketch on some entity (e.g. a plane, a face).",
+            "type": "object",
+            "properties": {
+              "adjust_camera": {
+                "description": "Should the camera move at all?",
+                "type": "boolean"
+              },
+              "animated": {
+                "description": "Should we animate or snap for the camera transition?",
+                "type": "boolean"
+              },
+              "entity_id": {
+                "description": "Which entity to sketch on.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "ortho": {
+                "description": "Should the camera use orthographic projection? In other words, should an object's size in the rendered image stay constant regardless of its distance from the camera.",
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "enable_sketch_mode"
+                ]
+              }
+            },
+            "required": [
+              "adjust_camera",
+              "animated",
+              "entity_id",
+              "ortho",
+              "type"
+            ]
+          },
+          {
+            "description": "Get type of the given curve.",
             "type": "object",
             "properties": {
               "curve_id": {
@@ -18174,7 +20137,7 @@
             ]
           },
           {
-            "description": "Get control points of a given curve.",
+            "description": "Get control points of the given curve.",
             "type": "object",
             "properties": {
               "curve_id": {
@@ -18195,7 +20158,7 @@
             ]
           },
           {
-            "description": "Take a snapshot.",
+            "description": "Take a snapshot of the current view.",
             "type": "object",
             "properties": {
               "format": {
@@ -18244,7 +20207,7 @@
             ]
           },
           {
-            "description": "Query the given path",
+            "description": "Query the given path.",
             "type": "object",
             "properties": {
               "path_id": {
@@ -18265,7 +20228,7 @@
             ]
           },
           {
-            "description": "Get curves for vertices within a path",
+            "description": "Obtain curve ids for vertex ids",
             "type": "object",
             "properties": {
               "path_id": {
@@ -18295,7 +20258,7 @@
             ]
           },
           {
-            "description": "Get vertices within a path",
+            "description": "Obtain vertex ids for a path",
             "type": "object",
             "properties": {
               "path_id": {
@@ -18316,7 +20279,7 @@
             ]
           },
           {
-            "description": "Start dragging mouse.",
+            "description": "Start dragging the mouse.",
             "type": "object",
             "properties": {
               "type": {
@@ -18340,7 +20303,7 @@
             ]
           },
           {
-            "description": "Continue dragging mouse.",
+            "description": "Continue dragging the mouse.",
             "type": "object",
             "properties": {
               "sequence": {
@@ -18371,7 +20334,7 @@
             ]
           },
           {
-            "description": "Stop dragging mouse.",
+            "description": "Stop dragging the mouse.",
             "type": "object",
             "properties": {
               "type": {
@@ -18536,6 +20499,30 @@
               "files",
               "format",
               "type"
+            ]
+          },
+          {
+            "description": "Set the units of the scene. For all following commands, the units will be interpreted as the given units.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "set_scene_units"
+                ]
+              },
+              "unit": {
+                "description": "Which units the scene uses.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UnitLength"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "unit"
             ]
           },
           {
@@ -18779,280 +20766,24 @@
             ]
           },
           {
-            "description": "Get the plane of the sketch mode. This is useful for getting the normal of the plane after a user selects a plane.",
+            "description": "Focus the default camera upon an object in the scene.",
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
                 "enum": [
-                  "get_sketch_mode_plane"
+                  "default_camera_focus_on"
                 ]
+              },
+              "uuid": {
+                "description": "UUID of object to focus on.",
+                "type": "string",
+                "format": "uuid"
               }
             },
             "required": [
-              "type"
-            ]
-          },
-          {
-            "description": "Constrain a curve.",
-            "type": "object",
-            "properties": {
-              "constraint_bound": {
-                "description": "Which constraint to apply.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/PathComponentConstraintBound"
-                  }
-                ]
-              },
-              "constraint_type": {
-                "description": "What part of the curve should be constrained.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/PathComponentConstraintType"
-                  }
-                ]
-              },
-              "object_id": {
-                "description": "Which curve to constrain.",
-                "type": "string",
-                "format": "uuid"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "curve_set_constraint"
-                ]
-              }
-            },
-            "required": [
-              "constraint_bound",
-              "constraint_type",
-              "object_id",
-              "type"
-            ]
-          },
-          {
-            "description": "Sketch on some entity (e.g. a plane, a face)",
-            "type": "object",
-            "properties": {
-              "adjust_camera": {
-                "description": "Should the camera move at all?",
-                "type": "boolean"
-              },
-              "animated": {
-                "description": "Should we animate or snap for the camera transition?",
-                "type": "boolean"
-              },
-              "entity_id": {
-                "description": "Which entity to sketch on.",
-                "type": "string",
-                "format": "uuid"
-              },
-              "ortho": {
-                "description": "Should the camera use orthographic projection? In other words, should an object's size in the rendered image stay constant regardless of its distance from the camera.",
-                "type": "boolean"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "enable_sketch_mode"
-                ]
-              }
-            },
-            "required": [
-              "adjust_camera",
-              "animated",
-              "entity_id",
-              "ortho",
-              "type"
-            ]
-          },
-          {
-            "description": "Set the material properties of an object",
-            "type": "object",
-            "properties": {
-              "ambient_occlusion": {
-                "description": "Ambient Occlusion of the new material",
-                "type": "number",
-                "format": "float"
-              },
-              "color": {
-                "description": "Color of the new material",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/Color"
-                  }
-                ]
-              },
-              "metalness": {
-                "description": "Metalness of the new material",
-                "type": "number",
-                "format": "float"
-              },
-              "object_id": {
-                "description": "Which object to change",
-                "type": "string",
-                "format": "uuid"
-              },
-              "roughness": {
-                "description": "Roughness of the new material",
-                "type": "number",
-                "format": "float"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "object_set_material_params_pbr"
-                ]
-              }
-            },
-            "required": [
-              "ambient_occlusion",
-              "color",
-              "metalness",
-              "object_id",
-              "roughness",
-              "type"
-            ]
-          },
-          {
-            "description": "What is the distance between these two entities?",
-            "type": "object",
-            "properties": {
-              "distance_type": {
-                "description": "Type of distance to be measured.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/DistanceType"
-                  }
-                ]
-              },
-              "entity_id1": {
-                "description": "ID of the first entity being queried.",
-                "type": "string",
-                "format": "uuid"
-              },
-              "entity_id2": {
-                "description": "ID of the second entity being queried.",
-                "type": "string",
-                "format": "uuid"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "entity_get_distance"
-                ]
-              }
-            },
-            "required": [
-              "distance_type",
-              "entity_id1",
-              "entity_id2",
-              "type"
-            ]
-          },
-          {
-            "description": "Duplicate the given entity, evenly spaced along the chosen axis.",
-            "type": "object",
-            "properties": {
-              "axis": {
-                "description": "Axis along which to make the copies",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/Point3d"
-                  }
-                ]
-              },
-              "entity_id": {
-                "description": "ID of the entity being copied.",
-                "type": "string",
-                "format": "uuid"
-              },
-              "num_repetitions": {
-                "description": "Number of repetitions to make.",
-                "type": "integer",
-                "format": "uint32",
-                "minimum": 0
-              },
-              "spacing": {
-                "description": "Spacing between repetitions.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/LengthUnit"
-                  }
-                ]
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "entity_linear_pattern"
-                ]
-              }
-            },
-            "required": [
-              "axis",
-              "entity_id",
-              "num_repetitions",
-              "spacing",
-              "type"
-            ]
-          },
-          {
-            "description": "Duplicate the given entity, evenly spaced around the specified axis, spanning the arc.",
-            "type": "object",
-            "properties": {
-              "arc_degrees": {
-                "description": "Arc angle (in degrees) to place repetitions along.",
-                "type": "number",
-                "format": "double"
-              },
-              "axis": {
-                "description": "Axis around which to make the copies",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/Point3d"
-                  }
-                ]
-              },
-              "center": {
-                "description": "Point around which to make the copies",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/Point3d"
-                  }
-                ]
-              },
-              "entity_id": {
-                "description": "ID of the entity being copied.",
-                "type": "string",
-                "format": "uuid"
-              },
-              "num_repetitions": {
-                "description": "Number of repetitions to make.",
-                "type": "integer",
-                "format": "uint32",
-                "minimum": 0
-              },
-              "rotate_duplicates": {
-                "description": "Whether or not to rotate the objects as they are copied.",
-                "type": "boolean"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "entity_circular_pattern"
-                ]
-              }
-            },
-            "required": [
-              "arc_degrees",
-              "axis",
-              "center",
-              "entity_id",
-              "num_repetitions",
-              "rotate_duplicates",
-              "type"
+              "type",
+              "uuid"
             ]
           },
           {
@@ -19142,7 +20873,7 @@
             ]
           },
           {
-            "description": "Get a concise description of all of an extrusion's faces",
+            "description": "Get a concise description of all of an extrusion's faces.",
             "type": "object",
             "properties": {
               "edge_id": {
@@ -19165,6 +20896,51 @@
             "required": [
               "edge_id",
               "object_id",
+              "type"
+            ]
+          },
+          {
+            "description": "Exit edit mode",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "edit_mode_exit"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "Clear the selection",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "select_clear"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "Find all IDs of selected entities",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "select_get"
+                ]
+              }
+            },
+            "required": [
               "type"
             ]
           }
@@ -19277,7 +21053,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Export' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19296,7 +21072,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'SelectWithPoint' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19315,7 +21091,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'HighlightSetEntity' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19334,7 +21110,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'EntityGetChildUuid' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19353,7 +21129,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'EntityGetNumChildren' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19372,7 +21148,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'EntityGetParentId' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19391,7 +21167,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'EntityGetAllChildUuids' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19410,7 +21186,83 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'CameraDragMove' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/CameraDragMove"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "camera_drag_move"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'CameraDragEnd' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/CameraDragEnd"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "camera_drag_end"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'DefaultCameraGetSettings' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/DefaultCameraGetSettings"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "default_camera_get_settings"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'DefaultCameraZoom' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/DefaultCameraZoom"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "default_camera_zoom"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'SelectGet' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19429,83 +21281,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
-            "type": "object",
-            "properties": {
-              "data": {
-                "$ref": "#/components/schemas/GetEntityType"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "get_entity_type"
-                ]
-              }
-            },
-            "required": [
-              "data",
-              "type"
-            ]
-          },
-          {
-            "description": "The response from the ` ` command.",
-            "type": "object",
-            "properties": {
-              "data": {
-                "$ref": "#/components/schemas/EntityGetDistance"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "entity_get_distance"
-                ]
-              }
-            },
-            "required": [
-              "data",
-              "type"
-            ]
-          },
-          {
-            "description": "The response from the ` ` command.",
-            "type": "object",
-            "properties": {
-              "data": {
-                "$ref": "#/components/schemas/EntityLinearPattern"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "entity_linear_pattern"
-                ]
-              }
-            },
-            "required": [
-              "data",
-              "type"
-            ]
-          },
-          {
-            "description": "The response from the ` ` command.",
-            "type": "object",
-            "properties": {
-              "data": {
-                "$ref": "#/components/schemas/EntityCircularPattern"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "entity_circular_pattern"
-                ]
-              }
-            },
-            "required": [
-              "data",
-              "type"
-            ]
-          },
-          {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Solid3dGetAllEdgeFaces' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19524,7 +21300,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Solid3dGetAllOppositeEdges' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19543,7 +21319,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Solid3dGetOppositeEdge' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19562,26 +21338,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
-            "type": "object",
-            "properties": {
-              "data": {
-                "$ref": "#/components/schemas/Solid3dGetPrevAdjacentEdge"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "solid3d_get_prev_adjacent_edge"
-                ]
-              }
-            },
-            "required": [
-              "data",
-              "type"
-            ]
-          },
-          {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Solid3dGetNextAdjacentEdge' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19600,16 +21357,16 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Solid3dGetPrevAdjacentEdge' endpoint",
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/MouseClick"
+                "$ref": "#/components/schemas/Solid3dGetPrevAdjacentEdge"
               },
               "type": {
                 "type": "string",
                 "enum": [
-                  "mouse_click"
+                  "solid3d_get_prev_adjacent_edge"
                 ]
               }
             },
@@ -19619,16 +21376,16 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'GetEntityType' endpoint",
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/CurveGetType"
+                "$ref": "#/components/schemas/GetEntityType"
               },
               "type": {
                 "type": "string",
                 "enum": [
-                  "curve_get_type"
+                  "get_entity_type"
                 ]
               }
             },
@@ -19638,7 +21395,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'CurveGetControlPoints' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19657,7 +21414,45 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'CurveGetType' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/CurveGetType"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "curve_get_type"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'MouseClick' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/MouseClick"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "mouse_click"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'TakeSnapshot' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19676,7 +21471,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'PathGetInfo' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19695,7 +21490,26 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'PathSegmentInfo' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/PathSegmentInfo"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "path_segment_info"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'PathGetCurveUuidsForVertices' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19714,7 +21528,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'PathGetVertexUuids' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19733,26 +21547,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
-            "type": "object",
-            "properties": {
-              "data": {
-                "$ref": "#/components/schemas/PlaneIntersectAndProject"
-              },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "plane_intersect_and_project"
-                ]
-              }
-            },
-            "required": [
-              "data",
-              "type"
-            ]
-          },
-          {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'CurveGetEndPoints' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19771,7 +21566,83 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'FaceIsPlanar' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/FaceIsPlanar"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "face_is_planar"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'FaceGetPosition' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/FaceGetPosition"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "face_get_position"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'FaceGetGradient' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/FaceGetGradient"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "face_get_gradient"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'PlaneIntersectAndProject' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/PlaneIntersectAndProject"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "plane_intersect_and_project"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'ImportFiles' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19790,7 +21661,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Mass' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19809,7 +21680,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Volume' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19828,7 +21699,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'Density' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19847,7 +21718,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'SurfaceArea' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19866,7 +21737,7 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'CenterOfMass' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19885,7 +21756,83 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'GetSketchModePlane' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/GetSketchModePlane"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "get_sketch_mode_plane"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'EntityGetDistance' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/EntityGetDistance"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_get_distance"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'EntityLinearPattern' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/EntityLinearPattern"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_linear_pattern"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'EntityCircularPattern' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/EntityCircularPattern"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_circular_pattern"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'Solid3dGetExtrusionFaceInfo' endpoint",
             "type": "object",
             "properties": {
               "data": {
@@ -19904,16 +21851,16 @@
             ]
           },
           {
-            "description": "The response from the ` ` command.",
+            "description": "The response to the 'ExtrusionFaceInfo' endpoint",
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/GetSketchModePlane"
+                "$ref": "#/components/schemas/ExtrusionFaceInfo"
               },
               "type": {
                 "type": "string",
                 "enum": [
-                  "get_sketch_mode_plane"
+                  "extrusion_face_info"
                 ]
               }
             },
@@ -20096,6 +22043,25 @@
                 "type": "string",
                 "enum": [
                   "metrics_request"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "Pong response to a Ping message.",
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "pong"
                 ]
               }
             },
@@ -20373,8 +22339,29 @@
           "items"
         ]
       },
+      "OrgResultsPage": {
+        "description": "A single page of results",
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "list of items on this page of results",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Org"
+            }
+          },
+          "next_page": {
+            "nullable": true,
+            "description": "token used to fetch the next page of results (if any)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "OrgRole": {
-        "description": "The roles for users in an organization.",
+        "description": "The roles in an organization.",
         "oneOf": [
           {
             "description": "Admins can do anything in the org.",
@@ -20388,6 +22375,13 @@
             "type": "string",
             "enum": [
               "member"
+            ]
+          },
+          {
+            "description": "A service account role.",
+            "type": "string",
+            "enum": [
+              "service_account"
             ]
           }
         ]
@@ -21193,6 +23187,19 @@
           "message"
         ]
       },
+      "PrivacySettings": {
+        "description": "Privacy settings for an org or user.",
+        "type": "object",
+        "properties": {
+          "can_train_on_data": {
+            "description": "If we can train on the data. If the user is a member of an organization, the organization's setting will override this. The organization's setting takes priority.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "can_train_on_data"
+        ]
+      },
       "RawFile": {
         "description": "A raw file with unencoded contents to be passed over binary websockets. When raw files come back for exports it is sent as binary/bson, not text/json.",
         "type": "object",
@@ -21839,6 +23846,21 @@
           }
         ]
       },
+      "StoreCouponParams": {
+        "description": "The parameters for a new store coupon.",
+        "type": "object",
+        "properties": {
+          "percent_off": {
+            "description": "The percentage off.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "percent_off"
+        ]
+      },
       "SubscriptionTierFeature": {
         "description": "A subscription tier feature.",
         "type": "object",
@@ -21941,16 +23963,37 @@
         "oneOf": [
           {
             "description": "A subscription tier that can be applied to individuals only.",
-            "type": "string",
-            "enum": [
-              "individual"
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "individual"
+                ]
+              }
+            },
+            "required": [
+              "type"
             ]
           },
           {
             "description": "An subscription tier that can be applied to organizations only.",
-            "type": "string",
-            "enum": [
-              "organization"
+            "type": "object",
+            "properties": {
+              "saml_sso": {
+                "description": "Whether or not the subscription type supports SAML SSO.",
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "organization"
+                ]
+              }
+            },
+            "required": [
+              "saml_sso",
+              "type"
             ]
           }
         ]
@@ -24122,7 +26165,7 @@
             "description": "The organization role to give the user.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/OrgRole"
+                "$ref": "#/components/schemas/UserOrgRole"
               }
             ]
           }
@@ -24130,6 +26173,33 @@
         "required": [
           "role"
         ]
+      },
+      "UpdatePaymentBalance": {
+        "description": "The data for updating a balance.",
+        "type": "object",
+        "properties": {
+          "monthly_credits_remaining": {
+            "nullable": true,
+            "title": "double",
+            "description": "The monthy credits remaining in the balance. This gets re-upped every month, but if the credits are not used for a month they do not carry over to the next month. It is a stable amount granted to the user per month.",
+            "type": "number",
+            "format": "money-usd"
+          },
+          "pre_pay_cash_remaining": {
+            "nullable": true,
+            "title": "double",
+            "description": "The amount of pre-pay cash remaining in the balance. This number goes down as the user uses their pre-paid credits. The reason we track this amount is if a user ever wants to withdraw their pre-pay cash, we can use this amount to determine how much to give them. Say a user has $100 in pre-paid cash, their bill is worth, $50 after subtracting any other credits (like monthly etc.) Their bill is $50, their pre-pay cash remaining will be subtracted by 50 to pay the bill and their `pre_pay_credits_remaining` will be subtracted by 50 to pay the bill. This way if they want to withdraw money after, they can only withdraw $50 since that is the amount of cash they have remaining.",
+            "type": "number",
+            "format": "money-usd"
+          },
+          "pre_pay_credits_remaining": {
+            "nullable": true,
+            "title": "double",
+            "description": "The amount of credits remaining in the balance. This is typically the amount of cash * some multiplier they get for pre-paying their account. This number lowers every time a bill is paid with the balance. This number increases every time a user adds funds to their balance. This may be through a subscription or a one off payment.",
+            "type": "number",
+            "format": "money-usd"
+          }
+        }
       },
       "UpdateUser": {
         "description": "The user-modifiable parts of a User.",
@@ -24238,6 +26308,11 @@
             "description": "The image avatar for the user. This is a URL.",
             "type": "string",
             "format": "uri"
+          },
+          "is_service_account": {
+            "description": "If the user is tied to a service account.",
+            "default": false,
+            "type": "boolean"
           },
           "last_name": {
             "description": "The user's last name.",
@@ -24360,6 +26435,25 @@
           "id",
           "role",
           "updated_at"
+        ]
+      },
+      "UserOrgRole": {
+        "description": "The roles for users in an organization.",
+        "oneOf": [
+          {
+            "description": "Admins can do anything in the org.",
+            "type": "string",
+            "enum": [
+              "admin"
+            ]
+          },
+          {
+            "description": "Members of an org can not modify an org, but they belong in the org.",
+            "type": "string",
+            "enum": [
+              "member"
+            ]
+          }
         ]
       },
       "UserResultsPage": {
@@ -24694,11 +26788,17 @@
                     "$ref": "#/components/schemas/SubscriptionTierType"
                   }
                 ]
+              },
+              "zoo_tools_included": {
+                "description": "The Zoo tools that you can call unlimited times with this tier.",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ZooTool"
+                }
               }
             },
             "required": [
               "description",
-              "features",
               "name",
               "pay_as_you_go_credits",
               "price",
@@ -24714,7 +26814,7 @@
         "type": "object",
         "properties": {
           "modeling_app": {
-            "description": "The subscriptions.",
+            "description": "A modeling app subscription.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ModelingAppSubscriptionTier"
@@ -24724,6 +26824,62 @@
         },
         "required": [
           "modeling_app"
+        ]
+      },
+      "ZooProductSubscriptionsOrgRequest": {
+        "description": "A struct of Zoo product subscriptions an organization can request.",
+        "type": "object",
+        "properties": {
+          "modeling_app": {
+            "description": "A modeling app subscription.",
+            "default": "team",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModelingAppOrganizationSubscriptionTier"
+              }
+            ]
+          }
+        }
+      },
+      "ZooProductSubscriptionsUserRequest": {
+        "description": "A struct of Zoo product subscriptions a user can request.",
+        "type": "object",
+        "properties": {
+          "modeling_app": {
+            "description": "A modeling app subscription.",
+            "default": "free",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModelingAppIndividualSubscriptionTier"
+              }
+            ]
+          }
+        }
+      },
+      "ZooTool": {
+        "description": "The Zoo tools that can make API calls.",
+        "oneOf": [
+          {
+            "description": "The modeling app.",
+            "type": "string",
+            "enum": [
+              "modeling_app"
+            ]
+          },
+          {
+            "description": "The Text-to-CAD UI.",
+            "type": "string",
+            "enum": [
+              "text_to_cad"
+            ]
+          },
+          {
+            "description": "The Diff Chrome Extension.",
+            "type": "string",
+            "enum": [
+              "diff_chrome_extension"
+            ]
+          }
         ]
       }
     },
@@ -24844,6 +27000,13 @@
       "description": "Service accounts allow organizations to call the API. Organization admins can create, delete, and list the service accounts for their org. Service accounts are scoped to an organization not individual users, these are better to use for automations than individual API tokens, since they won't stop working when an individual leaves the company.",
       "externalDocs": {
         "url": "https://zoo.dev/docs/api/service-accounts"
+      }
+    },
+    {
+      "name": "store",
+      "description": "Operations involving our swag store.",
+      "externalDocs": {
+        "url": "https://zoo.dev/docs/api/store"
       }
     },
     {
