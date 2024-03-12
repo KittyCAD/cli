@@ -1,6 +1,8 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::str::FromStr;
 
 use anyhow::Result;
+use base64::prelude::*;
 use clap::Parser;
 use kcl_lib::engine::EngineManager;
 
@@ -204,8 +206,58 @@ impl crate::cmd::Command for CmdFileSnapshot {
         let src_format = get_input_format(src_format, kittycad::types::UnitLength::Mm)?;
 
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
+        let file_location_str = self.input.to_str().unwrap_or_default();
+        let input = ctx.read_file(file_location_str)?;
         let filename = self.input.file_name().unwrap_or_default().to_str().unwrap_or("");
+
+        // gltf with "standard" storage is an oddball in the KittyCAD system.
+        // In order for the program to know it's dealing with this type, an
+        // attempt to parse as json is made, then we check for the buffers
+        // property which describes what external files are needed.
+        let mut files: Vec<kittycad::types::ImportFile> = vec![kittycad::types::ImportFile {
+            path: filename.to_string(),
+            data: input.clone(),
+        }];
+
+        if let kittycad::types::InputFormat::Gltf {} = src_format {
+            if let Ok(str) = std::str::from_utf8(&input) {
+                if let Ok(json) = serde_json::from_str::<crate::types::GltfStandardJsonLite>(str) {
+                    // Use the path of the control file as the prefix path of
+                    // the relative file name.
+
+                    for buffer in json.buffers {
+                        if is_data_uri(&buffer.uri) {
+                            // Using the whole data URI would create massive
+                            // path properties. Use a hash instead.
+                            let mut hasher = DefaultHasher::new();
+                            buffer.uri.hash(&mut hasher);
+                            let hash_u64 = hasher.finish();
+
+                            if let Some(buf_base64) = buffer.uri.split(',').nth(1) {
+                                files.push(kittycad::types::ImportFile {
+                                    path: hash_u64.to_string(),
+                                    data: BASE64_STANDARD.decode(buf_base64)?,
+                                });
+                            } else {
+                                anyhow::bail!("invalid data uri in gltf.buffers.uri property");
+                            }
+                        } else {
+                            let path_ = self
+                                .input
+                                .parent()
+                                .unwrap_or(std::path::Path::new(""))
+                                .join(std::path::Path::new(&buffer.uri));
+                            let path = path_.to_str().unwrap_or_default();
+                            let data = ctx.read_file(path)?;
+                            files.push(kittycad::types::ImportFile {
+                                path: path_.file_name().unwrap_or_default().to_str().unwrap_or("").to_string(),
+                                data,
+                            });
+                        }
+                    }
+                }
+            }
+        }
 
         let client = ctx.api_client("")?;
         let ws = client
@@ -221,10 +273,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::ImportFiles {
-                    files: vec![kittycad::types::ImportFile {
-                        path: filename.to_string(),
-                        data: input,
-                    }],
+                    files,
                     format: src_format,
                 },
             )
@@ -677,6 +726,11 @@ fn get_input_format(
         kittycad::types::FileImportFormat::Fbx => Ok(kittycad::types::InputFormat::Fbx {}),
         kittycad::types::FileImportFormat::Sldprt => Ok(kittycad::types::InputFormat::Sldprt {}),
     }
+}
+
+/// Determine if buffers[].buffer.uri is a data uri.
+fn is_data_uri(s: &str) -> bool {
+    matches!(s.split(':').next(), Some("data"))
 }
 
 #[cfg(test)]

@@ -532,15 +532,29 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
-            name: "snapshot a gltf".to_string(),
+            name: "snapshot a gltf with embedded buffer".to_string(),
             args: vec![
                 "zoo".to_string(),
                 "file".to_string(),
                 "snapshot".to_string(),
-                "tests/output.gltf".to_string(),
-                "tests/output.png".to_string(),
+                "tests/output-1.gltf".to_string(),
+                "tests/output-1.png".to_string(),
             ],
-            want_out: r#"Snapshot saved to `tests/output.png`"#.to_string(),
+            want_out: r#"Snapshot saved to `tests/output-1.png`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "snapshot a gltf with external buffer".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "file".to_string(),
+                "snapshot".to_string(),
+                "tests/output-2.gltf".to_string(),
+                "tests/output-2.png".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `tests/output-2.png`"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
