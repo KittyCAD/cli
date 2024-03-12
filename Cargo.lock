@@ -157,9 +157,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.79"
+version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "080e9890a082662b09c1ad45f567faeeb47f22b5fb23895fbe1e651e718e25ca"
+checksum = "0952808a6c2afd1aa8947271f3a60f1a6763c7b912d210184c5149b5cf147247"
 dependencies = [
  "backtrace",
 ]
@@ -964,9 +964,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b81bc4c6288273218d0bb4f2ee7cda229264f2e8381e53aae250c840946171f9"
+checksum = "1fc85a0d10f808387cd56147b520be7efd94b8b198b1453f987b133cd2a90b7e"
 dependencies = [
  "convert_case",
  "once_cell",
@@ -1811,9 +1811,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.44"
+version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a5087096fa2ec03598fb505c15dbe5aeab7e78ce3614c0c1eed3d22184cec4f"
+checksum = "564f299f89b0043563e8c1a7e665e994901531a34a5b11994a9eaa2b723197d3"
 dependencies = [
  "anyhow",
  "approx",
@@ -4502,9 +4502,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.41"
+version = "0.4.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "877b9c3f61ceea0e56331985743b13f3d25c406a7098d45180fb5f09bc19ed97"
+checksum = "76bc14366121efc8dbb487ab05bcc9d346b3b5ec0eaa76e46594cabbe51762c0"
 dependencies = [
  "cfg-if",
  "js-sys",
@@ -4909,7 +4909,7 @@ checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
 
 [[package]]
 name = "zoo"
-version = "0.2.24"
+version = "0.2.25"
 dependencies = [
  "ansi_term",
  "anyhow",
