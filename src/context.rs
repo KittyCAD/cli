@@ -142,11 +142,26 @@ impl Context<'_> {
             engine: Arc::new(Box::new(engine.clone())),
             stdlib: Arc::new(kcl_lib::std::StdLib::default()),
             fs,
-            units,
+            units: units.clone(),
         };
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &ctx)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+
+        // Zoom on the object.
+        let (x, y) = kcl_lib::std::utils::get_camera_zoom_magnitude_per_unit_length(units);
+        engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                kittycad::types::ModelingCmd::DefaultCameraLookAt {
+                    center: kittycad::types::Point3D { x: 0.0, y: 0.0, z: 0.0 },
+                    up: kittycad::types::Point3D { x: 0.0, y: 0.0, z: 1.0 },
+                    vantage: kittycad::types::Point3D { x: 0.0, y: -x, z: y },
+                    sequence: None,
+                },
+            )
+            .await?;
 
         let resp = engine
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)

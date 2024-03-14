@@ -4926,7 +4926,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.26"
+version = "0.2.27"
 dependencies = [
  "ansi_term",
  "anyhow",
