@@ -106,10 +106,10 @@ impl Context<'_> {
         let client = self.api_client(hostname)?;
         let ws = client
             .modeling()
-            .commands_ws(None, None, None, None, Some(false))
+            .commands_ws(None, None, None, None, None, Some(false))
             .await?;
 
-        let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
+        let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
 
         let resp = engine
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
@@ -127,7 +127,7 @@ impl Context<'_> {
         let client = self.api_client(hostname)?;
         let ws = client
             .modeling()
-            .commands_ws(None, None, None, None, Some(false))
+            .commands_ws(None, None, None, None, None, Some(false))
             .await?;
 
         let tokens = kcl_lib::token::lexer(code);
@@ -136,10 +136,10 @@ impl Context<'_> {
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
-        let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
+        let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
         let fs = kcl_lib::fs::FileManager::new();
         let ctx = kcl_lib::executor::ExecutorContext {
-            engine: engine.clone(),
+            engine: Arc::new(Box::new(engine.clone())),
             stdlib: Arc::new(kcl_lib::std::StdLib::default()),
             fs,
             units,

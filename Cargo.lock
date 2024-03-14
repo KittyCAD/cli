@@ -597,9 +597,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chrono"
-version = "0.4.34"
+version = "0.4.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bc015644b92d5890fab7489e49d21f879d5c990186827d42ec511919404f38b"
+checksum = "8eaf5903dcbc0a39312feb77df2ff4c76387d591b9fc7b04a238dcf8bb62639a"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -964,10 +964,11 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fc85a0d10f808387cd56147b520be7efd94b8b198b1453f987b133cd2a90b7e"
+checksum = "b4e18a04fe569a325dd50743821f2605057ff5c4b48e60512270b4406907825b"
 dependencies = [
+ "Inflector",
  "convert_case",
  "once_cell",
  "proc-macro2",
@@ -1811,15 +1812,16 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.45"
+version = "0.1.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "564f299f89b0043563e8c1a7e665e994901531a34a5b11994a9eaa2b723197d3"
+checksum = "c0c5ff8405954a980b36686f049d577316dbbbb7b845582bb41a1af0f2df6fbe"
 dependencies = [
  "anyhow",
  "approx",
  "async-recursion",
  "async-trait",
  "bson",
+ "chrono",
  "dashmap",
  "databake",
  "derive-docs",
@@ -1830,12 +1832,14 @@ dependencies = [
  "kittycad-execution-plan-macros",
  "kittycad-execution-plan-traits",
  "lazy_static",
+ "mime_guess",
  "parse-display 0.9.0",
  "reqwest",
  "ropey",
  "schemars",
  "serde",
  "serde_json",
+ "sha2",
  "thiserror",
  "tokio",
  "tokio-tungstenite",
@@ -1846,13 +1850,14 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "winnow 0.5.40",
+ "zip",
 ]
 
 [[package]]
 name = "kittycad"
-version = "0.2.59"
+version = "0.2.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4080db4364c103601db486e4a8aa889ea56c011991e4c454373d8050a165d3da"
+checksum = "f8aa5906d0730bd90f6b3331fe57c04951d00743169a29ee96408767b4060605"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1867,6 +1872,7 @@ dependencies = [
  "http 0.2.9",
  "itertools 0.10.5",
  "log",
+ "mime_guess",
  "parse-display 0.8.2",
  "phonenumber",
  "rand",
@@ -2779,9 +2785,9 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "reqwest"
-version = "0.11.24"
+version = "0.11.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6920094eb85afde5e4a138be3f2de8bbdf28000f0029e72c45025a56b042251"
+checksum = "78bf93c4af7a8bb7d879d51cebe797356ff10ae8516ace542b5182d9dcac10b2"
 dependencies = [
  "base64 0.21.5",
  "bytes",
@@ -4908,8 +4914,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
 
 [[package]]
+name = "zip"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "760394e246e4c28189f19d488c058bf16f564016aefac5d32bb1f3b51d5e9261"
+dependencies = [
+ "byteorder",
+ "crc32fast",
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "zoo"
-version = "0.2.25"
+version = "0.2.26"
 dependencies = [
  "ansi_term",
  "anyhow",

@@ -274,10 +274,10 @@ async fn get_image_bytes(
     let client = ctx.api_client("")?;
     let ws = client
         .modeling()
-        .commands_ws(None, None, None, None, Some(false))
+        .commands_ws(None, None, None, None, None, Some(false))
         .await?;
 
-    let engine = kcl_lib::engine::EngineConnection::new(ws).await?;
+    let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
 
     // Send an import request to the engine.
     let resp = engine

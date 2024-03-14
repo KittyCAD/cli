@@ -41,7 +41,9 @@ pub async fn check_for_update(current_version: &str, force: bool) -> Result<Opti
         if !force {
             let duration_since_last_check = chrono::Utc::now() - state.checked_for_update_at;
             // TODO: After we make a mjor release of v1 we should bump this to like 6/12 hours.
-            if duration_since_last_check < chrono::Duration::hours(1) {
+            if duration_since_last_check
+                < chrono::Duration::try_hours(1).ok_or_else(|| anyhow!("failed to create duration"))?
+            {
                 // If we've checked for updates in the last 1 hour, don't check again.
                 return Ok(None);
             }
