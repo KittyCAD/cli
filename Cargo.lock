@@ -1813,8 +1813,7 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.1.46"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0c5ff8405954a980b36686f049d577316dbbbb7b845582bb41a1af0f2df6fbe"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#816870253e50deea2ac632583c9ade4b8481a8a6"
 dependencies = [
  "anyhow",
  "approx",
@@ -1895,9 +1894,8 @@ dependencies = [
 
 [[package]]
 name = "kittycad-execution-plan-macros"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f86a7597b7f098b4909bf7d1c50782e10df2d670aefaebf2a065698630ff7fb2"
+version = "0.1.9"
+source = "git+https://github.com/KittyCAD/modeling-api?branch=main#922318c3ad7d36d52cc4719ee2835428fc01b480"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1906,9 +1904,8 @@ dependencies = [
 
 [[package]]
 name = "kittycad-execution-plan-traits"
-version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1907d442f2687d6f90cd33502248583c4069948ef4a5d03386f0c6d2494f6299"
+version = "0.1.13"
+source = "git+https://github.com/KittyCAD/modeling-api?branch=main#922318c3ad7d36d52cc4719ee2835428fc01b480"
 dependencies = [
  "serde",
  "thiserror",
@@ -4926,7 +4923,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.27"
+version = "0.2.28"
 dependencies = [
  "ansi_term",
  "anyhow",
