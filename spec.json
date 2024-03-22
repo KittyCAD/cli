@@ -15177,6 +15177,10 @@
           "updated_at"
         ]
       },
+      "DefaultCameraFocusOn": {
+        "description": "The response from the `DefaultCameraFocusOn` command.",
+        "type": "object"
+      },
       "DefaultCameraGetSettings": {
         "description": "The response from the `DefaultCameraGetSettings` command.",
         "type": "object",
@@ -16899,6 +16903,21 @@
           "entity_type"
         ]
       },
+      "GetNumObjects": {
+        "description": "The response from the `GetNumObjects` command.",
+        "type": "object",
+        "properties": {
+          "num_objects": {
+            "description": "The number of objects in the scene.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "num_objects"
+        ]
+      },
       "GetSketchModePlane": {
         "description": "The plane for sketch mode.",
         "type": "object",
@@ -17153,6 +17172,28 @@
         },
         "required": [
           "object_id"
+        ]
+      },
+      "ImportedGeometry": {
+        "description": "Data from importing the files",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "ID of the imported 3D models within the scene.",
+            "type": "string",
+            "format": "uuid"
+          },
+          "value": {
+            "description": "The original file paths that held the geometry.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "value"
         ]
       },
       "InputFormat": {
@@ -18391,7 +18432,7 @@
             ]
           },
           {
-            "description": "Command for extruding a solid.",
+            "description": "Command for extruding a solid 2d.",
             "type": "object",
             "properties": {
               "cap": {
@@ -18424,6 +18465,96 @@
             "required": [
               "cap",
               "distance",
+              "target",
+              "type"
+            ]
+          },
+          {
+            "description": "Command for revolving a solid 2d.",
+            "type": "object",
+            "properties": {
+              "angle": {
+                "description": "The signed angle of revolution (in degrees, must be <= 360 in either direction)",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Angle"
+                  }
+                ]
+              },
+              "axis": {
+                "description": "The axis of the extrusion (taken from the origin)",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point3d"
+                  }
+                ]
+              },
+              "origin": {
+                "description": "The origin of the extrusion axis",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Point3d"
+                  }
+                ]
+              },
+              "target": {
+                "description": "Which sketch to revolve. Must be a closed 2D solid.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ModelingCmdId"
+                  }
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "revolve"
+                ]
+              }
+            },
+            "required": [
+              "angle",
+              "axis",
+              "origin",
+              "target",
+              "type"
+            ]
+          },
+          {
+            "description": "Command for revolving a solid 2d about a brep edge",
+            "type": "object",
+            "properties": {
+              "angle": {
+                "description": "The signed angle of revolution (in degrees, must be <= 360 in either direction)",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Angle"
+                  }
+                ]
+              },
+              "edge_id": {
+                "description": "The edge to use as the axis of revolution, must be linear and lie in the plane of the solid",
+                "type": "string",
+                "format": "uuid"
+              },
+              "target": {
+                "description": "Which sketch to revolve. Must be a closed 2D solid.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ModelingCmdId"
+                  }
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "revolve_about_edge"
+                ]
+              }
+            },
+            "required": [
+              "angle",
+              "edge_id",
               "target",
               "type"
             ]
@@ -18800,14 +18931,6 @@
                   }
                 ]
               },
-              "source_unit": {
-                "description": "Select the unit interpretation of exported objects.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/UnitLength"
-                  }
-                ]
-              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -18818,7 +18941,6 @@
             "required": [
               "entity_ids",
               "format",
-              "source_unit",
               "type"
             ]
           },
@@ -18950,11 +19072,11 @@
             ]
           },
           {
-            "description": "Create a linear pattern using this entity (currently only valid for 3D solids).",
+            "description": "Create a linear pattern using this entity.",
             "type": "object",
             "properties": {
               "axis": {
-                "description": "Axis along which to make the copies",
+                "description": "Axis along which to make the copies. For Solid2d patterns, the z component is ignored.",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/Point3d"
@@ -18996,7 +19118,7 @@
             ]
           },
           {
-            "description": "Create a circular pattern using this entity (currently only valid for 3D solids).",
+            "description": "Create a circular pattern using this entity.",
             "type": "object",
             "properties": {
               "arc_degrees": {
@@ -19005,7 +19127,7 @@
                 "format": "double"
               },
               "axis": {
-                "description": "Axis around which to make the copies",
+                "description": "Axis around which to make the copies. For Solid2d patterns, this is ignored.",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/Point3d"
@@ -19013,7 +19135,7 @@
                 ]
               },
               "center": {
-                "description": "Point around which to make the copies",
+                "description": "Point around which to make the copies. For Solid2d patterns, the z component is ignored.",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/Point3d"
@@ -19049,6 +19171,56 @@
               "entity_id",
               "num_repetitions",
               "rotate_duplicates",
+              "type"
+            ]
+          },
+          {
+            "description": "Create a helix using the input cylinder and other specified parameters.",
+            "type": "object",
+            "properties": {
+              "cylinder_id": {
+                "description": "ID of the cylinder.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "is_clockwise": {
+                "description": "Is the helix rotation clockwise?",
+                "type": "boolean"
+              },
+              "length": {
+                "description": "Length of the helix.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LengthUnit"
+                  }
+                ]
+              },
+              "revolutions": {
+                "description": "Number of revolutions.",
+                "type": "number",
+                "format": "double"
+              },
+              "start_angle": {
+                "description": "Start angle (in degrees).",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Angle"
+                  }
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "entity_make_helix"
+                ]
+              }
+            },
+            "required": [
+              "cylinder_id",
+              "is_clockwise",
+              "length",
+              "revolutions",
+              "start_angle",
               "type"
             ]
           },
@@ -19151,6 +19323,21 @@
             },
             "required": [
               "entities",
+              "type"
+            ]
+          },
+          {
+            "description": "Removes all of the Objects in the scene",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "scene_clear_all"
+                ]
+              }
+            },
+            "required": [
               "type"
             ]
           },
@@ -20133,6 +20320,30 @@
             ]
           },
           {
+            "description": "Set the background color of the scene.",
+            "type": "object",
+            "properties": {
+              "color": {
+                "description": "The color to set the background to.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Color"
+                  }
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "set_background_color"
+                ]
+              }
+            },
+            "required": [
+              "color",
+              "type"
+            ]
+          },
+          {
             "description": "Get type of the given curve.",
             "type": "object",
             "properties": {
@@ -20575,14 +20786,6 @@
                   }
                 ]
               },
-              "source_unit": {
-                "description": "Select the unit interpretation of distances in the scene.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/UnitLength"
-                  }
-                ]
-              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -20595,7 +20798,6 @@
               "material_density",
               "material_density_unit",
               "output_unit",
-              "source_unit",
               "type"
             ]
           },
@@ -20632,14 +20834,6 @@
                   }
                 ]
               },
-              "source_unit": {
-                "description": "Select the unit interpretation of distances in the scene.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/UnitLength"
-                  }
-                ]
-              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -20652,7 +20846,6 @@
               "material_mass",
               "material_mass_unit",
               "output_unit",
-              "source_unit",
               "type"
             ]
           },
@@ -20676,14 +20869,6 @@
                   }
                 ]
               },
-              "source_unit": {
-                "description": "Select the unit interpretation of distances in the scene.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/UnitLength"
-                  }
-                ]
-              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -20694,7 +20879,6 @@
             "required": [
               "entity_ids",
               "output_unit",
-              "source_unit",
               "type"
             ]
           },
@@ -20718,14 +20902,6 @@
                   }
                 ]
               },
-              "source_unit": {
-                "description": "Select the unit interpretation of distances in the scene.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/UnitLength"
-                  }
-                ]
-              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -20736,7 +20912,6 @@
             "required": [
               "entity_ids",
               "output_unit",
-              "source_unit",
               "type"
             ]
           },
@@ -20760,14 +20935,6 @@
                   }
                 ]
               },
-              "source_unit": {
-                "description": "Select the unit interpretation of distances in the scene.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/UnitLength"
-                  }
-                ]
-              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -20778,7 +20945,6 @@
             "required": [
               "entity_ids",
               "output_unit",
-              "source_unit",
               "type"
             ]
           },
@@ -20954,6 +21120,21 @@
                 "type": "string",
                 "enum": [
                   "select_get"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "Get the number of objects in the scene",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "get_num_objects"
                 ]
               }
             },
@@ -21270,6 +21451,44 @@
                 "type": "string",
                 "enum": [
                   "default_camera_zoom"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'GetNumObjects' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/GetNumObjects"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "get_num_objects"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'DefaultCameraFocusOn' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/DefaultCameraFocusOn"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "default_camera_focus_on"
                 ]
               }
             },
@@ -21669,6 +21888,25 @@
                 "type": "string",
                 "enum": [
                   "import_files"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "description": "The response to the 'ImportedGeometry' endpoint",
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/ImportedGeometry"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "imported_geometry"
                 ]
               }
             },
@@ -26659,6 +26897,14 @@
             "description": "A sequence of modeling requests. If any request fails, following requests will not be tried.",
             "type": "object",
             "properties": {
+              "batch_id": {
+                "description": "ID of batch being submitted. Each request has their own individual ModelingCmdId, but this is the ID of the overall batch.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ModelingCmdId"
+                  }
+                ]
+              },
               "requests": {
                 "description": "A sequence of modeling requests. If any request fails, following requests will not be tried.",
                 "type": "array",
@@ -26674,6 +26920,7 @@
               }
             },
             "required": [
+              "batch_id",
               "requests",
               "type"
             ]
