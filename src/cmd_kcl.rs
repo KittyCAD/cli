@@ -99,7 +99,6 @@ impl crate::cmd::Command for CmdKclExport {
                 kittycad::types::ModelingCmd::Export {
                     entity_ids: vec![],
                     format: get_output_format(&self.output_format, self.src_unit.clone()),
-                    source_unit: self.src_unit.clone(),
                 },
                 self.src_unit.clone(),
             )
@@ -401,7 +400,6 @@ impl crate::cmd::Command for CmdKclVolume {
                 kittycad::types::ModelingCmd::Volume {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone(),
-                    source_unit: self.src_unit.clone(),
                 },
                 self.src_unit.clone(),
             )
@@ -481,7 +479,6 @@ impl crate::cmd::Command for CmdKclMass {
                     material_density: self.material_density.into(),
                     material_density_unit: self.material_density_unit.clone(),
                     output_unit: self.output_unit.clone(),
-                    source_unit: self.src_unit.clone(),
                 },
                 self.src_unit.clone(),
             )
@@ -547,7 +544,6 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
                 kittycad::types::ModelingCmd::CenterOfMass {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone(),
-                    source_unit: self.src_unit.clone(),
                 },
                 self.src_unit.clone(),
             )
@@ -627,7 +623,6 @@ impl crate::cmd::Command for CmdKclDensity {
                     material_mass: self.material_mass.into(),
                     material_mass_unit: self.material_mass_unit.clone(),
                     output_unit: self.output_unit.clone(),
-                    source_unit: self.src_unit.clone(),
                 },
                 self.src_unit.clone(),
             )
@@ -693,7 +688,6 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
                 kittycad::types::ModelingCmd::SurfaceArea {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone(),
-                    source_unit: self.src_unit.clone(),
                 },
                 self.src_unit.clone(),
             )

@@ -270,6 +270,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // Send an import request to the engine.
         let resp = engine
             .send_modeling_cmd(
+                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::ImportFiles {
@@ -291,6 +292,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // Zoom on the object.
         engine
             .send_modeling_cmd(
+                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
@@ -301,6 +303,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // This will not return until there are files.
         let resp = engine
             .send_modeling_cmd(
+                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },

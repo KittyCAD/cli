@@ -282,6 +282,7 @@ async fn get_image_bytes(
     // Send an import request to the engine.
     let resp = engine
         .send_modeling_cmd(
+            false,
             uuid::Uuid::new_v4(),
             kcl_lib::executor::SourceRange::default(),
             kittycad::types::ModelingCmd::ImportFiles {
@@ -306,6 +307,7 @@ async fn get_image_bytes(
     // Zoom on the object.
     engine
         .send_modeling_cmd(
+            false,
             uuid::Uuid::new_v4(),
             kcl_lib::executor::SourceRange::default(),
             kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
@@ -316,6 +318,7 @@ async fn get_image_bytes(
     // This will not return until there are files.
     let resp = engine
         .send_modeling_cmd(
+            false,
             uuid::Uuid::new_v4(),
             kcl_lib::executor::SourceRange::default(),
             kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },

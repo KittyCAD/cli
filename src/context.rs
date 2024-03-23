@@ -112,7 +112,12 @@ impl Context<'_> {
         let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
 
         let resp = engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .send_modeling_cmd(
+                false,
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                cmd,
+            )
             .await?;
         Ok(resp)
     }
@@ -152,6 +157,7 @@ impl Context<'_> {
         let (x, y) = kcl_lib::std::utils::get_camera_zoom_magnitude_per_unit_length(units);
         engine
             .send_modeling_cmd(
+                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::DefaultCameraLookAt {
@@ -164,7 +170,12 @@ impl Context<'_> {
             .await?;
 
         let resp = engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .send_modeling_cmd(
+                false,
+                uuid::Uuid::new_v4(),
+                kcl_lib::executor::SourceRange::default(),
+                cmd,
+            )
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         Ok(resp)

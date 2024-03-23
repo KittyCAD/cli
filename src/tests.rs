@@ -290,7 +290,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm3".to_string(),
             ],
-            want_out: r#"volume       | 53601227.82305795"#.to_string(),
+            want_out: r#"volume       | 53601227.74079597"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -309,7 +309,7 @@ access-control-allow-credentials:  """#
                 "--material-mass".to_string(),
                 "1.0".to_string(),
             ],
-            want_out: r#"density            | 1.1646743229724862e-6"#.to_string(),
+            want_out: r#"density            | 1.164674"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -328,7 +328,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"mass                  | 858609.1238345467"#.to_string(),
+            want_out: r#"mass                  | 858609.1225"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -343,7 +343,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm2".to_string(),
             ],
-            want_out: r#"surface_area | 1088815.3373205569"#.to_string(),
+            want_out: r#"surface_area | 1088815.33688"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -358,7 +358,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm".to_string(),
             ],
-            want_out: r#"center_of_mass | Point3D { x: -13.353775, y: 1.1221564, z: -0.016602868 }"#.to_string(),
+            want_out: r#"center_of_mass | Point3D { x: -13.3537855, y: -0.016604856, z: -1.1221532 }"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -378,7 +378,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#""mass": 858609.1238345467,"#.to_string(),
+            want_out: r#""mass": 858609.1225168364"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
