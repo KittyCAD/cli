@@ -1,4 +1,4 @@
-use std::{str::FromStr, sync::Arc};
+use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use kcl_lib::engine::EngineManager;
@@ -141,22 +141,14 @@ impl Context<'_> {
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
-        let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
-        let fs = kcl_lib::fs::FileManager::new();
-        let ctx = kcl_lib::executor::ExecutorContext {
-            engine: Arc::new(Box::new(engine.clone())),
-            stdlib: Arc::new(kcl_lib::std::StdLib::default()),
-            fs,
-            units: units.clone(),
-            is_mock: false,
-        };
+        let ctx = kcl_lib::executor::ExecutorContext::new(ws, units.clone()).await?;
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &ctx)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         // Zoom on the object.
         let (x, y) = kcl_lib::std::utils::get_camera_zoom_magnitude_per_unit_length(units);
-        engine
+        ctx.engine
             .send_modeling_cmd(
                 false,
                 uuid::Uuid::new_v4(),
@@ -170,7 +162,8 @@ impl Context<'_> {
             )
             .await?;
 
-        let resp = engine
+        let resp = ctx
+            .engine
             .send_modeling_cmd(
                 false,
                 uuid::Uuid::new_v4(),
