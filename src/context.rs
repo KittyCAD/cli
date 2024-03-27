@@ -148,6 +148,7 @@ impl Context<'_> {
             stdlib: Arc::new(kcl_lib::std::StdLib::default()),
             fs,
             units: units.clone(),
+            is_mock: false,
         };
         let _ = kcl_lib::executor::execute(program, &mut mem, kcl_lib::executor::BodyType::Root, &ctx)
             .await
