@@ -940,7 +940,7 @@ dependencies = [
 [[package]]
 name = "derive-docs"
 version = "0.1.12"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#0025349e9aec096ee9bbb17be123ed48b4e0ed35"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#86de039dc47413f891b7a56ebeb31df7c640d19e"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1793,7 +1793,7 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.1.46"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#0025349e9aec096ee9bbb17be123ed48b4e0ed35"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#86de039dc47413f891b7a56ebeb31df7c640d19e"
 dependencies = [
  "anyhow",
  "approx",
@@ -1834,9 +1834,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.62"
+version = "0.2.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bb6a3e37a902c099f3f077f1e75814339bf5d548151a675544366841a882377"
+checksum = "93a332250e08fd715ad3d5826e04d36da1c5bb42d0c1b1ff1f0598278b9ebf3c"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4892,7 +4892,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.30"
+version = "0.2.31"
 dependencies = [
  "ansi_term",
  "anyhow",
