@@ -1794,7 +1794,8 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.1.47"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#ebcc19e75776423a7e85a45d08b33767e468b419"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40e690dad4e54e28e6f93e295ad803a42bf4da71699232cdbb6797fbc107b523"
 dependencies = [
  "anyhow",
  "approx",
