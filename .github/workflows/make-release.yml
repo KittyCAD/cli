@@ -184,11 +184,11 @@ jobs:
             mkdir "./homebrew/$homebrew_name"
             curl -L "https://dl.zoo.dev/releases/cli/$version/kittycad-$input_name" -o "./homebrew/$homebrew_name/zoo"
 
-            sha256=$(sha256sum "./homebrew/$homebrew_name/kittycad")
+            sha256=$(sha256sum "./homebrew/$homebrew_name/zoo")
             hash=$(printf '%s\n' "$sha256" | cut -d' ' -f1)
             sed -i "s#replace-$homebrew_name-sha#$hash#g" "./homebrew/kittycad.rb"
 
-            to_zip_files="$to_zip_files $homebrew_name/kittycad"
+            to_zip_files="$to_zip_files $homebrew_name/zoo"
           done
 
           (cd ./homebrew && tar -czvf kittycad-cli.tar.gz $to_zip_files)
