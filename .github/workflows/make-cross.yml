@@ -32,10 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-            toolchain: stable
-            override: true
+        uses: dtolnay/rust-toolchain@stable
       - if: ${{ matrix.os == 'ubuntu-latest' }}
         name: Install deps
         shell: bash

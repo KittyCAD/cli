@@ -25,11 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Install latest rust
-        uses: actions-rs/toolchain@v1
-        with:
-            toolchain: stable
-            override: true
-            components: rustfmt, clippy
+        uses: dtolnay/rust-toolchain@stable
+        with:            
+          components: clippy
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -52,11 +50,5 @@ jobs:
           required-permission: write
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - if: steps.check_permissions.outputs.has-permission
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
-      - name: Run clippy manually without annotations
-        if: ${{ !steps.check_permissions.outputs.has-permission }}
-        run: cargo clippy --all-targets -- -D warnings
+      - name: Run cargo clippy
+        run: cargo clippy --all-features --all-targets -- -D warnings

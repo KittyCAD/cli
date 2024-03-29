@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Install latest rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
             toolchain: stable
             override: true
@@ -61,19 +61,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: taiki-e/install-action@nextest
+      - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Run cargo test
         run: |
-          cargo test --all
+          cargo nextest run --workspace
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           RUST_BACKTRACE: 1
 
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.15.0'
-          args: '--all --timeout 2000'
+      - name: Test with coverage
+        run: cargo llvm-cov nextest --workspace --lcov --output-path lcov.info --no-fail-fast
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -85,4 +84,5 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
           flags: unittests
+          files: lcov.info
           verbose: true
