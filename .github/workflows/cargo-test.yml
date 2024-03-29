@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Install latest rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
             toolchain: stable
             override: true
@@ -61,19 +61,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Install cargo binstall
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      - name: Install cargo tarpaulin
+        run: cargo binstall -y cargo-tarpaulin
       - name: Run cargo test
         run: |
-          cargo test --all
+          cargo nextest run --workspace
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           RUST_BACKTRACE: 1
 
       - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.15.0'
-          args: '--all --timeout 2000'
+        run: cargo tarpaulin
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

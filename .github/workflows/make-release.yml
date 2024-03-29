@@ -21,11 +21,7 @@ jobs:
         with:
           project_id: kittycadapi
       - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-            toolchain: stable
-            override: true
-            components: rustfmt, clippy
+        uses: dtolnay/rust-toolchain@stable
       - if: ${{ matrix.os == 'ubuntu-latest' }}
         name: Install deps
         shell: bash
@@ -93,11 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-            toolchain: nightly
-            override: true
-            components: rustfmt, clippy
+        uses: dtolnay/rust-toolchain@stable
       - uses: actions/download-artifact@v4
         with:
           name:  release-ubuntu-latest-${{github.ref_name}}
