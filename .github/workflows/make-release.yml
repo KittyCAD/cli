@@ -182,7 +182,7 @@ jobs:
             homebrew_name="${homebrew_names[$i]}"
 
             mkdir "./homebrew/$homebrew_name"
-            curl -L "https://dl.zoo.dev/releases/cli/$version/kittycad-$input_name" -o "./homebrew/$homebrew_name/zoo"
+            curl -L "https://dl.zoo.dev/releases/cli/$version/zoo-$input_name" -o "./homebrew/$homebrew_name/zoo"
 
             sha256=$(sha256sum "./homebrew/$homebrew_name/zoo")
             hash=$(printf '%s\n' "$sha256" | cut -d' ' -f1)
