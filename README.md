@@ -8,7 +8,13 @@ For the CLI docs for end users refer to: https://zoo.dev/docs/cli/manual
 
 ### Installing
 
-Instructions for installing are on the [latest release](https://github.com/KittyCAD/cli/releases).
+On MacOS, you can use Homebrew:
+```
+brew tap kittycad/kittycad
+brew install kittycad
+zoo --help   
+```
+For all other installs, see the instructions on the [latest release](https://github.com/KittyCAD/cli/releases).
 
 ### Updating the API spec
 
