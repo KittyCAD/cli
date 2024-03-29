@@ -51,7 +51,7 @@ slog-term = "2"
 tabled = { version = "0.14.0", features = ["color"] }
 tabwriter = "1.4.0"
 termbg = "0.5.0"
-terminal-spinners = "0.3.2"
+terminal-spinners = { git = "https://github.com/adamchalmers/terminal-spinners-rs" }
 terminal_size = "0.3.0"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
