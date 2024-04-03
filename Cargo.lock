@@ -521,9 +521,9 @@ dependencies = [
 
 [[package]]
 name = "bson"
-version = "2.9.0"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce21468c1c9c154a85696bb25c20582511438edb6ad67f846ba1378ffdd80222"
+checksum = "4d43b38e074cc0de2957f10947e376a1d88b9c4dbab340b590800cc1b2e066b2"
 dependencies = [
  "ahash",
  "base64 0.13.1",
@@ -1778,8 +1778,7 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.1.47"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40e690dad4e54e28e6f93e295ad803a42bf4da71699232cdbb6797fbc107b523"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#108bb4ee90e29f194c77b987e5a24cbbaf8cb6ce"
 dependencies = [
  "anyhow",
  "approx",
@@ -3882,9 +3881,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.36.0"
+version = "1.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61285f6515fa018fb2d1e46eb21223fff441ee8db5d0f1435e8ab4f5cdb80931"
+checksum = "1adbebffeca75fcfd058afa480fb6c0b81e165a0323f9c9d39c9697e37c46787"
 dependencies = [
  "backtrace",
  "bytes",
@@ -4847,7 +4846,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.37"
+version = "0.2.38"
 dependencies = [
  "ansi_term",
  "anyhow",
