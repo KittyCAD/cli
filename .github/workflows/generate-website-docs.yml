@@ -79,6 +79,9 @@ jobs:
           gh pr create --title "Update CLI docs for ${VERSION}" \
               --body "Updating the generated cli docs" \
               --head "$NEW_BRANCH" \
+              --assignee jessfraz \
+              --assignee irevdev \
+              --assignee franknoirot \
               --base main || true
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
