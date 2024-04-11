@@ -2157,7 +2157,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#8db292eaa7be0292512a2cdbef09f2d37af7c79c"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#f365343d3bcf192bd64fb0c46f2e034037145a79"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -2170,6 +2170,7 @@ dependencies = [
  "indexmap 2.2.2",
  "json-patch",
  "log",
+ "mime_guess",
  "numeral",
  "once_cell",
  "openapiv3",
