@@ -16,7 +16,7 @@ clap = { version = "4.5.4", features = ["cargo", "derive", "env", "unicode", "he
 clap_complete = { version = "4.5.1" }
 cli-macro = { path = "cli-macro" }
 colored = "2.1.0"
-colored_json = "4.1"
+colored_json = "5.0"
 data-encoding = "2.5.0"
 dialoguer = "0.11.0"
 dirs = "5"
