@@ -56,7 +56,7 @@ terminal-spinners = { git = "https://github.com/adamchalmers/terminal-spinners-r
 terminal_size = "0.3.0"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
-toml = "0.8.10"
+toml = "0.8.12"
 toml_edit = "0.21.0"
 url = "2.5.0"
 unicode-segmentation = "1.11.0"
