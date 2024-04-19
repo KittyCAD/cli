@@ -923,9 +923,8 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "138b94245509a9dd516008788b585c34847829cf37b40a758b4aa581cf94f147"
+version = "0.1.14"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#64506221469517043fdb44634aeded3cb131b670"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1779,18 +1778,21 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.1.47"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#108bb4ee90e29f194c77b987e5a24cbbaf8cb6ce"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#64506221469517043fdb44634aeded3cb131b670"
 dependencies = [
  "anyhow",
  "approx",
  "async-recursion",
  "async-trait",
+ "base64 0.22.0",
  "bson",
  "chrono",
  "dashmap",
  "databake",
  "derive-docs",
+ "form_urlencoded",
  "futures",
+ "git_rev",
  "gltf-json",
  "js-sys",
  "kittycad",
@@ -1810,6 +1812,7 @@ dependencies = [
  "tokio-tungstenite",
  "tower-lsp",
  "ts-rs",
+ "url",
  "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -1820,9 +1823,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.63"
+version = "0.2.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93a332250e08fd715ad3d5826e04d36da1c5bb42d0c1b1ff1f0598278b9ebf3c"
+checksum = "fc460442c165c8e707b1154551cefd08938d10bb80c78940e10cd9869487c325"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4172,6 +4175,7 @@ checksum = "fc2cae1fc5d05d47aa24b64f9a4f7cba24cdc9187a2084dd97ac57bef5eccae6"
 dependencies = [
  "thiserror",
  "ts-rs-macros",
+ "url",
  "uuid",
 ]
 
