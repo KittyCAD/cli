@@ -2158,7 +2158,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#92af88a6bec69cc6222d8227accd4abdabccb7fd"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#c72360cc99760ce8f98581cc670fb85024b68907"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -2372,14 +2372,14 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "phonenumber"
-version = "0.3.3+8.13.9"
+version = "0.3.4+8.13.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "635f3e6288e4f01c049d89332a031bd74f25d64b6fb94703ca966e819488cd06"
+checksum = "8d888d375f2963bf06c5079665fbe53db69860879ff5a78524fe3c93c54fb7b8"
 dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "lazy_static",
  "nom",
  "quick-xml",
