@@ -923,9 +923,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.12"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "138b94245509a9dd516008788b585c34847829cf37b40a758b4aa581cf94f147"
+checksum = "4bbdcbbb55c30b88f223c4f0594fae63bb2909098e5a74d2cc9727e7153f5b8f"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1778,19 +1778,23 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.47"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#108bb4ee90e29f194c77b987e5a24cbbaf8cb6ce"
+version = "0.1.48"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2fb5d7255488a91b0057272069a122a4673642193efffea40f86de9a2432ccd"
 dependencies = [
  "anyhow",
  "approx",
  "async-recursion",
  "async-trait",
+ "base64 0.22.0",
  "bson",
  "chrono",
  "dashmap",
  "databake",
  "derive-docs",
+ "form_urlencoded",
  "futures",
+ "git_rev",
  "gltf-json",
  "js-sys",
  "kittycad",
@@ -1810,6 +1814,7 @@ dependencies = [
  "tokio-tungstenite",
  "tower-lsp",
  "ts-rs",
+ "url",
  "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -1820,9 +1825,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.63"
+version = "0.2.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93a332250e08fd715ad3d5826e04d36da1c5bb42d0c1b1ff1f0598278b9ebf3c"
+checksum = "f14a17cc3c056804ad287f698ba54e569e0133b8e728fb18ec73e23a8bdad951"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2525,9 +2530,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.80"
+version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a56dea16b0a29e94408b9aa5e2940a4eedbd128a1ba20e8f7ae60fd3d465af0e"
+checksum = "3d1597b0c024618f09a9c3b8655b7e430397a36d23fdafec26d6965e9eec3eba"
 dependencies = [
  "unicode-ident",
 ]
@@ -4187,6 +4192,7 @@ checksum = "fc2cae1fc5d05d47aa24b64f9a4f7cba24cdc9187a2084dd97ac57bef5eccae6"
 dependencies = [
  "thiserror",
  "ts-rs-macros",
+ "url",
  "uuid",
 ]
 
@@ -4863,7 +4869,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.38"
+version = "0.2.39"
 dependencies = [
  "ansi_term",
  "anyhow",

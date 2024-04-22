@@ -259,18 +259,11 @@ impl crate::cmd::Command for CmdFileSnapshot {
             }
         }
 
-        let client = ctx.api_client("")?;
-        let ws = client
-            .modeling()
-            .commands_ws(None, None, None, None, None, Some(false))
-            .await?;
-
-        let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
+        let engine = ctx.engine("").await?;
 
         // Send an import request to the engine.
         let resp = engine
             .send_modeling_cmd(
-                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::ImportFiles {
@@ -292,7 +285,6 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // Zoom on the object.
         engine
             .send_modeling_cmd(
-                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
@@ -303,7 +295,6 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // This will not return until there are files.
         let resp = engine
             .send_modeling_cmd(
-                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
                 kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },

@@ -103,23 +103,29 @@ impl Context<'_> {
         hostname: &str,
         cmd: kittycad::types::ModelingCmd,
     ) -> Result<OkWebSocketResponseData> {
+        let engine = self.engine(hostname).await?;
+
+        let resp = engine
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .await?;
+        Ok(resp)
+    }
+
+    async fn engine_ws(&self, hostname: &str) -> Result<reqwest::Upgraded> {
         let client = self.api_client(hostname)?;
         let ws = client
             .modeling()
-            .commands_ws(None, None, None, None, None, Some(false))
+            .commands_ws(None, None, None, None, None, None, Some(false))
             .await?;
+        Ok(ws)
+    }
+
+    pub async fn engine(&self, hostname: &str) -> Result<kcl_lib::engine::conn::EngineConnection> {
+        let ws = self.engine_ws(hostname).await?;
 
         let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
 
-        let resp = engine
-            .send_modeling_cmd(
-                false,
-                uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
-                cmd,
-            )
-            .await?;
-        Ok(resp)
+        Ok(engine)
     }
 
     pub async fn send_kcl_modeling_cmd(
@@ -129,47 +135,35 @@ impl Context<'_> {
         cmd: kittycad::types::ModelingCmd,
         units: kittycad::types::UnitLength,
     ) -> Result<OkWebSocketResponseData> {
-        let client = self.api_client(hostname)?;
-        let ws = client
-            .modeling()
-            .commands_ws(None, None, None, None, None, Some(false))
-            .await?;
+        let ws = self.engine_ws(hostname).await?;
 
-        let tokens = kcl_lib::token::lexer(code);
+        let tokens = kcl_lib::token::lexer(code)?;
         let parser = kcl_lib::parser::Parser::new(tokens);
         let program = parser
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-        let mut mem: kcl_lib::executor::ProgramMemory = Default::default();
+
         let ctx = kcl_lib::executor::ExecutorContext::new(ws, units.clone()).await?;
-        let _ = kcl_lib::executor::execute_outer(program, &mut mem, kcl_lib::executor::BodyType::Root, &ctx)
+        let _ = ctx
+            .run(program, None)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         // Zoom on the object.
-        let (x, y) = kcl_lib::std::utils::get_camera_zoom_magnitude_per_unit_length(units);
         ctx.engine
             .send_modeling_cmd(
-                false,
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::DefaultCameraLookAt {
-                    center: kittycad::types::Point3D { x: 0.0, y: 0.0, z: 0.0 },
-                    up: kittycad::types::Point3D { x: 0.0, y: 0.0, z: 1.0 },
-                    vantage: kittycad::types::Point3D { x: 0.0, y: -x, z: y },
-                    sequence: None,
+                kittycad::types::ModelingCmd::ZoomToFit {
+                    object_ids: Some(Default::default()),
+                    padding: 0.1,
                 },
             )
             .await?;
 
         let resp = ctx
             .engine
-            .send_modeling_cmd(
-                false,
-                uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
-                cmd,
-            )
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         Ok(resp)
