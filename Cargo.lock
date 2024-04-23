@@ -923,9 +923,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.15"
+version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bbdcbbb55c30b88f223c4f0594fae63bb2909098e5a74d2cc9727e7153f5b8f"
+checksum = "0242d0188e575b26558a494031b64c3f0b34d60068b16f1f5ff2bcfeafce00e4"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1778,9 +1778,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.48"
+version = "0.1.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2fb5d7255488a91b0057272069a122a4673642193efffea40f86de9a2432ccd"
+checksum = "0f2683c86a82b0d35b2a937691e441811099407f6e0189b465ce0591f00caf0c"
 dependencies = [
  "anyhow",
  "approx",
@@ -1825,9 +1825,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.2.69"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f14a17cc3c056804ad287f698ba54e569e0133b8e728fb18ec73e23a8bdad951"
+checksum = "ddc922f0da3abc22661bf49423c9bfcc02ce6ae92dae007ede6990874789545b"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2384,7 +2384,7 @@ dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "lazy_static",
  "nom",
  "quick-xml",
@@ -4869,7 +4869,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.39"
+version = "0.2.40"
 dependencies = [
  "ansi_term",
  "anyhow",
