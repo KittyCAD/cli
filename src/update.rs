@@ -202,7 +202,6 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     let temp_file = temp_dir.join("zoo");
 
     let url = get_exe_download_url(version);
-    println!("Downloading {} to {}", url, temp_file.display());
 
     // Get the contents of the binary.
     let resp = reqwest::get(&url).await?;
@@ -273,7 +272,7 @@ mod test {
             return;
         }
 
-        let file = super::download_binary_to_temp_file("v0.2.41").await.unwrap();
+        let file = super::download_binary_to_temp_file("v0.2.42").await.unwrap();
 
         assert_eq!(
             file,
