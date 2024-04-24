@@ -189,7 +189,7 @@ fn get_exe_download_url(version: &str) -> String {
     };
 
     format!(
-        "https://dl.zoo.dev/releases/cli/{}/zoo-{}",
+        "https://github.com/KittyCAD/cli/releases/download/{}/zoo-{}",
         version,
         crate::built_info::TARGET
     )
@@ -202,6 +202,7 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     let temp_file = temp_dir.join("zoo");
 
     let url = get_exe_download_url(version);
+    println!("Downloading {} to {}", url, temp_file.display());
 
     // Get the contents of the binary.
     let resp = reqwest::get(&url).await?;
@@ -216,7 +217,11 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     // Verify the sha256 hash of the binary.
     let bin_hash = sha256_digest(bin_body.as_ref())?;
     if bin_hash != sha256_hash {
-        anyhow::bail!("SHA256 hash mismatch: local ({}) != remote ({})", bin_hash, sha256_hash);
+        anyhow::bail!(
+            "SHA256 hash mismatch: local ({}) != remote ({:?})",
+            bin_hash,
+            sha256_hash
+        );
     }
 
     // Write the body to the file.
@@ -268,7 +273,7 @@ mod test {
             return;
         }
 
-        let file = super::download_binary_to_temp_file("v0.2.18").await.unwrap();
+        let file = super::download_binary_to_temp_file("v0.2.41").await.unwrap();
 
         assert_eq!(
             file,
@@ -282,7 +287,7 @@ mod test {
         assert_eq!(
             url,
             format!(
-                "https://dl.zoo.dev/releases/cli/v0.1.0/zoo-{}",
+                "https://github.com/KittyCAD/cli/releases/download/v0.1.0/zoo-{}",
                 crate::built_info::TARGET
             )
         );
@@ -291,7 +296,7 @@ mod test {
         assert_eq!(
             url,
             format!(
-                "https://dl.zoo.dev/releases/cli/v0.2.0/zoo-{}",
+                "https://github.com/KittyCAD/cli/releases/download/v0.2.0/zoo-{}",
                 crate::built_info::TARGET
             )
         );

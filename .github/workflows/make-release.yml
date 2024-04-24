@@ -92,7 +92,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - uses: actions/download-artifact@v4
         with:
-          name:  release-ubuntu-latest-${{github.ref_name}}
+          name:  release-macos-latest-${{github.ref_name}}
           path: build
       - uses: actions/download-artifact@v4
         with:
