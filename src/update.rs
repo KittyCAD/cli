@@ -304,7 +304,7 @@ mod test {
     #[tokio::test]
     #[serial_test::serial]
     async fn test_check_for_update() {
-        let result = super::check_for_update("0.0.1", true).await.unwrap();
+        let result = super::check_for_update("0.2.41", true).await.unwrap();
         assert_eq!(result.is_some(), true);
 
         let latest_release = result.unwrap();
