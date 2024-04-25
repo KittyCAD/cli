@@ -1,8 +1,10 @@
+#[cfg(not(target_os = "linux"))]
 use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
 
+#[cfg(not(target_os = "linux"))]
 const NOT_INSTALLED_ERROR: &str = r#"The Zoo Modeling App is not installed. 
 Please download it from https://zoo.dev/modeling-app/download
 If you do have the Modeling App installed already, we were 
