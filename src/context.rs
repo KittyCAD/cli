@@ -135,7 +135,7 @@ impl Context<'_> {
         cmd: kittycad::types::ModelingCmd,
         units: kittycad::types::UnitLength,
     ) -> Result<OkWebSocketResponseData> {
-        let ws = self.engine_ws(hostname).await?;
+        let client = self.api_client(hostname)?;
 
         let tokens = kcl_lib::token::lexer(code)?;
         let parser = kcl_lib::parser::Parser::new(tokens);
@@ -143,7 +143,14 @@ impl Context<'_> {
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
-        let ctx = kcl_lib::executor::ExecutorContext::new(ws, units.clone()).await?;
+        let ctx = kcl_lib::executor::ExecutorContext::new(
+            &client,
+            kcl_lib::executor::ExecutorSettings {
+                units: units.into(),
+                ..Default::default()
+            },
+        )
+        .await?;
         let _ = ctx
             .run(program, None)
             .await
