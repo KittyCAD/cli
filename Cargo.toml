@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.43"
+version = "0.2.44"
 edition = "2021"
 build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -58,8 +58,8 @@ thiserror = "1"
 tokio = { version = "1", features = ["full"] }
 toml = "0.8.12"
 toml_edit = "0.21.0"
-url = "2.5.0"
 unicode-segmentation = "1.11.0"
+url = "2.5.0"
 uuid = { version = "1.7", features = ["serde", "v4"] }
 version-compare = "0.2.0"
 viuer = { version = "0.7.1", features = [] }

@@ -1,5 +1,7 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
-use std::str::FromStr;
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    str::FromStr,
+};
 
 use anyhow::Result;
 use base64::prelude::*;
