@@ -2206,7 +2206,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#cc97bdff9556dcb0e6655404879927aa190834cc"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#228dda754b63ee89f05e3afb35c2e4be879b04e0"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -2427,7 +2427,7 @@ dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "lazy_static",
  "nom",
  "quick-xml",
