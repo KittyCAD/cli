@@ -166,7 +166,7 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
         if let Some(outputs) = &model.outputs {
             for (key, value) in outputs {
                 if key.ends_with(".gltf") {
-                    gltf_bytes = value.0.clone();
+                    gltf_bytes.clone_from(&value.0);
                     break;
                 }
             }
@@ -224,7 +224,7 @@ impl crate::cmd::Command for CmdTextToCadView {
         if let Some(outputs) = &model.outputs {
             for (key, value) in outputs {
                 if key.ends_with(".gltf") {
-                    gltf_bytes = value.0.clone();
+                    gltf_bytes.clone_from(&value.0);
                     break;
                 }
             }

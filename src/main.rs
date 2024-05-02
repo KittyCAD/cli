@@ -59,7 +59,6 @@ mod context;
 mod docs_man;
 mod docs_markdown;
 mod iostreams;
-mod prompt_ext;
 mod types;
 
 #[cfg(test)]

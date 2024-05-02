@@ -130,7 +130,7 @@ impl crate::cmd::Command for CmdApi {
             }
 
             // Set this as our body.
-            bytes = buf.clone();
+            bytes.clone_from(&buf);
 
             // Set our params to the query string.
             if !params.is_empty() {
