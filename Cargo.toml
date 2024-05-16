@@ -23,7 +23,7 @@ dirs = "5"
 git_rev = "0.1.0"
 heck = "0.5.0"
 http = "0.2.6"
-itertools = "0.12.1"
+itertools = "0.13.0"
 kcl-lib = "0.1.55"
 #kcl-lib = {git = "https://github.com/kittycad/modeling-app", branch = "main"}
 kittycad = { version = "0.3.1", features = ["clap", "tabled", "requests", "retry"] }
