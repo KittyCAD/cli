@@ -2227,7 +2227,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#3eb82f8a46afa436c5b9d4d37d21f937d6ef2eb6"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#f52b91c0ca72648742de09edc13e3717bbde3d5d"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -2448,7 +2448,7 @@ dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "lazy_static",
  "nom",
  "quick-xml",
@@ -4961,7 +4961,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.46"
+version = "0.2.47"
 dependencies = [
  "ansi_term",
  "anyhow",
