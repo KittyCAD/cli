@@ -426,7 +426,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"0.0"#.to_string(),
+            want_out: r#"43037.102"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -446,7 +446,7 @@ access-control-allow-credentials:  """#
                 "--material-mass".to_string(),
                 "1.0".to_string(),
             ],
-            want_out: r#"0"#.to_string(),
+            want_out: r#"657.963"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -478,7 +478,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm2".to_string(),
             ],
-            want_out: r#"surface_area | 0.0"#.to_string(),
+            want_out: r#"surface_area | 2.433"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -494,7 +494,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm".to_string(),
             ],
-            want_out: r#"center_of_mass | Point3D { x: 0.0, y: 0.0, z: 0.0 }"#.to_string(),
+            want_out: r#"center_of_mass | Point3D { x: -3.630934486409387e-8, y: 0.05000002682209015, z: -1.856890335938388e-10 }"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
