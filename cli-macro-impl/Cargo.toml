@@ -9,7 +9,7 @@ edition = "2018"
 anyhow = "1"
 Inflector = "^0.11.4"
 openapitor = { git = "https://github.com/KittyCAD/kittycad.rs", branch = "main" }
-openapiv3 = "1"
+openapiv3 = "2"
 proc-macro2 = "1"
 quote = "1"
 regex = "1.10"
