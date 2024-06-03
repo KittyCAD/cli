@@ -221,25 +221,6 @@ impl IoStreams {
     }
 
     #[allow(dead_code)]
-    /// This returns a handle to a spinner. To stop the spinner, call `.stop()` on it.
-    pub fn start_process_indicator(&mut self) -> Option<terminal_spinners::SpinnerHandle> {
-        self.start_process_indicator_with_label("")
-    }
-
-    /// This returns a handle to a spinner. To stop the spinner, call `.stop()` on it.
-    pub fn start_process_indicator_with_label(&mut self, label: &str) -> Option<terminal_spinners::SpinnerHandle> {
-        if !self.progress_indicator_enabled {
-            return None;
-        }
-
-        let pi = terminal_spinners::SpinnerBuilder::new()
-            .spinner(&terminal_spinners::DOTS)
-            .text(label.to_string());
-
-        Some(pi.start())
-    }
-
-    #[allow(dead_code)]
     pub fn terminal_width(&self) -> i32 {
         if self.terminal_width_override > 0 {
             return self.terminal_width_override;
