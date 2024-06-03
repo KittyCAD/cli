@@ -1,6 +1,6 @@
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
-use std::{fs, io::Write};
+use std::{fs, io::IsTerminal, io::Write};
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
@@ -69,7 +69,7 @@ fn should_check_for_update() -> bool {
         return false;
     }
 
-    !is_ci() && atty::is(atty::Stream::Stdout) && atty::is(atty::Stream::Stderr)
+    !is_ci() && std::io::stdout().is_terminal() && std::io::stderr().is_terminal()
 }
 
 /// If we are running in a CI environment.

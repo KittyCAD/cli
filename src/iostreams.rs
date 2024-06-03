@@ -1,3 +1,4 @@
+use std::io::IsTerminal;
 use std::{collections::HashMap, env, process::Command};
 
 use anyhow::{anyhow, Result};
@@ -115,7 +116,7 @@ impl IoStreams {
             return self.stdin_is_tty;
         }
 
-        atty::is(atty::Stream::Stdin)
+        std::io::stdin().is_terminal()
     }
 
     pub fn set_stdout_tty(&mut self, is_tty: bool) {
@@ -128,7 +129,7 @@ impl IoStreams {
             return self.stdout_is_tty;
         }
 
-        atty::is(atty::Stream::Stdout)
+        std::io::stdout().is_terminal()
     }
 
     pub fn set_stderr_tty(&mut self, is_tty: bool) {
@@ -142,7 +143,7 @@ impl IoStreams {
             return self.stderr_is_tty;
         }
 
-        atty::is(atty::Stream::Stderr)
+        std::io::stderr().is_terminal()
     }
 
     #[allow(dead_code)]
@@ -218,25 +219,6 @@ impl IoStreams {
 
     pub fn set_never_prompt(&mut self, never_prompt: bool) {
         self.never_prompt = never_prompt;
-    }
-
-    #[allow(dead_code)]
-    /// This returns a handle to a spinner. To stop the spinner, call `.stop()` on it.
-    pub fn start_process_indicator(&mut self) -> Option<terminal_spinners::SpinnerHandle> {
-        self.start_process_indicator_with_label("")
-    }
-
-    /// This returns a handle to a spinner. To stop the spinner, call `.stop()` on it.
-    pub fn start_process_indicator_with_label(&mut self, label: &str) -> Option<terminal_spinners::SpinnerHandle> {
-        if !self.progress_indicator_enabled {
-            return None;
-        }
-
-        let pi = terminal_spinners::SpinnerBuilder::new()
-            .spinner(&terminal_spinners::DOTS)
-            .text(label.to_string());
-
-        Some(pi.start())
     }
 
     #[allow(dead_code)]
@@ -348,8 +330,8 @@ impl IoStreams {
     }
 
     pub fn system() -> Self {
-        let stdout_is_tty = atty::is(atty::Stream::Stdout);
-        let stderr_is_tty = atty::is(atty::Stream::Stderr);
+        let stdout_is_tty = std::io::stdout().is_terminal();
+        let stderr_is_tty = std::io::stderr().is_terminal();
 
         #[cfg(windows)]
         let mut assume_true_color = false;
@@ -383,7 +365,7 @@ impl IoStreams {
             progress_indicator_enabled: false,
 
             stdin_tty_override: false,
-            stdin_is_tty: atty::is(atty::Stream::Stdin),
+            stdin_is_tty: std::io::stdin().is_terminal(),
             stdout_tty_override: false,
             stdout_is_tty,
             stderr_tty_override: false,
