@@ -57,7 +57,7 @@ impl crate::cmd::Command for CmdAliasDelete {
                 writeln!(
                     ctx.io.out,
                     "{} Deleted alias {}; was {}",
-                    cs.success_icon_with_color(ansi_term::Color::Red),
+                    cs.success_icon_with_color(nu_ansi_term::Color::Red),
                     self.alias,
                     expansion
                 )?;

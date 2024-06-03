@@ -889,7 +889,7 @@ impl Operation {
                 writeln!(
                     ctx.io.out,
                     "{} Edited {}",
-                    cs.success_icon_with_color(ansi_term::Color::Red),
+                    cs.success_icon_with_color(nu_ansi_term::Color::Red),
                     #singular_tag_str,
                 )?;
         };
@@ -1155,7 +1155,7 @@ impl Operation {
                     writeln!(
                         ctx.io.out,
                         "{} Deleted {} {} from {}",
-                        cs.success_icon_with_color(ansi_term::Color::Red),
+                        cs.success_icon_with_color(nu_ansi_term::Color::Red),
                         #singular_tag_str,
                         self.#singular_tag_lc,
                         full_name
@@ -1167,7 +1167,7 @@ impl Operation {
                     writeln!(
                         ctx.io.out,
                         "{} Deleted {} {}",
-                        cs.success_icon_with_color(ansi_term::Color::Red),
+                        cs.success_icon_with_color(nu_ansi_term::Color::Red),
                         #singular_tag_str,
                         full_name
                     )?;
@@ -1178,7 +1178,7 @@ impl Operation {
                 writeln!(
                     ctx.io.out,
                     "{} Deleted {} {}",
-                    cs.success_icon_with_color(ansi_term::Color::Red),
+                    cs.success_icon_with_color(nu_ansi_term::Color::Red),
                     #singular_tag_str,
                     self.#singular_tag_lc
                 )?;

@@ -94,7 +94,7 @@ impl crate::cmd::Command for CmdUserEdit {
         writeln!(
             ctx.io.out,
             "{} Edited {}",
-            cs.success_icon_with_color(ansi_term::Color::Red),
+            cs.success_icon_with_color(nu_ansi_term::Color::Red),
             "user",
         )?;
         Ok(())
@@ -144,7 +144,7 @@ impl crate::cmd::Command for CmdUserDelete {
         writeln!(
             ctx.io.out,
             "{} Deleted {} {}",
-            cs.success_icon_with_color(ansi_term::Color::Red),
+            cs.success_icon_with_color(nu_ansi_term::Color::Red),
             "user",
             self.user
         )?;

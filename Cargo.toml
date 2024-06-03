@@ -6,7 +6,6 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ansi_term = "0.12.1"
 anyhow = { version = "1", features = ["backtrace"] }
 async-trait = "0.1.80"
 base64 = "0.22.1"
@@ -27,6 +26,7 @@ kcl-lib = "0.1.57"
 #kcl-lib = {git = "https://github.com/kittycad/modeling-app", branch = "main"}
 kittycad = { version = "0.3.3", features = ["clap", "tabled", "requests", "retry"] }
 log = "0.4.21"
+nu-ansi-term = "0.50.0"
 num-traits = "0.2.19"
 oauth2 = "4.4.2"
 open = "5.1.3"
