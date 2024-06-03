@@ -83,15 +83,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ansi_term"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d52a9bb7ec0cf484c551830a7ce27bd20d67eac647e1befb56b0be4ee39a55d2"
-dependencies = [
- "winapi",
-]
-
-[[package]]
 name = "ansitok"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2108,6 +2099,15 @@ checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
 dependencies = [
  "memchr",
  "minimal-lexical",
+]
+
+[[package]]
+name = "nu-ansi-term"
+version = "0.50.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd2800e1520bdc966782168a627aa5d1ad92e33b984bf7c7615d31280c83ff14"
+dependencies = [
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -4843,7 +4843,6 @@ dependencies = [
 name = "zoo"
 version = "0.2.50"
 dependencies = [
- "ansi_term",
  "anyhow",
  "async-trait",
  "base64 0.22.1",
@@ -4866,6 +4865,7 @@ dependencies = [
  "kcl-lib",
  "kittycad",
  "log",
+ "nu-ansi-term",
  "num-traits",
  "oauth2",
  "open",

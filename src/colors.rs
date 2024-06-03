@@ -46,7 +46,7 @@ impl ColorScheme {
             return t.to_string();
         }
 
-        ansi_term::Style::new().bold().paint(t).to_string()
+        nu_ansi_term::Style::new().bold().paint(t).to_string()
     }
 
     pub fn red(&self, t: &str) -> String {
@@ -54,7 +54,7 @@ impl ColorScheme {
             return t.to_string();
         }
 
-        ansi_term::Colour::Red.paint(t).to_string()
+        nu_ansi_term::Color::Red.paint(t).to_string()
     }
 
     pub fn yellow(&self, t: &str) -> String {
@@ -62,7 +62,7 @@ impl ColorScheme {
             return t.to_string();
         }
 
-        ansi_term::Colour::Yellow.paint(t).to_string()
+        nu_ansi_term::Color::Yellow.paint(t).to_string()
     }
 
     pub fn green(&self, t: &str) -> String {
@@ -70,7 +70,7 @@ impl ColorScheme {
             return t.to_string();
         }
 
-        ansi_term::Colour::Green.paint(t).to_string()
+        nu_ansi_term::Color::Green.paint(t).to_string()
     }
 
     #[allow(dead_code)]
@@ -80,7 +80,7 @@ impl ColorScheme {
         }
 
         if self.is_256_enabled {
-            ansi_term::Colour::Fixed(242).paint(t).to_string()
+            nu_ansi_term::Color::Fixed(242).paint(t).to_string()
         } else {
             t.to_string()
         }
@@ -91,7 +91,7 @@ impl ColorScheme {
             return t.to_string();
         }
 
-        ansi_term::Colour::Purple.paint(t).to_string()
+        nu_ansi_term::Color::Purple.paint(t).to_string()
     }
 
     #[allow(dead_code)]
@@ -100,7 +100,7 @@ impl ColorScheme {
             return t.to_string();
         }
 
-        ansi_term::Colour::Blue.paint(t).to_string()
+        nu_ansi_term::Color::Blue.paint(t).to_string()
     }
 
     pub fn cyan(&self, t: &str) -> String {
@@ -108,14 +108,14 @@ impl ColorScheme {
             return t.to_string();
         }
 
-        ansi_term::Colour::Cyan.paint(t).to_string()
+        nu_ansi_term::Color::Cyan.paint(t).to_string()
     }
 
     pub fn success_icon(&self) -> String {
         self.green("✔")
     }
 
-    pub fn success_icon_with_color(&self, color: ansi_term::Colour) -> String {
+    pub fn success_icon_with_color(&self, color: nu_ansi_term::Color) -> String {
         if self.enabled {
             return color.paint("✔").to_string();
         }
@@ -133,7 +133,7 @@ impl ColorScheme {
     }
 
     #[allow(dead_code)]
-    pub fn failure_icon_with_color(&self, color: ansi_term::Colour) -> String {
+    pub fn failure_icon_with_color(&self, color: nu_ansi_term::Color) -> String {
         if self.enabled {
             return color.paint("✘").to_string();
         }

@@ -341,7 +341,7 @@ impl IoStreams {
             // Note for Windows 10 users: On Windows 10, the application must enable ANSI support
             // first.
             #[cfg(windows)]
-            let enabled = ansi_term::enable_ansi_support();
+            let enabled = nu_ansi_term::enable_ansi_support();
             #[cfg(windows)]
             if enabled.is_ok() {
                 assume_true_color = true;
