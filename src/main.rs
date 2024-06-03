@@ -33,6 +33,8 @@ pub mod cmd_ml;
 pub mod cmd_open;
 /// The say command.
 pub mod cmd_say;
+/// The start-session command.
+pub mod cmd_start_session;
 /// The update command.
 pub mod cmd_update;
 /// The user command.
@@ -141,6 +143,7 @@ enum SubCommand {
     Kcl(cmd_kcl::CmdKcl),
     Ml(cmd_ml::CmdMl),
     Say(cmd_say::CmdSay),
+    StartSession(cmd_start_session::CmdStartSession),
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
     User(cmd_user::CmdUser),
@@ -185,7 +188,9 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
     let args_str = shlex::try_join(args.iter().map(|s| s.as_str()).collect::<Vec<&str>>())?;
 
     // Check if the user is passing in an alias.
-    if !crate::cmd_alias::valid_command(&args_str) {
+    args = if crate::cmd_alias::valid_command(&args_str) {
+        original_args
+    } else {
         // Let's validate if it is an alias.
         // It is okay to check the error here because we will not error out if the
         // alias does not exist. We will just return the expanded args.
@@ -221,10 +226,8 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
 
         // So we handled if the alias was a shell.
         // We can now parse our options from the extended args.
-        args = expanded_args;
-    } else {
-        args = original_args;
-    }
+        expanded_args
+    };
 
     // Parse the command line arguments.
     let opts: Opts = Opts::parse_from(args);
@@ -261,6 +264,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Kcl(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Ml(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Say(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::StartSession(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::User(cmd) => run_cmd(&cmd, ctx).await,
