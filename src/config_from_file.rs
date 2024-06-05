@@ -336,13 +336,13 @@ impl crate::config::Config for FileConfig {
 
         map.remove_entry("hosts")?;
 
-        let doc: toml_edit::Document = map.root.into();
+        let doc: toml_edit::DocumentMut = map.root.into();
 
         Ok(doc.to_string().trim().to_string())
     }
 
     fn hosts_to_string(&self) -> Result<String> {
-        let doc: toml_edit::Document = self.get_hosts_table()?.into();
+        let doc: toml_edit::DocumentMut = self.get_hosts_table()?.into();
 
         Ok(doc.to_string().trim().to_string())
     }
