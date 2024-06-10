@@ -10,7 +10,7 @@ anyhow = { version = "1", features = ["backtrace"] }
 async-trait = "0.1.80"
 base64 = "0.22.1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
-clap = { version = "4.5.4", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
+clap = { version = "4.5.7", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
 clap_complete = { version = "4.5.3" }
 cli-macro = { path = "cli-macro" }
 colored = "2.1.0"
