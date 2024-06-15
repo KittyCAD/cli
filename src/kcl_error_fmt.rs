@@ -4,6 +4,7 @@
 use std::fmt;
 
 use colored::Colorize;
+use kcl_lib::executor::SourceRange;
 
 /// Separator used between the line numbering and the lines.
 const SEPARATOR: &str = " | ";
@@ -17,8 +18,7 @@ const ELLIPSE: &str = "...";
 pub struct KclError {
     input: String,
     message: String,
-    line: Option<usize>,
-    column: Option<usize>,
+    source_ranges: Vec<SourceRange>,
     contextualize: bool,
     context_lines: usize,
     context_characters: usize,
@@ -51,15 +51,14 @@ impl KclError {
     pub fn new(input: String, err: impl Into<ErrorTypes>) -> KclError {
         let error = err.into();
 
-        let (message, line, column) = match error {
-            ErrorTypes::Kcl(err) => err.get_message_line_column(&input),
+        let (message, source_ranges) = match error {
+            ErrorTypes::Kcl(err) => (err.message().to_owned(), err.source_ranges()),
         };
 
         Self {
             input,
             message,
-            line,
-            column,
+            source_ranges,
             // If the output should be contextualized or not.
             contextualize: true,
             // Amount of lines to show before and after the line containing the error.
@@ -115,12 +114,16 @@ impl KclError {
     fn format(&self, f: &mut fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         // If line and column are not set we assume that we can't make a nice output
         // so we will just print the original message in red and bold
-        if self.line.is_none() && self.column.is_none() {
-            return writeln!(f, "{}", self.message.red().bold());
-        }
-
-        let error_line = self.line.unwrap_or_default();
-        let error_column = self.column.unwrap_or_default();
+        let plain_error_msg = self.message.red().bold();
+        let Some(range) = self.source_ranges.first() else {
+            return writeln!(f, "{plain_error_msg}");
+        };
+        let error_starts_at_offset = range.0[0];
+        let error_line = self.input[..error_starts_at_offset].lines().count();
+        let error_column = self.input[..error_starts_at_offset].lines().last().map(|l| l.len());
+        let Some(error_column) = error_column else {
+            return writeln!(f, "{plain_error_msg}");
+        };
 
         // Amount of lines to show before and after the error line
         let context_lines = self.context_lines;
