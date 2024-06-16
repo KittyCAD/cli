@@ -138,12 +138,12 @@ impl crate::cmd::Command for CmdConfigList {
 
         for option in crate::config::config_options() {
             match ctx.config.get(&host, &option.key) {
-                Ok(value) => writeln!(ctx.io.out, "{}={}", option.key, value)?,
+                Ok(value) => writeln!(ctx.io.out, "{}\n{}={}\n", option.description, option.key, value)?,
                 Err(err) => {
                     if host.is_empty() {
                         // Only bail if the host is empty, since some hosts may not have
                         // all the options.
-                        bail!("{}", err);
+                        bail!("{err}");
                     }
                 }
             }
