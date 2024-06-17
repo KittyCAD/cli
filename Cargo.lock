@@ -504,9 +504,9 @@ dependencies = [
 
 [[package]]
 name = "bson"
-version = "2.10.0"
+version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d43b38e074cc0de2957f10947e376a1d88b9c4dbab340b590800cc1b2e066b2"
+checksum = "d8a88e82b9106923b5c4d6edfca9e7db958d4e98a478ec115022e81b9b38e2c8"
 dependencies = [
  "ahash",
  "base64 0.13.1",
@@ -906,9 +906,9 @@ checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "databake"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82175d72e69414ceafbe2b49686794d3a8bed846e0d50267355f83ea8fdd953a"
+checksum = "6a04fbfbecca8f0679c8c06fef907594adcc3e2052e11163a6d30535a1a5604d"
 dependencies = [
  "databake-derive",
  "proc-macro2",
@@ -917,9 +917,9 @@ dependencies = [
 
 [[package]]
 name = "databake-derive"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "377af281d8f23663862a7c84623bc5dcf7f8c44b13c7496a590bdc157f941a43"
+checksum = "4078275de501a61ceb9e759d37bdd3d7210e654dbc167ac1a3678ef4435ed57b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -939,8 +939,7 @@ dependencies = [
 [[package]]
 name = "derive-docs"
 version = "0.1.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "056f7be7b02bfc467bd3514e49e601373f16b0d750d470af0cb52fdc788c3955"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#3d6cfa980f10aec223e6bae9f0f4d2b661741077"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1766,6 +1765,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1814,9 +1822,8 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.57"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f69322dccd6cc1e6d9d2eaa17584d492dfdd16aba04d9b69ce55d14269b35fc"
+version = "0.1.59"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#3d6cfa980f10aec223e6bae9f0f4d2b661741077"
 dependencies = [
  "anyhow",
  "approx",
@@ -1835,8 +1842,6 @@ dependencies = [
  "gltf-json",
  "js-sys",
  "kittycad",
- "kittycad-execution-plan-macros",
- "kittycad-execution-plan-traits",
  "lazy_static",
  "mime_guess",
  "parse-display",
@@ -1864,9 +1869,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.3.3"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0cbef813153197e60c0e96f59eea0b75f8418380f414b20250ee81b60e522c3"
+checksum = "df75feef10313fa1cb15b7cecd0f579877312ba3d42bb5b8b4c1d4b1d0fcabf0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1879,7 +1884,7 @@ dependencies = [
  "format_serde_error",
  "futures",
  "http 0.2.9",
- "itertools",
+ "itertools 0.13.0",
  "log",
  "mime_guess",
  "parse-display",
@@ -1899,28 +1904,6 @@ dependencies = [
  "thiserror",
  "tracing",
  "url",
- "uuid",
-]
-
-[[package]]
-name = "kittycad-execution-plan-macros"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0611fc9b9786175da21d895ffa0f65039e19c9111e94a41b7af999e3b95f045f"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.66",
-]
-
-[[package]]
-name = "kittycad-execution-plan-traits"
-version = "0.1.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "123cb47e2780ea8ef3aa67b4db237a27b388d3d3b96db457e274aa4565723151"
-dependencies = [
- "serde",
- "thiserror",
  "uuid",
 ]
 
@@ -2406,7 +2389,7 @@ dependencies = [
  "bincode",
  "either",
  "fnv",
- "itertools",
+ "itertools 0.12.1",
  "lazy_static",
  "nom",
  "quick-xml",
@@ -2961,12 +2944,11 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.22.4"
+version = "0.23.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf4ef73721ac7bcd79b2b315da7779d8fc09718c6b3d2d1b2d94850eb8c18432"
+checksum = "ebbbdb961df0ad3f2652da8f3fdc4b36122f568f968f45ad3316f26c025c677b"
 dependencies = [
- "log",
- "ring",
+ "once_cell",
  "rustls-pki-types",
  "rustls-webpki 0.102.2",
  "subtle",
@@ -3890,28 +3872,28 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.25.0"
+version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "775e0c0f0adb3a2f22a00c4745d728b479985fc15ee7ca6a2608388c5569860f"
+checksum = "0c7bc40d0e5a97695bb96e27995cd3a08538541b0a846f65bba7a359f36700d4"
 dependencies = [
- "rustls 0.22.4",
+ "rustls 0.23.7",
  "rustls-pki-types",
  "tokio",
 ]
 
 [[package]]
 name = "tokio-tungstenite"
-version = "0.21.0"
+version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c83b561d025642014097b66e6c1bb422783339e0909e4429cde4749d1990bc38"
+checksum = "c6989540ced10490aaf14e6bad2e3d33728a2813310a0c71d1574304c49631cd"
 dependencies = [
  "futures-util",
  "log",
- "rustls 0.22.4",
+ "rustls 0.23.7",
  "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
- "tokio-rustls 0.25.0",
+ "tokio-rustls 0.26.0",
  "tungstenite",
 ]
 
@@ -4113,9 +4095,8 @@ checksum = "3528ecfd12c466c6f163363caf2d02a71161dd5e1cc6ae7b34207ea2d42d81ed"
 
 [[package]]
 name = "ts-rs"
-version = "7.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc2cae1fc5d05d47aa24b64f9a4f7cba24cdc9187a2084dd97ac57bef5eccae6"
+version = "8.1.0"
+source = "git+https://github.com/Aleph-Alpha/ts-rs#be0349d5fb07a8ccab713887a61e90e3bc773c7a"
 dependencies = [
  "chrono",
  "thiserror",
@@ -4126,11 +4107,9 @@ dependencies = [
 
 [[package]]
 name = "ts-rs-macros"
-version = "7.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73f7f9b821696963053a89a7bd8b292dc34420aea8294d7b225274d488f3ec92"
+version = "8.1.0"
+source = "git+https://github.com/Aleph-Alpha/ts-rs#be0349d5fb07a8ccab713887a61e90e3bc773c7a"
 dependencies = [
- "Inflector",
  "proc-macro2",
  "quote",
  "syn 2.0.66",
@@ -4139,9 +4118,9 @@ dependencies = [
 
 [[package]]
 name = "tungstenite"
-version = "0.21.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ef1a641ea34f399a848dea702823bbecfb4c486f911735368f1f137cb8257e1"
+checksum = "6e2e2ce1e47ed2994fd43b04c8f618008d4cabdd5ee34027cf14f9d918edd9c8"
 dependencies = [
  "byteorder",
  "bytes",
@@ -4150,11 +4129,10 @@ dependencies = [
  "httparse",
  "log",
  "rand",
- "rustls 0.22.4",
+ "rustls 0.23.7",
  "rustls-pki-types",
  "sha1",
  "thiserror",
- "url",
  "utf-8",
 ]
 
@@ -4816,9 +4794,9 @@ checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
 
 [[package]]
 name = "zip"
-version = "1.3.1"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b7a5a9285bd4ee13bdeb3f8a4917eb46557e53f270c783849db8bef37b0ad00"
+checksum = "fccb210625924ecbbe92f9bb497d04b167b64fe5540cec75f10b16e0c51ee92b"
 dependencies = [
  "arbitrary",
  "crc32fast",
@@ -4850,7 +4828,7 @@ dependencies = [
  "git_rev",
  "heck 0.5.0",
  "http 0.2.9",
- "itertools",
+ "itertools 0.12.1",
  "kcl-lib",
  "kittycad",
  "log",
