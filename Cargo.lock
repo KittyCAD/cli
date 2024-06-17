@@ -2870,11 +2870,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "roff"
-version = "0.1.0"
-source = "git+https://github.com/sondr3/roff-rs?branch=updates#54018979aed7ce313d8d6f7b2abdd95950df5b9d"
-
-[[package]]
 name = "ropey"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4808,7 +4803,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.50"
+version = "0.2.51"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4843,7 +4838,6 @@ dependencies = [
  "regex",
  "reqwest",
  "ring",
- "roff",
  "serde",
  "serde_json",
  "serde_yaml 0.9.34+deprecated",
