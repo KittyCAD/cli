@@ -138,12 +138,12 @@ impl crate::cmd::Command for CmdConfigList {
 
         for option in crate::config::config_options() {
             match ctx.config.get(&host, &option.key) {
-                Ok(value) => writeln!(ctx.io.out, "{}={}", option.key, value)?,
+                Ok(value) => writeln!(ctx.io.out, "{}\n{}={}\n", option.description, option.key, value)?,
                 Err(err) => {
                     if host.is_empty() {
                         // Only bail if the host is empty, since some hosts may not have
                         // all the options.
-                        bail!("{}", err);
+                        bail!("{err}");
                     }
                 }
             }
@@ -172,7 +172,7 @@ mod test {
             TestItem {
                 name: "list empty".to_string(),
                 cmd: crate::cmd_config::SubCommand::List(crate::cmd_config::CmdConfigList { host: "".to_string() }),
-                want_out: "editor=\nprompt=enabled\npager=\nbrowser=\nformat=table\n".to_string(),
+                want_out: "the text editor program to use for authoring text\neditor=\n\ntoggle interactive prompting in the terminal\nprompt=enabled\n\nthe terminal pager program to send standard output to\npager=\n\nthe web browser to use for opening URLs\nbrowser=\n\nthe formatting style for command output\nformat=table\n\n".to_string(),
                 want_err: "".to_string(),
             },
             TestItem {
@@ -235,7 +235,8 @@ mod test {
             TestItem {
                 name: "list all default".to_string(),
                 cmd: crate::cmd_config::SubCommand::List(crate::cmd_config::CmdConfigList { host: "".to_string() }),
-                want_out: "editor=\nprompt=enabled\npager=\nbrowser=bar\nformat=table\n".to_string(),
+                // want_out: "editor=\nprompt=enabled\npager=\nbrowser=bar\nformat=table\n".to_string(),
+                want_out: "the text editor program to use for authoring text\neditor=\n\ntoggle interactive prompting in the terminal\nprompt=enabled\n\nthe terminal pager program to send standard output to\npager=\n\nthe web browser to use for opening URLs\nbrowser=bar\n\nthe formatting style for command output\nformat=table\n\n".to_string(),
                 want_err: "".to_string(),
             },
         ];

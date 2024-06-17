@@ -34,8 +34,6 @@ pub struct IoStreams {
     pager_process: Option<std::process::Child>,
 
     never_prompt: bool,
-
-    pub tmp_file_override: Option<std::fs::File>,
 }
 
 impl IoStreams {
@@ -378,7 +376,6 @@ impl IoStreams {
 
             pager_process: None,
             never_prompt: false,
-            tmp_file_override: None,
         };
 
         if stdout_is_tty && stderr_is_tty {
