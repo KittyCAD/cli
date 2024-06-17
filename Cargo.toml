@@ -24,7 +24,7 @@ http = "0.2.6"
 itertools = "0.12.1"
 kcl-lib = "0.1.57"
 #kcl-lib = {git = "https://github.com/kittycad/modeling-app", branch = "main"}
-kittycad = { version = "0.3.3", features = ["clap", "tabled", "requests", "retry"] }
+kittycad = { version = "0.3.4", features = ["clap", "tabled", "requests", "retry"] }
 log = "0.4.21"
 nu-ansi-term = "0.50.0"
 num-traits = "0.2.19"
