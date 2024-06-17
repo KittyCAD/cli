@@ -14,7 +14,6 @@ pub struct CmdGenerate {
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
     Markdown(CmdGenerateMarkdown),
-    ManPages(CmdGenerateManPages),
 }
 
 #[async_trait::async_trait(?Send)]
@@ -22,7 +21,6 @@ impl crate::cmd::Command for CmdGenerate {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
             SubCommand::Markdown(cmd) => cmd.run(ctx).await,
-            SubCommand::ManPages(cmd) => cmd.run(ctx).await,
         }
     }
 }
@@ -94,70 +92,6 @@ layout: manual
         // Iterate over all the subcommands and generate the documentation.
         for subcmd in app.get_subcommands() {
             self.generate(ctx, subcmd, &p)?;
-        }
-
-        Ok(())
-    }
-}
-
-/// Generate manual pages.
-#[derive(Parser, Debug, Clone)]
-#[clap(verbatim_doc_comment)]
-pub struct CmdGenerateManPages {
-    /// Path directory where you want to output the generated files.
-    #[clap(short = 'D', long, default_value = "")]
-    pub dir: String,
-}
-
-#[async_trait::async_trait(?Send)]
-impl crate::cmd::Command for CmdGenerateManPages {
-    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        let mut app: Command = crate::Opts::command();
-        app.build();
-
-        // Make sure the output directory exists.
-        if !self.dir.is_empty() {
-            fs::create_dir_all(&self.dir).with_context(|| format!("failed to create directory {}", self.dir))?;
-        }
-
-        self.generate(ctx, &app, "", &app)?;
-
-        Ok(())
-    }
-}
-
-impl CmdGenerateManPages {
-    // TODO: having the root repeated like this sucks, clean this up.
-    fn generate(
-        &self,
-        ctx: &mut crate::context::Context,
-        app: &Command,
-        parent: &str,
-        root: &clap::Command,
-    ) -> Result<()> {
-        let mut p = parent.to_string();
-        if !p.is_empty() {
-            p = format!("{}-{}", p, app.get_name());
-        } else {
-            p = app.get_name().to_string();
-        }
-
-        let filename = format!("{p}.1");
-        let title = p.replace('-', " ");
-        writeln!(ctx.io.out, "Generating man page for `{title}` -> {filename}")?;
-
-        if self.dir.is_empty() {
-            crate::docs_man::generate_manpage(app, &mut ctx.io.out, &title, root);
-        } else {
-            let p = std::path::Path::new(&self.dir).join(filename);
-            let mut file = std::fs::File::create(p)?;
-            crate::docs_man::generate_manpage(app, &mut file, &title, root);
-        }
-
-        // Iterate over all the subcommands and generate the documentation.
-        for subcmd in app.get_subcommands() {
-            // Make it recursive.
-            self.generate(ctx, subcmd, &p, root)?;
         }
 
         Ok(())
@@ -259,57 +193,6 @@ mod test {
         let stderr = std::fs::read_to_string(stderr_path).unwrap();
 
         expectorate::assert_contents("tests/markdown_sub_commands.txt", &stdout);
-
-        assert_eq!(stderr, "");
-    }
-
-    #[tokio::test(flavor = "multi_thread")]
-    async fn test_generate_man_pages() {
-        let mut config = crate::config::new_blank_config().unwrap();
-        let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
-
-        let (io, stdout_path, stderr_path) = crate::iostreams::IoStreams::test();
-        let mut ctx = crate::context::Context {
-            config: &mut c,
-            io,
-            debug: true,
-        };
-
-        let cmd = crate::cmd_generate::CmdGenerateManPages { dir: "".to_string() };
-
-        cmd.run(&mut ctx).await.unwrap();
-
-        let stdout = std::fs::read_to_string(stdout_path).unwrap();
-        let stderr = std::fs::read_to_string(stderr_path).unwrap();
-
-        assert!(stdout.contains("zoo(1)"), "");
-
-        assert_eq!(stderr, "");
-    }
-
-    #[test]
-    fn test_generate_man_pages_sub_subcommands() {
-        let mut config = crate::config::new_blank_config().unwrap();
-        let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
-
-        let (io, stdout_path, stderr_path) = crate::iostreams::IoStreams::test();
-        let mut ctx = crate::context::Context {
-            config: &mut c,
-            io,
-            debug: true,
-        };
-
-        let cmd = crate::cmd_generate::CmdGenerateManPages { dir: "".to_string() };
-
-        // Define our app.
-        let app = crate::cmd_generate::test_app();
-
-        cmd.generate(&mut ctx, &app, "", &app).unwrap();
-
-        let stdout = std::fs::read_to_string(stdout_path).unwrap();
-        let stderr = std::fs::read_to_string(stderr_path).unwrap();
-
-        expectorate::assert_contents("tests/man_pages_sub_sub_commands.txt", &stdout);
 
         assert_eq!(stderr, "");
     }

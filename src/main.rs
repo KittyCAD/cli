@@ -56,7 +56,6 @@ mod config_from_env;
 mod config_from_file;
 mod config_map;
 mod context;
-mod docs_man;
 mod docs_markdown;
 mod iostreams;
 mod types;
