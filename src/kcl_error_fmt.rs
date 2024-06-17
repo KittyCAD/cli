@@ -52,7 +52,7 @@ impl KclError {
         let error = err.into();
 
         let (message, source_ranges) = match error {
-            ErrorTypes::Kcl(err) => (err.message().to_owned(), err.source_ranges()),
+            ErrorTypes::Kcl(err) => (err.get_message().to_owned(), err.source_ranges()),
         };
 
         Self {
