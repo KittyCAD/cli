@@ -939,7 +939,7 @@ dependencies = [
 [[package]]
 name = "derive-docs"
 version = "0.1.18"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#3d6cfa980f10aec223e6bae9f0f4d2b661741077"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#b54fc534c2ec343a034bd9b6ca1bc9c5350c1d5e"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1822,8 +1822,8 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.59"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#3d6cfa980f10aec223e6bae9f0f4d2b661741077"
+version = "0.1.60"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#b54fc534c2ec343a034bd9b6ca1bc9c5350c1d5e"
 dependencies = [
  "anyhow",
  "approx",
@@ -4803,7 +4803,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.52"
+version = "0.2.53"
 dependencies = [
  "anyhow",
  "async-trait",
