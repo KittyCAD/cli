@@ -33,6 +33,8 @@ pub mod cmd_ml;
 pub mod cmd_open;
 /// The say command.
 pub mod cmd_say;
+/// The start-session command.
+pub mod cmd_start_session;
 /// The update command.
 pub mod cmd_update;
 /// The user command.
@@ -140,6 +142,7 @@ enum SubCommand {
     Kcl(cmd_kcl::CmdKcl),
     Ml(cmd_ml::CmdMl),
     Say(cmd_say::CmdSay),
+    StartSession(cmd_start_session::CmdStartSession),
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
     User(cmd_user::CmdUser),
@@ -260,6 +263,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Kcl(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Ml(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Say(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::StartSession(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Update(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::User(cmd) => run_cmd(&cmd, ctx).await,

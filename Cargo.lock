@@ -939,7 +939,7 @@ dependencies = [
 [[package]]
 name = "derive-docs"
 version = "0.1.18"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#a9e61da8b540058dd0db5825cadc8cff30269b02"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#c61273085f16f1b6a3d3d8a1935ad574f14371ab"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1576,9 +1576,9 @@ checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
 name = "hyper"
-version = "0.14.27"
+version = "0.14.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffb1cfd654a8219eaef89881fdb3bb3b1cdc5fa75ded05d6933b2b382e395468"
+checksum = "f361cde2f109281a220d4307746cdfd5ee3f410da58a70377762396775634b33"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -1591,7 +1591,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.5",
  "tokio",
  "tower-service",
  "tracing",
@@ -1823,7 +1823,7 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.1.60"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#a9e61da8b540058dd0db5825cadc8cff30269b02"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#c61273085f16f1b6a3d3d8a1935ad574f14371ab"
 dependencies = [
  "anyhow",
  "approx",
@@ -1865,6 +1865,20 @@ dependencies = [
  "web-sys",
  "winnow 0.5.40",
  "zip",
+]
+
+[[package]]
+name = "kcl-test-server"
+version = "0.1.0"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#c61273085f16f1b6a3d3d8a1935ad574f14371ab"
+dependencies = [
+ "anyhow",
+ "hyper",
+ "kcl-lib",
+ "pico-args",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -2194,7 +2208,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#443081318cd6ecdd39d4d6611e02347089efa2d0"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#b267e1535996f0a7dcf26061f85a96f9314e4c1f"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -2400,6 +2414,12 @@ dependencies = [
  "strum",
  "thiserror",
 ]
+
+[[package]]
+name = "pico-args"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5be167a7af36ee22fe3115051bc51f6e6c7054c9348e28deb4f49bd6f705a315"
 
 [[package]]
 name = "pin-project"
@@ -4199,9 +4219,9 @@ checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
 name = "url"
-version = "2.5.2"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22784dbdf76fdde8af1aeda5622b546b422b6fc585325248a2bf9f5e41e94d6c"
+checksum = "31e6302e3bb753d46e83516cae55ae196fc0c309407cf11ab35cc51a4c2a4633"
 dependencies = [
  "form_urlencoded",
  "idna",
@@ -4825,6 +4845,7 @@ dependencies = [
  "http 0.2.9",
  "itertools 0.12.1",
  "kcl-lib",
+ "kcl-test-server",
  "kittycad",
  "log",
  "nu-ansi-term",

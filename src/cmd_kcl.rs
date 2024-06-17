@@ -1,7 +1,8 @@
-use std::str::FromStr;
+use std::{net::SocketAddr, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
+use url::Url;
 
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
@@ -236,6 +237,11 @@ pub struct CmdKclSnapshot {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// If given, this command will reuse an existing KittyCAD modeling session.
+    /// You can start the session via `zoo session-start --listen-on 0.0.0.0:3333` in this CLI.
+    #[clap(long, default_value = None)]
+    pub session: Option<SocketAddr>,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -260,29 +266,54 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
         // Get the contents of the input file.
         let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
+
         // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let input = String::from_utf8(input)?;
+        let output_file_contents = match self.session {
+            Some(addr) => {
+                // TODO
+                let client = reqwest::ClientBuilder::new().build()?;
+                let url = Url::parse(&format!("http://{addr}"))?;
+                let resp = client
+                    .post(url)
+                    .body(serde_json::to_vec(&kcl_lib::test_server::RequestBody {
+                        kcl_program: input,
+                        test_name: self.input.display().to_string(),
+                    })?)
+                    .send()
+                    .await?;
+                let status = resp.status();
+                if status.is_success() {
+                    resp.bytes().await?.to_vec()
+                } else {
+                    let err_msg = resp.text().await?;
+                    anyhow::bail!("{status}: {err_msg}")
+                }
+            }
+            None => {
+                // Spin up websockets and do the conversion.
+                // This will not return until there are files.
+                let resp = ctx
+                    .send_kcl_modeling_cmd(
+                        "",
+                        &input,
+                        kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+                        self.src_unit.clone(),
+                    )
+                    .await?;
 
-        // Spin up websockets and do the conversion.
-        // This will not return until there are files.
-        let resp = ctx
-            .send_kcl_modeling_cmd(
-                "",
-                input,
-                kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
-                self.src_unit.clone(),
-            )
-            .await?;
-
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
-        } = &resp
-        {
-            // Save the snapshot locally.
-            std::fs::write(&self.output_file, &data.contents.0)?;
-        } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
-        }
+                if let kittycad::types::OkWebSocketResponseData::Modeling {
+                    modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+                } = resp
+                {
+                    data.contents.0
+                } else {
+                    anyhow::bail!("Unexpected response from engine: {:?}", resp);
+                }
+            }
+        };
+        // Save the snapshot locally.
+        std::fs::write(&self.output_file, output_file_contents)?;
 
         writeln!(
             ctx.io.out,
