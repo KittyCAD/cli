@@ -532,6 +532,19 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "format a kcl file".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "fmt".to_string(),
+                "tests/gear.kcl".to_string(),
+            ],
+            want_out: r#"line([0.4900857016, -0.0240763666], %)"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "snapshot a gltf with embedded buffer".to_string(),
             args: vec![
                 "zoo".to_string(),

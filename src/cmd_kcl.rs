@@ -14,6 +14,8 @@ pub struct CmdKcl {
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
     Export(CmdKclExport),
+    #[clap(alias = "fmt")]
+    Format(CmdKclFormat),
     Snapshot(CmdKclSnapshot),
     View(CmdKclView),
     Volume(CmdKclVolume),
@@ -28,6 +30,7 @@ impl crate::cmd::Command for CmdKcl {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
             SubCommand::Export(cmd) => cmd.run(ctx).await,
+            SubCommand::Format(cmd) => cmd.run(ctx).await,
             SubCommand::Snapshot(cmd) => cmd.run(ctx).await,
             SubCommand::View(cmd) => cmd.run(ctx).await,
             SubCommand::Volume(cmd) => cmd.run(ctx).await,
@@ -113,6 +116,90 @@ impl crate::cmd::Command for CmdKclExport {
             }
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        }
+
+        Ok(())
+    }
+}
+
+/// Format a `kcl` file.
+///
+///     # Output to stdout by default
+///     $ zoo kcl fmt my-file.kcl
+///
+///     # Overwrite the file
+///     $ zoo kcl fmt -w my-file.kcl
+///
+///     # Pass a file to format from stdin
+///     $ cat my-obj.kcl | zoo kcl fmt
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdKclFormat {
+    /// The path to the input kcl file to format.
+    /// If you pass `-` as the path, the file will be read from stdin.
+    #[clap(name = "input", required = true)]
+    pub input: std::path::PathBuf,
+
+    /// Write the output back to the original file.
+    /// This will fail if the input is from stdin.
+    #[clap(short, long)]
+    pub write: bool,
+
+    /// Size of a tab in spaces.
+    #[clap(long, short, default_value = "2")]
+    pub tab_size: usize,
+
+    /// Prefer tabs over spaces.
+    #[clap(long, default_value = "false")]
+    pub use_tabs: bool,
+
+    /// How to handle the final newline in the file. If true, ensure file ends with a newline. If false, ensure file does not end with a newline.
+    #[clap(long, default_value = "true")]
+    pub insert_final_newline: bool,
+
+    /// Command output format.
+    #[clap(long, short, value_enum)]
+    pub format: Option<crate::types::FormatOutput>,
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdKclFormat {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Get the contents of the input file.
+        let input = ctx.read_file(self.input.to_str().unwrap_or("-"))?;
+        // Parse the input as a string.
+        let input = std::str::from_utf8(&input)?;
+
+        // Parse the file.
+        let tokens = kcl_lib::token::lexer(input)?;
+        let parser = kcl_lib::parser::Parser::new(tokens);
+        let program = parser.ast()?;
+
+        // Recast the program to a string.
+        let formatted = program.recast(
+            &kcl_lib::ast::types::FormatOptions {
+                tab_size: self.tab_size,
+                use_tabs: self.use_tabs,
+                insert_final_newline: self.insert_final_newline,
+            },
+            0,
+        );
+
+        if self.write {
+            if self.input.to_str().unwrap_or("-") == "-" {
+                anyhow::bail!("cannot write to stdin");
+            }
+
+            // Write the formatted file back to the original file.
+            std::fs::write(&self.input, formatted)?;
+        } else if let Some(format) = &self.format {
+            if format == &crate::types::FormatOutput::Json {
+                // Print the formatted file to stdout as json.
+                writeln!(ctx.io.out, "{}", serde_json::to_string_pretty(&program)?)?;
+            }
+        } else {
+            // Print the formatted file to stdout.
+            writeln!(ctx.io.out, "{}", formatted)?;
         }
 
         Ok(())
