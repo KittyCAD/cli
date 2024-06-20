@@ -939,6 +939,23 @@ dependencies = [
 [[package]]
 name = "derive-docs"
 version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "056f7be7b02bfc467bd3514e49e601373f16b0d750d470af0cb52fdc788c3955"
+dependencies = [
+ "Inflector",
+ "convert_case",
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "serde",
+ "serde_tokenstream",
+ "syn 2.0.66",
+]
+
+[[package]]
+name = "derive-docs"
+version = "0.1.18"
 source = "git+https://github.com/kittycad/modeling-app?branch=main#e7af06451853ad34d4abb13f7e5505457d557024"
 dependencies = [
  "Inflector",
@@ -1823,7 +1840,8 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.1.60"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#e7af06451853ad34d4abb13f7e5505457d557024"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e4eef8afdcc73b4a4d932953592caed96acb3851e5e56c969172e7d6d00d8bc"
 dependencies = [
  "anyhow",
  "approx",
@@ -1835,7 +1853,7 @@ dependencies = [
  "clap",
  "dashmap",
  "databake",
- "derive-docs",
+ "derive-docs 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "form_urlencoded",
  "futures",
  "git_rev",
@@ -1856,7 +1874,54 @@ dependencies = [
  "tokio-tungstenite",
  "toml",
  "tower-lsp",
- "ts-rs",
+ "ts-rs 9.0.0",
+ "url",
+ "uuid",
+ "validator",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "winnow 0.5.40",
+ "zip",
+]
+
+[[package]]
+name = "kcl-lib"
+version = "0.1.60"
+source = "git+https://github.com/kittycad/modeling-app?branch=main#e7af06451853ad34d4abb13f7e5505457d557024"
+dependencies = [
+ "anyhow",
+ "approx",
+ "async-recursion",
+ "async-trait",
+ "base64 0.22.1",
+ "bson",
+ "chrono",
+ "clap",
+ "dashmap",
+ "databake",
+ "derive-docs 0.1.18 (git+https://github.com/kittycad/modeling-app?branch=main)",
+ "form_urlencoded",
+ "futures",
+ "git_rev",
+ "gltf-json",
+ "js-sys",
+ "kittycad",
+ "lazy_static",
+ "mime_guess",
+ "parse-display",
+ "reqwest",
+ "ropey",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+ "tokio",
+ "tokio-tungstenite",
+ "toml",
+ "tower-lsp",
+ "ts-rs 8.1.0",
  "url",
  "uuid",
  "validator",
@@ -1874,7 +1939,7 @@ source = "git+https://github.com/kittycad/modeling-app?branch=main#e7af06451853a
 dependencies = [
  "anyhow",
  "hyper",
- "kcl-lib",
+ "kcl-lib 0.1.60 (git+https://github.com/kittycad/modeling-app?branch=main)",
  "pico-args",
  "serde",
  "serde_json",
@@ -4115,7 +4180,20 @@ source = "git+https://github.com/Aleph-Alpha/ts-rs#be0349d5fb07a8ccab713887a61e9
 dependencies = [
  "chrono",
  "thiserror",
- "ts-rs-macros",
+ "ts-rs-macros 8.1.0",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "ts-rs"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e2dcf58e612adda9a83800731e8e4aba04d8a302b9029617b0b6e4b021d5357"
+dependencies = [
+ "chrono",
+ "thiserror",
+ "ts-rs-macros 9.0.0",
  "url",
  "uuid",
 ]
@@ -4124,6 +4202,18 @@ dependencies = [
 name = "ts-rs-macros"
 version = "8.1.0"
 source = "git+https://github.com/Aleph-Alpha/ts-rs#be0349d5fb07a8ccab713887a61e90e3bc773c7a"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.66",
+ "termcolor",
+]
+
+[[package]]
+name = "ts-rs-macros"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbdee324e50a7402416d9c25270d3df4241ed528af5d36dda18b6f219551c577"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4844,7 +4934,7 @@ dependencies = [
  "heck 0.5.0",
  "http 0.2.9",
  "itertools 0.12.1",
- "kcl-lib",
+ "kcl-lib 0.1.60 (registry+https://github.com/rust-lang/crates.io-index)",
  "kcl-test-server",
  "kittycad",
  "log",
