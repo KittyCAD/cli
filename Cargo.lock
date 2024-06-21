@@ -1873,7 +1873,7 @@ dependencies = [
  "tokio-tungstenite",
  "toml",
  "tower-lsp",
- "ts-rs",
+ "ts-rs 9.0.0 (git+https://github.com/Aleph-Alpha/ts-rs)",
  "url",
  "uuid",
  "validator",
@@ -1921,7 +1921,7 @@ dependencies = [
  "tokio-tungstenite",
  "toml",
  "tower-lsp",
- "ts-rs 9.0.0",
+ "ts-rs 9.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "url",
  "uuid",
  "validator",
@@ -4182,7 +4182,19 @@ dependencies = [
  "chrono",
  "serde_json",
  "thiserror",
- "ts-rs-macros",
+ "ts-rs-macros 9.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "ts-rs"
+version = "9.0.0"
+source = "git+https://github.com/Aleph-Alpha/ts-rs#96487d4afad49eaee276f201fcf60aa0420e5717"
+dependencies = [
+ "chrono",
+ "thiserror",
+ "ts-rs-macros 9.0.0 (git+https://github.com/Aleph-Alpha/ts-rs)",
  "url",
  "uuid",
 ]
@@ -4192,6 +4204,17 @@ name = "ts-rs-macros"
 version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbdee324e50a7402416d9c25270d3df4241ed528af5d36dda18b6f219551c577"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.67",
+ "termcolor",
+]
+
+[[package]]
+name = "ts-rs-macros"
+version = "9.0.0"
+source = "git+https://github.com/Aleph-Alpha/ts-rs#96487d4afad49eaee276f201fcf60aa0420e5717"
 dependencies = [
  "proc-macro2",
  "quote",
