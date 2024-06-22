@@ -940,22 +940,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "derive-docs"
-version = "0.1.18"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#4a275c2ff79c3ddff8109cbe74125ea1292f8c27"
-dependencies = [
- "Inflector",
- "convert_case",
- "once_cell",
- "proc-macro2",
- "quote",
- "regex",
- "serde",
- "serde_tokenstream",
- "syn 2.0.67",
-]
-
-[[package]]
 name = "derive_arbitrary"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1817,56 +1801,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.60"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#4a275c2ff79c3ddff8109cbe74125ea1292f8c27"
-dependencies = [
- "anyhow",
- "approx",
- "async-recursion",
- "async-trait",
- "base64 0.22.1",
- "bson",
- "chrono",
- "clap",
- "dashmap",
- "databake",
- "derive-docs 0.1.18 (git+https://github.com/kittycad/modeling-app?branch=main)",
- "form_urlencoded",
- "futures",
- "git_rev",
- "gltf-json",
- "js-sys",
- "kittycad",
- "lazy_static",
- "mime_guess",
- "parse-display",
- "reqwest",
- "ropey",
- "schemars",
- "serde",
- "serde_json",
- "sha2",
- "thiserror",
- "tokio",
- "tokio-tungstenite",
- "toml",
- "tower-lsp",
- "ts-rs",
- "url",
- "uuid",
- "validator",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "winnow 0.5.40",
- "zip",
-]
-
-[[package]]
-name = "kcl-lib"
-version = "0.1.61"
+version = "0.1.62"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bf7347b61f48ff877218feea5e13362f7849fdb7d96caabe7d69c17f0a0b20c"
+checksum = "ee72f2fd5d6bd0f2e5afdff1de6a160fd56f797a229506f5054867509387a527"
 dependencies = [
  "anyhow",
  "approx",
@@ -1878,7 +1815,7 @@ dependencies = [
  "clap",
  "dashmap",
  "databake",
- "derive-docs 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "derive-docs",
  "form_urlencoded",
  "futures",
  "git_rev",
@@ -1913,11 +1850,12 @@ dependencies = [
 [[package]]
 name = "kcl-test-server"
 version = "0.1.0"
-source = "git+https://github.com/kittycad/modeling-app?branch=main#4a275c2ff79c3ddff8109cbe74125ea1292f8c27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6051dcc68b057d9bb7e00bca078b9408c2aa523c61cf49dfd8be4e61dec54f33"
 dependencies = [
  "anyhow",
  "hyper",
- "kcl-lib 0.1.60",
+ "kcl-lib",
  "pico-args",
  "serde",
  "serde_json",
@@ -4805,7 +4743,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.56"
+version = "0.2.57"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4826,7 +4764,7 @@ dependencies = [
  "heck 0.5.0",
  "http 0.2.12",
  "itertools 0.12.1",
- "kcl-lib 0.1.61",
+ "kcl-lib",
  "kcl-test-server",
  "kittycad",
  "log",
