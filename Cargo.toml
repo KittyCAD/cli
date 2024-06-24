@@ -55,7 +55,7 @@ toml = "0.8.14"
 toml_edit = "0.22.14"
 unicode-segmentation = "1.11.0"
 url = "2.5.0"
-uuid = { version = "1.7", features = ["serde", "v4"] }
+uuid = { version = "1.9", features = ["serde", "v4"] }
 version-compare = "0.2.0"
 viuer = { version = "0.7.1", features = [] }
 
