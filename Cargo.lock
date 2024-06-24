@@ -4762,7 +4762,7 @@ dependencies = [
  "futures",
  "git_rev",
  "heck 0.5.0",
- "http 0.2.12",
+ "http 1.1.0",
  "itertools 0.12.1",
  "kcl-lib",
  "kcl-test-server",
