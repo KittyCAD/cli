@@ -1567,7 +1567,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.7",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -4746,7 +4746,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.60"
+version = "0.2.61"
 dependencies = [
  "anyhow",
  "async-trait",
