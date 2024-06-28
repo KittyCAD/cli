@@ -932,9 +932,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "056f7be7b02bfc467bd3514e49e601373f16b0d750d470af0cb52fdc788c3955"
+checksum = "209f25705d04fe09b669b63fb541ee0de96d21e1f8260a2992e902810e5e21a8"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1572,7 +1572,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.7",
  "tokio",
  "tower-service",
  "tracing",
@@ -1809,9 +1809,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.1.67"
+version = "0.1.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3d70e0e7614df8f743ee8c7a3404ed7e6f4d414e30fe289ad252e6c6289fc3e"
+checksum = "e00591641a76b4760be5a26df8d2a142a916c42dd76c7ad78ac75f50283fdc5a"
 dependencies = [
  "anyhow",
  "approx",
