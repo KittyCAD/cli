@@ -152,7 +152,7 @@ impl Context<'_> {
         )
         .await?;
         let _ = ctx
-            .run(program, None)
+            .run(&program, None)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
