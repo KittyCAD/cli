@@ -115,7 +115,7 @@ impl Context<'_> {
         let client = self.api_client(hostname)?;
         let ws = client
             .modeling()
-            .commands_ws(None, None, None, None, None, None, Some(false))
+            .commands_ws(None, None, None, None, None, None, None, Some(false))
             .await?;
         Ok(ws)
     }
