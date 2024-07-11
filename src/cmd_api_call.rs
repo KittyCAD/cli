@@ -48,7 +48,7 @@ impl crate::cmd::Command for CmdApiCallStatus {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let client = ctx.api_client("")?;
 
-        let api_call = client.api_calls().get_async_operation(&self.id.to_string()).await?;
+        let api_call = client.api_calls().get_async_operation(self.id).await?;
 
         // If it is a file conversion and there is output, we need to save that output to a file
         // for them.

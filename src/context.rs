@@ -206,7 +206,7 @@ impl Context<'_> {
             && start.elapsed().as_secs() < 60 * 5
         {
             // Poll for the status.
-            let result = client.api_calls().get_async_operation(&model.id.to_string()).await?;
+            let result = client.api_calls().get_async_operation(model.id).await?;
 
             if let kittycad::types::AsyncApiCallOutput::TextToCad {
                 completed_at,
