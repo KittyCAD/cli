@@ -22,7 +22,7 @@ git_rev = "0.1.0"
 heck = "0.5.0"
 http = "0.2.6"
 itertools = "0.12.1"
-kcl-lib = "0.1.71"
+kcl-lib = "0.1.73"
 kcl-test-server = "0.1.2"
 kittycad = { version = "0.3.8", features = ["clap", "tabled", "requests", "retry"] }
 log = "0.4.22"
