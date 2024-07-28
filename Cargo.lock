@@ -1572,7 +1572,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.7",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -1809,9 +1809,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f97b114b6b7721fbf5f6f97f23a62d3307074abbddb8751d2116fc8f7395bda"
+checksum = "080673175c7b34f7274da8c597539c6aa5252e115a2080553dac926b7f001c5b"
 dependencies = [
  "anyhow",
  "approx",
@@ -4751,7 +4751,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.65"
+version = "0.2.66"
 dependencies = [
  "anyhow",
  "async-trait",
