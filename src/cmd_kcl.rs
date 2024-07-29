@@ -865,7 +865,7 @@ impl crate::cmd::Command for CmdKclLint {
         let parser = kcl_lib::parser::Parser::new(tokens);
         let program = parser.ast()?;
 
-        for discovered_finding in program.lint(kcl_lib::lint::checks::lint_variables)? {
+        for discovered_finding in program.lint_all()? {
             let finding_range = discovered_finding.pos.to_lsp_range(input);
             let start = finding_range.start;
             let end = finding_range.end;
