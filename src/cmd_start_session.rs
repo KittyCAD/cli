@@ -21,6 +21,7 @@ impl crate::cmd::Command for CmdStartSession {
         let args = kcl_test_server::ServerArgs {
             listen_on: self.listen_on,
             num_engine_conns: self.num_engine_connections,
+            engine_address: None,
         };
         kcl_test_server::start_server(args).await?;
         writeln!(ctx.io.out, "Terminating").ok();

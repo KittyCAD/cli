@@ -932,9 +932,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.20"
+version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "119786ab321647e20f5af745e6a770eb1d250162ebbf83be255fde4794e2c1c5"
+checksum = "f1be89315e08052064fea4deff63c4c6a69b479dcca155f34d2fd8f74a61d57f"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1809,9 +1809,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "080673175c7b34f7274da8c597539c6aa5252e115a2080553dac926b7f001c5b"
+checksum = "94865f56e9928b0a55e0a3fb787ee73c4c430a260704f031f92197bffb8e0576"
 dependencies = [
  "anyhow",
  "approx",
@@ -1821,6 +1821,7 @@ dependencies = [
  "bson",
  "chrono",
  "clap",
+ "convert_case",
  "dashmap 6.0.1",
  "databake",
  "derive-docs",
@@ -1857,9 +1858,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6351c519b66120357bc1a35fc25ce3bf6815e0dc5125dec0f5b237ea5accbcbf"
+checksum = "378ea38822827c3a9711eca80f5288665a2892734ca65d2e2a66b1416b1a8565"
 dependencies = [
  "anyhow",
  "hyper",
@@ -4752,7 +4753,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.66"
+version = "0.2.67"
 dependencies = [
  "anyhow",
  "async-trait",
