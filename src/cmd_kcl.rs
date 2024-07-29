@@ -24,6 +24,7 @@ enum SubCommand {
     CenterOfMass(CmdKclCenterOfMass),
     Density(CmdKclDensity),
     SurfaceArea(CmdKclSurfaceArea),
+    Lint(CmdKclLint),
 }
 
 #[async_trait::async_trait(?Send)]
@@ -39,6 +40,7 @@ impl crate::cmd::Command for CmdKcl {
             SubCommand::CenterOfMass(cmd) => cmd.run(ctx).await,
             SubCommand::Density(cmd) => cmd.run(ctx).await,
             SubCommand::SurfaceArea(cmd) => cmd.run(ctx).await,
+            SubCommand::Lint(cmd) => cmd.run(ctx).await,
         }
     }
 }
@@ -820,6 +822,94 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
             ctx.io.write_output(&format, &data)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        }
+
+        Ok(())
+    }
+}
+
+/// Lint a KCL file for style issues.
+///
+///     # check a file for issues
+///     $ zoo kcl lint my-file.kcl
+///
+///     # pass a file from stdin
+///     $ cat my-file.kcl | zoo kcl lint -
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdKclLint {
+    /// The path to the input file.
+    /// If you pass `-` as the path, the file will be read from stdin.
+    #[clap(name = "input", required = true)]
+    pub input: std::path::PathBuf,
+
+    /// Print a long-form description of what the issue is, and the rational
+    /// behind why.
+    #[clap(long, default_value = "false")]
+    pub descriptions: bool,
+
+    /// Show where the offending KCL source code is.
+    #[clap(long, short, default_value = "false")]
+    pub show_code: bool,
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdKclLint {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let path = self.input.to_str().unwrap_or("");
+        let input = ctx.read_file(path)?;
+        let input = std::str::from_utf8(&input)?;
+
+        // Parse the file.
+        let tokens = kcl_lib::token::lexer(input)?;
+        let parser = kcl_lib::parser::Parser::new(tokens);
+        let program = parser.ast()?;
+
+        for discovered_finding in program.lint_all()? {
+            let finding_range = discovered_finding.pos.to_lsp_range(input);
+            let start = finding_range.start;
+            let end = finding_range.end;
+
+            let title = if discovered_finding.description.is_empty() {
+                discovered_finding.finding.title.to_owned()
+            } else {
+                format!(
+                    "{} ({})",
+                    discovered_finding.finding.title, discovered_finding.description
+                )
+            };
+
+            println!(
+                "{}:{}:{}: [{}] {}",
+                path,
+                start.line + 1,
+                start.character + 1,
+                discovered_finding.finding.code,
+                title,
+            );
+
+            if self.descriptions {
+                println!("\n{}", discovered_finding.finding.description);
+            }
+
+            if self.show_code {
+                if start.line != end.line {
+                    unimplemented!()
+                }
+                let printable_line = input.lines().collect::<Vec<&str>>()[start.line as usize];
+                println!(
+                    "\n\x1b[38;5;248m{}\x1b[38;5;208;1m{}\x1b[38;5;248m{}\x1b[0m",
+                    &printable_line[..(start.character as usize)],
+                    &printable_line[(start.character as usize)..(end.character as usize)],
+                    &printable_line[(end.character as usize)..],
+                );
+                println!(
+                    "{}{} ↖ right here",
+                    " ".repeat(start.character as usize),
+                    "▔".repeat((end.character - start.character) as usize)
+                );
+                println!("\n");
+            }
         }
 
         Ok(())

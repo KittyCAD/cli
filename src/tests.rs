@@ -545,6 +545,19 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "lint some kcl".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "lint".to_string(),
+                "tests/gear.kcl".to_string(),
+            ],
+            want_out: r#""#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "snapshot a gltf with embedded buffer".to_string(),
             args: vec![
                 "zoo".to_string(),
