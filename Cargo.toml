@@ -45,7 +45,7 @@ slog-async = "2"
 slog-scope = "4"
 slog-stdlog = "4"
 slog-term = "2"
-tabled = { version = "0.15.0", features = ["ansi"] }
+tabled = { version = "0.16.0", features = ["ansi"] }
 tabwriter = "1.4.0"
 termbg = "0.5.0"
 terminal_size = "0.3.0"
