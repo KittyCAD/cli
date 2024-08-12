@@ -714,13 +714,17 @@ fn get_input_format(
         },
     };
     match format {
-        kittycad::types::FileImportFormat::Step => Ok(kittycad::types::InputFormat::Step {}),
+        kittycad::types::FileImportFormat::Step => Ok(kittycad::types::InputFormat::Step {
+            split_closed_faces: false,
+        }),
         kittycad::types::FileImportFormat::Stl => Ok(kittycad::types::InputFormat::Stl { coords, units: ul }),
         kittycad::types::FileImportFormat::Obj => Ok(kittycad::types::InputFormat::Obj { coords, units: ul }),
         kittycad::types::FileImportFormat::Gltf => Ok(kittycad::types::InputFormat::Gltf {}),
         kittycad::types::FileImportFormat::Ply => Ok(kittycad::types::InputFormat::Ply { coords, units: ul }),
         kittycad::types::FileImportFormat::Fbx => Ok(kittycad::types::InputFormat::Fbx {}),
-        kittycad::types::FileImportFormat::Sldprt => Ok(kittycad::types::InputFormat::Sldprt {}),
+        kittycad::types::FileImportFormat::Sldprt => Ok(kittycad::types::InputFormat::Sldprt {
+            split_closed_faces: false,
+        }),
     }
 }
 

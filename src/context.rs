@@ -185,9 +185,10 @@ impl Context<'_> {
         let client = self.api_client(hostname)?;
 
         // Create the text-to-cad request.
-        let mut model: kittycad::types::TextToCad = client
-            .ai()
+        let mut gen_model: kittycad::types::TextToCad = client
+            .ml()
             .create_text_to_cad(
+                None,
                 format,
                 &kittycad::types::TextToCadCreateBody {
                     prompt: prompt.to_string(),
@@ -196,7 +197,7 @@ impl Context<'_> {
             .await?;
 
         // Poll until the model is ready.
-        let mut status = model.status.clone();
+        let mut status = gen_model.status.clone();
         // Get the current time.
         let start = std::time::Instant::now();
         // Give it 5 minutes to complete. That should be way
@@ -206,7 +207,7 @@ impl Context<'_> {
             && start.elapsed().as_secs() < 60 * 5
         {
             // Poll for the status.
-            let result = client.api_calls().get_async_operation(model.id).await?;
+            let result = client.api_calls().get_async_operation(gen_model.id).await?;
 
             if let kittycad::types::AsyncApiCallOutput::TextToCad {
                 completed_at,
@@ -222,9 +223,11 @@ impl Context<'_> {
                 status,
                 updated_at,
                 user_id,
+                code,
+                model,
             } = result
             {
-                model = kittycad::types::TextToCad {
+                gen_model = kittycad::types::TextToCad {
                     completed_at,
                     created_at,
                     error,
@@ -238,32 +241,34 @@ impl Context<'_> {
                     status,
                     updated_at,
                     user_id,
+                    code,
+                    model,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);
             }
 
-            status = model.status.clone();
+            status = gen_model.status.clone();
 
             // Wait for a bit before polling again.
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
         }
 
         // If the model failed we will want to tell the user.
-        if model.status == kittycad::types::ApiCallStatus::Failed {
-            if let Some(error) = model.error {
+        if gen_model.status == kittycad::types::ApiCallStatus::Failed {
+            if let Some(error) = gen_model.error {
                 anyhow::bail!("Your prompt returned an error: ```\n{}\n```", error);
             } else {
                 anyhow::bail!("Your prompt returned an error, but no error message. :(");
             }
         }
 
-        if model.status != kittycad::types::ApiCallStatus::Completed {
+        if gen_model.status != kittycad::types::ApiCallStatus::Completed {
             anyhow::bail!("Your prompt timed out");
         }
 
         // Okay, we successfully got a model!
-        Ok(model)
+        Ok(gen_model)
     }
 
     /// This function opens a browser that is based on the configured
