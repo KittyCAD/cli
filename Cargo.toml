@@ -24,7 +24,7 @@ http = "0.2.6"
 itertools = "0.12.1"
 kcl-lib = "0.2.4"
 kcl-test-server = "0.1.6"
-kittycad = { version = "0.3.13", features = ["clap", "tabled", "requests", "retry"] }
+kittycad = { version = "0.3.14", features = ["clap", "tabled", "requests", "retry"] }
 log = "0.4.22"
 nu-ansi-term = "0.50.1"
 num-traits = "0.2.19"
