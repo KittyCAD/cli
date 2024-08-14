@@ -938,9 +938,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.22"
+version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ffe32235bc9858ff96b983633de013d5b1764d3c833b812b558f49f1db09035"
+checksum = "f39df452d7076ad31fe0019f2557e13a50242654fdbb5ad4c326cae270b0a52b"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1578,7 +1578,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.7",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -1827,9 +1827,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29a543033c313077b629ef8fb815c2f65bc94c9b627d5a1bbba27e2f42f34671"
+checksum = "ee5450016f88ff940bbaceace644f4838d291c556101e93b86f547d90655b9ac"
 dependencies = [
  "anyhow",
  "approx",
@@ -4815,7 +4815,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.69"
+version = "0.2.70"
 dependencies = [
  "anyhow",
  "async-trait",
