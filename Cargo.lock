@@ -1578,7 +1578,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.7",
  "tokio",
  "tower-service",
  "tracing",
@@ -1878,9 +1878,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb75d5ae17cc1dcf3a675ca14ed541f304733cfcb325ebc95f1d4388924b9dc7"
+checksum = "765265ac0d5fc9763c1f07e0d1ce97cd5e0ffddd9999bdf2a52d44d688c3d735"
 dependencies = [
  "anyhow",
  "hyper",
