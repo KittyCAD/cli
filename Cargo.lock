@@ -2619,12 +2619,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "pulldown-cmark-to-cmark"
-version = "11.2.0"
+name = "pulldown-cmark"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dd464f32d7631035e849fcd969a603e9bb17ceaebe8467352a7728147f34e42"
+checksum = "4d31cbfcd94884c3a67ec210c83efb06cb43674043458b0ad59f6947f8462c23"
 dependencies = [
- "pulldown-cmark",
+ "bitflags 2.5.0",
+ "memchr",
+ "unicase",
+]
+
+[[package]]
+name = "pulldown-cmark-to-cmark"
+version = "16.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d98167493c1c74db67671e08b7a39ae3165aa1f3ae13912797ae093c907fc80"
+dependencies = [
+ "pulldown-cmark 0.12.0",
 ]
 
 [[package]]
@@ -4846,7 +4857,7 @@ dependencies = [
  "open",
  "parse-display 0.10.0",
  "pretty_assertions",
- "pulldown-cmark",
+ "pulldown-cmark 0.9.6",
  "pulldown-cmark-to-cmark",
  "regex",
  "reqwest",
