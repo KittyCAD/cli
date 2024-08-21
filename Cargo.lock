@@ -938,9 +938,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f39df452d7076ad31fe0019f2557e13a50242654fdbb5ad4c326cae270b0a52b"
+checksum = "261c173b166970f39ca754f1b859a383f97ca3996867d65a79ebeacefb04e365"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1578,7 +1578,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.7",
  "tokio",
  "tower-service",
  "tracing",
@@ -1827,9 +1827,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee5450016f88ff940bbaceace644f4838d291c556101e93b86f547d90655b9ac"
+checksum = "0d995122b9b67e54a97d0fe810a8b41c0ca1d1c6b9f03c0689b7ca2a9c524465"
 dependencies = [
  "anyhow",
  "approx",
@@ -1851,6 +1851,7 @@ dependencies = [
  "js-sys",
  "kittycad",
  "lazy_static",
+ "measurements",
  "mime_guess",
  "parse-display 0.9.1",
  "reqwest",
@@ -2040,6 +2041,15 @@ name = "matchit"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
+
+[[package]]
+name = "measurements"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5b734b4e8187ea5777bc29c086f0970a27d8de42061b48f5af32cafc0ca904b"
+dependencies = [
+ "libm",
+]
 
 [[package]]
 name = "memchr"
@@ -4815,7 +4825,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.71"
+version = "0.2.72"
 dependencies = [
  "anyhow",
  "async-trait",
