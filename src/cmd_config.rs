@@ -83,24 +83,16 @@ pub struct CmdConfigSet {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdConfigSet {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        let is_host_set = !self.host.is_empty();
-
-        // All top level options are also valid host options.
         crate::config::validate_key(&self.key)?;
         crate::config::validate_value(&self.key, &self.value)?;
 
-        if is_host_set {
-            crate::config::validate_key(&self.key)?;
-            crate::config::validate_value(&self.key, &self.value)?;
-        }
-
-        // Set the value.
+        // Set the value. If self.host is empty it will be top-level set.
         if let Err(err) = ctx.config.set(&self.host, &self.key, Some(&self.value)) {
             bail!("{}", err);
         }
 
         // Unset the option in all other hosts if it's a mutually exclusive option.
-        if is_host_set {
+        if !self.host.is_empty() {
             for option in CONFIG_OPTIONS {
                 if let &ConfigOption::HostLevel {
                     key,
