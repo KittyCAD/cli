@@ -1,3 +1,4 @@
+use crate::config::{ConfigOption, CONFIG_OPTIONS};
 use anyhow::{bail, Result};
 use clap::Parser;
 
@@ -82,28 +83,38 @@ pub struct CmdConfigSet {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdConfigSet {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        let cs = ctx.io.color_scheme();
+        crate::config::validate_key(&self.key)?;
+        crate::config::validate_value(&self.key, &self.value)?;
 
-        // Validate the key.
-        match crate::config::validate_key(&self.key) {
-            Ok(()) => (),
-            Err(_) => {
-                bail!(
-                    "{} warning: '{}' is not a known configuration key",
-                    cs.warning_icon(),
-                    self.key
-                );
+        // Set the value. If self.host is empty it will be top-level set.
+        if let Err(err) = ctx.config.set(&self.host, &self.key, Some(&self.value)) {
+            bail!("{}", err);
+        }
+
+        // Unset the option in all other hosts if it's a mutually exclusive option.
+        if !self.host.is_empty() {
+            for option in CONFIG_OPTIONS {
+                if let &ConfigOption::HostLevel {
+                    key,
+                    mutually_exclusive,
+                    ..
+                } = option
+                {
+                    if key != self.key || !mutually_exclusive {
+                        continue;
+                    }
+
+                    for host in ctx.config.hosts()? {
+                        // Skip the host that was the original value target
+                        if host == self.host {
+                            continue;
+                        }
+                        if let Err(err) = ctx.config.set(&host, &self.key, None) {
+                            bail!("{}", err);
+                        }
+                    }
+                }
             }
-        }
-
-        // Validate the value.
-        if let Err(err) = crate::config::validate_value(&self.key, &self.value) {
-            bail!("{}", err);
-        }
-
-        // Set the value.
-        if let Err(err) = ctx.config.set(&self.host, &self.key, &self.value) {
-            bail!("{}", err);
         }
 
         // Write the config file.
@@ -136,14 +147,16 @@ impl crate::cmd::Command for CmdConfigList {
             self.host.to_string()
         };
 
-        for option in crate::config::config_options() {
-            match ctx.config.get(&host, &option.key) {
-                Ok(value) => writeln!(ctx.io.out, "{}\n{}={}\n", option.description, option.key, value)?,
-                Err(err) => {
-                    if host.is_empty() {
-                        // Only bail if the host is empty, since some hosts may not have
-                        // all the options.
-                        bail!("{err}");
+        for option in CONFIG_OPTIONS {
+            if let &ConfigOption::TopLevel { key, description, .. } = option {
+                match ctx.config.get(&host, key) {
+                    Ok(value) => writeln!(ctx.io.out, "{}\n{}={}\n", description, key, value)?,
+                    Err(err) => {
+                        if host.is_empty() {
+                            // Only bail if the host is empty, since some hosts may not have
+                            // all the options.
+                            bail!("{err}");
+                        }
                     }
                 }
             }
@@ -158,6 +171,8 @@ mod test {
     use pretty_assertions::assert_eq;
 
     use crate::cmd::Command;
+    use crate::config;
+    use crate::config::Config;
 
     pub struct TestItem {
         name: String,
@@ -183,7 +198,7 @@ mod test {
                     host: "".to_string(),
                 }),
                 want_out: "".to_string(),
-                want_err: "warning: 'foo' is not a known configuration key".to_string(),
+                want_err: "invalid key: foo".to_string(),
             },
             TestItem {
                 name: "set a key".to_string(),
@@ -264,10 +279,58 @@ mod test {
                     let stdout = std::fs::read_to_string(stdout_path).unwrap();
                     let stderr = std::fs::read_to_string(stderr_path).unwrap();
                     assert_eq!(stdout, t.want_out, "test {}", t.name);
-                    assert!(err.to_string().contains(&t.want_err), "test {}", t.name);
+                    assert_eq!(&err.to_string(), &t.want_err, "test {}", t.name);
                     assert!(stderr.is_empty(), "test {}", t.name);
                 }
             }
         }
+    }
+
+    #[tokio::test]
+    async fn test_hosts_default_mutually_exclusive() -> Result<(), anyhow::Error> {
+        let mut config = config::new_blank_config().unwrap();
+        assert!(config.set("example.com", "token", Some("abcdef")).is_ok());
+        assert!(config.set("zoo.computer", "token", Some("ghijkl")).is_ok());
+        assert_eq!(config.hosts()?.len(), 2);
+
+        let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
+
+        let (io, _stdout_path, _stderr_path) = crate::iostreams::IoStreams::test();
+        let mut ctx = crate::context::Context {
+            config: &mut c,
+            io,
+            debug: false,
+        };
+
+        let mut cmd_config = crate::cmd_config::CmdConfig {
+            subcmd: crate::cmd_config::SubCommand::Set(crate::cmd_config::CmdConfigSet {
+                key: "default".to_string(),
+                value: "true".to_string(),
+                host: "example.com".to_string(),
+            }),
+        };
+        cmd_config.run(&mut ctx).await?;
+
+        cmd_config = crate::cmd_config::CmdConfig {
+            subcmd: crate::cmd_config::SubCommand::Set(crate::cmd_config::CmdConfigSet {
+                key: "default".to_string(),
+                value: "true".to_string(),
+                host: "zoo.computer".to_string(),
+            }),
+        };
+        cmd_config.run(&mut ctx).await?;
+
+        let config_text = config.hosts_to_string().unwrap();
+        assert_eq!(
+            config_text,
+            r#"["example.com"]
+token = "abcdef"
+
+["zoo.computer"]
+token = "ghijkl"
+default = true"#
+        );
+
+        Ok(())
     }
 }

@@ -29,14 +29,18 @@ impl ConfigMap {
         }
     }
 
-    pub fn set_string_value(&mut self, key: &str, value: &str) -> Result<()> {
-        if key == "default" && (value == "true" || value == "false") {
-            // Add this as a bool.
-            self.root.insert(key, toml_edit::value(value == "true"));
-            return Ok(());
-        }
+    pub fn set_string_value(&mut self, key: &str, value_: Option<&str>) -> Result<()> {
+        if let Some(value) = value_ {
+            if key == "default" && (value == "true" || value == "false") {
+                // Add this as a bool.
+                self.root.insert(key, toml_edit::value(value == "true"));
+                return Ok(());
+            }
 
-        self.root.insert(key, toml_edit::value(value));
+            self.root.insert(key, toml_edit::value(value));
+        } else {
+            self.root.remove(key);
+        }
         Ok(())
     }
 
