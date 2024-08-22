@@ -48,7 +48,7 @@ impl crate::config::Config for EnvConfig<'_> {
         self.config.get_with_source(hostname, key)
     }
 
-    fn set(&mut self, hostname: &str, key: &str, value: &str) -> Result<()> {
+    fn set(&mut self, hostname: &str, key: &str, value: Option<&str>) -> Result<()> {
         self.config.set(hostname, key, value)
     }
 

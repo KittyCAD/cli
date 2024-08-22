@@ -452,11 +452,11 @@ mod test {
             let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
 
             if !t.pager.is_empty() {
-                c.set("", "pager", &t.pager).unwrap();
+                c.set("", "pager", Some(&t.pager)).unwrap();
             }
 
             if !t.prompt.is_empty() {
-                c.set("", "prompt", &t.prompt).unwrap();
+                c.set("", "prompt", Some(&t.prompt)).unwrap();
             }
 
             if !t.zoo_pager_env.is_empty() {

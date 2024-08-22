@@ -123,6 +123,7 @@ impl ColorScheme {
         "✔".to_string()
     }
 
+    #[allow(dead_code)]
     pub fn warning_icon(&self) -> String {
         self.yellow("!")
     }

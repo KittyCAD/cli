@@ -129,7 +129,7 @@ impl crate::config::Config for FileConfig {
         Ok((value, hosts_source))
     }
 
-    fn set(&mut self, hostname: &str, key: &str, value: &str) -> Result<()> {
+    fn set(&mut self, hostname: &str, key: &str, value: Option<&str>) -> Result<()> {
         if hostname.is_empty() {
             return self.map.set_string_value(key, value);
         }
@@ -214,7 +214,7 @@ impl crate::config::Config for FileConfig {
         }
 
         Err(anyhow!(
-            "No host has been set as default. Try setting a default with `zoo config set -H <host> default true`. Options for hosts are: {}", hosts.join(", ")
+            "Multiple hosts in config file but none has been set as a default. Try setting a default with `zoo config set -H <host> default true`. Options for hosts are: {}", hosts.join(", ")
         ))
     }
 

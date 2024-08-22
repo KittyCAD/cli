@@ -12,8 +12,8 @@ pub enum FormatOutput {
 }
 
 impl FormatOutput {
-    pub fn variants() -> Vec<String> {
-        vec!["table".to_string(), "json".to_string(), "yaml".to_string()]
+    pub const fn variants() -> &'static [&'static str] {
+        &["table", "json", "yaml"]
     }
 }
 

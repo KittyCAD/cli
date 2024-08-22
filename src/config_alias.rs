@@ -22,7 +22,7 @@ impl AliasConfig<'_> {
     }
 
     pub fn add(&mut self, alias: &str, expansion: &str) -> Result<()> {
-        self.map.set_string_value(alias, expansion)?;
+        self.map.set_string_value(alias, Some(expansion))?;
 
         self.parent.save_aliases(&self.map)?;
 

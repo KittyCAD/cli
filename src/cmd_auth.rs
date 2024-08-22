@@ -271,7 +271,7 @@ impl crate::cmd::Command for CmdAuthLogin {
         }
 
         // Set the token in the config file.
-        ctx.config.set(host, "token", &token)?;
+        ctx.config.set(host, "token", Some(&token))?;
 
         let client = ctx.api_client(host)?;
 
@@ -282,7 +282,7 @@ impl crate::cmd::Command for CmdAuthLogin {
         let email = session
             .email
             .ok_or_else(|| anyhow::anyhow!("user does not have an email"))?;
-        ctx.config.set(host, "user", &email)?;
+        ctx.config.set(host, "user", Some(&email))?;
 
         // Save the config.
         ctx.config.write()?;
