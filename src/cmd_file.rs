@@ -261,7 +261,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             }
         }
 
-        let engine = ctx.engine("").await?;
+        let engine = ctx.engine("", None).await?;
 
         // Send an import request to the engine.
         let resp = engine

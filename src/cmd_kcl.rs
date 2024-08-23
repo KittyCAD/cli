@@ -104,7 +104,7 @@ impl crate::cmd::Command for CmdKclExport {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let (resp, headers) = ctx
+        let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -128,7 +128,7 @@ impl crate::cmd::Command for CmdKclExport {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &headers)
+            print_trace_link(&mut ctx.io, &session_data)
         }
 
         Ok(())
@@ -285,7 +285,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
         // Parse the input as a string.
         let input = String::from_utf8(input)?;
-        let (output_file_contents, headers) = match self.session {
+        let (output_file_contents, session_data) = match self.session {
             Some(addr) => {
                 // TODO
                 let client = reqwest::ClientBuilder::new().build()?;
@@ -309,7 +309,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
             None => {
                 // Spin up websockets and do the conversion.
                 // This will not return until there are files.
-                let (resp, headers) = ctx
+                let (resp, session_data) = ctx
                     .send_kcl_modeling_cmd(
                         "",
                         &input,
@@ -322,7 +322,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                     modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
                 } = resp
                 {
-                    (data.contents.0, headers)
+                    (data.contents.0, session_data)
                 } else {
                     anyhow::bail!("Unexpected response from engine: {:?}", resp);
                 }
@@ -337,7 +337,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
             self.output_file.to_str().unwrap_or("")
         )?;
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &headers)
+            print_trace_link(&mut ctx.io, &session_data)
         }
 
         Ok(())
@@ -381,7 +381,7 @@ impl crate::cmd::Command for CmdKclView {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let (resp, _headers) = ctx
+        let (resp, _session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -534,7 +534,7 @@ impl crate::cmd::Command for CmdKclVolume {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let (resp, headers) = ctx
+        let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -558,7 +558,7 @@ impl crate::cmd::Command for CmdKclVolume {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &headers)
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -618,7 +618,7 @@ impl crate::cmd::Command for CmdKclMass {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let (resp, headers) = ctx
+        let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -644,7 +644,7 @@ impl crate::cmd::Command for CmdKclMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &headers)
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -692,7 +692,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let (resp, headers) = ctx
+        let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -716,7 +716,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &headers)
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -776,7 +776,7 @@ impl crate::cmd::Command for CmdKclDensity {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let (resp, headers) = ctx
+        let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -802,7 +802,7 @@ impl crate::cmd::Command for CmdKclDensity {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &headers)
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -850,7 +850,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let (resp, headers) = ctx
+        let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -874,7 +874,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &headers)
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -978,13 +978,14 @@ pub fn get_extension(path: std::path::PathBuf) -> String {
         .to_string()
 }
 
-fn print_trace_link(io: &mut IoStreams, headers: &http::HeaderMap) {
-    let Some(api_call_id) = headers.get("X-Api-Call-Id") else {
+fn print_trace_link(io: &mut IoStreams, session_data: &Option<kittycad::types::ModelingSessionData>) {
+    let Some(data) = session_data else {
         return;
     };
-    let Ok(api_call_id) = api_call_id.to_str() else {
-        return;
-    };
+    let api_call_id = &data.api_call_id;
     let link = format!("https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D", api_call_id);
-    let _ = writeln!(io.out, "Was this request slow? Send a Zoo employee this link:\n{link}");
+    let _ = writeln!(
+        io.out,
+        "Was this request slow? Send a Zoo employee this link:\n----\n{link}"
+    );
 }
