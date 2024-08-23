@@ -102,8 +102,9 @@ impl Context<'_> {
         &self,
         hostname: &str,
         cmd: kittycad::types::ModelingCmd,
+        replay: Option<String>,
     ) -> Result<OkWebSocketResponseData> {
-        let engine = self.engine(hostname).await?;
+        let engine = self.engine(hostname, replay).await?;
 
         let resp = engine
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
@@ -111,17 +112,21 @@ impl Context<'_> {
         Ok(resp)
     }
 
-    async fn engine_ws(&self, hostname: &str) -> Result<reqwest::Upgraded> {
+    async fn engine_ws(&self, hostname: &str, replay: Option<String>) -> Result<reqwest::Upgraded> {
         let client = self.api_client(hostname)?;
         let (ws, _headers) = client
             .modeling()
-            .commands_ws(None, None, None, None, None, None, None, Some(false))
+            .commands_ws(None, None, None, replay, None, None, None, None, Some(false))
             .await?;
         Ok(ws)
     }
 
-    pub async fn engine(&self, hostname: &str) -> Result<kcl_lib::engine::conn::EngineConnection> {
-        let ws = self.engine_ws(hostname).await?;
+    pub async fn engine(
+        &self,
+        hostname: &str,
+        replay: Option<String>,
+    ) -> Result<kcl_lib::engine::conn::EngineConnection> {
+        let ws = self.engine_ws(hostname, replay).await?;
 
         let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
 
@@ -134,7 +139,7 @@ impl Context<'_> {
         code: &str,
         cmd: kittycad::types::ModelingCmd,
         units: kittycad::types::UnitLength,
-    ) -> Result<(OkWebSocketResponseData, http::HeaderMap)> {
+    ) -> Result<(OkWebSocketResponseData, Option<kittycad::types::ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
         let tokens = kcl_lib::token::lexer(code)?;
@@ -143,7 +148,7 @@ impl Context<'_> {
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
-        let (ctx, headers) = kcl_lib::executor::ExecutorContext::new_with_headers(
+        let ctx = kcl_lib::executor::ExecutorContext::new(
             &client,
             kcl_lib::executor::ExecutorSettings {
                 units: units.into(),
@@ -151,8 +156,8 @@ impl Context<'_> {
             },
         )
         .await?;
-        let _ = ctx
-            .run(&program, None)
+        let (_, session_data) = ctx
+            .run_with_session_data(&program, None)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
@@ -173,7 +178,7 @@ impl Context<'_> {
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-        Ok((resp, headers))
+        Ok((resp, session_data))
     }
 
     pub async fn get_model_for_prompt(

@@ -271,7 +271,7 @@ async fn get_image_bytes(
     gltf_bytes: &[u8],
     output_format: kittycad::types::ImageFormat,
 ) -> Result<Vec<u8>> {
-    let engine = ctx.engine("").await?;
+    let engine = ctx.engine("", None).await?;
 
     // Send an import request to the engine.
     let resp = engine
