@@ -4,6 +4,8 @@ use anyhow::Result;
 use clap::Parser;
 use url::Url;
 
+use crate::iostreams::IoStreams;
+
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -78,6 +80,10 @@ pub struct CmdKclExport {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -98,7 +104,7 @@ impl crate::cmd::Command for CmdKclExport {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
+        let (resp, headers) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -119,6 +125,10 @@ impl crate::cmd::Command for CmdKclExport {
             }
         } else {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        }
+
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &headers)
         }
 
         Ok(())
@@ -244,6 +254,10 @@ pub struct CmdKclSnapshot {
     /// You can start the session via `zoo session-start --listen-on 0.0.0.0:3333` in this CLI.
     #[clap(long, default_value = None)]
     pub session: Option<SocketAddr>,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -271,7 +285,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
         // Parse the input as a string.
         let input = String::from_utf8(input)?;
-        let output_file_contents = match self.session {
+        let (output_file_contents, headers) = match self.session {
             Some(addr) => {
                 // TODO
                 let client = reqwest::ClientBuilder::new().build()?;
@@ -286,7 +300,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                     .await?;
                 let status = resp.status();
                 if status.is_success() {
-                    resp.bytes().await?.to_vec()
+                    (resp.bytes().await?.to_vec(), Default::default())
                 } else {
                     let err_msg = resp.text().await?;
                     anyhow::bail!("{status}: {err_msg}")
@@ -295,7 +309,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
             None => {
                 // Spin up websockets and do the conversion.
                 // This will not return until there are files.
-                let resp = ctx
+                let (resp, headers) = ctx
                     .send_kcl_modeling_cmd(
                         "",
                         &input,
@@ -308,7 +322,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                     modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
                 } = resp
                 {
-                    data.contents.0
+                    (data.contents.0, headers)
                 } else {
                     anyhow::bail!("Unexpected response from engine: {:?}", resp);
                 }
@@ -322,6 +336,9 @@ impl crate::cmd::Command for CmdKclSnapshot {
             "Snapshot saved to `{}`",
             self.output_file.to_str().unwrap_or("")
         )?;
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &headers)
+        }
 
         Ok(())
     }
@@ -364,7 +381,7 @@ impl crate::cmd::Command for CmdKclView {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
+        let (resp, _headers) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -501,6 +518,10 @@ pub struct CmdKclVolume {
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitVolume,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -513,7 +534,7 @@ impl crate::cmd::Command for CmdKclVolume {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
+        let (resp, headers) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -536,6 +557,9 @@ impl crate::cmd::Command for CmdKclVolume {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
 
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &headers)
+        }
         Ok(())
     }
 }
@@ -574,6 +598,10 @@ pub struct CmdKclMass {
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitMass,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -590,7 +618,7 @@ impl crate::cmd::Command for CmdKclMass {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
+        let (resp, headers) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -615,6 +643,9 @@ impl crate::cmd::Command for CmdKclMass {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
 
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &headers)
+        }
         Ok(())
     }
 }
@@ -645,6 +676,10 @@ pub struct CmdKclCenterOfMass {
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitLength,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -657,7 +692,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
+        let (resp, headers) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -680,6 +715,9 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
 
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &headers)
+        }
         Ok(())
     }
 }
@@ -718,6 +756,10 @@ pub struct CmdKclDensity {
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitDensity,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -734,7 +776,7 @@ impl crate::cmd::Command for CmdKclDensity {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
+        let (resp, headers) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -759,6 +801,9 @@ impl crate::cmd::Command for CmdKclDensity {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
 
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &headers)
+        }
         Ok(())
     }
 }
@@ -789,6 +834,10 @@ pub struct CmdKclSurfaceArea {
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kittycad::types::UnitArea,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -801,7 +850,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
-        let resp = ctx
+        let (resp, headers) = ctx
             .send_kcl_modeling_cmd(
                 "",
                 input,
@@ -824,6 +873,9 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
             anyhow::bail!("Unexpected response from engine: {:?}", resp);
         }
 
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &headers)
+        }
         Ok(())
     }
 }
@@ -924,4 +976,15 @@ pub fn get_extension(path: std::path::PathBuf) -> String {
         .to_str()
         .unwrap_or("")
         .to_string()
+}
+
+fn print_trace_link(io: &mut IoStreams, headers: &http::HeaderMap) {
+    let Some(api_call_id) = headers.get("X-Api-Call-Id") else {
+        return;
+    };
+    let Ok(api_call_id) = api_call_id.to_str() else {
+        return;
+    };
+    let link = format!("https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D", api_call_id);
+    let _ = writeln!(io.out, "Was this request slow? Send a Zoo employee this link:\n{link}");
 }

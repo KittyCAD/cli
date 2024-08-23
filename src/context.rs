@@ -113,7 +113,7 @@ impl Context<'_> {
 
     async fn engine_ws(&self, hostname: &str) -> Result<reqwest::Upgraded> {
         let client = self.api_client(hostname)?;
-        let ws = client
+        let (ws, _headers) = client
             .modeling()
             .commands_ws(None, None, None, None, None, None, None, Some(false))
             .await?;
@@ -134,7 +134,7 @@ impl Context<'_> {
         code: &str,
         cmd: kittycad::types::ModelingCmd,
         units: kittycad::types::UnitLength,
-    ) -> Result<OkWebSocketResponseData> {
+    ) -> Result<(OkWebSocketResponseData, http::HeaderMap)> {
         let client = self.api_client(hostname)?;
 
         let tokens = kcl_lib::token::lexer(code)?;
@@ -143,7 +143,7 @@ impl Context<'_> {
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
-        let ctx = kcl_lib::executor::ExecutorContext::new(
+        let (ctx, headers) = kcl_lib::executor::ExecutorContext::new_with_headers(
             &client,
             kcl_lib::executor::ExecutorSettings {
                 units: units.into(),
@@ -173,7 +173,7 @@ impl Context<'_> {
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-        Ok(resp)
+        Ok((resp, headers))
     }
 
     pub async fn get_model_for_prompt(
