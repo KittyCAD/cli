@@ -4826,7 +4826,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.72"
+version = "0.2.73"
 dependencies = [
  "anyhow",
  "async-trait",
