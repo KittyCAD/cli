@@ -1827,9 +1827,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.10"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3229d4b2b47b5b95ed4bbe99ffab6c62ad1d29b2526bfc1ac8f406a69e1816c"
+checksum = "a5568e14abbd44ca6e349e7799d2e909fe35ba87dd2c2ecb0a88a5b1d46a189d"
 dependencies = [
  "anyhow",
  "approx",
@@ -1838,7 +1838,6 @@ dependencies = [
  "base64 0.22.1",
  "bson",
  "chrono",
- "clap",
  "convert_case",
  "dashmap 6.0.1",
  "databake",
@@ -4826,7 +4825,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.73"
+version = "0.2.74"
 dependencies = [
  "anyhow",
  "async-trait",
