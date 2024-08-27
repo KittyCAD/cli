@@ -258,6 +258,10 @@ pub struct CmdKclSnapshot {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    /// If true, tell engine to store a replay.
+    #[clap(long, default_value = "false")]
+    pub replay: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -281,7 +285,13 @@ impl crate::cmd::Command for CmdKclSnapshot {
         };
 
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
+        let filename = self
+            .input
+            .file_name()
+            .map(|b| b.to_string_lossy().to_string())
+            .unwrap_or("unknown".to_string());
+        let filepath = self.input.display().to_string();
+        let input = ctx.read_file(&filepath)?;
 
         // Parse the input as a string.
         let input = String::from_utf8(input)?;
@@ -310,11 +320,12 @@ impl crate::cmd::Command for CmdKclSnapshot {
                 // Spin up websockets and do the conversion.
                 // This will not return until there are files.
                 let (resp, session_data) = ctx
-                    .send_kcl_modeling_cmd(
+                    .send_kcl_modeling_cmd_with_replay(
                         "",
                         &input,
                         kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
                         self.src_unit.clone(),
+                        self.replay.then_some(filename),
                     )
                     .await?;
 

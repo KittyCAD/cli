@@ -140,6 +140,18 @@ impl Context<'_> {
         cmd: kittycad::types::ModelingCmd,
         units: kittycad::types::UnitLength,
     ) -> Result<(OkWebSocketResponseData, Option<kittycad::types::ModelingSessionData>)> {
+        self.send_kcl_modeling_cmd_with_replay(hostname, code, cmd, units, None)
+            .await
+    }
+
+    pub async fn send_kcl_modeling_cmd_with_replay(
+        &self,
+        hostname: &str,
+        code: &str,
+        cmd: kittycad::types::ModelingCmd,
+        units: kittycad::types::UnitLength,
+        replay: Option<String>,
+    ) -> Result<(OkWebSocketResponseData, Option<kittycad::types::ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
         let tokens = kcl_lib::token::lexer(code)?;
@@ -152,6 +164,7 @@ impl Context<'_> {
             &client,
             kcl_lib::executor::ExecutorSettings {
                 units: units.into(),
+                replay,
                 ..Default::default()
             },
         )
