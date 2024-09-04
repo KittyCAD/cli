@@ -23,7 +23,7 @@ heck = "0.5.0"
 http = "0.2.6"
 itertools = "0.12.1"
 kcl-lib = { version = "0.2.12", features = ["disable-println"] }
-kcl-test-server = "0.1.8"
+kcl-test-server = "0.1.10"
 kittycad = { version = "0.3.18", features = ["clap", "tabled", "requests", "retry"] }
 log = "0.4.22"
 nu-ansi-term = "0.50.1"
