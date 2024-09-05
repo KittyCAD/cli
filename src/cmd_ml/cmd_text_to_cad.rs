@@ -234,7 +234,7 @@ impl crate::cmd::Command for CmdTextToCadView {
 
         // Create a temporary file to write the snapshot to.
         let mut tmp_file = std::env::temp_dir();
-        tmp_file.push(&format!("zoo-text-to-cad-view-{}.png", uuid::Uuid::new_v4()));
+        tmp_file.push(format!("zoo-text-to-cad-view-{}.png", uuid::Uuid::new_v4()));
 
         let image_bytes = get_image_bytes(ctx, &gltf_bytes, kittycad::types::ImageFormat::Png).await?;
 

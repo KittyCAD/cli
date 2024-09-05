@@ -388,7 +388,7 @@ impl crate::cmd::Command for CmdKclView {
 
         // Create a temporary file to write the snapshot to.
         let mut tmp_file = std::env::temp_dir();
-        tmp_file.push(&format!("zoo-kcl-view-{}.png", uuid::Uuid::new_v4()));
+        tmp_file.push(format!("zoo-kcl-view-{}.png", uuid::Uuid::new_v4()));
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
