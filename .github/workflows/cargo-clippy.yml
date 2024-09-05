@@ -50,5 +50,6 @@ jobs:
           required-permission: write
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: taiki-e/install-action@just
       - name: Run cargo clippy
-        run: cargo clippy --all-features --all-targets -- -D warnings
+        run: just lint

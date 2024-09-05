@@ -162,11 +162,7 @@ impl crate::cmd::Command for CmdAuthLogin {
         if token.is_empty() {
             // We don't want to capture the error here just in case we have no host config
             // for this specific host yet.
-            let existing_token = if let Ok(existing_token) = ctx.config.get(host, "token") {
-                existing_token
-            } else {
-                String::new()
-            };
+            let existing_token = ctx.config.get(host, "token").unwrap_or_default();
             if !existing_token.is_empty() && interactive {
                 match dialoguer::Confirm::new()
                     .with_prompt(format!(
