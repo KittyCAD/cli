@@ -53,7 +53,7 @@ thiserror = "1"
 tokio = { version = "1", features = ["full"] }
 toml = "0.8.19"
 toml_edit = "0.22.20"
-unicode-segmentation = "1.11.0"
+unicode-segmentation = "1.12.0"
 url = "2.5.0"
 uuid = { version = "1.10", features = ["serde", "v4"] }
 version-compare = "0.2.0"
