@@ -138,19 +138,7 @@ impl Context<'_> {
         hostname: &str,
         code: &str,
         cmd: kittycad::types::ModelingCmd,
-        units: kittycad::types::UnitLength,
-    ) -> Result<(OkWebSocketResponseData, Option<kittycad::types::ModelingSessionData>)> {
-        self.send_kcl_modeling_cmd_with_replay(hostname, code, cmd, units, None)
-            .await
-    }
-
-    pub async fn send_kcl_modeling_cmd_with_replay(
-        &self,
-        hostname: &str,
-        code: &str,
-        cmd: kittycad::types::ModelingCmd,
-        units: kittycad::types::UnitLength,
-        replay: Option<String>,
+        settings: kcl_lib::executor::ExecutorSettings,
     ) -> Result<(OkWebSocketResponseData, Option<kittycad::types::ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
@@ -160,15 +148,7 @@ impl Context<'_> {
             .ast()
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
-        let ctx = kcl_lib::executor::ExecutorContext::new(
-            &client,
-            kcl_lib::executor::ExecutorSettings {
-                units: units.into(),
-                replay,
-                ..Default::default()
-            },
-        )
-        .await?;
+        let ctx = kcl_lib::executor::ExecutorContext::new(&client, settings).await?;
         let (_, session_data) = ctx
             .run_with_session_data(&program, None)
             .await

@@ -1,0 +1,8 @@
+[settings.app]
+
+[settings.modeling]
+base_unit = "in"
+
+[settings.text_editor]
+
+[settings.command_bar]

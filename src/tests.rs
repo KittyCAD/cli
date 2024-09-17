@@ -432,6 +432,26 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "get the mass of a kcl file but use project.toml".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "mass".to_string(),
+                "tests/with-settings/gear.kcl".to_string(),
+                "--format=json".to_string(),
+                "--output-unit".to_string(),
+                "g".to_string(),
+                "--material-density".to_string(),
+                "1.0".to_string(),
+                "--material-density-unit".to_string(),
+                "lb-ft3".to_string(),
+            ],
+            want_out: r#"43037.102"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "get the density of a kcl file".to_string(),
             args: vec![
                 "zoo".to_string(),
