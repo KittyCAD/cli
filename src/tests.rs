@@ -629,6 +629,8 @@ access-control-allow-credentials:  """#
                 "ml".to_string(),
                 "text-to-cad".to_string(),
                 "snapshot".to_string(),
+                "--output-dir".to_string(),
+                "tests/".to_string(),
                 "a".to_string(),
                 "2x4".to_string(),
                 "lego".to_string(),
