@@ -536,6 +536,23 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "export a kcl file as step, deterministically".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "export".to_string(),
+                "--output-format=step".to_string(),
+                "--deterministic".to_string(),
+                "--src-unit=mm".to_string(),
+                "tests/gear.kcl".to_string(),
+                "tests/".to_string(),
+            ],
+            want_out: r#""#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "export a kcl file with a parse error".to_string(),
             args: vec![
                 "zoo".to_string(),
