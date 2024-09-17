@@ -88,6 +88,12 @@ pub struct CmdKclExport {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    /// If true, the output file should be deterministic, meaning any date or time information
+    /// will be replaced with a fixed value.
+    /// This is useful for when pushing to version control.
+    #[clap(long, default_value = "false")]
+    pub deterministic: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -128,7 +134,11 @@ impl crate::cmd::Command for CmdKclExport {
             // Save the files to our export directory.
             for file in files {
                 let path = self.output_dir.join(file.name);
-                std::fs::write(&path, file.contents)?;
+                if self.deterministic {
+                    write_deterministic_export(&path, &file.contents)?;
+                } else {
+                    std::fs::write(&path, file.contents)?;
+                }
                 println!("Wrote file: {}", path.display());
             }
         } else {
@@ -1114,4 +1124,25 @@ pub fn get_modeling_settings_from_project_toml(
     } else {
         Ok(default_settings)
     }
+}
+
+/// Make the exported file have a deterministic date for git and version control etc.
+pub fn write_deterministic_export(file_path: &std::path::Path, file_contents: &[u8]) -> Result<()> {
+    if let Ok(contents) = std::str::from_utf8(file_contents) {
+        let mut content = contents.to_string();
+
+        // Create a regex pattern for finding the date.
+        let re = regex::Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+\+\d{2}:\d{2}")?;
+
+        // Replace all occurrences.
+        content = re.replace_all(&content, "1970-01-01T00:00:00.0+00:00").to_string();
+
+        // Write the modified content back to the file.
+        std::fs::write(file_path, content)?;
+    } else {
+        // Write the content back to the file.
+        std::fs::write(file_path, file_contents)?;
+    }
+
+    Ok(())
 }

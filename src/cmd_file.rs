@@ -8,6 +8,8 @@ use base64::prelude::*;
 use clap::Parser;
 use kcl_lib::engine::EngineManager;
 
+use crate::cmd_kcl::write_deterministic_export;
+
 /// Perform operations on CAD files.
 ///
 ///     # convert a step file to an obj file
@@ -83,6 +85,12 @@ pub struct CmdFileConvert {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// If true, the output file should be deterministic, meaning any date or time information
+    /// will be replaced with a fixed value.
+    /// This is useful for when pushing to version control.
+    #[clap(long, default_value = "false")]
+    pub deterministic: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -121,7 +129,11 @@ impl crate::cmd::Command for CmdFileConvert {
                 // Write the contents of the files to the output directory.
                 for (filename, data) in outputs.iter() {
                     let path = self.output_dir.clone().join(filename);
-                    std::fs::write(&path, data)?;
+                    if self.deterministic {
+                        write_deterministic_export(&path, &data.0)?;
+                    } else {
+                        std::fs::write(&path, data)?;
+                    }
                     writeln!(
                         ctx.io.out,
                         "wrote file `{}` to {}",
@@ -759,6 +771,7 @@ mod test {
                         output_format: kittycad::types::FileExportFormat::Obj,
                         src_format: None,
                         format: None,
+                        deterministic:false,
 
                     }),
                     stdin: "".to_string(),
@@ -773,6 +786,7 @@ mod test {
                         output_format: kittycad::types::FileExportFormat::Obj,
                         src_format: None,
                         format: None,
+                        deterministic:false,
                     }),
                     stdin: "".to_string(),
                     want_out: "".to_string(),
