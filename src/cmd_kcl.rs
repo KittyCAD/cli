@@ -62,7 +62,7 @@ impl crate::cmd::Command for CmdKcl {
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclExport {
@@ -254,7 +254,7 @@ impl crate::cmd::Command for CmdKclFormat {
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSnapshot {
@@ -402,7 +402,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclView {
@@ -554,16 +554,16 @@ fn get_output_format(
 /// Get the volume of an object in a kcl file.
 ///
 ///     # get the volume of a file
-///     $ zoo kcl volume --src_unit=m my-file.kcl
+///     $ zoo kcl volume --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl volume --src_unit=m
+///     $ cat my-file.kcl | zoo kcl volume --src-unit=m
 ///
 /// By default, this will search the input path for a `project.toml` file to determine the source
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclVolume {
@@ -638,16 +638,16 @@ impl crate::cmd::Command for CmdKclVolume {
 /// Get the mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ zoo kcl mass --src_unit=m my-file.kcl
+///     $ zoo kcl mass --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl mass --src_unit=m
+///     $ cat my-file.kcl | zoo kcl mass --src-unit=m
 ///
 /// By default, this will search the input path for a `project.toml` file to determine the source
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclMass {
@@ -736,16 +736,16 @@ impl crate::cmd::Command for CmdKclMass {
 /// Get the center of mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ zoo kcl center-of-mass --src_unit=m my-file.kcl
+///     $ zoo kcl center-of-mass --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl center-of-mass --src_unit=m
+///     $ cat my-file.kcl | zoo kcl center-of-mass --src-unit=m
 ///
 /// By default, this will search the input path for a `project.toml` file to determine the source
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclCenterOfMass {
@@ -820,16 +820,16 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 /// Get the density of objects in a kcl file.
 ///
 ///     # get the density of a file
-///     $ zoo kcl density --src_unit=m my-file.kcl
+///     $ zoo kcl density --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl density --src_unit=m
+///     $ cat my-file.kcl | zoo kcl density --src-unit=m
 ///
 /// By default, this will search the input path for a `project.toml` file to determine the source
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclDensity {
@@ -918,16 +918,16 @@ impl crate::cmd::Command for CmdKclDensity {
 /// Get the surface area of objects in a kcl file.
 ///
 ///     # get the surface-area of a file
-///     $ zoo kcl surface-area --src_unit=m my-file.kcl
+///     $ zoo kcl surface-area --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl surface-area --src_unit=m
+///     $ cat my-file.kcl | zoo kcl surface-area --src-unit=m
 ///
 /// By default, this will search the input path for a `project.toml` file to determine the source
 /// unit and any specific execution settings. If no `project.toml` file is found, in the directory
 /// of the input path OR any parent directories above that, the default
 /// source unit will be millimeters. You can also specify the source unit with the
-/// `--src_unit`/`-s` command line flag.
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSurfaceArea {
