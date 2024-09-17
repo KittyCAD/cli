@@ -57,6 +57,12 @@ impl crate::cmd::Command for CmdKcl {
 ///
 ///     # pass a file to convert from stdin
 ///     $ cat my-obj.kcl | zoo kcl export --output-format=step - output_dir
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclExport {
@@ -74,8 +80,7 @@ pub struct CmdKclExport {
     output_format: kittycad::types::FileExportFormat,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -244,6 +249,12 @@ impl crate::cmd::Command for CmdKclFormat {
 ///
 ///     # pass a file to snapshot from stdin
 ///     $ cat my-obj.kcl | zoo kcl snapshot --output-format=png - my-file.png
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSnapshot {
@@ -261,8 +272,7 @@ pub struct CmdKclSnapshot {
     output_format: Option<kittycad::types::ImageFormat>,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -387,6 +397,12 @@ impl crate::cmd::Command for CmdKclSnapshot {
 ///
 ///     # pass a file to view from stdin
 ///     $ cat my-obj.kcl | zoo kcl view -
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclView {
@@ -396,8 +412,7 @@ pub struct CmdKclView {
     pub input: std::path::PathBuf,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -539,10 +554,16 @@ fn get_output_format(
 /// Get the volume of an object in a kcl file.
 ///
 ///     # get the volume of a file
-///     $ zoo kcl volume --src_unit=m my-file.kcl
+///     $ zoo kcl volume --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl volume --src_unit=m
+///     $ cat my-file.kcl | zoo kcl volume --src-unit=m
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclVolume {
@@ -556,8 +577,7 @@ pub struct CmdKclVolume {
     pub format: Option<crate::types::FormatOutput>,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -618,10 +638,16 @@ impl crate::cmd::Command for CmdKclVolume {
 /// Get the mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ zoo kcl mass --src_unit=m my-file.kcl
+///     $ zoo kcl mass --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl mass --src_unit=m
+///     $ cat my-file.kcl | zoo kcl mass --src-unit=m
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclMass {
@@ -639,8 +665,7 @@ pub struct CmdKclMass {
     material_density_unit: kittycad::types::UnitDensity,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -711,10 +736,16 @@ impl crate::cmd::Command for CmdKclMass {
 /// Get the center of mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ zoo kcl center-of-mass --src_unit=m my-file.kcl
+///     $ zoo kcl center-of-mass --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl center-of-mass --src_unit=m
+///     $ cat my-file.kcl | zoo kcl center-of-mass --src-unit=m
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclCenterOfMass {
@@ -724,8 +755,7 @@ pub struct CmdKclCenterOfMass {
     pub input: std::path::PathBuf,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -790,10 +820,16 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 /// Get the density of objects in a kcl file.
 ///
 ///     # get the density of a file
-///     $ zoo kcl density --src_unit=m my-file.kcl
+///     $ zoo kcl density --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl density --src_unit=m
+///     $ cat my-file.kcl | zoo kcl density --src-unit=m
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclDensity {
@@ -803,8 +839,7 @@ pub struct CmdKclDensity {
     pub input: std::path::PathBuf,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -883,10 +918,16 @@ impl crate::cmd::Command for CmdKclDensity {
 /// Get the surface area of objects in a kcl file.
 ///
 ///     # get the surface-area of a file
-///     $ zoo kcl surface-area --src_unit=m my-file.kcl
+///     $ zoo kcl surface-area --src-unit=m my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl surface-area --src_unit=m
+///     $ cat my-file.kcl | zoo kcl surface-area --src-unit=m
+///
+/// By default, this will search the input path for a `project.toml` file to determine the source
+/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
+/// of the input path OR any parent directories above that, the default
+/// source unit will be millimeters. You can also specify the source unit with the
+/// `--src-unit`/`-s` command line flag.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSurfaceArea {
@@ -896,8 +937,7 @@ pub struct CmdKclSurfaceArea {
     pub input: std::path::PathBuf,
 
     /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml file in the same
-    /// directory as the input file.
+    /// This defaults to millimeters, if not set and there is no project.toml.
     /// If there is a project.toml file, the default unit will be the one set in the project.toml
     /// file.
     #[clap(long, short = 's', value_enum)]
@@ -1104,8 +1144,8 @@ pub fn get_modeling_settings_from_project_toml(
     };
 
     // Look for a `project.toml` file in the directory.
-    let project_toml = dir.join("project.toml");
-    if project_toml.exists() {
+    let project_toml = find_project_toml(&dir)?;
+    if let Some(project_toml) = project_toml {
         let project_toml = std::fs::read_to_string(&project_toml)?;
         let project_toml: kcl_lib::settings::types::project::ProjectConfiguration = toml::from_str(&project_toml)?;
         let settings: kcl_lib::executor::ExecutorSettings = project_toml.settings.modeling.into();
@@ -1123,6 +1163,20 @@ pub fn get_modeling_settings_from_project_toml(
         Ok(settings)
     } else {
         Ok(default_settings)
+    }
+}
+
+/// Search recursively for a project.toml in parents.
+pub fn find_project_toml(path: &std::path::Path) -> Result<Option<std::path::PathBuf>> {
+    let mut path = path.to_path_buf();
+    loop {
+        let project_toml = path.join("project.toml");
+        if project_toml.exists() {
+            return Ok(Some(project_toml));
+        }
+        if !path.pop() {
+            return Ok(None);
+        }
     }
 }
 
