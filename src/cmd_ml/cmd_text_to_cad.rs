@@ -5,7 +5,7 @@ use kcmc::each_cmd as mcmd;
 use kcmc::format::InputFormat;
 use kcmc::ok_response::OkModelingCmdResponse;
 use kcmc::websocket::OkWebSocketResponseData;
-use kcmc::{shared::FileExportFormat, ImageFormat, ModelingCmd};
+use kcmc::{ImageFormat, ModelingCmd};
 use kittycad_modeling_cmds::{self as kcmc, ImportFile};
 
 /// Perform Text-to-CAD commands.
@@ -51,7 +51,7 @@ pub struct CmdTextToCadExport {
 
     /// A valid output file format.
     #[clap(short = 't', long = "output-format", value_enum)]
-    output_format: FileExportFormat,
+    output_format: kittycad::types::FileExportFormat,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -81,7 +81,9 @@ impl crate::cmd::Command for CmdTextToCadExport {
             anyhow::bail!("prompt cannot be empty");
         }
 
-        let mut model = ctx.get_model_for_prompt("", &prompt, self.output_format).await?;
+        let mut model = ctx
+            .get_model_for_prompt("", &prompt, self.output_format.clone())
+            .await?;
 
         if let Some(outputs) = model.outputs {
             // Write the contents of the files to the output directory.
@@ -131,7 +133,7 @@ pub struct CmdTextToCadSnapshot {
 
     /// A valid output image format.
     #[clap(short = 't', long = "output-format", value_enum, default_value = "png")]
-    output_format: ImageFormat,
+    output_format: kittycad::types::ImageFormat,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -161,7 +163,9 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
             anyhow::bail!("prompt cannot be empty");
         }
 
-        let model = ctx.get_model_for_prompt("", &prompt, FileExportFormat::Gltf).await?;
+        let model = ctx
+            .get_model_for_prompt("", &prompt, kittycad::types::FileExportFormat::Gltf)
+            .await?;
 
         // Get the gltf bytes.
         let mut gltf_bytes = vec![];
@@ -179,7 +183,15 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
         let output_file = prompt.replace(' ', "_").to_lowercase() + "." + &self.output_format.to_string();
         let output_file_path = output_dir.join(&output_file);
 
-        let image_bytes = get_image_bytes(ctx, &gltf_bytes, self.output_format.clone()).await?;
+        let image_bytes = get_image_bytes(
+            ctx,
+            &gltf_bytes,
+            match self.output_format {
+                kittycad::types::ImageFormat::Png => ImageFormat::Png,
+                kittycad::types::ImageFormat::Jpeg => ImageFormat::Jpeg,
+            },
+        )
+        .await?;
         // Save the snapshot locally.
         std::fs::write(&output_file_path, image_bytes)?;
 
@@ -217,7 +229,9 @@ impl crate::cmd::Command for CmdTextToCadView {
             anyhow::bail!("prompt cannot be empty");
         }
 
-        let model = ctx.get_model_for_prompt("", &prompt, FileExportFormat::Gltf).await?;
+        let model = ctx
+            .get_model_for_prompt("", &prompt, kittycad::types::FileExportFormat::Gltf)
+            .await?;
 
         // Get the gltf bytes.
         let mut gltf_bytes = vec![];

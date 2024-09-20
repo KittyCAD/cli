@@ -182,9 +182,19 @@ impl Context<'_> {
         &self,
         hostname: &str,
         prompt: &str,
-        format: FileExportFormat,
+        format: kittycad::types::FileExportFormat,
     ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
+
+        let format = match format {
+            kittycad::types::FileExportFormat::Fbx => FileExportFormat::Fbx,
+            kittycad::types::FileExportFormat::Glb => FileExportFormat::Glb,
+            kittycad::types::FileExportFormat::Obj => FileExportFormat::Obj,
+            kittycad::types::FileExportFormat::Ply => FileExportFormat::Ply,
+            kittycad::types::FileExportFormat::Stl => FileExportFormat::Stl,
+            kittycad::types::FileExportFormat::Gltf => FileExportFormat::Gltf,
+            kittycad::types::FileExportFormat::Step => FileExportFormat::Step,
+        };
 
         // Create the text-to-cad request.
         let mut gen_model: TextToCad = client
