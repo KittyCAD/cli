@@ -358,7 +358,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm".to_string(),
             ],
-            want_out: r#"center_of_mass | Point3D { x: -13.3537855, y: -0.016604856, z: -1.1221532 }"#.to_string(),
+            want_out: r#"center_of_mass | (-0.00000003630934486409387, 0.05000002682209015, -0.0000000001856890335938388)"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
