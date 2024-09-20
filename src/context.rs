@@ -2,7 +2,10 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use kcl_lib::engine::EngineManager;
-use kittycad_modeling_cmds::websocket::OkWebSocketResponseData;
+use kcmc::each_cmd as mcmd;
+use kcmc::websocket::OkWebSocketResponseData;
+use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody};
+use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd};
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
@@ -101,7 +104,7 @@ impl Context<'_> {
     pub async fn send_single_modeling_cmd(
         &self,
         hostname: &str,
-        cmd: kittycad::types::ModelingCmd,
+        cmd: ModelingCmd,
         replay: Option<String>,
     ) -> Result<OkWebSocketResponseData> {
         let engine = self.engine(hostname, replay).await?;
@@ -139,7 +142,7 @@ impl Context<'_> {
         code: &str,
         cmd: kittycad_modeling_cmds::ModelingCmd,
         settings: kcl_lib::executor::ExecutorSettings,
-    ) -> Result<(OkWebSocketResponseData, Option<kittycad::types::ModelingSessionData>)> {
+    ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
         let tokens = kcl_lib::token::lexer(code)?;
@@ -159,10 +162,11 @@ impl Context<'_> {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::ZoomToFit {
+                ModelingCmd::from(mcmd::ZoomToFit {
+                    animated: false,
                     object_ids: Default::default(),
                     padding: 0.1,
-                },
+                }),
             )
             .await?;
 
@@ -178,17 +182,25 @@ impl Context<'_> {
         &self,
         hostname: &str,
         prompt: &str,
-        format: kittycad::types::FileExportFormat,
-    ) -> Result<kittycad::types::TextToCad> {
+        format: FileExportFormat,
+    ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
 
         // Create the text-to-cad request.
-        let mut gen_model: kittycad::types::TextToCad = client
+        let mut gen_model: TextToCad = client
             .ml()
             .create_text_to_cad(
                 None,
-                format,
-                &kittycad::types::TextToCadCreateBody {
+                match format {
+                    FileExportFormat::Fbx => kittycad::types::FileExportFormat::Fbx,
+                    FileExportFormat::Glb => kittycad::types::FileExportFormat::Glb,
+                    FileExportFormat::Gltf => kittycad::types::FileExportFormat::Gltf,
+                    FileExportFormat::Obj => kittycad::types::FileExportFormat::Obj,
+                    FileExportFormat::Ply => kittycad::types::FileExportFormat::Ply,
+                    FileExportFormat::Step => kittycad::types::FileExportFormat::Step,
+                    FileExportFormat::Stl => kittycad::types::FileExportFormat::Stl,
+                },
+                &TextToCadCreateBody {
                     prompt: prompt.to_string(),
                 },
             )
@@ -200,14 +212,14 @@ impl Context<'_> {
         let start = std::time::Instant::now();
         // Give it 5 minutes to complete. That should be way
         // more than enough!
-        while status != kittycad::types::ApiCallStatus::Completed
-            && status != kittycad::types::ApiCallStatus::Failed
+        while status != ApiCallStatus::Completed
+            && status != ApiCallStatus::Failed
             && start.elapsed().as_secs() < 60 * 5
         {
             // Poll for the status.
             let result = client.api_calls().get_async_operation(gen_model.id).await?;
 
-            if let kittycad::types::AsyncApiCallOutput::TextToCad {
+            if let AsyncApiCallOutput::TextToCad {
                 completed_at,
                 created_at,
                 error,
@@ -225,7 +237,7 @@ impl Context<'_> {
                 model,
             } = result
             {
-                gen_model = kittycad::types::TextToCad {
+                gen_model = TextToCad {
                     completed_at,
                     created_at,
                     error,
@@ -253,7 +265,7 @@ impl Context<'_> {
         }
 
         // If the model failed we will want to tell the user.
-        if gen_model.status == kittycad::types::ApiCallStatus::Failed {
+        if gen_model.status == ApiCallStatus::Failed {
             if let Some(error) = gen_model.error {
                 anyhow::bail!("Your prompt returned an error: ```\n{}\n```", error);
             } else {
@@ -261,7 +273,7 @@ impl Context<'_> {
             }
         }
 
-        if gen_model.status != kittycad::types::ApiCallStatus::Completed {
+        if gen_model.status != ApiCallStatus::Completed {
             anyhow::bail!("Your prompt timed out");
         }
 

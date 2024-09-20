@@ -1,6 +1,12 @@
 use anyhow::Result;
 use clap::Parser;
 use kcl_lib::engine::EngineManager;
+use kcmc::each_cmd as mcmd;
+use kcmc::format::InputFormat;
+use kcmc::ok_response::OkModelingCmdResponse;
+use kcmc::websocket::OkWebSocketResponseData;
+use kcmc::{shared::FileExportFormat, ImageFormat, ModelingCmd};
+use kittycad_modeling_cmds::{self as kcmc, ImportFile};
 
 /// Perform Text-to-CAD commands.
 #[derive(Parser, Debug, Clone)]
@@ -45,7 +51,7 @@ pub struct CmdTextToCadExport {
 
     /// A valid output file format.
     #[clap(short = 't', long = "output-format", value_enum)]
-    output_format: kittycad::types::FileExportFormat,
+    output_format: FileExportFormat,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -127,7 +133,7 @@ pub struct CmdTextToCadSnapshot {
 
     /// A valid output image format.
     #[clap(short = 't', long = "output-format", value_enum, default_value = "png")]
-    output_format: kittycad::types::ImageFormat,
+    output_format: ImageFormat,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -157,9 +163,7 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
             anyhow::bail!("prompt cannot be empty");
         }
 
-        let model = ctx
-            .get_model_for_prompt("", &prompt, kittycad::types::FileExportFormat::Gltf)
-            .await?;
+        let model = ctx.get_model_for_prompt("", &prompt, FileExportFormat::Gltf).await?;
 
         // Get the gltf bytes.
         let mut gltf_bytes = vec![];
@@ -215,9 +219,7 @@ impl crate::cmd::Command for CmdTextToCadView {
             anyhow::bail!("prompt cannot be empty");
         }
 
-        let model = ctx
-            .get_model_for_prompt("", &prompt, kittycad::types::FileExportFormat::Gltf)
-            .await?;
+        let model = ctx.get_model_for_prompt("", &prompt, FileExportFormat::Gltf).await?;
 
         // Get the gltf bytes.
         let mut gltf_bytes = vec![];
@@ -236,7 +238,7 @@ impl crate::cmd::Command for CmdTextToCadView {
         let mut tmp_file = std::env::temp_dir();
         tmp_file.push(format!("zoo-text-to-cad-view-{}.png", uuid::Uuid::new_v4()));
 
-        let image_bytes = get_image_bytes(ctx, &gltf_bytes, kittycad::types::ImageFormat::Png).await?;
+        let image_bytes = get_image_bytes(ctx, &gltf_bytes, ImageFormat::Png).await?;
 
         // Save the snapshot locally.
         std::fs::write(&tmp_file, image_bytes)?;
@@ -269,7 +271,7 @@ impl crate::cmd::Command for CmdTextToCadView {
 async fn get_image_bytes(
     ctx: &mut crate::context::Context<'_>,
     gltf_bytes: &[u8],
-    output_format: kittycad::types::ImageFormat,
+    output_format: ImageFormat,
 ) -> Result<Vec<u8>> {
     let engine = ctx.engine("", None).await?;
 
@@ -278,18 +280,18 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::executor::SourceRange::default(),
-            kittycad::types::ModelingCmd::ImportFiles {
-                files: vec![kittycad::types::ImportFile {
+            ModelingCmd::from(mcmd::ImportFiles {
+                files: vec![ImportFile {
                     path: "model.gltf".to_string(),
                     data: gltf_bytes.to_vec(),
                 }],
-                format: kittycad::types::InputFormat::Gltf {},
-            },
+                format: InputFormat::Gltf(Default::default()),
+            }),
         )
         .await?;
 
-    let kittycad::types::OkWebSocketResponseData::Modeling {
-        modeling_response: kittycad::types::OkModelingCmdResponse::ImportFiles { data },
+    let OkWebSocketResponseData::Modeling {
+        modeling_response: OkModelingCmdResponse::ImportFiles(data),
     } = &resp
     else {
         anyhow::bail!("Unexpected response from engine import: {:?}", resp);
@@ -302,7 +304,7 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::executor::SourceRange::default(),
-            kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
+            ModelingCmd::from(mcmd::DefaultCameraFocusOn { uuid: object_id }),
         )
         .await?;
 
@@ -312,12 +314,12 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::executor::SourceRange::default(),
-            kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+            ModelingCmd::from(mcmd::TakeSnapshot { format: output_format }),
         )
         .await?;
 
-    if let kittycad::types::OkWebSocketResponseData::Modeling {
-        modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+    if let OkWebSocketResponseData::Modeling {
+        modeling_response: OkModelingCmdResponse::TakeSnapshot(data),
     } = &resp
     {
         // Save the snapshot locally.
