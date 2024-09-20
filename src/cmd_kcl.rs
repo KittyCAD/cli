@@ -127,15 +127,15 @@ impl crate::cmd::Command for CmdKclExport {
             .send_kcl_modeling_cmd(
                 "",
                 input,
-                kittycad::types::ModelingCmd::Export {
+                kittycad_modeling_cmds::ModelingCmd::Export(kittycad_modeling_cmds::Export {
                     entity_ids: vec![],
                     format: get_output_format(&self.output_format, src_unit.into()),
-                },
+                }),
                 executor_settings,
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Export { files } = resp {
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Export { files } = resp {
             // Save the files to our export directory.
             for file in files {
                 let path = self.output_dir.join(file.name);
@@ -311,7 +311,10 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
         // Parse the image format.
         let output_format = if let Some(output_format) = &self.output_format {
-            output_format.clone()
+            match output_format {
+                kittycad::types::ImageFormat::Png => kittycad_modeling_cmds::ImageFormat::Png,
+                kittycad::types::ImageFormat::Jpeg => kittycad_modeling_cmds::ImageFormat::Jpeg,
+            }
         } else {
             get_image_format_from_extension(&crate::cmd_file::get_extension(self.output_file.clone()))?
         };
@@ -360,16 +363,18 @@ impl crate::cmd::Command for CmdKclSnapshot {
                     .send_kcl_modeling_cmd(
                         "",
                         &input,
-                        kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+                        kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
+                            format: output_format,
+                        }),
                         executor_settings,
                     )
                     .await?;
 
-                if let kittycad::types::OkWebSocketResponseData::Modeling {
-                    modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
-                } = resp
+                if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+                    modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+                } = &resp
                 {
-                    (data.contents.0, session_data)
+                    (data.contents.0.clone(), session_data)
                 } else {
                     anyhow::bail!("Unexpected response from engine: {:?}", resp);
                 }
@@ -444,15 +449,15 @@ impl crate::cmd::Command for CmdKclView {
             .send_kcl_modeling_cmd(
                 "",
                 input,
-                kittycad::types::ModelingCmd::TakeSnapshot {
-                    format: kittycad::types::ImageFormat::Png,
-                },
+                kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
+                    format: kittycad_modeling_cmds::ImageFormat::Png,
+                }),
                 executor_settings,
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
         } = &resp
         {
             // Save the snapshot locally.
@@ -487,8 +492,8 @@ impl crate::cmd::Command for CmdKclView {
 }
 
 /// Get the  image format from the extension.
-pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad::types::ImageFormat> {
-    match kittycad::types::ImageFormat::from_str(ext) {
+pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad_modeling_cmds::ImageFormat> {
+    match kittycad_modeling_cmds::ImageFormat::from_str(ext) {
         Ok(format) => Ok(format),
         Err(_) => {
             anyhow::bail!(
@@ -501,53 +506,71 @@ pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad::types::Ima
 
 fn get_output_format(
     format: &kittycad::types::FileExportFormat,
-    src_unit: kittycad::types::UnitLength,
-) -> kittycad::types::OutputFormat {
+    src_unit: kittycad_modeling_cmds::units::UnitLength,
+) -> kittycad_modeling_cmds::format::OutputFormat {
     // Zoo co-ordinate system.
     //
     // * Forward: -Y
     // * Up: +Z
     // * Handedness: Right
-    let coords = kittycad::types::System {
-        forward: kittycad::types::AxisDirectionPair {
-            axis: kittycad::types::Axis::Y,
-            direction: kittycad::types::Direction::Negative,
+    let coords = kittycad_modeling_cmds::coord::System {
+        forward: kittycad_modeling_cmds::coord::AxisDirectionPair {
+            axis: kittycad_modeling_cmds::coord::Axis::Y,
+            direction: kittycad_modeling_cmds::coord::Direction::Negative,
         },
-        up: kittycad::types::AxisDirectionPair {
-            axis: kittycad::types::Axis::Z,
-            direction: kittycad::types::Direction::Positive,
+        up: kittycad_modeling_cmds::coord::AxisDirectionPair {
+            axis: kittycad_modeling_cmds::coord::Axis::Z,
+            direction: kittycad_modeling_cmds::coord::Direction::Positive,
         },
     };
 
     match format {
-        kittycad::types::FileExportFormat::Fbx => kittycad::types::OutputFormat::Fbx {
-            storage: kittycad::types::FbxStorage::Binary,
-        },
-        kittycad::types::FileExportFormat::Glb => kittycad::types::OutputFormat::Gltf {
-            storage: kittycad::types::GltfStorage::Binary,
-            presentation: kittycad::types::GltfPresentation::Compact,
-        },
-        kittycad::types::FileExportFormat::Gltf => kittycad::types::OutputFormat::Gltf {
-            storage: kittycad::types::GltfStorage::Embedded,
-            presentation: kittycad::types::GltfPresentation::Pretty,
-        },
-        kittycad::types::FileExportFormat::Obj => kittycad::types::OutputFormat::Obj {
-            coords,
-            units: src_unit,
-        },
-        kittycad::types::FileExportFormat::Ply => kittycad::types::OutputFormat::Ply {
-            storage: kittycad::types::PlyStorage::Ascii,
-            coords,
-            selection: kittycad::types::Selection::DefaultScene {},
-            units: src_unit,
-        },
-        kittycad::types::FileExportFormat::Step => kittycad::types::OutputFormat::Step { coords },
-        kittycad::types::FileExportFormat::Stl => kittycad::types::OutputFormat::Stl {
-            storage: kittycad::types::StlStorage::Ascii,
-            coords,
-            units: src_unit,
-            selection: kittycad::types::Selection::DefaultScene {},
-        },
+        kittycad::types::FileExportFormat::Fbx => {
+            kittycad_modeling_cmds::format::OutputFormat::Fbx(kittycad_modeling_cmds::format::fbx::export::Options {
+                storage: kittycad_modeling_cmds::format::fbx::export::Storage::Binary,
+                created: None,
+            })
+        }
+        kittycad::types::FileExportFormat::Glb => {
+            kittycad_modeling_cmds::format::OutputFormat::Gltf(kittycad_modeling_cmds::format::gltf::export::Options {
+                storage: kittycad_modeling_cmds::format::gltf::export::Storage::Binary,
+                presentation: kittycad_modeling_cmds::format::gltf::export::Presentation::Compact,
+            })
+        }
+        kittycad::types::FileExportFormat::Gltf => {
+            kittycad_modeling_cmds::format::OutputFormat::Gltf(kittycad_modeling_cmds::format::gltf::export::Options {
+                storage: kittycad_modeling_cmds::format::gltf::export::Storage::Embedded,
+                presentation: kittycad_modeling_cmds::format::gltf::export::Presentation::Pretty,
+            })
+        }
+        kittycad::types::FileExportFormat::Obj => {
+            kittycad_modeling_cmds::format::OutputFormat::Obj(kittycad_modeling_cmds::format::obj::export::Options {
+                coords,
+                units: src_unit,
+            })
+        }
+        kittycad::types::FileExportFormat::Ply => {
+            kittycad_modeling_cmds::format::OutputFormat::Ply(kittycad_modeling_cmds::format::ply::export::Options {
+                storage: kittycad_modeling_cmds::format::ply::export::Storage::Ascii,
+                coords,
+                selection: kittycad_modeling_cmds::format::Selection::DefaultScene,
+                units: src_unit,
+            })
+        }
+        kittycad::types::FileExportFormat::Step => {
+            kittycad_modeling_cmds::format::OutputFormat::Step(kittycad_modeling_cmds::format::step::export::Options {
+                coords,
+                created: None,
+            })
+        }
+        kittycad::types::FileExportFormat::Stl => {
+            kittycad_modeling_cmds::format::OutputFormat::Stl(kittycad_modeling_cmds::format::stl::export::Options {
+                storage: kittycad_modeling_cmds::format::stl::export::Storage::Ascii,
+                coords,
+                units: src_unit,
+                selection: kittycad_modeling_cmds::format::Selection::DefaultScene,
+            })
+        }
     }
 }
 
@@ -609,16 +632,16 @@ impl crate::cmd::Command for CmdKclVolume {
             .send_kcl_modeling_cmd(
                 "",
                 input,
-                kittycad::types::ModelingCmd::Volume {
+                kittycad_modeling_cmds::ModelingCmd::Volume(kittycad_modeling_cmds::Volume {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone(),
-                },
+                }),
                 executor_settings,
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::Volume { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::Volume(data),
         } = &resp
         {
             // Print the output.
@@ -705,18 +728,18 @@ impl crate::cmd::Command for CmdKclMass {
             .send_kcl_modeling_cmd(
                 "",
                 input,
-                kittycad::types::ModelingCmd::Mass {
+                kittycad_modeling_cmds::ModelingCmd::Mass(kittycad_modeling_cmds::Mass {
                     entity_ids: vec![], // get whole model
                     material_density: self.material_density.into(),
                     material_density_unit: self.material_density_unit.clone(),
                     output_unit: self.output_unit.clone(),
-                },
+                }),
                 executor_settings,
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::Mass { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::Mass(data),
         } = &resp
         {
             // Print the output.
@@ -791,16 +814,16 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
             .send_kcl_modeling_cmd(
                 "",
                 input,
-                kittycad::types::ModelingCmd::CenterOfMass {
+                kittycad_modeling_cmds::ModelingCmd::CenterOfMass(kittycad_modeling_cmds::CenterOfMass {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone(),
-                },
+                }),
                 executor_settings,
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::CenterOfMass { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::CenterOfMass(data),
         } = &resp
         {
             // Print the output.
@@ -887,18 +910,18 @@ impl crate::cmd::Command for CmdKclDensity {
             .send_kcl_modeling_cmd(
                 "",
                 input,
-                kittycad::types::ModelingCmd::Density {
+                kittycad_modeling_cmds::ModelingCmd::Density(kittycad_modeling_cmds::Density {
                     entity_ids: vec![], // get whole model
                     material_mass: self.material_mass.into(),
                     material_mass_unit: self.material_mass_unit.clone(),
                     output_unit: self.output_unit.clone(),
-                },
+                }),
                 executor_settings,
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::Density { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::Density(data),
         } = &resp
         {
             // Print the output.
@@ -973,16 +996,16 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
             .send_kcl_modeling_cmd(
                 "",
                 input,
-                kittycad::types::ModelingCmd::SurfaceArea {
+                kittycad_modeling_cmds::ModelingCmd::SurfaceArea(kittycad_modeling_cmds::SurfaceArea {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone(),
-                },
+                }),
                 executor_settings,
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::SurfaceArea { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::SurfaceArea(data),
         } = &resp
         {
             // Print the output.

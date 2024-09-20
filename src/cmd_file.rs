@@ -280,15 +280,15 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::ImportFiles {
+                kittycad_modeling_cmds::ModelingCmd::ImportFiles(kittycad_modeling_cmds::ImportFiles {
                     files,
                     format: src_format,
-                },
+                }),
             )
             .await?;
 
-        let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::ImportFiles { data },
+        let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::ImportFiles(data),
         } = &resp
         else {
             anyhow::bail!("Unexpected response from engine import: {:?}", resp);
@@ -301,7 +301,9 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
+                kittycad_modeling_cmds::ModelingCmd::DefaultCameraFocusOn(
+                    kittycad_modeling_cmds::DefaultCameraFocusOn { uuid: object_id },
+                ),
             )
             .await?;
 
@@ -311,12 +313,14 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+                kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
+                    format: output_format,
+                }),
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
         } = &resp
         {
             // Save the snapshot locally.

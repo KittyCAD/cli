@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use kcl_lib::engine::EngineManager;
-use kittycad::types::OkWebSocketResponseData;
+use kittycad_modeling_cmds::websocket::OkWebSocketResponseData;
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
@@ -137,7 +137,7 @@ impl Context<'_> {
         &self,
         hostname: &str,
         code: &str,
-        cmd: kittycad::types::ModelingCmd,
+        cmd: kittycad_modeling_cmds::ModelingCmd,
         settings: kcl_lib::executor::ExecutorSettings,
     ) -> Result<(OkWebSocketResponseData, Option<kittycad::types::ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
