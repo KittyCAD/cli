@@ -7,6 +7,7 @@ use anyhow::Result;
 use base64::prelude::*;
 use clap::Parser;
 use kcl_lib::engine::EngineManager;
+use kittycad_modeling_cmds as kcmc;
 
 use crate::cmd_kcl::write_deterministic_export;
 
@@ -205,7 +206,10 @@ impl crate::cmd::Command for CmdFileSnapshot {
 
         // Parse the image format.
         let output_format = if let Some(output_format) = &self.output_format {
-            output_format.clone()
+            match output_format {
+                kittycad::types::ImageFormat::Png => kcmc::ImageFormat::Png,
+                kittycad::types::ImageFormat::Jpeg => kcmc::ImageFormat::Jpeg,
+            }
         } else {
             crate::cmd_kcl::get_image_format_from_extension(&crate::cmd_file::get_extension(self.output_file.clone()))?
         };
@@ -280,15 +284,15 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::ImportFiles {
-                    files,
-                    format: src_format,
-                },
+                kcmc::ModelingCmd::ImportFiles(kcmc::ImportFiles {
+                    files: files.into_iter().map(|f| f.into()).collect(),
+                    format: src_format.into(),
+                }),
             )
             .await?;
 
-        let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::ImportFiles { data },
+        let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::ImportFiles(data),
         } = &resp
         else {
             anyhow::bail!("Unexpected response from engine import: {:?}", resp);
@@ -301,7 +305,9 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::DefaultCameraFocusOn { uuid: object_id },
+                kittycad_modeling_cmds::ModelingCmd::DefaultCameraFocusOn(
+                    kittycad_modeling_cmds::DefaultCameraFocusOn { uuid: object_id },
+                ),
             )
             .await?;
 
@@ -311,12 +317,14 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad::types::ModelingCmd::TakeSnapshot { format: output_format },
+                kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
+                    format: output_format,
+                }),
             )
             .await?;
 
-        if let kittycad::types::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad::types::OkModelingCmdResponse::TakeSnapshot { data },
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
         } = &resp
         {
             // Save the snapshot locally.
