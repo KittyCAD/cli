@@ -2,7 +2,9 @@ use std::{net::SocketAddr, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
+use kcmc::format::OutputFormat;
 use kittycad::types as kt;
+use kittycad_modeling_cmds as kcmc;
 use url::Url;
 
 use crate::iostreams::IoStreams;
@@ -514,64 +516,47 @@ fn get_output_format(
     // * Forward: -Y
     // * Up: +Z
     // * Handedness: Right
-    let coords = kittycad_modeling_cmds::coord::System {
-        forward: kittycad_modeling_cmds::coord::AxisDirectionPair {
-            axis: kittycad_modeling_cmds::coord::Axis::Y,
-            direction: kittycad_modeling_cmds::coord::Direction::Negative,
+    let coords = kcmc::coord::System {
+        forward: kcmc::coord::AxisDirectionPair {
+            axis: kcmc::coord::Axis::Y,
+            direction: kcmc::coord::Direction::Negative,
         },
-        up: kittycad_modeling_cmds::coord::AxisDirectionPair {
-            axis: kittycad_modeling_cmds::coord::Axis::Z,
-            direction: kittycad_modeling_cmds::coord::Direction::Positive,
+        up: kcmc::coord::AxisDirectionPair {
+            axis: kcmc::coord::Axis::Z,
+            direction: kcmc::coord::Direction::Positive,
         },
     };
 
     match format {
-        kittycad::types::FileExportFormat::Fbx => {
-            kittycad_modeling_cmds::format::OutputFormat::Fbx(kittycad_modeling_cmds::format::fbx::export::Options {
-                storage: kittycad_modeling_cmds::format::fbx::export::Storage::Binary,
-                created: None,
-            })
-        }
-        kittycad::types::FileExportFormat::Glb => {
-            kittycad_modeling_cmds::format::OutputFormat::Gltf(kittycad_modeling_cmds::format::gltf::export::Options {
-                storage: kittycad_modeling_cmds::format::gltf::export::Storage::Binary,
-                presentation: kittycad_modeling_cmds::format::gltf::export::Presentation::Compact,
-            })
-        }
-        kittycad::types::FileExportFormat::Gltf => {
-            kittycad_modeling_cmds::format::OutputFormat::Gltf(kittycad_modeling_cmds::format::gltf::export::Options {
-                storage: kittycad_modeling_cmds::format::gltf::export::Storage::Embedded,
-                presentation: kittycad_modeling_cmds::format::gltf::export::Presentation::Pretty,
-            })
-        }
-        kittycad::types::FileExportFormat::Obj => {
-            kittycad_modeling_cmds::format::OutputFormat::Obj(kittycad_modeling_cmds::format::obj::export::Options {
-                coords,
-                units: src_unit,
-            })
-        }
-        kittycad::types::FileExportFormat::Ply => {
-            kittycad_modeling_cmds::format::OutputFormat::Ply(kittycad_modeling_cmds::format::ply::export::Options {
-                storage: kittycad_modeling_cmds::format::ply::export::Storage::Ascii,
-                coords,
-                selection: kittycad_modeling_cmds::format::Selection::DefaultScene,
-                units: src_unit,
-            })
-        }
-        kittycad::types::FileExportFormat::Step => {
-            kittycad_modeling_cmds::format::OutputFormat::Step(kittycad_modeling_cmds::format::step::export::Options {
-                coords,
-                created: None,
-            })
-        }
-        kittycad::types::FileExportFormat::Stl => {
-            kittycad_modeling_cmds::format::OutputFormat::Stl(kittycad_modeling_cmds::format::stl::export::Options {
-                storage: kittycad_modeling_cmds::format::stl::export::Storage::Ascii,
-                coords,
-                units: src_unit,
-                selection: kittycad_modeling_cmds::format::Selection::DefaultScene,
-            })
-        }
+        kt::FileExportFormat::Fbx => OutputFormat::Fbx(kcmc::format::fbx::export::Options {
+            storage: kcmc::format::fbx::export::Storage::Binary,
+            created: None,
+        }),
+        kt::FileExportFormat::Glb => OutputFormat::Gltf(kcmc::format::gltf::export::Options {
+            storage: kcmc::format::gltf::export::Storage::Binary,
+            presentation: kcmc::format::gltf::export::Presentation::Compact,
+        }),
+        kt::FileExportFormat::Gltf => OutputFormat::Gltf(kcmc::format::gltf::export::Options {
+            storage: kcmc::format::gltf::export::Storage::Embedded,
+            presentation: kcmc::format::gltf::export::Presentation::Pretty,
+        }),
+        kt::FileExportFormat::Obj => OutputFormat::Obj(kcmc::format::obj::export::Options {
+            coords,
+            units: src_unit,
+        }),
+        kt::FileExportFormat::Ply => OutputFormat::Ply(kcmc::format::ply::export::Options {
+            storage: kcmc::format::ply::export::Storage::Ascii,
+            coords,
+            selection: kcmc::format::Selection::DefaultScene,
+            units: src_unit,
+        }),
+        kt::FileExportFormat::Step => OutputFormat::Step(kcmc::format::step::export::Options { coords, created: None }),
+        kt::FileExportFormat::Stl => OutputFormat::Stl(kcmc::format::stl::export::Options {
+            storage: kcmc::format::stl::export::Storage::Ascii,
+            coords,
+            units: src_unit,
+            selection: kcmc::format::Selection::DefaultScene,
+        }),
     }
 }
 
