@@ -7,6 +7,7 @@ use anyhow::Result;
 use base64::prelude::*;
 use clap::Parser;
 use kcl_lib::engine::EngineManager;
+use kittycad_modeling_cmds as kcmc;
 
 use crate::cmd_kcl::write_deterministic_export;
 
@@ -205,7 +206,10 @@ impl crate::cmd::Command for CmdFileSnapshot {
 
         // Parse the image format.
         let output_format = if let Some(output_format) = &self.output_format {
-            output_format.clone()
+            match output_format {
+                kittycad::types::ImageFormat::Png => kcmc::ImageFormat::Png,
+                kittycad::types::ImageFormat::Jpeg => kcmc::ImageFormat::Jpeg,
+            }
         } else {
             crate::cmd_kcl::get_image_format_from_extension(&crate::cmd_file::get_extension(self.output_file.clone()))?
         };
@@ -280,9 +284,9 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::executor::SourceRange::default(),
-                kittycad_modeling_cmds::ModelingCmd::ImportFiles(kittycad_modeling_cmds::ImportFiles {
-                    files,
-                    format: src_format,
+                kcmc::ModelingCmd::ImportFiles(kcmc::ImportFiles {
+                    files: files.into_iter().map(|f| f.into()).collect(),
+                    format: src_format.into(),
                 }),
             )
             .await?;

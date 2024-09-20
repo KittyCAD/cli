@@ -191,15 +191,7 @@ impl Context<'_> {
             .ml()
             .create_text_to_cad(
                 None,
-                match format {
-                    FileExportFormat::Fbx => kittycad::types::FileExportFormat::Fbx,
-                    FileExportFormat::Glb => kittycad::types::FileExportFormat::Glb,
-                    FileExportFormat::Gltf => kittycad::types::FileExportFormat::Gltf,
-                    FileExportFormat::Obj => kittycad::types::FileExportFormat::Obj,
-                    FileExportFormat::Ply => kittycad::types::FileExportFormat::Ply,
-                    FileExportFormat::Step => kittycad::types::FileExportFormat::Step,
-                    FileExportFormat::Stl => kittycad::types::FileExportFormat::Stl,
-                },
+                format.into(),
                 &TextToCadCreateBody {
                     prompt: prompt.to_string(),
                 },

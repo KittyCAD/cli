@@ -81,9 +81,7 @@ impl crate::cmd::Command for CmdTextToCadExport {
             anyhow::bail!("prompt cannot be empty");
         }
 
-        let mut model = ctx
-            .get_model_for_prompt("", &prompt, self.output_format.clone())
-            .await?;
+        let mut model = ctx.get_model_for_prompt("", &prompt, self.output_format).await?;
 
         if let Some(outputs) = model.outputs {
             // Write the contents of the files to the output directory.

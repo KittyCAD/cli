@@ -2,6 +2,7 @@ use std::{net::SocketAddr, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
+use kittycad::types as kt;
 use url::Url;
 
 use crate::iostreams::IoStreams;
@@ -151,7 +152,7 @@ impl crate::cmd::Command for CmdKclExport {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data)
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
 
         Ok(())
@@ -389,7 +390,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
             self.output_file.to_str().unwrap_or("")
         )?;
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data)
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
 
         Ok(())
@@ -634,7 +635,7 @@ impl crate::cmd::Command for CmdKclVolume {
                 input,
                 kittycad_modeling_cmds::ModelingCmd::Volume(kittycad_modeling_cmds::Volume {
                     entity_ids: vec![], // get whole model
-                    output_unit: self.output_unit.clone(),
+                    output_unit: self.output_unit.clone().into(),
                 }),
                 executor_settings,
             )
@@ -652,7 +653,7 @@ impl crate::cmd::Command for CmdKclVolume {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data)
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
         Ok(())
     }
@@ -731,8 +732,8 @@ impl crate::cmd::Command for CmdKclMass {
                 kittycad_modeling_cmds::ModelingCmd::Mass(kittycad_modeling_cmds::Mass {
                     entity_ids: vec![], // get whole model
                     material_density: self.material_density.into(),
-                    material_density_unit: self.material_density_unit.clone(),
-                    output_unit: self.output_unit.clone(),
+                    material_density_unit: self.material_density_unit.clone().into(),
+                    output_unit: self.output_unit.clone().into(),
                 }),
                 executor_settings,
             )
@@ -750,7 +751,7 @@ impl crate::cmd::Command for CmdKclMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data)
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
         Ok(())
     }
@@ -816,7 +817,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
                 input,
                 kittycad_modeling_cmds::ModelingCmd::CenterOfMass(kittycad_modeling_cmds::CenterOfMass {
                     entity_ids: vec![], // get whole model
-                    output_unit: self.output_unit.clone(),
+                    output_unit: self.output_unit.clone().into(),
                 }),
                 executor_settings,
             )
@@ -834,7 +835,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data)
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
         Ok(())
     }
@@ -913,8 +914,8 @@ impl crate::cmd::Command for CmdKclDensity {
                 kittycad_modeling_cmds::ModelingCmd::Density(kittycad_modeling_cmds::Density {
                     entity_ids: vec![], // get whole model
                     material_mass: self.material_mass.into(),
-                    material_mass_unit: self.material_mass_unit.clone(),
-                    output_unit: self.output_unit.clone(),
+                    material_mass_unit: self.material_mass_unit.clone().into(),
+                    output_unit: self.output_unit.clone().into(),
                 }),
                 executor_settings,
             )
@@ -932,7 +933,7 @@ impl crate::cmd::Command for CmdKclDensity {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data)
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
         Ok(())
     }
@@ -998,7 +999,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
                 input,
                 kittycad_modeling_cmds::ModelingCmd::SurfaceArea(kittycad_modeling_cmds::SurfaceArea {
                     entity_ids: vec![], // get whole model
-                    output_unit: self.output_unit.clone(),
+                    output_unit: self.output_unit.clone().into(),
                 }),
                 executor_settings,
             )
@@ -1016,7 +1017,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data)
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
         Ok(())
     }
