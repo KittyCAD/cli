@@ -24,8 +24,8 @@ http = "0.2.6"
 itertools = "0.12.1"
 kcl-lib = { version = "0.2.18", features = ["disable-println"] }
 kcl-test-server = "0.1.11"
-kittycad = { version = "0.3.18", features = ["clap", "tabled", "requests", "retry"] }
-kittycad-modeling-cmds = { version= "0.2.60", features = ["websocket", "convert_client_crate", "tabled"] }
+kittycad = { version = "0.3.21", features = ["clap", "tabled", "requests", "retry"] }
+kittycad-modeling-cmds = { version = "0.2.61", features = ["websocket", "convert_client_crate", "tabled"] }
 log = "0.4.22"
 nu-ansi-term = "0.50.1"
 num-traits = "0.2.19"
@@ -46,7 +46,7 @@ slog-async = "2"
 slog-scope = "4"
 slog-stdlog = "4"
 slog-term = "2"
-tabled = { version = "0.15.0", features = ["ansi"] }
+tabled = { version = "0.16.0", features = ["ansi"] }
 tabwriter = "1.4.0"
 termbg = "0.5.1"
 terminal_size = "0.3.0"
