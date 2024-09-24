@@ -25,7 +25,7 @@ itertools = "0.12.1"
 kcl-lib = { version = "0.2.18", features = ["disable-println"] }
 kcl-test-server = "0.1.11"
 kittycad = { version = "0.3.21", features = ["clap", "tabled", "requests", "retry"] }
-kittycad-modeling-cmds = { version = "0.2.61", features = ["websocket", "convert_client_crate", "tabled"] }
+kittycad-modeling-cmds = { version = "0.2.62", features = ["websocket", "convert_client_crate", "tabled"] }
 log = "0.4.22"
 nu-ansi-term = "0.50.1"
 num-traits = "0.2.19"
