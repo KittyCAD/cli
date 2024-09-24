@@ -1648,7 +1648,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.7",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -2007,9 +2007,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.61"
+version = "0.2.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5128ba683e849388cac4214b65911c343842d559bec10827575c840a47733786"
+checksum = "e5dd63c552792e273391b7229769187cbed405669bc4fa3ea0ba60ab54deb6a1"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2024,7 +2024,6 @@ dependencies = [
  "measurements",
  "parse-display 0.9.1",
  "parse-display-derive 0.9.1",
- "schemars",
  "serde",
  "serde_bytes",
  "serde_json",
@@ -2034,9 +2033,21 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds-macros"
-version = "0.1.9"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0cdc505a33bfffb87c317435ec41ced8f73474217cf30db685e479bf289757e"
+checksum = "4d4e60257fe732e44bbf76debe0d20608f451b2e0facb667ac00b831d99466d4"
+dependencies = [
+ "kittycad-modeling-cmds-macros-impl",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.77",
+]
+
+[[package]]
+name = "kittycad-modeling-cmds-macros-impl"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a75e8260bf9570e3334a69e49661289f472f86fbfe35ed776672476c8317f58"
 dependencies = [
  "proc-macro2",
  "quote",
