@@ -49,7 +49,7 @@ slog-term = "2"
 tabled = { version = "0.16.0", features = ["ansi"] }
 tabwriter = "1.4.0"
 termbg = "0.5.1"
-terminal_size = "0.3.0"
+terminal_size = "0.4.0"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
 toml = "0.8.19"
