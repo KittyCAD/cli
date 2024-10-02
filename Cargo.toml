@@ -11,7 +11,7 @@ async-trait = "0.1.83"
 base64 = "0.22.1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = { version = "4.5.18", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
-clap_complete = { version = "4.5.29" }
+clap_complete = { version = "4.5.30" }
 cli-macro = { path = "cli-macro" }
 colored = "2.1.0"
 colored_json = "4.1"
