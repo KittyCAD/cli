@@ -153,7 +153,7 @@ impl Context<'_> {
 
         let ctx = kcl_lib::executor::ExecutorContext::new(&client, settings).await?;
         let (_, session_data) = ctx
-            .run_with_session_data(&program, None, Default::default())
+            .run_with_session_data(&program, None, Default::default(), None)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
