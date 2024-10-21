@@ -50,36 +50,6 @@ impl IoStreams {
     }
 
     #[allow(dead_code)]
-    pub fn detect_terminal_theme(&mut self) -> String {
-        if !self.color_enabled() {
-            self.terminal_theme = "none".to_string();
-            return self.terminal_theme.to_string();
-        }
-
-        if self.pager_process.is_some() {
-            self.terminal_theme = "none".to_string();
-            return self.terminal_theme.to_string();
-        }
-
-        let timeout = std::time::Duration::from_millis(100);
-        match termbg::theme(timeout) {
-            Ok(theme) => {
-                if matches!(theme, termbg::Theme::Dark) {
-                    self.terminal_theme = "dark".to_string();
-                    return self.terminal_theme.to_string();
-                }
-
-                self.terminal_theme = "light".to_string();
-                self.terminal_theme.to_string()
-            }
-            Err(_) => {
-                self.terminal_theme = "none".to_string();
-                self.terminal_theme.to_string()
-            }
-        }
-    }
-
-    #[allow(dead_code)]
     pub fn terminal_theme(&self) -> String {
         if self.terminal_theme.is_empty() {
             return "none".to_string();
