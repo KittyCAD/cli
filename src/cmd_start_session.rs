@@ -3,7 +3,16 @@ use std::net::SocketAddr;
 use anyhow::Result;
 use clap::Parser;
 
-/// Starts a modeling session
+/// Starts a modeling session.
+///
+/// This command starts a server on localhost (on the configurable interface), and
+/// waits to receive KCL programs over that server. It also connects to the KittyCAD
+/// API and keeps the connection alive until this process is stopped. When it receives
+/// a KCL program over the local server, it executes it using the long-lived KittyCAD
+/// connection.
+///
+/// This subcommand is designed to be used with `zoo kcl snapshot --session localhost:3333`,
+/// which will reuse the existing connection started by `zoo start-session localhost:3333`.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdStartSession {

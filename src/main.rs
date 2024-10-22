@@ -142,6 +142,8 @@ enum SubCommand {
     Kcl(cmd_kcl::CmdKcl),
     Ml(cmd_ml::CmdMl),
     Say(cmd_say::CmdSay),
+    // Hide until <https://github.com/KittyCAD/cli/issues/983> is done.
+    #[clap(hide = true)]
     StartSession(cmd_start_session::CmdStartSession),
     Open(cmd_open::CmdOpen),
     Update(cmd_update::CmdUpdate),
