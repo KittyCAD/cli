@@ -175,6 +175,9 @@ mod test {
         assert!(stdout.contains("### About"), "");
 
         assert_eq!(stderr, "");
+
+        // Ensure we don't generate the help command.
+        assert!(!stdout.contains("help.md"));
     }
 
     #[test]
