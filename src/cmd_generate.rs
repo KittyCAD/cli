@@ -53,11 +53,17 @@ impl crate::cmd::Command for CmdGenerateMarkdown {
 
 impl CmdGenerateMarkdown {
     fn generate(&self, ctx: &mut crate::context::Context, app: &Command, parent: &str) -> Result<()> {
+        let name = app.get_name();
+        if name == "help" {
+            // Skip the help command.
+            return Ok(());
+        }
+
         let mut p = parent.to_string();
         if !p.is_empty() {
-            p = format!("{}_{}", p, app.get_name());
+            p = format!("{}_{}", p, name);
         } else {
-            p = app.get_name().to_string();
+            p = name.to_string();
         }
 
         let filename = format!("{p}.md");

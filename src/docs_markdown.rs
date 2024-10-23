@@ -47,13 +47,17 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
         doc.paragraph(about.to_string());
     }
 
-    if app.has_subcommands() {
+    let sub_commands = app
+        .get_subcommands()
+        .filter(|c| c.get_name() != "help")
+        .collect::<Vec<&Command>>();
+    if !sub_commands.is_empty() {
         doc.header("Subcommands".to_string(), pulldown_cmark::HeadingLevel::H3);
 
         doc.0
             .push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::List(None)));
 
-        for cmd in app.get_subcommands() {
+        for cmd in sub_commands {
             doc.link_in_list(
                 format!("{} {}", title, cmd.get_name()),
                 format!("./{}_{}", title.replace(' ', "_"), cmd.get_name()),
@@ -64,6 +68,7 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
     }
 
     let args = app.get_arguments().collect::<Vec<&clap::Arg>>();
+    println!("args: {:?}", args);
     if !args.is_empty() {
         doc.header("Options".to_string(), pulldown_cmark::HeadingLevel::H3);
 
