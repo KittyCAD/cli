@@ -68,7 +68,6 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
     }
 
     let args = app.get_arguments().collect::<Vec<&clap::Arg>>();
-    println!("args: {:?}", args);
     if !args.is_empty() {
         doc.header("Options".to_string(), pulldown_cmark::HeadingLevel::H3);
 
