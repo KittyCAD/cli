@@ -1856,7 +1856,7 @@ dependencies = [
  "measurements",
  "mime_guess",
  "parse-display 0.9.1",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "ropey",
  "schemars",
  "serde",
@@ -1917,7 +1917,7 @@ dependencies = [
  "parse-display 0.10.0",
  "phonenumber",
  "rand 0.8.5",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "reqwest-conditional-middleware",
  "reqwest-middleware 0.3.3",
  "reqwest-retry",
@@ -3092,9 +3092,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.12.8"
+version = "0.12.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f713147fbe92361e52392c73b8c9e48c04c6625bce969ef54dc901e58e042a7b"
+checksum = "a77c62af46e79de0a562e1a9849205ffcb7fc1238876e9bd743357570e04046f"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -3144,7 +3144,7 @@ checksum = "b1663d9d4fbb6e3900f91455d6d7833301c91ae3c7fc6e116fd7acd40e478a93"
 dependencies = [
  "async-trait",
  "http 1.1.0",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "reqwest-middleware 0.3.3",
 ]
 
@@ -3172,7 +3172,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "http 1.1.0",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "serde",
  "thiserror",
  "tower-service",
@@ -3191,7 +3191,7 @@ dependencies = [
  "http 1.1.0",
  "hyper 1.4.1",
  "parking_lot 0.11.2",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "reqwest-middleware 0.3.3",
  "retry-policies",
  "tokio",
@@ -3211,7 +3211,7 @@ dependencies = [
  "http 1.1.0",
  "matchit",
  "opentelemetry",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "reqwest-middleware 0.3.3",
  "tracing",
  "tracing-opentelemetry",
@@ -5210,7 +5210,7 @@ dependencies = [
  "pulldown-cmark",
  "pulldown-cmark-to-cmark",
  "regex",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "ring",
  "serde",
  "serde_json",
