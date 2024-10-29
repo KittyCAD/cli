@@ -1881,9 +1881,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.14"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a081b6a5a2fbf54980a03d475e27c20830023fd1b528a43d23b81613d7c3c555"
+checksum = "d8b25e8bef557f6e872e23195aa661d9f5fcd9cc7877502bedb87667fcb51cf5"
 dependencies = [
  "anyhow",
  "hyper 0.14.30",
