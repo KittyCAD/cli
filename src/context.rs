@@ -145,10 +145,7 @@ impl Context<'_> {
     ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
-        let tokens = kcl_lib::token::lexer(code)?;
-        let parser = kcl_lib::parser::Parser::new(tokens);
-        let program = parser
-            .ast()
+        let program = kcl_lib::parser::top_level_parse(code)
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         let ctx = kcl_lib::executor::ExecutorContext::new(&client, settings).await?;

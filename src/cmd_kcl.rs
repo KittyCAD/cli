@@ -210,9 +210,7 @@ impl crate::cmd::Command for CmdKclFormat {
         let input = std::str::from_utf8(&input)?;
 
         // Parse the file.
-        let tokens = kcl_lib::token::lexer(input)?;
-        let parser = kcl_lib::parser::Parser::new(tokens);
-        let program = parser.ast()?;
+        let program = kcl_lib::parser::top_level_parse(input)?;
 
         // Recast the program to a string.
         let formatted = program.recast(
@@ -1041,9 +1039,7 @@ impl crate::cmd::Command for CmdKclLint {
         let input = std::str::from_utf8(&input)?;
 
         // Parse the file.
-        let tokens = kcl_lib::token::lexer(input)?;
-        let parser = kcl_lib::parser::Parser::new(tokens);
-        let program = parser.ast()?;
+        let program = kcl_lib::parser::top_level_parse(input)?;
 
         for discovered_finding in program.lint_all()? {
             let finding_range = discovered_finding.pos.to_lsp_range(input);
