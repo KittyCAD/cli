@@ -862,9 +862,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.30"
+version = "0.1.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca8d1f48a43a738ddb38cc99f66e2c207d952a18ed02b453299f562c1cb3ee4e"
+checksum = "f26afe8c7a6902add6133e3b2d747c9be9cd9efcf8811b76e5bd6bab7a0ba4c0"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1956,9 +1956,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.24"
+version = "0.2.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e54dc67c463a325b5899d40be1cca07a505581c330b6413a59297f89bd88140"
+checksum = "f2d1dfc33302d0b95433befd718bbeba79267a19fff09844193fa83e22c642d5"
 dependencies = [
  "anyhow",
  "approx 0.5.1",
@@ -1971,6 +1971,7 @@ dependencies = [
  "dashmap 6.1.0",
  "databake",
  "derive-docs",
+ "fnv",
  "form_urlencoded",
  "futures",
  "git_rev",
@@ -2010,9 +2011,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.16"
+version = "0.1.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36e829e2a3dfe1e1018ba42c024c8ee154d4128ce89c3a78e86b4a5349f0b600"
+checksum = "b15aa6558d34af2bbc2bab3ab148a48bbfd565b773b730289cf251c70a860a93"
 dependencies = [
  "anyhow",
  "hyper 0.14.30",
@@ -2066,9 +2067,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.74"
+version = "0.2.77"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0a77a98d3b7f946d2379b7f4507789cd874e89b50b3cd8492a5cc4bcb29dc3f"
+checksum = "3b77259b37acafa360d98af27431ac394bc8899eeed7037513832ddbee856811"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2076,7 +2077,7 @@ dependencies = [
  "enum-iterator",
  "enum-iterator-derive",
  "euler",
- "http 0.2.12",
+ "http 1.1.0",
  "kittycad",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",

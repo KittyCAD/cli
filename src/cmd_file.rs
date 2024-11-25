@@ -6,7 +6,7 @@ use std::{
 use anyhow::Result;
 use base64::prelude::*;
 use clap::Parser;
-use kcl_lib::engine::EngineManager;
+use kcl_lib::EngineManager;
 use kittycad_modeling_cmds as kcmc;
 
 use crate::cmd_kcl::write_deterministic_export;
@@ -283,7 +283,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         let resp = engine
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
+                kcl_lib::SourceRange::default(),
                 kcmc::ModelingCmd::ImportFiles(kcmc::ImportFiles {
                     files: files.into_iter().map(|f| f.into()).collect(),
                     format: src_format.into(),
@@ -304,7 +304,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         engine
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
+                kcl_lib::SourceRange::default(),
                 kittycad_modeling_cmds::ModelingCmd::DefaultCameraFocusOn(
                     kittycad_modeling_cmds::DefaultCameraFocusOn { uuid: object_id },
                 ),
@@ -316,7 +316,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         let resp = engine
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
+                kcl_lib::SourceRange::default(),
                 kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
                     format: output_format,
                 }),

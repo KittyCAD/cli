@@ -4,7 +4,7 @@
 use std::fmt;
 
 use colored::Colorize;
-use kcl_lib::executor::SourceRange;
+use kcl_lib::SourceRange;
 
 /// Separator used between the line numbering and the lines.
 const SEPARATOR: &str = " | ";
@@ -27,8 +27,8 @@ pub struct KclError {
 /// The error types that we can pretty format.
 #[derive(Debug)]
 pub enum ErrorTypes {
-    /// Contains [`kcl_lib::errors::KclError`].
-    Kcl(kcl_lib::errors::KclError),
+    /// Contains [`kcl_lib::KclError`].
+    Kcl(kcl_lib::KclError),
 }
 
 impl std::error::Error for KclError {}
@@ -39,8 +39,8 @@ impl fmt::Display for KclError {
     }
 }
 
-impl From<kcl_lib::errors::KclError> for ErrorTypes {
-    fn from(err: kcl_lib::errors::KclError) -> Self {
+impl From<kcl_lib::KclError> for ErrorTypes {
+    fn from(err: kcl_lib::KclError) -> Self {
         Self::Kcl(err)
     }
 }

@@ -210,17 +210,14 @@ impl crate::cmd::Command for CmdKclFormat {
         let input = std::str::from_utf8(&input)?;
 
         // Parse the file.
-        let program = kcl_lib::parser::top_level_parse(input)?;
+        let program = kcl_lib::Program::parse(input)?;
 
         // Recast the program to a string.
-        let formatted = program.recast(
-            &kcl_lib::ast::types::FormatOptions {
-                tab_size: self.tab_size,
-                use_tabs: self.use_tabs,
-                insert_final_newline: self.insert_final_newline,
-            },
-            0,
-        );
+        let formatted = program.recast_with_options(&kcl_lib::FormatOptions {
+            tab_size: self.tab_size,
+            use_tabs: self.use_tabs,
+            insert_final_newline: self.insert_final_newline,
+        });
 
         if self.write {
             if self.input.to_str().unwrap_or("-") == "-" {
@@ -1039,7 +1036,7 @@ impl crate::cmd::Command for CmdKclLint {
         let input = std::str::from_utf8(&input)?;
 
         // Parse the file.
-        let program = kcl_lib::parser::top_level_parse(input)?;
+        let program = kcl_lib::Program::parse(input)?;
 
         for discovered_finding in program.lint_all()? {
             let finding_range = discovered_finding.pos.to_lsp_range(input);
@@ -1119,9 +1116,9 @@ fn print_trace_link(io: &mut IoStreams, session_data: &Option<kittycad::types::M
 pub fn get_modeling_settings_from_project_toml(
     input: &std::path::Path,
     src_unit: Option<kittycad::types::UnitLength>,
-) -> Result<kcl_lib::executor::ExecutorSettings> {
+) -> Result<kcl_lib::ExecutorSettings> {
     // Create the default settings from the src unit if given.
-    let default_settings = kcl_lib::executor::ExecutorSettings {
+    let default_settings = kcl_lib::ExecutorSettings {
         // We default to millimeters if not otherwise noted.
         units: src_unit.clone().unwrap_or(kittycad::types::UnitLength::Mm).into(),
         ..Default::default()
@@ -1152,8 +1149,8 @@ pub fn get_modeling_settings_from_project_toml(
     let project_toml = find_project_toml(&dir)?;
     if let Some(project_toml) = project_toml {
         let project_toml = std::fs::read_to_string(&project_toml)?;
-        let project_toml: kcl_lib::settings::types::project::ProjectConfiguration = toml::from_str(&project_toml)?;
-        let settings: kcl_lib::executor::ExecutorSettings = project_toml.settings.modeling.into();
+        let project_toml: kcl_lib::ProjectConfiguration = toml::from_str(&project_toml)?;
+        let settings: kcl_lib::ExecutorSettings = project_toml.settings.modeling.into();
         // Make sure if they gave a command line flag, it tells them they don't match.
         if let Some(src_unit) = src_unit {
             let units: kittycad::types::UnitLength = settings.units.into();

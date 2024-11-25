@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
-use kcl_lib::engine::EngineManager;
+use kcl_lib::native_engine::EngineConnection;
+use kcl_lib::EngineManager;
 use kcmc::each_cmd as mcmd;
 use kcmc::websocket::OkWebSocketResponseData;
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody};
@@ -110,7 +111,7 @@ impl Context<'_> {
         let engine = self.engine(hostname, replay).await?;
 
         let resp = engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), cmd)
             .await?;
         Ok(resp)
     }
@@ -124,14 +125,10 @@ impl Context<'_> {
         Ok(ws)
     }
 
-    pub async fn engine(
-        &self,
-        hostname: &str,
-        replay: Option<String>,
-    ) -> Result<kcl_lib::engine::conn::EngineConnection> {
+    pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineConnection> {
         let ws = self.engine_ws(hostname, replay).await?;
 
-        let engine = kcl_lib::engine::conn::EngineConnection::new(ws).await?;
+        let engine = EngineConnection::new(ws).await?;
 
         Ok(engine)
     }
@@ -141,16 +138,16 @@ impl Context<'_> {
         hostname: &str,
         code: &str,
         cmd: kittycad_modeling_cmds::ModelingCmd,
-        settings: kcl_lib::executor::ExecutorSettings,
+        settings: kcl_lib::ExecutorSettings,
     ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
-        let program = kcl_lib::parser::top_level_parse(code)
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+        let program =
+            kcl_lib::Program::parse(code).map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
-        let ctx = kcl_lib::executor::ExecutorContext::new(&client, settings).await?;
-        let (_, session_data) = ctx
-            .run_with_session_data(&program, None, Default::default(), None)
+        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let session_data = ctx
+            .run_with_session_data(&program, &mut Default::default())
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
@@ -158,7 +155,7 @@ impl Context<'_> {
         ctx.engine
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
-                kcl_lib::executor::SourceRange::default(),
+                kcl_lib::SourceRange::default(),
                 ModelingCmd::from(mcmd::ZoomToFit {
                     animated: false,
                     object_ids: Default::default(),
@@ -169,7 +166,7 @@ impl Context<'_> {
 
         let resp = ctx
             .engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::executor::SourceRange::default(), cmd)
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), cmd)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         Ok((resp, session_data))
