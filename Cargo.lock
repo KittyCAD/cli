@@ -2066,9 +2066,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.74"
+version = "0.2.77"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0a77a98d3b7f946d2379b7f4507789cd874e89b50b3cd8492a5cc4bcb29dc3f"
+checksum = "3b77259b37acafa360d98af27431ac394bc8899eeed7037513832ddbee856811"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2076,7 +2076,7 @@ dependencies = [
  "enum-iterator",
  "enum-iterator-derive",
  "euler",
- "http 0.2.12",
+ "http 1.1.0",
  "kittycad",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",
