@@ -102,6 +102,10 @@ pub struct CmdKclExport {
     /// This is useful for when pushing to version control.
     #[clap(long, default_value = "false")]
     pub deterministic: bool,
+
+    /// If true, tell engine to store a replay.
+    #[clap(long, default_value = "false")]
+    pub replay: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -116,12 +120,18 @@ impl crate::cmd::Command for CmdKclExport {
         }
 
         // Get the contents of the input file.
+        let filename = self
+            .input
+            .file_name()
+            .map(|b| b.to_string_lossy().to_string())
+            .unwrap_or("unknown".to_string());
         let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
         // Parse the input as a string.
         let input = std::str::from_utf8(&input)?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        executor_settings.replay = self.replay.then_some(filename);
         let src_unit = executor_settings.units;
 
         // Spin up websockets and do the conversion.
