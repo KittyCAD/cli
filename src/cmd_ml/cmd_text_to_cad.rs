@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use kcl_lib::engine::EngineManager;
+use kcl_lib::EngineManager;
 use kcmc::each_cmd as mcmd;
 use kcmc::format::InputFormat;
 use kcmc::ok_response::OkModelingCmdResponse;
@@ -291,7 +291,7 @@ async fn get_image_bytes(
     let resp = engine
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
-            kcl_lib::executor::SourceRange::default(),
+            kcl_lib::SourceRange::default(),
             ModelingCmd::from(mcmd::ImportFiles {
                 files: vec![ImportFile {
                     path: "model.gltf".to_string(),
@@ -315,7 +315,7 @@ async fn get_image_bytes(
     engine
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
-            kcl_lib::executor::SourceRange::default(),
+            kcl_lib::SourceRange::default(),
             ModelingCmd::from(mcmd::DefaultCameraFocusOn { uuid: object_id }),
         )
         .await?;
@@ -325,7 +325,7 @@ async fn get_image_bytes(
     let resp = engine
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
-            kcl_lib::executor::SourceRange::default(),
+            kcl_lib::SourceRange::default(),
             ModelingCmd::from(mcmd::TakeSnapshot { format: output_format }),
         )
         .await?;
