@@ -118,7 +118,7 @@ impl KclError {
         let Some(range) = self.source_ranges.first() else {
             return writeln!(f, "{plain_error_msg}");
         };
-        let error_starts_at_offset = range.0[0];
+        let error_starts_at_offset = range.start();
         let error_line = self.input[..error_starts_at_offset].lines().count();
         let error_column = self.input[..error_starts_at_offset].lines().last().map(|l| l.len());
         let Some(error_column) = error_column else {
