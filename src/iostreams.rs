@@ -166,6 +166,7 @@ impl IoStreams {
             return Ok(());
         }
 
+        #[allow(clippy::zombie_processes)]
         let mut pager_process = self.pager_process.take().unwrap();
         let _ = pager_process.kill();
 

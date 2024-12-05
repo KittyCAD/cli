@@ -1113,7 +1113,7 @@ fn print_trace_link(io: &mut IoStreams, session_data: &Option<kittycad::types::M
 
 /// Look for a `project.toml` file the same directory as the input file.
 /// Use that for the engine settings.
-pub fn get_modeling_settings_from_project_toml(
+fn get_modeling_settings_from_project_toml(
     input: &std::path::Path,
     src_unit: Option<kittycad::types::UnitLength>,
 ) -> Result<kcl_lib::ExecutorSettings> {
