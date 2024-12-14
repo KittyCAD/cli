@@ -143,11 +143,11 @@ impl Context<'_> {
         let client = self.api_client(hostname)?;
 
         let program =
-            kcl_lib::Program::parse(code).map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+            kcl_lib::Program::parse_no_errs(code).map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
         let session_data = ctx
-            .run_with_session_data(&program, &mut Default::default())
+            .run_with_session_data(program.into(), &mut Default::default())
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
