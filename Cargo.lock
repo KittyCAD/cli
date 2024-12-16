@@ -2482,7 +2482,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#b3f519ef3a819899ec3bdcb34970ad6c73e24719"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#f1a4c2447c35b607eae9ee203bab00ac4f32ec00"
 dependencies = [
  "Inflector",
  "anyhow",
