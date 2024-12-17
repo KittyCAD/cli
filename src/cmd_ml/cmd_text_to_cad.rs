@@ -34,6 +34,59 @@ impl crate::cmd::Command for CmdTextToCad {
     }
 }
 
+#[doc = "The valid types of output file formats."]
+#[derive(serde :: Serialize, serde :: Deserialize, PartialEq, Hash, Debug, Clone, clap::ValueEnum)]
+pub enum FileExportFormat {
+    /// KCL file format. <https://kittycad.com/docs/kcl/>
+    #[serde(rename = "kcl")]
+    Kcl,
+    #[doc = "Autodesk Filmbox (FBX) format. <https://en.wikipedia.org/wiki/FBX>"]
+    #[serde(rename = "fbx")]
+    Fbx,
+    #[doc = "Binary glTF 2.0.\n\nThis is a single binary with .glb extension.\n\nThis is better \
+             if you want a compressed format as opposed to the human readable glTF that lacks \
+             compression."]
+    #[serde(rename = "glb")]
+    Glb,
+    #[doc = "glTF 2.0. Embedded glTF 2.0 (pretty printed).\n\nSingle JSON file with .gltf \
+             extension binary data encoded as base64 data URIs.\n\nThe JSON contents are pretty \
+             printed.\n\nIt is human readable, single file, and you can view the diff easily in a \
+             git commit."]
+    #[serde(rename = "gltf")]
+    Gltf,
+    #[doc = "The OBJ file format. <https://en.wikipedia.org/wiki/Wavefront_.obj_file> It may or \
+             may not have an an attached material (mtl // mtllib) within the file, but we \
+             interact with it as if it does not."]
+    #[serde(rename = "obj")]
+    Obj,
+    #[doc = "The PLY file format. <https://en.wikipedia.org/wiki/PLY_(file_format)>"]
+    #[serde(rename = "ply")]
+    Ply,
+    #[doc = "The STEP file format. <https://en.wikipedia.org/wiki/ISO_10303-21>"]
+    #[serde(rename = "step")]
+    Step,
+    #[doc = "The STL file format. <https://en.wikipedia.org/wiki/STL_(file_format)>"]
+    #[serde(rename = "stl")]
+    Stl,
+}
+
+impl TryFrom<FileExportFormat> for kittycad::types::FileExportFormat {
+    type Error = anyhow::Error;
+
+    fn try_from(value: FileExportFormat) -> Result<Self> {
+        match value {
+            FileExportFormat::Kcl => anyhow::bail!("KCL file format is not supported"),
+            FileExportFormat::Fbx => Ok(kittycad::types::FileExportFormat::Fbx),
+            FileExportFormat::Glb => Ok(kittycad::types::FileExportFormat::Glb),
+            FileExportFormat::Gltf => Ok(kittycad::types::FileExportFormat::Gltf),
+            FileExportFormat::Obj => Ok(kittycad::types::FileExportFormat::Obj),
+            FileExportFormat::Ply => Ok(kittycad::types::FileExportFormat::Ply),
+            FileExportFormat::Step => Ok(kittycad::types::FileExportFormat::Step),
+            FileExportFormat::Stl => Ok(kittycad::types::FileExportFormat::Stl),
+        }
+    }
+}
+
 /// Run a Text-to-CAD prompt and export it as any other supported CAD file format.
 ///
 ///     $ zoo ml text-to-cad export --output-format=obj A 2x4 lego brick
@@ -51,7 +104,7 @@ pub struct CmdTextToCadExport {
 
     /// A valid output file format.
     #[clap(short = 't', long = "output-format", value_enum)]
-    output_format: kittycad::types::FileExportFormat,
+    output_format: FileExportFormat,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -82,24 +135,49 @@ impl crate::cmd::Command for CmdTextToCadExport {
         }
 
         let mut model = ctx
-            .get_model_for_prompt("", &prompt, self.output_format.clone())
+            .get_model_for_prompt(
+                "",
+                &prompt,
+                self.output_format == FileExportFormat::Kcl,
+                if self.output_format == FileExportFormat::Kcl {
+                    kittycad::types::FileExportFormat::Gltf
+                } else {
+                    self.output_format.clone().try_into()?
+                },
+            )
             .await?;
 
-        if let Some(outputs) = model.outputs {
-            // Write the contents of the files to the output directory.
-            for (filename, data) in outputs.iter() {
-                let path = output_dir.clone().join(filename);
-                std::fs::write(&path, data)?;
-                writeln!(
-                    ctx.io.out,
-                    "wrote file `{}` to {}",
-                    filename,
-                    path.to_str().unwrap_or("")
-                )?;
+        if self.output_format != FileExportFormat::Kcl {
+            if let Some(outputs) = model.outputs {
+                // Write the contents of the files to the output directory.
+                for (filename, data) in outputs.iter() {
+                    let path = output_dir.clone().join(filename);
+                    std::fs::write(&path, data)?;
+                    writeln!(
+                        ctx.io.out,
+                        "wrote file `{}` to {}",
+                        filename,
+                        path.to_str().unwrap_or("")
+                    )?;
+                }
+            } else {
+                anyhow::bail!(
+                "no output was generated! (this is probably a bug in the API) you should report it to support@zoo.dev"
+            );
             }
+        } else if let Some(code) = &model.code {
+            let filename = prompt.replace(" ", "_").to_lowercase() + ".kcl";
+            let path = output_dir.clone().join(&filename);
+            std::fs::write(&path, code)?;
+            writeln!(
+                ctx.io.out,
+                "wrote file `{}` to {}",
+                filename,
+                path.to_str().unwrap_or("")
+            )?;
         } else {
             anyhow::bail!(
-                "no output was generated! (this is probably a bug in the API) you should report it to support@zoo.dev"
+                "no code was generated! (this is probably a bug in the API) you should report it to support@zoo.dev"
             );
         }
 
@@ -164,7 +242,7 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
         }
 
         let model = ctx
-            .get_model_for_prompt("", &prompt, kittycad::types::FileExportFormat::Gltf)
+            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf)
             .await?;
 
         // Get the gltf bytes.
@@ -230,7 +308,7 @@ impl crate::cmd::Command for CmdTextToCadView {
         }
 
         let model = ctx
-            .get_model_for_prompt("", &prompt, kittycad::types::FileExportFormat::Gltf)
+            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf)
             .await?;
 
         // Get the gltf bytes.

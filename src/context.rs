@@ -176,6 +176,7 @@ impl Context<'_> {
         &self,
         hostname: &str,
         prompt: &str,
+        kcl: bool,
         format: kittycad::types::FileExportFormat,
     ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
@@ -194,7 +195,7 @@ impl Context<'_> {
         let mut gen_model: TextToCad = client
             .ml()
             .create_text_to_cad(
-                None,
+                Some(kcl),
                 format.into(),
                 &TextToCadCreateBody {
                     prompt: prompt.to_string(),

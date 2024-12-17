@@ -680,6 +680,24 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "export a text-to-cad prompt as kcl".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "export".to_string(),
+                "--output-format=kcl".to_string(),
+                "a".to_string(),
+                "2x4".to_string(),
+                "lego".to_string(),
+                "brick".to_string(),
+            ],
+            want_out: r#"wrote file "#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "edit a kcl file".to_string(),
             args: vec![
                 "zoo".to_string(),
