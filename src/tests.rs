@@ -692,7 +692,7 @@ access-control-allow-credentials:  """#
                 "lego".to_string(),
                 "brick".to_string(),
             ],
-            want_out: r#"wrote file "#.to_string(),
+            want_out: r#"tubePattern ="#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
