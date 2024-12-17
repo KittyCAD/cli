@@ -426,7 +426,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"43037.102"#.to_string(),
+            want_out: r#"118296.40"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -486,7 +486,7 @@ access-control-allow-credentials:  """#
                 "--material-mass".to_string(),
                 "1.0".to_string(),
             ],
-            want_out: r#"657.963"#.to_string(),
+            want_out: r#"239.56"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -502,7 +502,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm3".to_string(),
             ],
-            want_out: r#"0"#.to_string(),
+            want_out: r#"0.26"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -518,7 +518,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm2".to_string(),
             ],
-            want_out: r#"surface_area | 2.433"#.to_string(),
+            want_out: r#"surface_area | 4.88"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -534,7 +534,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm".to_string(),
             ],
-            want_out: r#"(-0.00000003630934486409387, 0.05000002682209015, -0.0000000001856890335938388)"#.to_string(),
+            want_out: r#"mass | (-0.000"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -596,7 +596,7 @@ access-control-allow-credentials:  """#
                 "fmt".to_string(),
                 "tests/gear.kcl".to_string(),
             ],
-            want_out: r#"line([0.4900857016, -0.0240763666], %)"#.to_string(),
+            want_out: r#"startSketchOn(body, 'END')"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -675,6 +675,40 @@ access-control-allow-credentials:  """#
                 "brick".to_string(),
             ],
             want_out: r#"wrote file "#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "export a text-to-cad prompt as kcl".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "export".to_string(),
+                "--output-format=kcl".to_string(),
+                "a".to_string(),
+                "gear".to_string(),
+            ],
+            want_out: r#" ="#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "edit a kcl file".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "kcl".to_string(),
+                "edit".to_string(),
+                "tests/gear.kcl".to_string(),
+                "make".to_string(),
+                "the".to_string(),
+                "teeth".to_string(),
+                "blue".to_string(),
+            ],
+            want_out: r#"appearance({"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()

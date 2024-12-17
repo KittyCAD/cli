@@ -5,7 +5,7 @@ use kcl_lib::native_engine::EngineConnection;
 use kcl_lib::EngineManager;
 use kcmc::each_cmd as mcmd;
 use kcmc::websocket::OkWebSocketResponseData;
-use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody};
+use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadIteration};
 use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd};
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
@@ -176,6 +176,7 @@ impl Context<'_> {
         &self,
         hostname: &str,
         prompt: &str,
+        kcl: bool,
         format: kittycad::types::FileExportFormat,
     ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
@@ -194,7 +195,7 @@ impl Context<'_> {
         let mut gen_model: TextToCad = client
             .ml()
             .create_text_to_cad(
-                None,
+                Some(kcl),
                 format.into(),
                 &TextToCadCreateBody {
                     prompt: prompt.to_string(),
@@ -249,6 +250,91 @@ impl Context<'_> {
                     user_id,
                     code,
                     model,
+                };
+            } else {
+                anyhow::bail!("Unexpected response type: {:?}", result);
+            }
+
+            status = gen_model.status.clone();
+
+            // Wait for a bit before polling again.
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        }
+
+        // If the model failed we will want to tell the user.
+        if gen_model.status == ApiCallStatus::Failed {
+            if let Some(error) = gen_model.error {
+                anyhow::bail!("Your prompt returned an error: ```\n{}\n```", error);
+            } else {
+                anyhow::bail!("Your prompt returned an error, but no error message. :(");
+            }
+        }
+
+        if gen_model.status != ApiCallStatus::Completed {
+            anyhow::bail!("Your prompt timed out");
+        }
+
+        // Okay, we successfully got a model!
+        Ok(gen_model)
+    }
+
+    pub async fn get_edit_for_prompt(
+        &self,
+        hostname: &str,
+        body: &kittycad::types::TextToCadIterationBody,
+    ) -> Result<TextToCadIteration> {
+        let client = self.api_client(hostname)?;
+
+        // Create the text-to-cad request.
+        let mut gen_model = client.ml().create_text_to_cad_iteration(body).await?;
+
+        // Poll until the model is ready.
+        let mut status = gen_model.status.clone();
+        // Get the current time.
+        let start = std::time::Instant::now();
+        // Give it 5 minutes to complete. That should be way
+        // more than enough!
+        while status != ApiCallStatus::Completed
+            && status != ApiCallStatus::Failed
+            && start.elapsed().as_secs() < 60 * 5
+        {
+            // Poll for the status.
+            let result = client.api_calls().get_async_operation(gen_model.id).await?;
+
+            if let AsyncApiCallOutput::TextToCadIteration {
+                completed_at,
+                created_at,
+                error,
+                feedback,
+                id,
+                model_version,
+                prompt,
+                started_at,
+                status,
+                updated_at,
+                user_id,
+                code,
+                model,
+                original_source_code,
+                source_ranges,
+            } = result
+            {
+                gen_model = TextToCadIteration {
+                    completed_at,
+                    created_at,
+                    error,
+                    feedback,
+                    id,
+                    model_version,
+                    prompt,
+                    started_at,
+                    status,
+                    updated_at,
+                    user_id,
+                    code,
+                    model,
+                    original_source_code,
+                    source_ranges,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);

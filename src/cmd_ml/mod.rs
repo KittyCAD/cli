@@ -1,6 +1,8 @@
 use anyhow::Result;
 use clap::Parser;
 
+/// Kcl commands.
+mod cmd_kcl;
 /// Text-to-CAD commands.
 mod cmd_text_to_cad;
 
@@ -16,6 +18,7 @@ pub struct CmdMl {
 enum SubCommand {
     #[clap(name = "text-to-cad")]
     TextToCad(crate::cmd_ml::cmd_text_to_cad::CmdTextToCad),
+    Kcl(crate::cmd_ml::cmd_kcl::CmdKcl),
 }
 
 #[async_trait::async_trait(?Send)]
@@ -23,6 +26,7 @@ impl crate::cmd::Command for CmdMl {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
             SubCommand::TextToCad(cmd) => cmd.run(ctx).await,
+            SubCommand::Kcl(cmd) => cmd.run(ctx).await,
         }
     }
 }
