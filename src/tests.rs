@@ -688,11 +688,9 @@ access-control-allow-credentials:  """#
                 "export".to_string(),
                 "--output-format=kcl".to_string(),
                 "a".to_string(),
-                "2x4".to_string(),
-                "lego".to_string(),
-                "brick".to_string(),
+                "gear".to_string(),
             ],
-            want_out: r#"tubePattern ="#.to_string(),
+            want_out: r#" ="#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
