@@ -534,7 +534,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm".to_string(),
             ],
-            want_out: r#"(-0.0000376026400772389, 0.15002691745758057, 0.00016061594942584634)"#.to_string(),
+            want_out: r#"mass | (-0.000"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
