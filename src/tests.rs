@@ -688,7 +688,7 @@ access-control-allow-credentials:  """#
                 "export".to_string(),
                 "--output-format=kcl".to_string(),
                 "a".to_string(),
-                "2x4".to_string(),
+                "2x6".to_string(),
                 "mounting".to_string(),
                 "plate".to_string(),
             ],
