@@ -688,9 +688,11 @@ access-control-allow-credentials:  """#
                 "export".to_string(),
                 "--output-format=kcl".to_string(),
                 "a".to_string(),
-                "gear".to_string(),
+                "2x4".to_string(),
+                "mounting".to_string(),
+                "plate".to_string(),
             ],
-            want_out: r#" ="#.to_string(),
+            want_out: r#"wrote file "#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
