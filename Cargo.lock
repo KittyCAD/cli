@@ -1966,7 +1966,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "tokio",
  "tokio-tungstenite",
  "toml",
@@ -2033,7 +2033,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "tabled",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
  "url",
@@ -2517,7 +2517,7 @@ dependencies = [
  "slog-scope",
  "slog-stdlog",
  "slog-term",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "url",
  "uuid",
 ]
@@ -2917,7 +2917,7 @@ dependencies = [
  "rustc-hash",
  "rustls 0.23.19",
  "socket2",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
 ]
@@ -2936,7 +2936,7 @@ dependencies = [
  "rustls 0.23.19",
  "rustls-pki-types",
  "slab",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "tinyvec",
  "tracing",
  "web-time",
@@ -4225,11 +4225,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.8"
+version = "2.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08f5383f3e0071702bf93ab5ee99b52d26936be9dedd9413067cbdcddcb6141a"
+checksum = "f072643fd0190df67a8bab670c20ef5d8737177d6ac6b2e9a236cb096206b2cc"
 dependencies = [
- "thiserror-impl 2.0.8",
+ "thiserror-impl 2.0.9",
 ]
 
 [[package]]
@@ -4245,9 +4245,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.8"
+version = "2.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2f357fcec90b3caef6623a099691be676d033b40a058ac95d2a6ade6fa0c943"
+checksum = "7b50fa271071aae2e6ee85f842e2e28ba8cd2c5fb67f11fcb1fd70b276f9e7d4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4606,7 +4606,7 @@ dependencies = [
  "indexmap 2.7.0",
  "lazy_static",
  "serde_json",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "ts-rs-macros",
  "url",
  "uuid",
@@ -5387,7 +5387,7 @@ dependencies = [
  "displaydoc",
  "indexmap 2.7.0",
  "memchr",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
 ]
 
 [[package]]
@@ -5444,7 +5444,7 @@ dependencies = [
  "tempfile",
  "terminal_size",
  "test-context",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "tokio",
  "toml",
  "toml_edit",
