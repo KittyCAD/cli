@@ -47,7 +47,7 @@ slog-scope = "4"
 slog-stdlog = "4"
 slog-term = "2"
 tabled = { version = "0.17.0", features = ["ansi"] }
-tabwriter = "1.4.0"
+tabwriter = "1.4.1"
 terminal_size = "0.4.0"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
