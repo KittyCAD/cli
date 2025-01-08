@@ -7,7 +7,7 @@ build = "build.rs"
 
 [dependencies]
 anyhow = { version = "1", features = ["backtrace"] }
-async-trait = "0.1.83"
+async-trait = "0.1.85"
 base64 = "0.22.1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = { version = "4.5.23", features = ["cargo", "derive", "env", "unicode", "help", "wrap_help"] }
