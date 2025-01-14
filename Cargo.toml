@@ -26,7 +26,7 @@ kcl-lib = { version = "0.2.29", features = ["disable-println"] }
 kcl-test-server = "0.1"
 kittycad = { version = "0.3.28", features = ["clap", "tabled", "requests", "retry"] }
 kittycad-modeling-cmds = { version = "0.2.85", features = ["websocket", "convert_client_crate", "tabled"] }
-log = "0.4.22"
+log = "0.4.25"
 nu-ansi-term = "0.50.1"
 num-traits = "0.2.19"
 oauth2 = "4.4.2"
