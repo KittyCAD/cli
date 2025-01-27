@@ -196,7 +196,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Make sure the parent directory is a directory and exists.
         if let Some(parent) = self.output_file.parent() {
-            if !parent.is_dir() && parent.to_str().unwrap_or("") != "" {
+            if !parent.is_dir() && !parent.to_str().unwrap_or("").is_empty() {
                 anyhow::bail!(
                     "directory `{}` does not exist or is not a directory",
                     parent.to_str().unwrap_or("")
@@ -284,7 +284,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                kcmc::ModelingCmd::ImportFiles(kcmc::ImportFiles {
+                &kcmc::ModelingCmd::ImportFiles(kcmc::ImportFiles {
                     files: files.into_iter().map(|f| f.into()).collect(),
                     format: src_format.into(),
                 }),
@@ -305,7 +305,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                kittycad_modeling_cmds::ModelingCmd::DefaultCameraFocusOn(
+                &kittycad_modeling_cmds::ModelingCmd::DefaultCameraFocusOn(
                     kittycad_modeling_cmds::DefaultCameraFocusOn { uuid: object_id },
                 ),
             )
@@ -317,7 +317,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
+                &kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
                     format: output_format,
                 }),
             )
