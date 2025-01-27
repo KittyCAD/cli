@@ -370,7 +370,7 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
-            ModelingCmd::from(mcmd::ImportFiles {
+            &ModelingCmd::from(mcmd::ImportFiles {
                 files: vec![ImportFile {
                     path: "model.gltf".to_string(),
                     data: gltf_bytes.to_vec(),
@@ -394,7 +394,7 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
-            ModelingCmd::from(mcmd::DefaultCameraFocusOn { uuid: object_id }),
+            &ModelingCmd::from(mcmd::DefaultCameraFocusOn { uuid: object_id }),
         )
         .await?;
 
@@ -404,7 +404,7 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
-            ModelingCmd::from(mcmd::TakeSnapshot { format: output_format }),
+            &ModelingCmd::from(mcmd::TakeSnapshot { format: output_format }),
         )
         .await?;
 

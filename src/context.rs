@@ -111,7 +111,7 @@ impl Context<'_> {
         let engine = self.engine(hostname, replay).await?;
 
         let resp = engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), cmd)
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
             .await?;
         Ok(resp)
     }
@@ -145,9 +145,10 @@ impl Context<'_> {
         let program =
             kcl_lib::Program::parse_no_errs(code).map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
+        let mut state = kcl_lib::ExecState::new(&settings);
         let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
         let session_data = ctx
-            .run_with_session_data(program.into(), &mut Default::default())
+            .run_with_session_data(program.into(), &mut state)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
@@ -156,7 +157,7 @@ impl Context<'_> {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                ModelingCmd::from(mcmd::ZoomToFit {
+                &ModelingCmd::from(mcmd::ZoomToFit {
                     animated: false,
                     object_ids: Default::default(),
                     padding: 0.1,
@@ -166,7 +167,7 @@ impl Context<'_> {
 
         let resp = ctx
             .engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), cmd)
+            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
         Ok((resp, session_data))

@@ -299,7 +299,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Make sure the parent directory is a directory and exists.
         if let Some(parent) = self.output_file.parent() {
-            if !parent.is_dir() && parent.to_str().unwrap_or("") != "" {
+            if !parent.is_dir() && !parent.to_str().unwrap_or("").is_empty() {
                 anyhow::bail!(
                     "directory `{}` does not exist or is not a directory",
                     parent.to_str().unwrap_or("")
