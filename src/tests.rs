@@ -411,6 +411,20 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "snapshot a kcl assembly as png".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "snapshot".to_string(),
+                "tests/walkie-talkie".to_string(),
+                "tests/walkie-talkie.png".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `tests/walkie-talkie.png`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "get the mass of a kcl file".to_string(),
             args: vec![
                 "zoo".to_string(),

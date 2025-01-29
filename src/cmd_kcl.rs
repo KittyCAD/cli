@@ -116,12 +116,10 @@ impl crate::cmd::Command for CmdKclExport {
         }
 
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
         let src_unit = executor_settings.units;
 
         // Spin up websockets and do the conversion.
@@ -129,7 +127,7 @@ impl crate::cmd::Command for CmdKclExport {
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
-                input,
+                &code,
                 kittycad_modeling_cmds::ModelingCmd::Export(kittycad_modeling_cmds::Export {
                     entity_ids: vec![],
                     format: get_output_format(&self.output_format, src_unit.into()),
@@ -204,13 +202,10 @@ pub struct CmdKclFormat {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclFormat {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or("-"))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, _) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Parse the file.
-        let program = kcl_lib::Program::parse_no_errs(input)?;
+        let program = kcl_lib::Program::parse_no_errs(&code)?;
 
         // Recast the program to a string.
         let formatted = program.recast_with_options(&kcl_lib::FormatOptions {
@@ -323,14 +318,10 @@ impl crate::cmd::Command for CmdKclSnapshot {
             .file_name()
             .map(|b| b.to_string_lossy().to_string())
             .unwrap_or("unknown".to_string());
-        let filepath = self.input.display().to_string();
-        let input = ctx.read_file(&filepath)?;
-
-        // Parse the input as a string.
-        let input = String::from_utf8(input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let mut executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
         executor_settings.replay = self.replay.then_some(filename);
 
         let (output_file_contents, session_data) = match self.session {
@@ -341,7 +332,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                 let resp = client
                     .post(url)
                     .body(serde_json::to_vec(&kcl_lib::test_server::RequestBody {
-                        kcl_program: input,
+                        kcl_program: code,
                         test_name: self.input.display().to_string(),
                     })?)
                     .send()
@@ -360,7 +351,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                 let (resp, session_data) = ctx
                     .send_kcl_modeling_cmd(
                         "",
-                        &input,
+                        &code,
                         kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
                             format: output_format,
                         }),
@@ -430,23 +421,21 @@ pub struct CmdKclView {
 impl crate::cmd::Command for CmdKclView {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
+
+        // Get the modeling settings from the project.toml if exists.
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
 
         // Create a temporary file to write the snapshot to.
         let mut tmp_file = std::env::temp_dir();
         tmp_file.push(format!("zoo-kcl-view-{}.png", uuid::Uuid::new_v4()));
-
-        // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let (resp, _session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
-                input,
+                &code,
                 kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
                     format: kittycad_modeling_cmds::ImageFormat::Png,
                 }),
@@ -600,19 +589,17 @@ pub struct CmdKclVolume {
 impl crate::cmd::Command for CmdKclVolume {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
-                input,
+                &code,
                 kittycad_modeling_cmds::ModelingCmd::Volume(kittycad_modeling_cmds::Volume {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone().into(),
@@ -696,19 +683,17 @@ impl crate::cmd::Command for CmdKclMass {
         }
 
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
-                input,
+                &code,
                 kittycad_modeling_cmds::ModelingCmd::Mass(kittycad_modeling_cmds::Mass {
                     entity_ids: vec![], // get whole model
                     material_density: self.material_density.into(),
@@ -782,19 +767,17 @@ pub struct CmdKclCenterOfMass {
 impl crate::cmd::Command for CmdKclCenterOfMass {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
-                input,
+                &code,
                 kittycad_modeling_cmds::ModelingCmd::CenterOfMass(kittycad_modeling_cmds::CenterOfMass {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone().into(),
@@ -878,19 +861,17 @@ impl crate::cmd::Command for CmdKclDensity {
         }
 
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
-                input,
+                &code,
                 kittycad_modeling_cmds::ModelingCmd::Density(kittycad_modeling_cmds::Density {
                     entity_ids: vec![], // get whole model
                     material_mass: self.material_mass.into(),
@@ -964,19 +945,17 @@ pub struct CmdKclSurfaceArea {
 impl crate::cmd::Command for CmdKclSurfaceArea {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&self.input, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
-                input,
+                &code,
                 kittycad_modeling_cmds::ModelingCmd::SurfaceArea(kittycad_modeling_cmds::SurfaceArea {
                     entity_ids: vec![], // get whole model
                     output_unit: self.output_unit.clone().into(),
@@ -1032,14 +1011,14 @@ pub struct CmdKclLint {
 impl crate::cmd::Command for CmdKclLint {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let path = self.input.to_str().unwrap_or("");
-        let input = ctx.read_file(path)?;
-        let input = std::str::from_utf8(&input)?;
+        // Get the contents of the input file.
+        let (code, _) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Parse the file.
-        let program = kcl_lib::Program::parse_no_errs(input)?;
+        let program = kcl_lib::Program::parse_no_errs(&code)?;
 
         for discovered_finding in program.lint_all()? {
-            let finding_range = discovered_finding.pos.to_lsp_range(input);
+            let finding_range = discovered_finding.pos.to_lsp_range(&code);
             let start = finding_range.start;
             let end = finding_range.end;
 
@@ -1069,7 +1048,7 @@ impl crate::cmd::Command for CmdKclLint {
                 if start.line != end.line {
                     unimplemented!()
                 }
-                let printable_line = input.lines().collect::<Vec<&str>>()[start.line as usize];
+                let printable_line = code.lines().collect::<Vec<&str>>()[start.line as usize];
                 println!(
                     "\n\x1b[38;5;248m{}\x1b[38;5;208;1m{}\x1b[38;5;248m{}\x1b[0m",
                     &printable_line[..(start.character as usize)],

@@ -1,0 +1,65 @@
+// Walkie Talkie
+// A portable, handheld two-way radio device that allows users to communicate wirelessly over short to medium distances. It operates on specific radio frequencies and features a push-to-talk button for transmitting messages, making it ideal for quick and reliable communication in outdoor, work, or emergency settings.
+
+// Import parts and constants
+import body from "body.kcl"
+import antenna from "antenna.kcl"
+import case from "case.kcl"
+import button from "button.kcl"
+import talkButton from "talk-button.kcl"
+import knob from "knob.kcl"
+import width, height, thickness, screenWidth, screenHeight, screenYPosition, tolerance from "globals.kcl"
+
+// Import the body
+body()
+
+// Import the case
+case(offsetPlane("XZ", 1))
+|> appearance({
+     color = '#D0FF01',
+     metalness = 0,
+     roughness = 50
+   }, %)
+
+// Import the antenna
+antenna([-width / 2 + .45, -0.10])
+
+// Import the buttons
+button([
+  -(screenWidth / 2 + tolerance),
+  screenYPosition
+], 0, offsetPlane("XZ", thickness))
+button([
+  -(screenWidth / 2 + tolerance),
+  screenYPosition - (screenHeight / 2)
+], 0, offsetPlane("XZ", thickness))
+button([
+  screenWidth / 2 + tolerance,
+  screenYPosition - screenHeight
+], 180, offsetPlane("XZ", thickness))
+button([
+  screenWidth / 2 + tolerance,
+  screenYPosition - (screenHeight / 2)
+], 180, offsetPlane("XZ", thickness))
+
+// Import the talk button
+talkButton([width/2, -thickness/2, .5])
+|> appearance({
+     color = '#D0FF01',
+     metalness = 90,
+     roughness = 90
+   }, %)
+
+// Import the frequency knob
+knob([
+  width / 2 - 0.70,
+  -thickness / 2,
+  height / 2
+])
+|> appearance({
+     color = '#D0FF01',
+     metalness = 90,
+     roughness = 50
+   }, %)
+
+

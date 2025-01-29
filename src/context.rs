@@ -434,6 +434,32 @@ impl Context<'_> {
 
         std::fs::read(filename).map_err(Into::into)
     }
+
+    /// Get the path to the current file from the path given, and read the code.
+    pub async fn get_code_and_file_path(&mut self, path: &std::path::Path) -> Result<(String, std::path::PathBuf)> {
+        // Check if the path is a directory, if so we want to look for a main.kcl inside.
+        let mut path = path.to_path_buf();
+        if path.is_dir() {
+            path = path.join("main.kcl");
+            if !path.exists() {
+                return Err(anyhow::anyhow!("Directory does not contain a main.kcl file"));
+            }
+        } else {
+            // Otherwise be sure we have a kcl file.
+            if path.to_str().unwrap_or("-") != "-" {
+                if let Some(ext) = path.extension() {
+                    if ext != "kcl" {
+                        return Err(anyhow::anyhow!("File must have a .kcl extension"));
+                    }
+                }
+            }
+        }
+
+        let b = self.read_file(path.to_str().unwrap_or("-"))?;
+        // Parse the input as a string.
+        let code = std::str::from_utf8(&b)?;
+        Ok((code.to_string(), path))
+    }
 }
 
 #[cfg(test)]

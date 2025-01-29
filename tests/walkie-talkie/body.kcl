@@ -1,0 +1,96 @@
+// Walkie talkie body
+
+// Import constants
+import height, width, thickness, chamferLength, offset, screenWidth, screenHeight, screenYPosition, screenDepth, speakerBoxWidth, speakerBoxHeight from "globals.kcl"
+
+// Create a function for the body
+export fn body() {
+  bodySketch = startSketchOn('XZ')
+    |> startProfileAt([-width / 2, height / 2], %)
+    |> xLine(width, %, $chamfer1)
+    |> yLine(-height, %, $chamfer2)
+    |> xLine(-width, %, $chamfer3)
+    |> close(%, $chamfer4)
+  bodyExtrude = extrude(thickness, bodySketch)
+    |> chamfer({
+         length = chamferLength,
+         tags = [
+           getNextAdjacentEdge(chamfer1),
+           getNextAdjacentEdge(chamfer2),
+           getNextAdjacentEdge(chamfer3),
+           getNextAdjacentEdge(chamfer4)
+         ]
+       }, %)
+    // |> appearance({
+    //      color = '#707980',
+    //      metalness = 90,
+    //      roughness = 90
+    //    }, %)
+  
+    
+
+  // Define the offset for the indentation
+  sketch002 = startSketchOn(bodyExtrude, 'END')
+    |> startProfileAt([
+         -width / 2 + offset,
+         height / 2 - (chamferLength + offset / 2 * cos(toRadians(45)))
+       ], %)
+    |> angledLineToY({ angle = 45, to = height / 2 - offset }, %)
+    |> lineTo([
+         width / 2 - (chamferLength + offset / 2 * cos(toRadians(45))),
+         height / 2 - offset
+       ], %)
+    |> angledLineToX({ angle = -45, to = width / 2 - offset }, %)
+    |> lineTo([
+         width / 2 - offset,
+         -(height / 2 - (chamferLength + offset / 2 * cos(toRadians(45))))
+       ], %)
+    |> angledLineToY({
+         angle = -135,
+         to = -height / 2 + offset
+       }, %)
+    |> lineTo([
+         -(width / 2 - (chamferLength + offset / 2 * cos(toRadians(45)))),
+         -height / 2 + offset
+       ], %)
+    |> angledLineToX({
+         angle = -225,
+         to = -width / 2 + offset
+       }, %)
+    |> close(%)
+  extrude002 = extrude(-0.0625, sketch002)
+    // |> appearance({
+    //      color = '#707980',
+    //      metalness = 90,
+    //      roughness = 90
+    //    }, %)
+  
+
+  // Create the pocket for the screen
+  sketch003 = startSketchOn(extrude002, 'start')
+    |> startProfileAt([-screenWidth / 2, screenYPosition], %)
+    |> xLine(screenWidth, %, $seg01)
+    |> yLine(-screenHeight, %)
+    |> xLine(-segLen(seg01), %)
+    |> lineTo([profileStartX(%), profileStartY(%)], %)
+    |> close(%)
+  extrude003 = extrude(screenDepth, sketch003)
+    // |> appearance({
+    //      color = '#707980',
+    //      metalness = 90,
+    //      roughness = 90
+    //    }, %)
+  
+
+  // Create the speaker box
+  sketch004 = startSketchOn(extrude002, 'start')
+    |> startProfileAt([-1.25 / 2, -.125], %)
+    |> xLine(speakerBoxWidth, %)
+    |> yLine(-speakerBoxHeight, %)
+    |> xLine(-speakerBoxWidth, %)
+    |> close(%)
+    
+  extrude004 = extrude(-.5, sketch004)
+  
+  return extrude004
+}

@@ -1,0 +1,44 @@
+// Walkie talkie talk button
+
+// Import constants
+import width, talkButtonSideLength, talkButtonHeight from "globals.kcl"
+
+// Create a function for the talk button
+export fn talkButton(origin) {
+  talkButtonPlane = {
+    plane = {
+      origin = {
+        x = origin[0],
+        y = origin[1],
+        z = origin[2]
+      },
+      xAxis = { x = 0, y = 1, z = 0 },
+      yAxis = { x = 0, y = 0, z = 1 },
+      zAxis = { x = 1, y = 0, z = 0 }
+    }
+  }
+
+  talkButtonSketch = startSketchOn(talkButtonPlane)
+    |> startProfileAt([
+         -talkButtonSideLength / 2,
+         talkButtonSideLength / 2
+       ], %)
+    |> xLine(talkButtonSideLength, %, $tag1)
+    |> yLine(-talkButtonSideLength, %, $tag2)
+    |> xLine(-talkButtonSideLength, %, $tag3)
+    |> close(%, $tag4)
+
+  talkButtonExtrude = extrude(talkButtonHeight, talkButtonSketch)
+    |> fillet({
+         radius = 0.050,
+         tags = [
+           getNextAdjacentEdge(tag1),
+           getNextAdjacentEdge(tag2),
+           getNextAdjacentEdge(tag3),
+           getNextAdjacentEdge(tag4)
+         ]
+       }, %)
+  return talkButtonExtrude
+}
+
+// talkButton([0,0,0])

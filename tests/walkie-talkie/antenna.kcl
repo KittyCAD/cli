@@ -1,0 +1,45 @@
+// Antenna
+
+
+// import constants
+import height, width, antennaBaseWidth, antennaBaseHeight, antennaTopWidth, antennaTopHeight from 'globals.kcl'
+
+// Create the function for the antenna
+export fn antenna (origin) {
+  antennaX = origin[0]
+  antennaY = origin[1]
+
+  antennaPlane = {
+    plane = {
+      origin = {
+        x = 0,
+        y = 0,
+        z = height/2
+      },
+      xAxis = { x = 1, y = 0, z = 0 },
+      yAxis = { x = 0, y = 1, z = 0 },
+      zAxis = { x = 0, y = 0, z = 1 }
+    }
+  }
+  
+  sketch001 = startSketchOn(antennaPlane)
+    |> startProfileAt([origin[0], origin[1]], %)
+    |> line([antennaBaseWidth, 0], %)
+    |> line([0, -antennaBaseHeight], %)
+    |> line([-antennaBaseWidth, 0], %)
+    |> close(%)
+    
+  loftPlane = offsetPlane('XY', height/2 + 3)
+  
+  sketch002 = startSketchOn(loftPlane)
+    |> startProfileAt([origin[0] + (antennaBaseWidth - antennaTopWidth)/2, origin[1] - (antennaBaseHeight - antennaTopHeight)/2], %)
+    |> xLine(antennaTopWidth, %)
+    |> yLine(-antennaTopHeight, %)
+    |> xLine(-antennaTopWidth, %)
+    |> close(%)
+
+  antennaLoft = loft([sketch001, sketch002])
+  
+  return antennaLoft
+
+}

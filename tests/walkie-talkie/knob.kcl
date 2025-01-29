@@ -1,0 +1,37 @@
+// Walkie talkie knob
+
+// Import constants
+import knobDiameter, knobHeight, knobRadius from "globals.kcl"
+
+// Create a function for the knob
+export fn knob(origin) {
+  knobPlane = {
+    plane = {
+      origin = {
+        x = origin[0],
+        y = origin[1],
+        z = origin[2]
+      },
+      xAxis = { x = 1, y = 0, z = 0 },
+      yAxis = { x = 0, y = 0, z = 1 },
+      zAxis = { x = 0, y = 1, z = 0 }
+    }
+  }
+
+  knobSketch = startSketchOn(knobPlane)
+    |> startProfileAt([0.0001, 0], %)
+    |> xLine(knobDiameter/2, %)
+    |> yLine(knobHeight - 0.05, %)
+    |> arc({
+         angleStart = 0,
+         angleEnd = 90,
+         radius = .05
+       }, %)
+    |> xLineTo(0.0001, %)
+    |> close(%)
+    |> revolve({
+      axis = "Y",
+    }, %)
+
+  return knobSketch
+}
