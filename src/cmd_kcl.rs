@@ -1118,11 +1118,12 @@ fn get_modeling_settings_from_project_toml(
     src_unit: Option<kittycad::types::UnitLength>,
 ) -> Result<kcl_lib::ExecutorSettings> {
     // Create the default settings from the src unit if given.
-    let default_settings = kcl_lib::ExecutorSettings {
+    let mut default_settings = kcl_lib::ExecutorSettings {
         // We default to millimeters if not otherwise noted.
         units: src_unit.clone().unwrap_or(kittycad::types::UnitLength::Mm).into(),
         ..Default::default()
     };
+    default_settings.with_current_file(input.into());
 
     // Check if the path was stdin.
     if input.to_str() == Some("-") {
