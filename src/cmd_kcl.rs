@@ -70,6 +70,7 @@ impl crate::cmd::Command for CmdKcl {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclExport {
     /// The path to the input kcl file to export.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -173,6 +174,7 @@ impl crate::cmd::Command for CmdKclExport {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclFormat {
     /// The path to the input kcl file to format.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -252,6 +254,7 @@ impl crate::cmd::Command for CmdKclFormat {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSnapshot {
     /// The path to the input kcl file to snapshot.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -313,16 +316,11 @@ impl crate::cmd::Command for CmdKclSnapshot {
         };
 
         // Get the contents of the input file.
-        let filename = self
-            .input
-            .file_name()
-            .map(|b| b.to_string_lossy().to_string())
-            .unwrap_or("unknown".to_string());
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
         let mut executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
-        executor_settings.replay = self.replay.then_some(filename);
+        executor_settings.replay = self.replay.then_some(filepath.to_string_lossy().to_string());
 
         let (output_file_contents, session_data) = match self.session {
             Some(addr) => {
@@ -401,6 +399,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclView {
     /// The path to the input kcl file to view.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -561,6 +560,7 @@ fn get_output_format(
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclVolume {
     /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -643,6 +643,7 @@ impl crate::cmd::Command for CmdKclVolume {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclMass {
     /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -739,6 +740,7 @@ impl crate::cmd::Command for CmdKclMass {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclCenterOfMass {
     /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -821,6 +823,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclDensity {
     /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -917,6 +920,7 @@ impl crate::cmd::Command for CmdKclDensity {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSurfaceArea {
     /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -993,6 +997,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclLint {
     /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -1130,7 +1135,8 @@ fn get_modeling_settings_from_project_toml(
     if let Some(project_toml) = project_toml {
         let project_toml = std::fs::read_to_string(&project_toml)?;
         let project_toml: kcl_lib::ProjectConfiguration = toml::from_str(&project_toml)?;
-        let settings: kcl_lib::ExecutorSettings = project_toml.settings.modeling.into();
+        let mut settings: kcl_lib::ExecutorSettings = project_toml.settings.modeling.into();
+        settings.with_current_file(input.into());
         // Make sure if they gave a command line flag, it tells them they don't match.
         if let Some(src_unit) = src_unit {
             let units: kittycad::types::UnitLength = settings.units.into();
