@@ -1,10 +1,13 @@
 use std::{net::SocketAddr, str::FromStr};
 
+use crate::kcl_error_fmt;
 use anyhow::Result;
 use clap::Parser;
+use kcmc::each_cmd as mcmd;
 use kcmc::format::OutputFormat;
 use kittycad::types as kt;
 use kittycad_modeling_cmds as kcmc;
+use kittycad_modeling_cmds::ModelingCmd;
 use url::Url;
 
 use crate::iostreams::IoStreams;
@@ -61,11 +64,7 @@ impl crate::cmd::Command for CmdKcl {
 ///     # pass a file to convert from stdin
 ///     $ cat my-obj.kcl | zoo kcl export --output-format=step - output_dir
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclExport {
@@ -82,13 +81,6 @@ pub struct CmdKclExport {
     /// A valid output file format.
     #[clap(short = 't', long = "output-format", value_enum)]
     output_format: kittycad::types::FileExportFormat,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -120,22 +112,46 @@ impl crate::cmd::Command for CmdKclExport {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
-        let src_unit = executor_settings.units;
+        let settings = get_modeling_settings_from_project_toml(&filepath)?;
 
-        // Spin up websockets and do the conversion.
-        // This will not return until there are files.
-        let (resp, session_data) = ctx
-            .send_kcl_modeling_cmd(
-                "",
-                &code,
-                kittycad_modeling_cmds::ModelingCmd::Export(kittycad_modeling_cmds::Export {
-                    entity_ids: vec![],
-                    format: get_output_format(&self.output_format, src_unit.into()),
+        let program = kcl_lib::Program::parse_no_errs(&code)
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+        let meta_settings = program.get_meta_settings()?.unwrap_or_default();
+        let units: kcl_lib::UnitLength = meta_settings.default_length_units.into();
+
+        let mut state = kcl_lib::ExecState::new(&settings);
+        let client = ctx.api_client("")?;
+        let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let session_data = ectx
+            .run_with_session_data(program.into(), &mut state)
+            .await
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+
+        // Zoom on the object.
+        ectx.engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::SourceRange::default(),
+                &ModelingCmd::from(mcmd::ZoomToFit {
+                    animated: false,
+                    object_ids: Default::default(),
+                    padding: 0.1,
                 }),
-                executor_settings,
             )
             .await?;
+
+        let resp = ectx
+            .engine
+            .send_modeling_cmd(
+                uuid::Uuid::new_v4(),
+                kcl_lib::SourceRange::default(),
+                &kittycad_modeling_cmds::ModelingCmd::Export(kittycad_modeling_cmds::Export {
+                    entity_ids: vec![],
+                    format: get_output_format(&self.output_format, units.into()),
+                }),
+            )
+            .await
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
         if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Export { files } = resp {
             // Save the files to our export directory.
@@ -245,11 +261,7 @@ impl crate::cmd::Command for CmdKclFormat {
 ///     # pass a file to snapshot from stdin
 ///     $ cat my-obj.kcl | zoo kcl snapshot --output-format=png - my-file.png
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSnapshot {
@@ -266,13 +278,6 @@ pub struct CmdKclSnapshot {
     /// A valid output image format.
     #[clap(short = 't', long = "output-format", value_enum)]
     output_format: Option<kittycad::types::ImageFormat>,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -319,7 +324,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
         executor_settings.replay = self.replay.then_some(filepath.to_string_lossy().to_string());
 
         let (output_file_contents, session_data) = match self.session {
@@ -390,11 +395,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
 ///     # pass a file to view from stdin
 ///     $ cat my-obj.kcl | zoo kcl view -
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclView {
@@ -403,13 +404,6 @@ pub struct CmdKclView {
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -423,7 +417,7 @@ impl crate::cmd::Command for CmdKclView {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
 
         // Create a temporary file to write the snapshot to.
         let mut tmp_file = std::env::temp_dir();
@@ -546,16 +540,12 @@ fn get_output_format(
 /// Get the volume of an object in a kcl file.
 ///
 ///     # get the volume of a file
-///     $ zoo kcl volume --src-unit=m my-file.kcl
+///     $ zoo kcl volume my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl volume --src-unit=m
+///     $ cat my-file.kcl | zoo kcl volume
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclVolume {
@@ -568,13 +558,6 @@ pub struct CmdKclVolume {
     /// Output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
@@ -592,7 +575,7 @@ impl crate::cmd::Command for CmdKclVolume {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -629,16 +612,12 @@ impl crate::cmd::Command for CmdKclVolume {
 /// Get the mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ zoo kcl mass --src-unit=m my-file.kcl
+///     $ zoo kcl mass my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl mass --src-unit=m
+///     $ cat my-file.kcl | zoo kcl mass
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclMass {
@@ -655,13 +634,6 @@ pub struct CmdKclMass {
     /// Material density unit.
     #[clap(long = "material-density-unit", value_enum)]
     material_density_unit: kittycad::types::UnitDensity,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Output format.
     #[clap(long, short, value_enum)]
@@ -687,7 +659,7 @@ impl crate::cmd::Command for CmdKclMass {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -726,16 +698,12 @@ impl crate::cmd::Command for CmdKclMass {
 /// Get the center of mass of objects in a kcl file.
 ///
 ///     # get the mass of a file
-///     $ zoo kcl center-of-mass --src-unit=m my-file.kcl
+///     $ zoo kcl center-of-mass my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl center-of-mass --src-unit=m
+///     $ cat my-file.kcl | zoo kcl center-of-mass
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclCenterOfMass {
@@ -744,13 +712,6 @@ pub struct CmdKclCenterOfMass {
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Output format.
     #[clap(long, short, value_enum)]
@@ -772,7 +733,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -809,16 +770,12 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 /// Get the density of objects in a kcl file.
 ///
 ///     # get the density of a file
-///     $ zoo kcl density --src-unit=m my-file.kcl
+///     $ zoo kcl density my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl density --src-unit=m
+///     $ cat my-file.kcl | zoo kcl density
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclDensity {
@@ -827,13 +784,6 @@ pub struct CmdKclDensity {
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Material mass.
     #[clap(short = 'm', long = "material-mass")]
@@ -867,7 +817,7 @@ impl crate::cmd::Command for CmdKclDensity {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -906,16 +856,12 @@ impl crate::cmd::Command for CmdKclDensity {
 /// Get the surface area of objects in a kcl file.
 ///
 ///     # get the surface-area of a file
-///     $ zoo kcl surface-area --src-unit=m my-file.kcl
+///     $ zoo kcl surface-area my-file.kcl
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl surface-area --src-unit=m
+///     $ cat my-file.kcl | zoo kcl surface-area
 ///
-/// By default, this will search the input path for a `project.toml` file to determine the source
-/// unit and any specific execution settings. If no `project.toml` file is found, in the directory
-/// of the input path OR any parent directories above that, the default
-/// source unit will be millimeters. You can also specify the source unit with the
-/// `--src-unit`/`-s` command line flag.
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclSurfaceArea {
@@ -924,13 +870,6 @@ pub struct CmdKclSurfaceArea {
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
-
-    /// The source unit to use for the kcl file.
-    /// This defaults to millimeters, if not set and there is no project.toml.
-    /// If there is a project.toml file, the default unit will be the one set in the project.toml
-    /// file.
-    #[clap(long, short = 's', value_enum)]
-    pub src_unit: Option<kittycad::types::UnitLength>,
 
     /// Output format.
     #[clap(long, short, value_enum)]
@@ -952,7 +891,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath, self.src_unit.clone())?;
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -1097,16 +1036,9 @@ fn print_trace_link(io: &mut IoStreams, session_data: &Option<kittycad::types::M
 
 /// Look for a `project.toml` file the same directory as the input file.
 /// Use that for the engine settings.
-fn get_modeling_settings_from_project_toml(
-    input: &std::path::Path,
-    src_unit: Option<kittycad::types::UnitLength>,
-) -> Result<kcl_lib::ExecutorSettings> {
+fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kcl_lib::ExecutorSettings> {
     // Create the default settings from the src unit if given.
-    let mut default_settings = kcl_lib::ExecutorSettings {
-        // We default to millimeters if not otherwise noted.
-        units: src_unit.clone().unwrap_or(kittycad::types::UnitLength::Mm).into(),
-        ..Default::default()
-    };
+    let mut default_settings: kcl_lib::ExecutorSettings = Default::default();
     default_settings.with_current_file(input.into());
 
     // Check if the path was stdin.
@@ -1137,17 +1069,6 @@ fn get_modeling_settings_from_project_toml(
         let project_toml: kcl_lib::ProjectConfiguration = toml::from_str(&project_toml)?;
         let mut settings: kcl_lib::ExecutorSettings = project_toml.settings.modeling.into();
         settings.with_current_file(input.into());
-        // Make sure if they gave a command line flag, it tells them they don't match.
-        if let Some(src_unit) = src_unit {
-            let units: kittycad::types::UnitLength = settings.units.into();
-            if units != src_unit {
-                anyhow::bail!(
-                    "source unit in `project.toml` `{}` does not match the source unit given on the command line `{}`",
-                    units,
-                    src_unit
-                );
-            }
-        }
         Ok(settings)
     } else {
         Ok(default_settings)
