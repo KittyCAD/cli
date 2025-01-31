@@ -1,7 +1,9 @@
 [settings.app]
 
 [settings.modeling]
-base_unit = "in"
+show_scale_grid = true
+highlight_edges = false
+enable_ssao = false
 
 [settings.text_editor]
 

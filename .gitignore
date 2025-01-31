@@ -18,7 +18,7 @@ releases
 .DS_Store
 
 # test files
-gear.png
+/gear.png
 in_obj.png
 output.png
 /source.*
