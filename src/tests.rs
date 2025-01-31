@@ -433,7 +433,7 @@ access-control-allow-credentials:  """#
                 "tests/nested-settings/subdir/gear.kcl".to_string(),
                 "tests/nested-settings/subdir/gear.png".to_string(),
             ],
-            want_out: r#"Snapshot saved to `tests/with-settings/gear.png`"#.to_string(),
+            want_out: r#"Snapshot saved to `tests/nested-settings/subdir/gear.png`"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
