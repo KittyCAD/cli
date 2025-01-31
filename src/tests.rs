@@ -411,6 +411,34 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "snapshot a kcl file with a project.toml as png".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "snapshot".to_string(),
+                "tests/with-settings/gear.kcl".to_string(),
+                "tests/with-settings/gear.png".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `tests/with-settings/gear.png`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "snapshot a kcl file with a nested project.toml as png".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "snapshot".to_string(),
+                "tests/nested-settings/subdir/gear.kcl".to_string(),
+                "tests/nested-settings/subdir/gear.png".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `tests/with-settings/gear.png`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "snapshot a kcl assembly as png".to_string(),
             args: vec![
                 "zoo".to_string(),
