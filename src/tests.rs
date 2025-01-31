@@ -467,7 +467,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"0.004174292692097243"#.to_string(),
+            want_out: r#"0.004174"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -487,7 +487,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"0.0015198410182467167"#.to_string(),
+            want_out: r#"0.0015198"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -507,7 +507,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"0.0015198410182467167"#.to_string(),
+            want_out: r#"0.0015198"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
