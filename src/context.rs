@@ -148,7 +148,7 @@ impl Context<'_> {
         let mut state = kcl_lib::ExecState::new(&settings);
         let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
         let session_data = ctx
-            .run_with_session_data(program.into(), &mut state)
+            .run((&program).into(), &mut state)
             .await
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
 
