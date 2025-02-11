@@ -116,7 +116,7 @@ impl crate::cmd::Command for CmdKclExport {
 
         let program = kcl_lib::Program::parse_no_errs(&code)
             .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
-        let meta_settings = program.get_meta_settings()?.unwrap_or_default();
+        let meta_settings = program.meta_settings()?.unwrap_or_default();
         let units: kcl_lib::UnitLength = meta_settings.default_length_units.into();
 
         let mut state = kcl_lib::ExecState::new(&settings);
