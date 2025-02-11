@@ -1,7 +1,11 @@
-// Walkie talkie button
+// Walkie Talkie button
+
+// Set units
+@settings(defaultLengthUnit = in)
 
 // Import constants
 import screenHeight, buttonWidth, tolerance, buttonHeight, buttonThickness from 'globals.kcl'
+
 
 // Create a function for the button
 export fn button(origin, rotation, plane) {
@@ -19,8 +23,8 @@ export fn button(origin, rotation, plane) {
          angle = 0 + rotation,
          length = buttonWidth
        }, %)
-    |> close(%)
-  buttonExtrude = extrude(buttonThickness, buttonSketch)
+    |> close()
+  buttonExtrude = extrude(buttonSketch, length = buttonThickness)
     |> chamfer({
          length = .050,
          tags = [

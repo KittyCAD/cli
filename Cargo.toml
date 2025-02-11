@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.97"
+version = "0.2.98"
 edition = "2021"
 build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -22,10 +22,10 @@ git_rev = "0.1.0"
 heck = "0.5.0"
 http = "1"
 itertools = "0.12.1"
-kcl-lib = { version = "0.2.33", features = ["disable-println"] }
-kcl-test-server = "0.1.20"
+kcl-lib = { version = "0.2.34", features = ["disable-println"] }
+kcl-test-server = "0.1.21"
 kittycad = { version = "0.3.28", features = ["clap", "tabled", "requests", "retry"] }
-kittycad-modeling-cmds = { version = "0.2.95", features = ["websocket", "convert_client_crate", "tabled"] }
+kittycad-modeling-cmds = { version = "=0.2.95", features = ["websocket", "convert_client_crate", "tabled"] }
 log = "0.4.25"
 nu-ansi-term = "0.50.1"
 num-traits = "0.2.19"

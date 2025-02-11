@@ -35,7 +35,7 @@ export fn zLogo(surface, origin, scale) {
          intersectTag = seg2,
          offset = 0
        }, %)
-    |> close(%)
+    |> close()
   return zSketch
 }
 
@@ -57,7 +57,7 @@ export fn oLogo(surface, origin, scale) {
          angleEnd = 47.15 + 11,
          radius = .288 * scale
        }, %)
-    |> close(%)
+    |> close()
   return oSketch001
 }
 
@@ -78,6 +78,6 @@ export fn oLogo2(surface, origin, scale) {
          angleEnd = 47.15 + 11 - 180,
          radius = .288 * scale
        }, %)
-    |> close(%)
+    |> close()
   return oSketch002
 }
