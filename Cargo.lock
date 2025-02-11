@@ -2055,7 +2055,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "serde_urlencoded",
- "tabled",
+ "tabled 0.17.0",
  "thiserror 2.0.11",
  "tokio",
  "tracing",
@@ -2065,9 +2065,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.95"
+version = "0.2.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "198d0bcfa2875b389325e363a12c780467dc137e6c37eaeae291ce036029e014"
+checksum = "c7a0b88ea600efe9df5b9745b21003b9d1dc7e3964d3c655d388b7a9e17b3155"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2086,7 +2086,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "tabled",
+ "tabled 0.18.0",
  "ts-rs",
  "uuid",
 ]
@@ -2609,6 +2609,17 @@ checksum = "d2b0f8def1f117e13c895f3eda65a7b5650688da29d6ad04635f61bc7b92eebd"
 dependencies = [
  "ansi-str",
  "ansitok",
+ "bytecount",
+ "fnv",
+ "unicode-width 0.2.0",
+]
+
+[[package]]
+name = "papergrid"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b915f831b85d984193fdc3d3611505871dc139b2534530fa01c1a6a6707b6723"
+dependencies = [
  "bytecount",
  "fnv",
  "unicode-width 0.2.0",
@@ -4141,8 +4152,18 @@ checksum = "c6709222f3973137427ce50559cd564dc187a95b9cfe01613d2f4e93610e510a"
 dependencies = [
  "ansi-str",
  "ansitok",
- "papergrid",
- "tabled_derive",
+ "papergrid 0.13.0",
+ "tabled_derive 0.9.0",
+]
+
+[[package]]
+name = "tabled"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "121d8171ee5687a4978d1b244f7d99c43e7385a272185a2f1e1fa4dc0979d444"
+dependencies = [
+ "papergrid 0.14.0",
+ "tabled_derive 0.10.0",
 ]
 
 [[package]]
@@ -4156,6 +4177,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "tabled_derive"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52d9946811baad81710ec921809e2af67ad77719418673b2a3794932d57b7538"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro-error2",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -5521,7 +5555,7 @@ dependencies = [
  "slog-scope",
  "slog-stdlog",
  "slog-term",
- "tabled",
+ "tabled 0.17.0",
  "tabwriter",
  "tempfile",
  "terminal_size",
