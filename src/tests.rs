@@ -744,7 +744,7 @@ access-control-allow-credentials:  """#
                 "teeth".to_string(),
                 "blue".to_string(),
             ],
-            want_out: r#"appearance({"#.to_string(),
+            want_out: r#"appearance("#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
