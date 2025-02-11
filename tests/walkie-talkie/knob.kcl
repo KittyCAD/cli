@@ -1,8 +1,12 @@
 // Walkie talkie knob
 
+// Set units
+@settings(defaultLengthUnit = in)
+
 // Import constants
-import width, thickness, height, knobDiameter, knobHeight, knobRadius from "globals.kcl"
-  
+import width, thickness, height, knobDiameter, knobHeight, knobRadius from "globals.kcl"  
+
+// Define the plane for the knob
 knobPlane = {
   plane = {
     origin = {
@@ -16,6 +20,7 @@ knobPlane = {
   }
 }
 
+// Create the knob sketch and revolve
 export knob = startSketchOn(knobPlane)
   |> startProfileAt([0.0001, 0], %)
   |> xLine(knobDiameter/2, %)
@@ -26,7 +31,12 @@ export knob = startSketchOn(knobPlane)
        radius = .05
      }, %)
   |> xLineTo(0.0001, %)
-  |> close(%)
+  |> close()
   |> revolve({
     axis = "Y",
   }, %)
+  |> appearance({
+     color = '#D0FF01',
+     metalness = 90,
+     roughness = 50
+   }, %)

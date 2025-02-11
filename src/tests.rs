@@ -467,7 +467,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"0.004174"#.to_string(),
+            want_out: r#"68.458"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -487,7 +487,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"0.0015198"#.to_string(),
+            want_out: r#"68.4585"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -507,7 +507,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"0.0015198"#.to_string(),
+            want_out: r#"68.4585"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -526,7 +526,7 @@ access-control-allow-credentials:  """#
                 "--material-mass".to_string(),
                 "1.0".to_string(),
             ],
-            want_out: r#"239.56"#.to_string(),
+            want_out: r#"0.0146"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -541,7 +541,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm3".to_string(),
             ],
-            want_out: r#"0.26"#.to_string(),
+            want_out: r#"4273.72"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -556,7 +556,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm2".to_string(),
             ],
-            want_out: r#"surface_area | 4.88"#.to_string(),
+            want_out: r#"surface_area | 3155.89"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
