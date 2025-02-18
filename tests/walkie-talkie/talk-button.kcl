@@ -33,7 +33,7 @@ talkButtonSketch = startSketchOn(talkButtonPlane)
   |> close(tag = $tag4)
 
 // Create the talk button and apply fillets
-export talkButton = extrude(talkButtonSketch, length = talkButtonHeight)
+extrude(talkButtonSketch, length = talkButtonHeight)
   |> fillet({
        radius = 0.050,
        tags = [

@@ -23,7 +23,7 @@ knobPlane = {
 }
 
 // Create the knob sketch and revolve
-export knob = startSketchOn(knobPlane)
+startSketchOn(knobPlane)
   |> startProfileAt([0.0001, 0], %)
   |> xLine(knobDiameter / 2, %)
   |> yLine(knobHeight - 0.05, %)

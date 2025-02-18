@@ -46,5 +46,5 @@ sketch002 = startSketchOn(loftPlane)
   |> close()
 
 // Create the antenna using a loft
-export antenna = loft([sketch001, sketch002])
+loft([sketch001, sketch002])
   |> appearance(color = "#000000")

@@ -73,7 +73,7 @@ sketch004 = startSketchOn(extrude002, 'start')
   |> yLine(-speakerBoxHeight, %)
   |> xLine(-speakerBoxWidth, %)
   |> close()
-export body = extrude(sketch004, length = -.5)
+extrude(sketch004, length = -.5)
   |> appearance(
     color = "#277bb0",
   )

@@ -81,5 +81,5 @@ sketch005 = startSketchOn(offsetPlane("XZ", offset = 1))
   |> hole(oLogo(plane, [.175, -1.825], .20), %)
   |> hole(oLogo2(plane, [.175, -1.825], .20), %)
 
-export case = extrude(sketch005, length = -0.0625)
+extrude(sketch005, length = -0.0625)
   |> appearance(color = '#D0FF01', metalness = 0, roughness = 50)
