@@ -541,7 +541,7 @@ access-control-allow-credentials:  """#
                 "--output-unit".to_string(),
                 "cm3".to_string(),
             ],
-            want_out: r#"4273.72"#.to_string(),
+            want_out: r#"4273.7"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
