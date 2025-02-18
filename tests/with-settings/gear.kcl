@@ -74,13 +74,13 @@ teeth = reduce([0..100], start, leftInvolute)
   |> reduce([1..101], %, rightInvolute)
   |> close()
   |> extrude(length = gearHeight)
-  |> patternCircular3d({
+  |> patternCircular3d(
        axis = [0, 0, 1],
        center = [0, 0, 0],
        instances = nTeeth,
        arcDegrees = 360,
        rotateDuplicates = true
-     }, %)
+     )
 
 // Define the constants of the keyway and the bore hole
 keywayWidth = 0.250

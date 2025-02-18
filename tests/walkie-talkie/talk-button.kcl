@@ -1,7 +1,9 @@
 // Walkie talkie talk button
 
+
 // Set units
 @settings(defaultLengthUnit = in)
+
 
 // Import constants
 import width, thickness, talkButtonSideLength, talkButtonHeight from "globals.kcl"
@@ -9,8 +11,8 @@ import width, thickness, talkButtonSideLength, talkButtonHeight from "globals.kc
 talkButtonPlane = {
   plane = {
     origin = {
-      x = width/2,
-      y = -thickness/2,
+      x = width / 2,
+      y = -thickness / 2,
       z = .5
     },
     xAxis = { x = 0, y = 1, z = 0 },
@@ -30,7 +32,6 @@ talkButtonSketch = startSketchOn(talkButtonPlane)
   |> xLine(-talkButtonSideLength, %, $tag3)
   |> close(tag = $tag4)
 
-
 // Create the talk button and apply fillets
 export talkButton = extrude(talkButtonSketch, length = talkButtonHeight)
   |> fillet({
@@ -42,8 +43,4 @@ export talkButton = extrude(talkButtonSketch, length = talkButtonHeight)
          getNextAdjacentEdge(tag4)
        ]
      }, %)
-  |> appearance(
-     color = '#D0FF01',
-     metalness = 90,
-     roughness = 90
-   )
+  |> appearance(color = '#D0FF01', metalness = 90, roughness = 90)

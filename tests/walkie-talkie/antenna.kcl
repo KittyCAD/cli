@@ -1,11 +1,12 @@
 // Antenna
 
+
 // Set units
 @settings(defaultLengthUnit = in)
 
-// import constants
-import height, width, antennaBaseWidth, antennaBaseHeight, antennaTopWidth, antennaTopHeight from 'globals.kcl'
 
+// import constants
+import height, width, antennaBaseWidth, antennaBaseHeight, antennaTopWidth, antennaTopHeight from "globals.kcl"
 
 // Calculate the origin
 origin = [-width / 2 + .45, -0.10]
@@ -16,11 +17,7 @@ antennaY = origin[1]
 
 antennaPlane = {
   plane = {
-    origin = {
-      x = 0,
-      y = 0,
-      z = height/2
-    },
+    origin = { x = 0, y = 0, z = height / 2 },
     xAxis = { x = 1, y = 0, z = 0 },
     yAxis = { x = 0, y = 1, z = 0 },
     zAxis = { x = 0, y = 0, z = 1 }
@@ -35,11 +32,14 @@ sketch001 = startSketchOn(antennaPlane)
   |> line(end = [-antennaBaseWidth, 0])
   |> close()
 
-// Create the antenna top sketch 
-loftPlane = offsetPlane('XY', height/2 + 3)
+// Create the antenna top sketch
+loftPlane = offsetPlane('XY', offset = height / 2 + 3)
 
 sketch002 = startSketchOn(loftPlane)
-  |> startProfileAt([origin[0] + (antennaBaseWidth - antennaTopWidth)/2, origin[1] - (antennaBaseHeight - antennaTopHeight)/2], %)
+  |> startProfileAt([
+       origin[0] + (antennaBaseWidth - antennaTopWidth) / 2,
+       origin[1] - ((antennaBaseHeight - antennaTopHeight) / 2)
+     ], %)
   |> xLine(antennaTopWidth, %)
   |> yLine(-antennaTopHeight, %)
   |> xLine(-antennaTopWidth, %)
@@ -47,3 +47,4 @@ sketch002 = startSketchOn(loftPlane)
 
 // Create the antenna using a loft
 export antenna = loft([sketch001, sketch002])
+  |> appearance(color = "#000000")

@@ -26,19 +26,19 @@ antenna
 button([
   -(screenWidth / 2 + tolerance),
   screenYPosition
-], 0, offsetPlane("XZ", thickness))
+], 0, offsetPlane("XZ", offset = thickness))
 button([
   -(screenWidth / 2 + tolerance),
   screenYPosition - (screenHeight / 2)
-], 0, offsetPlane("XZ", thickness))
+], 0, offsetPlane("XZ", offset = thickness))
 button([
   screenWidth / 2 + tolerance,
   screenYPosition - screenHeight
-], 180, offsetPlane("XZ", thickness))
+], 180, offsetPlane("XZ", offset = thickness))
 button([
   screenWidth / 2 + tolerance,
   screenYPosition - (screenHeight / 2)
-], 180, offsetPlane("XZ", thickness))
+], 180, offsetPlane("XZ", offset = thickness))
 
 // Import the talk button
 talkButton
