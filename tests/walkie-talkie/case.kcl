@@ -1,13 +1,15 @@
 // Walkie talkie case
 
+
 // Set units
 @settings(defaultLengthUnit = in)
+
 
 // Import constants and Zoo logo
 import width, height, chamferLength, offset, screenWidth, screenHeight, screenYPosition, screenDepth, speakerBoxWidth, speakerBoxHeight, squareHoleSideLength, caseTolerance from "globals.kcl"
 import zLogo, oLogo, oLogo2 from "zoo-logo.kcl"
 
-plane = offsetPlane("XZ", 1)
+plane = offsetPlane("XZ", offset = 1)
 
 fn screenHole(sketchStart) {
   sketch006 = startSketchOn(sketchStart)
@@ -33,11 +35,11 @@ fn squareHolePattern(plane, x, y) {
     |> line(end = [0, -squareHoleSideLength / 2])
     |> line(end = [-squareHoleSideLength / 2, 0])
     |> close()
-    |> patternTransform2d(13, transformX, %)
-    |> patternTransform2d(11, transformY, %)
+    |> patternTransform2d(instances = 13, transform = transformX)
+    |> patternTransform2d(instances = 11, transform = transformY)
   return squareHolePatternSketch
 }
-sketch005 = startSketchOn(offsetPlane("XZ", 1))
+sketch005 = startSketchOn(offsetPlane("XZ", offset = 1))
   |> startProfileAt([
        -width / 2 + offset + caseTolerance,
        height / 2 - (chamferLength + (offset + caseTolerance) / 2 * cos(toRadians(45)))
@@ -79,9 +81,5 @@ sketch005 = startSketchOn(offsetPlane("XZ", 1))
   |> hole(oLogo(plane, [.175, -1.825], .20), %)
   |> hole(oLogo2(plane, [.175, -1.825], .20), %)
 
-export case = extrude(sketch005, length = -0.0625)
-  |> appearance(
-     color = '#D0FF01',
-     metalness = 0,
-     roughness = 50
-   )
+extrude(sketch005, length = -0.0625)
+  |> appearance(color = '#D0FF01', metalness = 0, roughness = 50)

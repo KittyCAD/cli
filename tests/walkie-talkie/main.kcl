@@ -5,11 +5,11 @@
 @settings(defaultLengthUnit = in)
 
 // Import parts and constants
-import body from 'body.kcl'
-import antenna from 'antenna.kcl'
-import case from 'case.kcl'
-import talkButton from 'talk-button.kcl'
-import knob from 'knob.kcl'
+import 'body.kcl'
+import 'antenna.kcl'
+import 'case.kcl'
+import 'talk-button.kcl' as talkButton
+import 'knob.kcl'
 import button from "button.kcl"
 import width, height, thickness, screenWidth, screenHeight, screenYPosition, tolerance from "globals.kcl"
 
@@ -26,19 +26,19 @@ antenna
 button([
   -(screenWidth / 2 + tolerance),
   screenYPosition
-], 0, offsetPlane("XZ", thickness))
+], 0, offsetPlane("XZ", offset = thickness))
 button([
   -(screenWidth / 2 + tolerance),
   screenYPosition - (screenHeight / 2)
-], 0, offsetPlane("XZ", thickness))
+], 0, offsetPlane("XZ", offset = thickness))
 button([
   screenWidth / 2 + tolerance,
   screenYPosition - screenHeight
-], 180, offsetPlane("XZ", thickness))
+], 180, offsetPlane("XZ", offset = thickness))
 button([
   screenWidth / 2 + tolerance,
   screenYPosition - (screenHeight / 2)
-], 180, offsetPlane("XZ", thickness))
+], 180, offsetPlane("XZ", offset = thickness))
 
 // Import the talk button
 talkButton
