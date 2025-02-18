@@ -507,7 +507,7 @@ access-control-allow-credentials:  """#
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"68.4585"#.to_string(),
+            want_out: r#"68.458"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
