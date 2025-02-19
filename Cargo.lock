@@ -619,7 +619,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -628,7 +628,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -859,9 +859,9 @@ dependencies = [
 
 [[package]]
 name = "derive-docs"
-version = "0.1.37"
+version = "0.1.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baa9de37b1eecdfbdeff9192003b2160a10c822069517ddca8f56cd68f6afadb"
+checksum = "4a06e8119b82bfd03dc6afe421026f064a858b8b3e74eb8767e1536bebb5a9db"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1950,9 +1950,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.37"
+version = "0.2.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f096864a3787644edefad25437ccf45fb703ba4f40076661666c71773bec7cc"
+checksum = "4c0972511a0732091b0f7c0b4647f78b29f9a4bf40cd2908877a74849b7448a9"
 dependencies = [
  "anyhow",
  "approx 0.5.1",
@@ -2009,9 +2009,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.37"
+version = "0.1.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "302ac937b5d0518ea7b9adb198fdc54946c8f19e6a9e7e65b1b93fd25862f2b7"
+checksum = "d3328e515e5670a3bc7971bb08f700a4e7e382dd75c5cc200ab20daafc33cddf"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -5088,7 +5088,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5474,7 +5474,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.100"
+version = "0.2.101"
 dependencies = [
  "anyhow",
  "async-trait",
