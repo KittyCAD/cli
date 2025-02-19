@@ -15,7 +15,7 @@ clap_complete = { version = "4.5.44" }
 cli-macro = { path = "cli-macro" }
 colored = "3.0.0"
 colored_json = "4.1"
-data-encoding = "2.6.0"
+data-encoding = "2.8.0"
 dialoguer = "0.11.0"
 dirs = "6"
 git_rev = "0.1.0"
