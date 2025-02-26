@@ -150,7 +150,8 @@ impl Context<'_> {
         let session_data = ctx
             .run(&program, &mut state)
             .await
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?
+            .1;
 
         // Zoom on the object.
         ctx.engine

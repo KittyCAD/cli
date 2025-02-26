@@ -4,7 +4,7 @@ use crate::kcl_error_fmt;
 use anyhow::Result;
 use clap::Parser;
 use kcmc::each_cmd as mcmd;
-use kcmc::format::OutputFormat;
+use kcmc::format::OutputFormat3d as OutputFormat;
 use kittycad::types as kt;
 use kittycad_modeling_cmds as kcmc;
 use kittycad_modeling_cmds::ModelingCmd;
@@ -487,7 +487,7 @@ pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad_modeling_cm
 fn get_output_format(
     format: &kittycad::types::FileExportFormat,
     src_unit: kittycad_modeling_cmds::units::UnitLength,
-) -> kittycad_modeling_cmds::format::OutputFormat {
+) -> OutputFormat {
     // Zoo co-ordinate system.
     //
     // * Forward: -Y
