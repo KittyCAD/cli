@@ -201,6 +201,8 @@ impl Context<'_> {
                 format.into(),
                 &TextToCadCreateBody {
                     prompt: prompt.to_string(),
+                    kcl_version: Some(kcl_lib::version().to_owned()),
+                    project_name: None,
                 },
             )
             .await?;
@@ -234,6 +236,7 @@ impl Context<'_> {
                 user_id,
                 code,
                 model,
+                kcl_version,
             } = result
             {
                 gen_model = TextToCad {
@@ -252,6 +255,7 @@ impl Context<'_> {
                     user_id,
                     code,
                     model,
+                    kcl_version,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);

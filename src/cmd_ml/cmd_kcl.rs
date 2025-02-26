@@ -64,6 +64,7 @@ impl crate::cmd::Command for CmdKclEdit {
             vec![kittycad::types::SourceRangePrompt {
                 range: convert_to_source_range(source_range)?,
                 prompt: prompt.clone(),
+                file: None,
             }]
         } else {
             Default::default()
@@ -73,6 +74,8 @@ impl crate::cmd::Command for CmdKclEdit {
             original_source_code: input.to_string(),
             prompt: if source_ranges.is_empty() { Some(prompt) } else { None },
             source_ranges,
+            project_name: None,
+            kcl_version: Some(kcl_lib::version().to_owned()),
         };
 
         let model = ctx.get_edit_for_prompt("", &body).await?;

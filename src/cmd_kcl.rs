@@ -125,7 +125,8 @@ impl crate::cmd::Command for CmdKclExport {
         let session_data = ectx
             .run(&program, &mut state)
             .await
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?
+            .1;
 
         // Zoom on the object.
         ectx.engine
