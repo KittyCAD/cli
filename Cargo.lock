@@ -626,15 +626,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "colored"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
-dependencies = [
- "windows-sys 0.59.0",
-]
-
-[[package]]
 name = "colored_json"
 version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1115,7 +1106,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5837b8e6a4001f99fe4746767fb7379e8510c508a843caa136cc12ed9c0bad0"
 dependencies = [
- "colored 2.2.0",
+ "colored",
  "serde",
  "serde_json",
  "serde_yaml 0.8.26",
@@ -5581,7 +5572,6 @@ dependencies = [
  "clap",
  "clap_complete",
  "cli-macro",
- "colored 3.0.0",
  "colored_json",
  "data-encoding",
  "dialoguer",
