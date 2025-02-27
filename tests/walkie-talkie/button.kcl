@@ -25,13 +25,13 @@ export fn button(origin, rotation, plane) {
        }, %)
     |> close()
   buttonExtrude = extrude(buttonSketch, length = buttonThickness)
-    |> chamfer({
+    |> chamfer(
          length = .050,
          tags = [
            getNextAdjacentEdge(tag1),
            getNextAdjacentEdge(tag2)
          ]
-       }, %)
+       )
      |> appearance(color = "#ff0000")
 
   return buttonExtrude

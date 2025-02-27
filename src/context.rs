@@ -150,7 +150,8 @@ impl Context<'_> {
         let session_data = ctx
             .run(&program, &mut state)
             .await
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?
+            .1;
 
         // Zoom on the object.
         ctx.engine
@@ -200,6 +201,8 @@ impl Context<'_> {
                 format.into(),
                 &TextToCadCreateBody {
                     prompt: prompt.to_string(),
+                    kcl_version: Some(kcl_lib::version().to_owned()),
+                    project_name: None,
                 },
             )
             .await?;
@@ -233,6 +236,7 @@ impl Context<'_> {
                 user_id,
                 code,
                 model,
+                kcl_version,
             } = result
             {
                 gen_model = TextToCad {
@@ -251,6 +255,7 @@ impl Context<'_> {
                     user_id,
                     code,
                     model,
+                    kcl_version,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);

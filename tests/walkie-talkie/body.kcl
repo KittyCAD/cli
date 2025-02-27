@@ -15,7 +15,7 @@ bodySketch = startSketchOn('XZ')
   |> xLine(-width, %, $chamfer3)
   |> close(tag = $chamfer4)
 bodyExtrude = extrude(bodySketch, length = thickness)
-  |> chamfer({
+  |> chamfer(
        length = chamferLength,
        tags = [
          getNextAdjacentEdge(chamfer1),
@@ -23,7 +23,7 @@ bodyExtrude = extrude(bodySketch, length = thickness)
          getNextAdjacentEdge(chamfer3),
          getNextAdjacentEdge(chamfer4)
        ]
-     }, %)
+     )
 
 // Define the offset for the indentation
 sketch002 = startSketchOn(bodyExtrude, 'END')

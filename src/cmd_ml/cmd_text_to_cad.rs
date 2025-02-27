@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use kcl_lib::EngineManager;
 use kcmc::each_cmd as mcmd;
-use kcmc::format::InputFormat;
+use kcmc::format::InputFormat3d;
 use kcmc::ok_response::OkModelingCmdResponse;
 use kcmc::websocket::OkWebSocketResponseData;
 use kcmc::{ImageFormat, ModelingCmd};
@@ -375,7 +375,7 @@ async fn get_image_bytes(
                     path: "model.gltf".to_string(),
                     data: gltf_bytes.to_vec(),
                 }],
-                format: InputFormat::Gltf(Default::default()),
+                format: InputFormat3d::Gltf(Default::default()),
             }),
         )
         .await?;
