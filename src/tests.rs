@@ -761,7 +761,7 @@ access-control-allow-credentials:  """#
             want_err: "lksjndflsskjfnak;jfna##
    ·"
             .to_string(),
-            want_code: 0,
+            want_code: 1,
             ..Default::default()
         },
     ];
