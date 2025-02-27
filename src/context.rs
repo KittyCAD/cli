@@ -144,14 +144,14 @@ impl Context<'_> {
         let client = self.api_client(hostname)?;
 
         let program = kcl_lib::Program::parse_no_errs(code)
-            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, &code, err))?;
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
         let mut state = kcl_lib::ExecState::new(&settings);
         let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
         let session_data = ctx
             .run_with_ui_outputs(&program, &mut state)
             .await
-            .map_err(|err| kcl_error_fmt::into_miette(&code, err))?
+            .map_err(|err| kcl_error_fmt::into_miette(code, err))?
             .1;
 
         // Zoom on the object.
@@ -171,7 +171,7 @@ impl Context<'_> {
             .engine
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
             .await
-            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, &code, err))?;
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
         Ok((resp, session_data))
     }
 

@@ -863,21 +863,6 @@ dependencies = [
 [[package]]
 name = "derive-docs"
 version = "0.1.40"
-dependencies = [
- "Inflector",
- "convert_case",
- "once_cell",
- "proc-macro2",
- "quote",
- "regex",
- "serde",
- "serde_tokenstream",
- "syn 2.0.96",
-]
-
-[[package]]
-name = "derive-docs"
-version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2704f07e9b69f171583999de8ff6039f8bd714034d1e0d65894ded384e58dab"
 dependencies = [
@@ -1970,66 +1955,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.40"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21462749fe0f57028889dcf977146194d00450073c21a981ed1856085cc57c6f"
-dependencies = [
- "anyhow",
- "approx 0.5.1",
- "async-recursion",
- "async-trait",
- "base64 0.22.1",
- "bson",
- "chrono",
- "convert_case",
- "dashmap 6.1.0",
- "derive-docs 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
- "fnv",
- "form_urlencoded",
- "futures",
- "git_rev",
- "gltf-json",
- "http 1.2.0",
- "image",
- "indexmap 2.7.1",
- "itertools 0.13.0",
- "js-sys",
- "kittycad",
- "kittycad-modeling-cmds",
- "lazy_static",
- "measurements",
- "miette",
- "mime_guess",
- "parse-display 0.9.1",
- "regex",
- "reqwest 0.12.12",
- "rgba_simple",
- "ropey",
- "schemars",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.11",
- "tokio",
- "tokio-tungstenite",
- "toml",
- "tower-lsp",
- "ts-rs",
- "url",
- "urlencoding",
- "uuid",
- "validator",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "web-time",
- "winnow 0.6.24",
- "zip",
-]
-
-[[package]]
-name = "kcl-lib"
 version = "0.2.41"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "619b03c8e4b68c2178c4d344a1468b36300bfb803c39da9e6c68dca7a2543756"
 dependencies = [
  "anyhow",
  "approx 0.5.1",
@@ -2040,7 +1968,7 @@ dependencies = [
  "chrono",
  "convert_case",
  "dashmap 6.1.0",
- "derive-docs 0.1.40",
+ "derive-docs",
  "fnv",
  "form_urlencoded",
  "futures",
@@ -2092,7 +2020,7 @@ checksum = "9293f6011e6f2f59c81f586c8efc50f559fd661d0f92d4ac4421c6c538146f05"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
- "kcl-lib 0.2.40",
+ "kcl-lib",
  "pico-args",
  "serde",
  "serde_json",
@@ -5664,7 +5592,7 @@ dependencies = [
  "heck",
  "http 1.2.0",
  "itertools 0.12.1",
- "kcl-lib 0.2.41",
+ "kcl-lib",
  "kcl-test-server",
  "kittycad",
  "kittycad-modeling-cmds",
