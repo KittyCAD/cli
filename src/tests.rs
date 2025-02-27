@@ -757,8 +757,10 @@ access-control-allow-credentials:  """#
                 "view".to_string(),
                 "tests/parse_file_error".to_string(),
             ],
-            want_out: r#"lksjndflsskjfnak;jfna##"#.to_string(),
-            want_err: "".to_string(),
+            want_out: r#""#.to_string(),
+            want_err: "lksjndflsskjfnak;jfna##
+   ·"
+            .to_string(),
             want_code: 0,
             ..Default::default()
         },
