@@ -136,21 +136,22 @@ impl Context<'_> {
     pub async fn send_kcl_modeling_cmd(
         &self,
         hostname: &str,
+        filename: &str,
         code: &str,
         cmd: kittycad_modeling_cmds::ModelingCmd,
         settings: kcl_lib::ExecutorSettings,
     ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
-        let program =
-            kcl_lib::Program::parse_no_errs(code).map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+        let program = kcl_lib::Program::parse_no_errs(code)
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, &code, err))?;
 
         let mut state = kcl_lib::ExecState::new(&settings);
         let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
         let session_data = ctx
-            .run(&program, &mut state)
+            .run_with_ui_outputs(&program, &mut state)
             .await
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?
+            .map_err(|err| kcl_error_fmt::into_miette(&code, err))?
             .1;
 
         // Zoom on the object.
@@ -170,7 +171,7 @@ impl Context<'_> {
             .engine
             .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
             .await
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, &code, err))?;
         Ok((resp, session_data))
     }
 

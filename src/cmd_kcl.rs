@@ -115,7 +115,7 @@ impl crate::cmd::Command for CmdKclExport {
         let settings = get_modeling_settings_from_project_toml(&filepath)?;
 
         let program = kcl_lib::Program::parse_no_errs(&code)
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
         let meta_settings = program.meta_settings()?.unwrap_or_default();
         let units: kcl_lib::UnitLength = meta_settings.default_length_units.into();
 
@@ -123,9 +123,9 @@ impl crate::cmd::Command for CmdKclExport {
         let client = ctx.api_client("")?;
         let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
         let session_data = ectx
-            .run(&program, &mut state)
+            .run_with_ui_outputs(&program, &mut state)
             .await
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?
+            .map_err(|err| kcl_error_fmt::into_miette(&code, err))?
             .1;
 
         // Zoom on the object.
@@ -152,7 +152,7 @@ impl crate::cmd::Command for CmdKclExport {
                 }),
             )
             .await
-            .map_err(|err| kcl_error_fmt::KclError::new(code.to_string(), err))?;
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
 
         if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Export { files } = resp {
             // Save the files to our export directory.
@@ -355,6 +355,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                 let (resp, session_data) = ctx
                     .send_kcl_modeling_cmd(
                         "",
+                        &filepath.display().to_string(),
                         &code,
                         kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
                             format: output_format,
@@ -429,6 +430,7 @@ impl crate::cmd::Command for CmdKclView {
         let (resp, _session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
+                &filepath.display().to_string(),
                 &code,
                 kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
                     format: kittycad_modeling_cmds::ImageFormat::Png,
@@ -583,6 +585,7 @@ impl crate::cmd::Command for CmdKclVolume {
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
+                &filepath.display().to_string(),
                 &code,
                 kittycad_modeling_cmds::ModelingCmd::Volume(kittycad_modeling_cmds::Volume {
                     entity_ids: vec![], // get whole model
@@ -667,6 +670,7 @@ impl crate::cmd::Command for CmdKclMass {
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
+                &filepath.display().to_string(),
                 &code,
                 kittycad_modeling_cmds::ModelingCmd::Mass(kittycad_modeling_cmds::Mass {
                     entity_ids: vec![], // get whole model
@@ -741,6 +745,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
+                &filepath.display().to_string(),
                 &code,
                 kittycad_modeling_cmds::ModelingCmd::CenterOfMass(kittycad_modeling_cmds::CenterOfMass {
                     entity_ids: vec![], // get whole model
@@ -825,6 +830,7 @@ impl crate::cmd::Command for CmdKclDensity {
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
+                &filepath.display().to_string(),
                 &code,
                 kittycad_modeling_cmds::ModelingCmd::Density(kittycad_modeling_cmds::Density {
                     entity_ids: vec![], // get whole model
@@ -899,6 +905,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         let (resp, session_data) = ctx
             .send_kcl_modeling_cmd(
                 "",
+                &filepath.display().to_string(),
                 &code,
                 kittycad_modeling_cmds::ModelingCmd::SurfaceArea(kittycad_modeling_cmds::SurfaceArea {
                     entity_ids: vec![], // get whole model

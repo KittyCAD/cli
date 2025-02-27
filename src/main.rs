@@ -153,6 +153,13 @@ enum SubCommand {
 
 #[tokio::main]
 async fn main() -> Result<(), ()> {
+    miette::set_hook(Box::new(|_| {
+        Box::new(miette::MietteHandlerOpts::new().show_related_errors_as_nested().build())
+    }))
+    .map_err(|err| {
+        eprintln!("Failed to set miette hook: {err}");
+    })?;
+
     let build_version = clap::crate_version!();
     // Check for updates to the cli.
     // We don't await here since we don't want to block the main thread.

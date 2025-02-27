@@ -749,6 +749,19 @@ access-control-allow-credentials:  """#
             want_code: 0,
             ..Default::default()
         },
+        TestItem {
+            name: "view a kcl file with multi-file errors".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "view".to_string(),
+                "tests/parse_file_error".to_string(),
+            ],
+            want_out: r#"goober"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
     ];
 
     let mut config = crate::config::new_blank_config().unwrap();
