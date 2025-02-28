@@ -151,7 +151,7 @@ impl Context<'_> {
         let session_data = ctx
             .run_with_ui_outputs(&program, &mut state)
             .await
-            .map_err(|err| kcl_error_fmt::into_miette(code, err))?
+            .map_err(kcl_error_fmt::into_miette)?
             .1;
 
         // Zoom on the object.
