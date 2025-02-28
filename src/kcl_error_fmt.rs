@@ -1,8 +1,5 @@
-// A lot of the below is based upon https://github.com/AlexanderThaller/format_serde_error/tree/main
-// which is licensed under the MIT license. Thank you!
-
-pub(crate) fn into_miette(input: &str, error: kcl_lib::KclErrorWithOutputs) -> anyhow::Error {
-    let report = error.clone().into_miette_report_with_outputs(input).unwrap();
+pub(crate) fn into_miette(error: kcl_lib::KclErrorWithOutputs) -> anyhow::Error {
+    let report = error.clone().into_miette_report_with_outputs().unwrap();
     let report = miette::Report::new(report);
     anyhow::anyhow!("{:?}", report)
 }
