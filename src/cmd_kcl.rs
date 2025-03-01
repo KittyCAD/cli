@@ -1059,8 +1059,8 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
     let project_toml = find_project_toml(&dir)?;
     if let Some(project_toml) = project_toml {
         let project_toml = std::fs::read_to_string(&project_toml)?;
-        let project_toml: kcl_lib::Configuration = toml::from_str(&project_toml)?;
-        let mut settings: kcl_lib::ExecutorSettings = project_toml.settings.modeling.into();
+        let project_toml: kcl_lib::ProjectConfiguration = toml::from_str(&project_toml)?;
+        let mut settings: kcl_lib::ExecutorSettings = project_toml.into();
         settings.with_current_file(input.into());
         Ok(settings)
     } else {
