@@ -3,11 +3,9 @@ use std::{net::SocketAddr, str::FromStr};
 use crate::kcl_error_fmt;
 use anyhow::Result;
 use clap::Parser;
-use kcmc::each_cmd as mcmd;
 use kcmc::format::OutputFormat3d as OutputFormat;
 use kittycad::types as kt;
 use kittycad_modeling_cmds as kcmc;
-use kittycad_modeling_cmds::ModelingCmd;
 use url::Url;
 
 use crate::iostreams::IoStreams;
@@ -127,19 +125,6 @@ impl crate::cmd::Command for CmdKclExport {
             .await
             .map_err(kcl_error_fmt::into_miette)?
             .1;
-
-        // Zoom on the object.
-        ectx.engine
-            .send_modeling_cmd(
-                uuid::Uuid::new_v4(),
-                kcl_lib::SourceRange::default(),
-                &ModelingCmd::from(mcmd::ZoomToFit {
-                    animated: false,
-                    object_ids: Default::default(),
-                    padding: 0.1,
-                }),
-            )
-            .await?;
 
         let resp = ectx
             .engine
@@ -1074,7 +1059,7 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
     let project_toml = find_project_toml(&dir)?;
     if let Some(project_toml) = project_toml {
         let project_toml = std::fs::read_to_string(&project_toml)?;
-        let project_toml: kcl_lib::ProjectConfiguration = toml::from_str(&project_toml)?;
+        let project_toml: kcl_lib::Configuration = toml::from_str(&project_toml)?;
         let mut settings: kcl_lib::ExecutorSettings = project_toml.settings.modeling.into();
         settings.with_current_file(input.into());
         Ok(settings)
