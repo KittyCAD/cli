@@ -251,7 +251,8 @@ jobs:
           git checkout -b "$NEW_BRANCH"
           git push -f origin "$NEW_BRANCH"
           gh pr create --title "Update tap formula" \
-              --body "Updating the formular for our homebrew tap" \
+              --body "Updating the formula for our homebrew tap" \
+              --reviewer jessfraz,maxammann \
               --head "$NEW_BRANCH" \
               --base main || true
         env:
