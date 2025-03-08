@@ -1,5 +1,5 @@
-pub(crate) fn into_miette(error: kcl_lib::KclErrorWithOutputs) -> anyhow::Error {
-    let report = error.clone().into_miette_report_with_outputs().unwrap();
+pub(crate) fn into_miette(error: kcl_lib::KclErrorWithOutputs, code: &str) -> anyhow::Error {
+    let report = error.clone().into_miette_report_with_outputs(code).unwrap();
     let report = miette::Report::new(report);
     anyhow::anyhow!("{:?}", report)
 }

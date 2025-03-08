@@ -121,9 +121,9 @@ impl crate::cmd::Command for CmdKclExport {
         let client = ctx.api_client("")?;
         let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
         let session_data = ectx
-            .run_with_ui_outputs(&program, &mut state)
+            .run(&program, &mut state)
             .await
-            .map_err(kcl_error_fmt::into_miette)?
+            .map_err(|err| kcl_error_fmt::into_miette(err, &code))?
             .1;
 
         let resp = ectx
