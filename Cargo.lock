@@ -1937,9 +1937,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.46"
+version = "0.2.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d4de4a88c08479c72ae0f0414796e6f8a8d0434fc94354fe16ea0628208f6f1"
+checksum = "b76b1dce9f39a47a5157130d9a4bab58423a014e76a76cc678f4423bd649c6f4"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1981,6 +1981,7 @@ dependencies = [
  "toml",
  "tower-lsp",
  "ts-rs",
+ "tynm",
  "url",
  "uuid",
  "validator",
@@ -4766,6 +4767,15 @@ dependencies = [
  "sha1",
  "thiserror 1.0.69",
  "utf-8",
+]
+
+[[package]]
+name = "tynm"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd30d05e69d1478e13fe3e7a853409cfec82cebc2cf9b8d613b3c6b0081781ed"
+dependencies = [
+ "nom",
 ]
 
 [[package]]
