@@ -1316,7 +1316,7 @@ dependencies = [
  "fnv",
  "futures-core",
  "futures-sink",
- "http 1.2.0",
+ "http 1.3.1",
  "indexmap 2.7.1",
  "slab",
  "tokio",
@@ -1392,9 +1392,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "1.2.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f16ca2af56261c99fba8bac40a10251ce8188205a4c448fbb745a2e4daa76fea"
+checksum = "f4a85d31aea989eead29a3aaf9e1115a180df8282431156e533de47660892565"
 dependencies = [
  "bytes",
  "fnv",
@@ -1419,7 +1419,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1efedce1fb8e6913f23e0c92de8e62cd5b772a67e7b3946df930a62566c93184"
 dependencies = [
  "bytes",
- "http 1.2.0",
+ "http 1.3.1",
 ]
 
 [[package]]
@@ -1430,7 +1430,7 @@ checksum = "793429d76616a256bcb62c2a2ec2bed781c8307e797e2598c50010f2bee2544f"
 dependencies = [
  "bytes",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "pin-project-lite",
 ]
@@ -1481,7 +1481,7 @@ dependencies = [
  "futures-channel",
  "futures-util",
  "h2 0.4.7",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "httparse",
  "itoa",
@@ -1512,7 +1512,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d191583f3da1305256f22463b9bb0471acad48a4e534a5218b9963e9c1f59b2"
 dependencies = [
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "hyper 1.5.2",
  "hyper-util",
  "rustls 0.23.21",
@@ -1532,7 +1532,7 @@ dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "hyper 1.5.2",
  "pin-project-lite",
@@ -1954,7 +1954,7 @@ dependencies = [
  "futures",
  "git_rev",
  "gltf-json",
- "http 1.2.0",
+ "http 1.3.1",
  "image",
  "indexmap 2.7.1",
  "itertools 0.13.0",
@@ -2025,7 +2025,7 @@ dependencies = [
  "format_serde_error",
  "futures",
  "getrandom 0.3.1",
- "http 1.2.0",
+ "http 1.3.1",
  "itertools 0.13.0",
  "log",
  "mime_guess",
@@ -2052,9 +2052,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.102"
+version = "0.2.103"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bff5d4db835a9f40290420d92ffa487388eab2efbc08c9e6375ee2c85f70b4b9"
+checksum = "9592ea2ac91747367f428d3a13c5cf42f22c65f83e9c4bee7d679a7f2f879bec"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2062,7 +2062,7 @@ dependencies = [
  "enum-iterator",
  "enum-iterator-derive",
  "euler",
- "http 1.2.0",
+ "http 1.3.1",
  "kittycad",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",
@@ -2516,7 +2516,7 @@ dependencies = [
  "data-encoding",
  "format_serde_error",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "indexmap 2.7.1",
  "json-patch",
  "log",
@@ -3297,7 +3297,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2 0.4.7",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "hyper 1.5.2",
@@ -3340,7 +3340,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f67ad7fdf5c0a015763fcd164bee294b13fb7b6f89f1b55961d40f00c3e32d6b"
 dependencies = [
  "async-trait",
- "http 1.2.0",
+ "http 1.3.1",
  "reqwest 0.12.12",
  "reqwest-middleware",
 ]
@@ -3353,7 +3353,7 @@ checksum = "d1ccd3b55e711f91a9885a2fa6fbbb2e39db1776420b062efc058c6410f7e5e3"
 dependencies = [
  "anyhow",
  "async-trait",
- "http 1.2.0",
+ "http 1.3.1",
  "reqwest 0.12.12",
  "serde",
  "thiserror 1.0.69",
@@ -3370,7 +3370,7 @@ dependencies = [
  "async-trait",
  "futures",
  "getrandom 0.2.15",
- "http 1.2.0",
+ "http 1.3.1",
  "hyper 1.5.2",
  "parking_lot 0.11.2",
  "reqwest 0.12.12",
@@ -3391,7 +3391,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "getrandom 0.2.15",
- "http 1.2.0",
+ "http 1.3.1",
  "matchit",
  "opentelemetry",
  "reqwest 0.12.12",
@@ -4758,7 +4758,7 @@ dependencies = [
  "byteorder",
  "bytes",
  "data-encoding",
- "http 1.2.0",
+ "http 1.3.1",
  "httparse",
  "log",
  "rand 0.8.5",
@@ -5591,7 +5591,7 @@ dependencies = [
  "futures",
  "git_rev",
  "heck",
- "http 1.2.0",
+ "http 1.3.1",
  "itertools 0.12.1",
  "kcl-lib",
  "kcl-test-server",
