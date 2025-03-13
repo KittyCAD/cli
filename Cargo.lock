@@ -613,7 +613,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -1995,9 +1995,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.48"
+version = "0.1.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "175a3e6a04740210a128bd2198c626fefa5b791e617eb914db6a404631556f85"
+checksum = "76a51d72d21b98c61b2c5ecbc617b2cf4a8e3b9cc3ce22d052cc321d06d55e1f"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -5161,7 +5161,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
