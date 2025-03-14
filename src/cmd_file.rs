@@ -237,7 +237,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             data: input.clone(),
         }];
 
-        if let kittycad::types::InputFormat::Gltf {} = src_format {
+        if let kittycad::types::InputFormat3D::Gltf {} = src_format {
             if let Ok(str) = std::str::from_utf8(&input) {
                 if let Ok(json) = serde_json::from_str::<crate::types::GltfStandardJsonLite>(str) {
                     // Use the path of the control file as the prefix path of
@@ -717,7 +717,7 @@ fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileIm
 fn get_input_format(
     format: kittycad::types::FileImportFormat,
     ul: kittycad::types::UnitLength,
-) -> Result<kittycad::types::InputFormat> {
+) -> Result<kittycad::types::InputFormat3D> {
     // Zoo co-ordinate system.
     //
     // * Forward: -Y
@@ -734,15 +734,15 @@ fn get_input_format(
         },
     };
     match format {
-        kittycad::types::FileImportFormat::Step => Ok(kittycad::types::InputFormat::Step {
+        kittycad::types::FileImportFormat::Step => Ok(kittycad::types::InputFormat3D::Step {
             split_closed_faces: false,
         }),
-        kittycad::types::FileImportFormat::Stl => Ok(kittycad::types::InputFormat::Stl { coords, units: ul }),
-        kittycad::types::FileImportFormat::Obj => Ok(kittycad::types::InputFormat::Obj { coords, units: ul }),
-        kittycad::types::FileImportFormat::Gltf => Ok(kittycad::types::InputFormat::Gltf {}),
-        kittycad::types::FileImportFormat::Ply => Ok(kittycad::types::InputFormat::Ply { coords, units: ul }),
-        kittycad::types::FileImportFormat::Fbx => Ok(kittycad::types::InputFormat::Fbx {}),
-        kittycad::types::FileImportFormat::Sldprt => Ok(kittycad::types::InputFormat::Sldprt {
+        kittycad::types::FileImportFormat::Stl => Ok(kittycad::types::InputFormat3D::Stl { coords, units: ul }),
+        kittycad::types::FileImportFormat::Obj => Ok(kittycad::types::InputFormat3D::Obj { coords, units: ul }),
+        kittycad::types::FileImportFormat::Gltf => Ok(kittycad::types::InputFormat3D::Gltf {}),
+        kittycad::types::FileImportFormat::Ply => Ok(kittycad::types::InputFormat3D::Ply { coords, units: ul }),
+        kittycad::types::FileImportFormat::Fbx => Ok(kittycad::types::InputFormat3D::Fbx {}),
+        kittycad::types::FileImportFormat::Sldprt => Ok(kittycad::types::InputFormat3D::Sldprt {
             split_closed_faces: false,
         }),
     }

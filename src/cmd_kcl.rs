@@ -133,7 +133,7 @@ impl crate::cmd::Command for CmdKclExport {
                 kcl_lib::SourceRange::default(),
                 &kittycad_modeling_cmds::ModelingCmd::Export(kittycad_modeling_cmds::Export {
                     entity_ids: vec![],
-                    format: get_output_format(&self.output_format, units.into()),
+                    format: get_output_format(&self.output_format, units.into(), self.deterministic),
                 }),
             )
             .await
@@ -143,11 +143,7 @@ impl crate::cmd::Command for CmdKclExport {
             // Save the files to our export directory.
             for file in files {
                 let path = self.output_dir.join(file.name);
-                if self.deterministic {
-                    write_deterministic_export(&path, &file.contents)?;
-                } else {
-                    std::fs::write(&path, file.contents)?;
-                }
+                std::fs::write(&path, file.contents)?;
                 println!("Wrote file: {}", path.display());
             }
         } else {
@@ -475,6 +471,7 @@ pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad_modeling_cm
 fn get_output_format(
     format: &kittycad::types::FileExportFormat,
     src_unit: kittycad_modeling_cmds::units::UnitLength,
+    deterministic: bool,
 ) -> OutputFormat {
     // Zoo co-ordinate system.
     //
@@ -495,7 +492,11 @@ fn get_output_format(
     match format {
         kt::FileExportFormat::Fbx => OutputFormat::Fbx(kcmc::format::fbx::export::Options {
             storage: kcmc::format::fbx::export::Storage::Binary,
-            created: None,
+            created: if deterministic {
+                Some("1970-01-01T00:00:00Z".parse().unwrap())
+            } else {
+                None
+            },
         }),
         kt::FileExportFormat::Glb => OutputFormat::Gltf(kcmc::format::gltf::export::Options {
             storage: kcmc::format::gltf::export::Storage::Binary,
@@ -515,7 +516,14 @@ fn get_output_format(
             selection: kcmc::format::Selection::DefaultScene,
             units: src_unit,
         }),
-        kt::FileExportFormat::Step => OutputFormat::Step(kcmc::format::step::export::Options { coords, created: None }),
+        kt::FileExportFormat::Step => OutputFormat::Step(kcmc::format::step::export::Options {
+            coords,
+            created: if deterministic {
+                Some("1970-01-01T00:00:00Z".parse().unwrap())
+            } else {
+                None
+            },
+        }),
         kt::FileExportFormat::Stl => OutputFormat::Stl(kcmc::format::stl::export::Options {
             storage: kcmc::format::stl::export::Storage::Ascii,
             coords,
