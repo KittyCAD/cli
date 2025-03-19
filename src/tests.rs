@@ -636,6 +636,20 @@ access-control-allow-credentials:  """#
             ..Default::default()
         },
         TestItem {
+            name: "format a directory".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "fmt".to_string(),
+                "--write".to_string(),
+                "tests/walkie-talkie".to_string(),
+            ],
+            want_out: r#"Formatted directory `tests/walkie-talkie`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
             name: "lint some kcl".to_string(),
             args: vec![
                 "zoo".to_string(),
