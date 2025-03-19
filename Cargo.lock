@@ -1937,9 +1937,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.50"
+version = "0.2.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0df461e9c4ee9342e64f886d65ab7897686fc01cbae2724dba05fcbeba57105"
+checksum = "5a4e1c890744e727ff80b2e03b89ba932582728d451e6ba9a3cca826242a90f9"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1995,9 +1995,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.50"
+version = "0.1.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1f9f2cfc6e9fdec423fbf24cb36731fda493cee79ebdcc170c572ada12b31ee"
+checksum = "6551797535dff2ccc94ef609eb4a76c1e73778edb1c60ac57913687d2601608c"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -3875,6 +3875,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha1_smol"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbfa15b3dddfee50a0fff136974b3e1bde555604ba463834a7eb7deb6417705d"
+
+[[package]]
 name = "sha2"
 version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4876,6 +4882,7 @@ dependencies = [
  "getrandom 0.3.1",
  "js-sys",
  "serde",
+ "sha1_smol",
  "wasm-bindgen",
 ]
 
@@ -5635,7 +5642,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.106"
+version = "0.2.107"
 dependencies = [
  "anyhow",
  "async-trait",

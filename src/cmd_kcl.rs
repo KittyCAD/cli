@@ -117,37 +117,24 @@ impl crate::cmd::Command for CmdKclExport {
         let meta_settings = program.meta_settings()?.unwrap_or_default();
         let units: kcl_lib::UnitLength = meta_settings.default_length_units.into();
 
-        let mut state = kcl_lib::ExecState::new(&settings);
         let client = ctx.api_client("")?;
         let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let mut state = kcl_lib::ExecState::new(&ectx);
         let session_data = ectx
             .run(&program, &mut state)
             .await
             .map_err(|err| kcl_error_fmt::into_miette(err, &code))?
             .1;
 
-        let resp = ectx
-            .engine
-            .send_modeling_cmd(
-                uuid::Uuid::new_v4(),
-                kcl_lib::SourceRange::default(),
-                &kittycad_modeling_cmds::ModelingCmd::Export(kittycad_modeling_cmds::Export {
-                    entity_ids: vec![],
-                    format: get_output_format(&self.output_format, units.into(), self.deterministic),
-                }),
-            )
-            .await
-            .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
+        let files = ectx
+            .export(get_output_format(&self.output_format, units.into(), self.deterministic))
+            .await?;
 
-        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Export { files } = resp {
-            // Save the files to our export directory.
-            for file in files {
-                let path = self.output_dir.join(file.name);
-                std::fs::write(&path, file.contents)?;
-                println!("Wrote file: {}", path.display());
-            }
-        } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        // Save the files to our export directory.
+        for file in files {
+            let path = self.output_dir.join(file.name);
+            std::fs::write(&path, file.contents)?;
+            println!("Wrote file: {}", path.display());
         }
 
         if self.show_trace {
@@ -202,17 +189,30 @@ pub struct CmdKclFormat {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclFormat {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let options = kcl_lib::FormatOptions {
+            tab_size: self.tab_size,
+            use_tabs: self.use_tabs,
+            insert_final_newline: self.insert_final_newline,
+        };
+
+        // Check if input is a directory.
+        if self.input.is_dir() && self.write {
+            // Recurisvely format all files in the directory.
+            kcl_lib::recast_dir(&self.input, &options).await?;
+
+            writeln!(ctx.io.out, "Formatted directory `{}`", self.input.display())?;
+
+            // return early if we are not writing to a file.
+            return Ok(());
+        }
+
         let (code, _) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Parse the file.
         let program = kcl_lib::Program::parse_no_errs(&code)?;
 
         // Recast the program to a string.
-        let formatted = program.recast_with_options(&kcl_lib::FormatOptions {
-            tab_size: self.tab_size,
-            use_tabs: self.use_tabs,
-            insert_final_newline: self.insert_final_newline,
-        });
+        let formatted = program.recast_with_options(&options);
 
         if self.write {
             if self.input.to_str().unwrap_or("-") == "-" {
