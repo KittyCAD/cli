@@ -1937,9 +1937,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.52"
+version = "0.2.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "421207302ac30994337f5394144b49272b8264d375740f9164c766043dafdb94"
+checksum = "0b3b80daa7db84d6890d23d00fbad33881fee19cf04df095d147cf1f5779f5d3"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -5627,17 +5627,15 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.4.1"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "938cc23ac49778ac8340e366ddc422b2227ea176edb447e23fc0627608dddadd"
+checksum = "27c03817464f64e23f6f37574b4fdc8cf65925b5bfd2b0f2aedf959791941f88"
 dependencies = [
  "arbitrary",
  "crc32fast",
  "crossbeam-utils",
- "displaydoc",
  "indexmap 2.7.1",
  "memchr",
- "thiserror 2.0.12",
 ]
 
 [[package]]
