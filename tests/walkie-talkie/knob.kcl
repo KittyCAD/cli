@@ -1,9 +1,8 @@
 @settings(defaultLengthUnit = in)
+
 // Walkie talkie knob
 
-
 // Set units
-
 
 // Import constants
 import width, thickness, height, knobDiameter, knobHeight, knobRadius from "globals.kcl"

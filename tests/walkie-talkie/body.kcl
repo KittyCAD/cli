@@ -1,14 +1,13 @@
 @settings(defaultLengthUnit = in)
+
 // Walkie talkie body
 
-
 // Set units
-
 
 // Import constants
 import height, width, thickness, chamferLength, offset, screenWidth, screenHeight, screenYPosition, screenDepth, speakerBoxWidth, speakerBoxHeight from "globals.kcl"
 
-bodySketch = startSketchOn('XZ')
+bodySketch = startSketchOn(XZ)
   |> startProfileAt([-width / 2, height / 2], %)
   |> xLine(length = width, tag = $chamfer1)
   |> yLine(length = -height, tag = $chamfer2)

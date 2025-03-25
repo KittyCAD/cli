@@ -1,15 +1,14 @@
 @settings(defaultLengthUnit = in)
+
 // Walkie talkie case
 
-
 // Set units
-
 
 // Import constants and Zoo logo
 import width, height, chamferLength, offset, screenWidth, screenHeight, screenYPosition, screenDepth, speakerBoxWidth, speakerBoxHeight, squareHoleSideLength, caseTolerance from "globals.kcl"
 import zLogo, oLogo, oLogo2 from "zoo-logo.kcl"
 
-plane = offsetPlane("XZ", offset = 1)
+plane = offsetPlane(XZ, offset = 1)
 
 fn screenHole(sketchStart) {
   sketch006 = startSketchOn(sketchStart)
@@ -39,7 +38,7 @@ fn squareHolePattern(plane, x, y) {
     |> patternTransform2d(instances = 11, transform = transformY)
   return squareHolePatternSketch
 }
-sketch005 = startSketchOn(offsetPlane("XZ", offset = 1))
+sketch005 = startSketchOn(offsetPlane(XZ, offset = 1))
   |> startProfileAt([
        -width / 2 + offset + caseTolerance,
        height / 2 - (chamferLength + (offset + caseTolerance) / 2 * cos(toRadians(45)))

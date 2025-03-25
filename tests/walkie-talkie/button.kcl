@@ -1,9 +1,8 @@
 @settings(defaultLengthUnit = in)
+
 // Walkie Talkie button
 
-
 // Set units
-
 
 // Import constants
 import screenHeight, buttonWidth, tolerance, buttonHeight, buttonThickness from "globals.kcl"

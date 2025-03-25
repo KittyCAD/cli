@@ -1,9 +1,8 @@
 @settings(defaultLengthUnit = in)
+
 // Antenna
 
-
 // Set units
-
 
 // import constants
 import height, width, antennaBaseWidth, antennaBaseHeight, antennaTopWidth, antennaTopHeight from "globals.kcl"
@@ -33,7 +32,7 @@ sketch001 = startSketchOn(antennaPlane)
   |> close()
 
 // Create the antenna top sketch
-loftPlane = offsetPlane('XY', offset = height / 2 + 3)
+loftPlane = offsetPlane(XY, offset = height / 2 + 3)
 
 sketch002 = startSketchOn(loftPlane)
   |> startProfileAt([
