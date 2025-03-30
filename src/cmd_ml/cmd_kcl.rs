@@ -23,15 +23,18 @@ impl crate::cmd::Command for CmdKcl {
     }
 }
 
-/// Edit a `kcl` file with a prompt.
+/// Edit `kcl` file(s) with a prompt.
 ///
 ///     $ zoo ml kcl edit --prompt "Make it blue"
 ///
-/// This command outputs the edited `kcl` file to stdout.
+/// This command outputs the edited `kcl` files back to the same location.
+/// We do not output to stdout, because for projects with multiple files,
+/// it would be difficult to know which file the output corresponds to.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclEdit {
-    /// The path to the input file.
+    /// The path to the input file or directory containing a main.kcl file.
+    /// We will read in the contents of all the project's `kcl` files.
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
@@ -50,9 +53,7 @@ pub struct CmdKclEdit {
 impl crate::cmd::Command for CmdKclEdit {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Get the contents of the input file.
-        let input = ctx.read_file(self.input.to_str().unwrap_or(""))?;
-        // Parse the input as a string.
-        let input = std::str::from_utf8(&input)?;
+        let (files, filepath) = ctx.collect_kcl_files(&self.input).await?;
 
         let prompt = self.prompt.join(" ");
 
@@ -61,27 +62,34 @@ impl crate::cmd::Command for CmdKclEdit {
         }
 
         let source_ranges = if let Some(source_range) = &self.source_range {
-            vec![kittycad::types::SourceRangePrompt {
+            Some(vec![kittycad::types::SourceRangePrompt {
                 range: convert_to_source_range(source_range)?,
                 prompt: prompt.clone(),
-                file: None,
-            }]
+                file: Some(filepath.to_string_lossy().to_string()),
+            }])
         } else {
             Default::default()
         };
 
-        let body = kittycad::types::TextToCadIterationBody {
-            original_source_code: input.to_string(),
-            prompt: if source_ranges.is_empty() { Some(prompt) } else { None },
+        let body = kittycad::types::TextToCadMultiFileIterationBody {
+            prompt: if source_ranges.is_none() { Some(prompt) } else { None },
             source_ranges,
             project_name: None,
             kcl_version: Some(kcl_lib::version().to_owned()),
         };
 
-        let model = ctx.get_edit_for_prompt("", &body).await?;
+        let model = ctx.get_edit_for_prompt("", &body, files).await?;
 
-        // Print the output of the conversion.
-        writeln!(ctx.io.out, "{}", model.code)?;
+        let Some(outputs) = model.outputs else {
+            anyhow::bail!("model did not return any outputs");
+        };
+
+        // Write the output to each file locally.
+        for (file, output) in outputs {
+            // We could do these in parallel...
+            tokio::fs::write(&file, output).await?;
+            writeln!(ctx.io.out, "Wrote to {}", file)?;
+        }
 
         Ok(())
     }

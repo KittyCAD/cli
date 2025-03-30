@@ -586,7 +586,7 @@ access-control-allow-credentials:  """#
                 "tests/gear.kcl".to_string(),
                 "tests/".to_string(),
             ],
-            want_out: r#""#.to_string(),
+            want_out: r#"Wrote file: tests/output.gltf"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -602,7 +602,7 @@ access-control-allow-credentials:  """#
                 "tests/gear.kcl".to_string(),
                 "tests/".to_string(),
             ],
-            want_out: r#""#.to_string(),
+            want_out: r#"Wrote file: tests/output.step"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -752,13 +752,13 @@ access-control-allow-credentials:  """#
                 "ml".to_string(),
                 "kcl".to_string(),
                 "edit".to_string(),
-                "tests/gear.kcl".to_string(),
+                "tests/assembly-edit".to_string(),
                 "make".to_string(),
-                "the".to_string(),
-                "teeth".to_string(),
+                "it".to_string(),
                 "blue".to_string(),
             ],
-            want_out: r#"appearance("#.to_string(),
+            want_out: r#"Wrote to tests/assembly-edit/main.kcl"#.to_string(), // Make sure it keeps
+            // the path.
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
