@@ -134,6 +134,7 @@ impl crate::cmd::Command for CmdKclExport {
         for file in files {
             let path = self.output_dir.join(file.name);
             std::fs::write(&path, file.contents)?;
+
             writeln!(ctx.io.out, "Wrote file: {}", path.display())?;
         }
 

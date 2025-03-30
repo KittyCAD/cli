@@ -767,13 +767,13 @@ async fn test_main(ctx: &mut MainContext) {
                 "ml".to_string(),
                 "kcl".to_string(),
                 "edit".to_string(),
-                "tests/gear.kcl".to_string(),
+                "tests/assembly-edit".to_string(),
                 "make".to_string(),
-                "the".to_string(),
-                "teeth".to_string(),
+                "it".to_string(),
                 "blue".to_string(),
             ],
-            want_out: r#"appearance("#.to_string(),
+            want_out: r#"Wrote to tests/assembly-edit/main.kcl"#.to_string(), // Make sure it keeps
+            // the path.
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
