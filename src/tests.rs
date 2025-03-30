@@ -586,7 +586,7 @@ access-control-allow-credentials:  """#
                 "tests/gear.kcl".to_string(),
                 "tests/".to_string(),
             ],
-            want_out: r#""#.to_string(),
+            want_out: r#"Wrote file: tests/output.gltf"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -602,7 +602,7 @@ access-control-allow-credentials:  """#
                 "tests/gear.kcl".to_string(),
                 "tests/".to_string(),
             ],
-            want_out: r#""#.to_string(),
+            want_out: r#"Wrote file: tests/output.step"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
