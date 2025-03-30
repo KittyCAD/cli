@@ -757,7 +757,8 @@ access-control-allow-credentials:  """#
                 "it".to_string(),
                 "blue".to_string(),
             ],
-            want_out: r#"Wrote to main.kcl"#.to_string(),
+            want_out: r#"Wrote to tests/assembly-edit/main.kcl"#.to_string(), // Make sure it keeps
+            // the path.
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
