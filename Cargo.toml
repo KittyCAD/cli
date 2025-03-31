@@ -24,7 +24,7 @@ itertools = "0.12.1"
 kcl-lib = { version = "0.2.55", features = ["disable-println"] }
 #kcl-lib = { path = "../modeling-app/src/wasm-lib/kcl" }
 kcl-test-server = "0.1.55"
-kittycad = { version = "0.3.33", features = ["clap", "tabled", "requests", "retry"] }
+kittycad = { version = "0.3.36", features = ["clap", "tabled", "requests", "retry"] }
 kittycad-modeling-cmds = { version = "0.2.107", features = ["websocket", "convert_client_crate", "tabled"] }
 log = "0.4.27"
 miette = { version = "7.5.0", features = ["fancy"] }
