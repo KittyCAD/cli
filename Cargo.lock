@@ -1937,9 +1937,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.56"
+version = "0.2.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfbfbf5f1e26410d7c63c70cfc909840951d9bf4dc053d309bfdd87edbc2b15f"
+checksum = "2967f7d4d92c301dfc1493ed31ecc3cd45d1944119ee3c75e7f16fc4d5739e68"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2052,9 +2052,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.107"
+version = "0.2.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb129c1f4906a76e3518e58f61968f16cb56f1279366415d2bae6059aa68fce8"
+checksum = "58f5fbcfb0fe3384592829cd1a5109aa45fb6a3ffc5ff2d164d2fd528ffd4641"
 dependencies = [
  "anyhow",
  "chrono",
