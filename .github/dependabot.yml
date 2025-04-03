@@ -63,3 +63,65 @@ updates:
       update-types:
       - minor
       - patch
+- package-ecosystem: cargo
+  directory: /cli-macro-impl
+  schedule:
+    interval: weekly
+    day: monday
+    time: '03:00'
+    timezone: America/Los_Angeles
+  open-pull-requests-limit: 5
+  reviewers:
+  - adamchalmers
+  - jessfraz
+  groups:
+    security:
+      applies-to: security-updates
+      update-types:
+      - major
+      - minor
+      - patch
+    patch:
+      applies-to: version-updates
+      update-types:
+      - patch
+    major:
+      applies-to: version-updates
+      update-types:
+      - major
+    minor:
+      applies-to: version-updates
+      update-types:
+      - minor
+      - patch
+- package-ecosystem: cargo
+  directory: /cli-macro
+  schedule:
+    interval: weekly
+    day: monday
+    time: '03:00'
+    timezone: America/Los_Angeles
+  open-pull-requests-limit: 5
+  reviewers:
+  - adamchalmers
+  - jessfraz
+  groups:
+    security:
+      applies-to: security-updates
+      update-types:
+      - major
+      - minor
+      - patch
+    patch:
+      applies-to: version-updates
+      update-types:
+      - patch
+    major:
+      applies-to: version-updates
+      update-types:
+      - major
+    minor:
+      applies-to: version-updates
+      update-types:
+      - minor
+      - patch
