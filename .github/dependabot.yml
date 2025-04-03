@@ -39,6 +39,8 @@ updates:
     day: monday
     time: '03:00'
     timezone: America/Los_Angeles
+  ignore:
+  - dependency-name: kittycad-modeling-cmds
   open-pull-requests-limit: 5
   reviewers:
   - adamchalmers
@@ -70,6 +72,8 @@ updates:
     day: monday
     time: '03:00'
     timezone: America/Los_Angeles
+  ignore:
+  - dependency-name: kittycad-modeling-cmds
   open-pull-requests-limit: 5
   reviewers:
   - adamchalmers
@@ -101,6 +105,8 @@ updates:
     day: monday
     time: '03:00'
     timezone: America/Los_Angeles
+  ignore:
+  - dependency-name: kittycad-modeling-cmds
   open-pull-requests-limit: 5
   reviewers:
   - adamchalmers
