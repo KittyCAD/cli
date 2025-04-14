@@ -150,9 +150,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.97"
+version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcfed56ad506cb2c684a14971b8861fdc3baaaae314b9e5f9bb532cbe3ba7a4f"
+checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 dependencies = [
  "backtrace",
 ]
@@ -518,9 +518,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.35"
+version = "4.5.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8aa86934b44c19c50f87cc2790e19f54f7a67aedb64101c2e1a2e5ecfb73944"
+checksum = "2df961d8c8a0d08aa9945718ccf584145eee3f3aa06cddbeac12933781102e04"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -528,9 +528,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.35"
+version = "4.5.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2414dbb2dd0695280da6ea9261e327479e9d37b0630f6b53ba2a11c60c679fd9"
+checksum = "132dbda40fb6753878316a489d5a1242a8ef2f0d9e47ba01c951ea8aa7d013a5"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1937,9 +1937,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.56"
+version = "0.2.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfbfbf5f1e26410d7c63c70cfc909840951d9bf4dc053d309bfdd87edbc2b15f"
+checksum = "164b573ee8901aa335e46caf765a092fae521f8756101e357c80345652593d10"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1947,6 +1947,7 @@ dependencies = [
  "base64 0.22.1",
  "bson",
  "chrono",
+ "clap",
  "convert_case",
  "dashmap 6.1.0",
  "fnv",
@@ -1995,9 +1996,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.56"
+version = "0.1.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75a3a9e0ebb439b0f49da1945b41f77ab1c833337e3060f045fe2cd4fe6762bd"
+checksum = "f4a4e03ebccc829a9bb8e378d95e145d4ad4d10690aaee469d946464791d873f"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2052,9 +2053,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.107"
+version = "0.2.114"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb129c1f4906a76e3518e58f61968f16cb56f1279366415d2bae6059aa68fce8"
+checksum = "681ce29b9da92aa6f8bfc003ccb79a9f1a84368e064d68684327b3181dfe16ec"
 dependencies = [
  "anyhow",
  "chrono",
