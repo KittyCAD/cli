@@ -443,8 +443,14 @@ impl Context<'_> {
 
     /// Get the path to the current file from the path given, and read the code.
     pub async fn get_code_and_file_path(&mut self, path: &std::path::Path) -> Result<(String, std::path::PathBuf)> {
-        // Check if the path is a directory, if so we want to look for a main.kcl inside.
+        // If the user passes in ".", use the current working directory.
+        // This is useful for running commands from the current directory.
         let mut path = path.to_path_buf();
+        if path.to_str().unwrap_or("-") == "." {
+            path = std::env::current_dir()?;
+        }
+
+        // Check if the path is a directory, if so we want to look for a main.kcl inside.
         if path.is_dir() {
             path = path.join("main.kcl");
             if !path.exists() {
