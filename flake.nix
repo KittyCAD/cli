@@ -33,6 +33,7 @@
             nativeBuildInputs =
               (with pkgs; [
                 rustToolchain
+                toml-cli
                 openssl
                 postgresql
                 pkg-config
