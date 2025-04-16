@@ -601,7 +601,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "tests/gear.kcl".to_string(),
                 "tests/".to_string(),
             ],
-            want_out: r#""#.to_string(),
+            want_out: r#"Wrote file: tests/output.gltf"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -617,7 +617,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "tests/gear.kcl".to_string(),
                 "tests/".to_string(),
             ],
-            want_out: r#""#.to_string(),
+            want_out: r#"Wrote file: tests/output.step"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -645,7 +645,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "fmt".to_string(),
                 "tests/gear.kcl".to_string(),
             ],
-            want_out: r#"startSketchOn(body, 'END')"#.to_string(),
+            want_out: r#"startSketchOn(body, face = END)"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
