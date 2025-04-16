@@ -454,7 +454,10 @@ impl Context<'_> {
         if path.is_dir() {
             path = path.join("main.kcl");
             if !path.exists() {
-                return Err(anyhow::anyhow!("Directory does not contain a main.kcl file"));
+                return Err(anyhow::anyhow!(
+                    "Directory `{}` does not contain a main.kcl file",
+                    path.display()
+                ));
             }
         } else {
             // Otherwise be sure we have a kcl file.

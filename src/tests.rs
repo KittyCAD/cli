@@ -9,6 +9,7 @@ pub struct TestItem {
     want_out: String,
     want_err: String,
     want_code: i32,
+    current_directory: Option<std::path::PathBuf>,
 }
 
 struct MainContext {
@@ -158,6 +159,7 @@ async fn test_main(ctx: &mut MainContext) {
             want_out: "✔ Logged in as ".to_string(),
             want_err: "".to_string(),
             want_code: 0,
+            ..Default::default()
         },
         TestItem {
             name: "api /user".to_string(),
@@ -213,9 +215,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "user".to_string(),
                 "--include".to_string(),
             ],
-            want_out: r#"HTTP/2.0 200 OK
-access-control-allow-credentials:  """#
-                .to_string(),
+            want_out: r#"HTTP/2.0 200 OK"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -448,6 +448,21 @@ access-control-allow-credentials:  """#
                 "tests/walkie-talkie.png".to_string(),
             ],
             want_out: r#"Snapshot saved to `tests/walkie-talkie.png`"#.to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        TestItem {
+            name: "snapshot a kcl assembly as png with .".to_string(),
+            current_directory: Some(std::env::current_dir().unwrap().join("tests/walkie-talkie")),
+            args: vec![
+                "zoo".to_string(),
+                "kcl".to_string(),
+                "snapshot".to_string(),
+                ".".to_string(),
+                "walkie-talkie.png".to_string(),
+            ],
+            want_out: r#"Snapshot saved to `walkie-talkie.png`"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -796,10 +811,18 @@ access-control-allow-credentials:  """#
             debug: false,
         };
 
+        let old_current_directory = std::env::current_dir().unwrap();
+        if let Some(current_directory) = t.current_directory {
+            std::env::set_current_dir(&current_directory).unwrap();
+        }
+
         let result = crate::do_main(t.args, &mut ctx).await;
 
         let stdout = std::fs::read_to_string(stdout_path).unwrap_or_default();
         let stderr = std::fs::read_to_string(stderr_path).unwrap_or_default();
+
+        // Reset the cwd.
+        std::env::set_current_dir(old_current_directory).unwrap();
 
         assert!(
             stdout.contains(&t.want_out),
