@@ -1,6 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-use crate::kcl_error_fmt;
 use anyhow::Result;
 use clap::Parser;
 use kcmc::format::OutputFormat3d as OutputFormat;
@@ -8,7 +7,7 @@ use kittycad::types as kt;
 use kittycad_modeling_cmds as kcmc;
 use url::Url;
 
-use crate::iostreams::IoStreams;
+use crate::{iostreams::IoStreams, kcl_error_fmt};
 
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]

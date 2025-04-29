@@ -1,5 +1,4 @@
-use std::io::IsTerminal;
-use std::{collections::HashMap, env, process::Command};
+use std::{collections::HashMap, env, io::IsTerminal, process::Command};
 
 use anyhow::{anyhow, Result};
 use terminal_size::{terminal_size, Height, Width};

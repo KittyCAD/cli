@@ -1,10 +1,8 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
-use kcl_lib::native_engine::EngineConnection;
-use kcl_lib::EngineManager;
-use kcmc::each_cmd as mcmd;
-use kcmc::websocket::OkWebSocketResponseData;
+use kcl_lib::{native_engine::EngineConnection, EngineManager};
+use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
 use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd};
 
