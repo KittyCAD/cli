@@ -1,6 +1,7 @@
-use crate::config::{ConfigOption, CONFIG_OPTIONS};
 use anyhow::{bail, Result};
 use clap::Parser;
+
+use crate::config::{ConfigOption, CONFIG_OPTIONS};
 
 // TODO: make this doc a function that parses from the config the options so it's not hardcoded
 /// Manage configuration for `zoo`.
@@ -170,9 +171,7 @@ impl crate::cmd::Command for CmdConfigList {
 mod test {
     use pretty_assertions::assert_eq;
 
-    use crate::cmd::Command;
-    use crate::config;
-    use crate::config::Config;
+    use crate::{cmd::Command, config, config::Config};
 
     pub struct TestItem {
         name: String,

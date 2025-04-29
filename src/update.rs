@@ -1,6 +1,9 @@
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
-use std::{fs, io::IsTerminal, io::Write};
+use std::{
+    fs,
+    io::{IsTerminal, Write},
+};
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};

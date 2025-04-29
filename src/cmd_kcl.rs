@@ -1,6 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-use crate::kcl_error_fmt;
 use anyhow::Result;
 use clap::Parser;
 use kcmc::format::OutputFormat3d as OutputFormat;
@@ -8,7 +7,7 @@ use kittycad::types as kt;
 use kittycad_modeling_cmds as kcmc;
 use url::Url;
 
-use crate::iostreams::IoStreams;
+use crate::{iostreams::IoStreams, kcl_error_fmt};
 
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
@@ -134,6 +133,7 @@ impl crate::cmd::Command for CmdKclExport {
         for file in files {
             let path = self.output_dir.join(file.name);
             std::fs::write(&path, file.contents)?;
+
             writeln!(ctx.io.out, "Wrote file: {}", path.display())?;
         }
 

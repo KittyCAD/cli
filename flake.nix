@@ -22,6 +22,12 @@
             rustToolchain = super.rust-bin.stable.latest.default.override {
               extensions = ["rustfmt" "clippy" "rust-src"];
             };
+
+            # stand-alone nightly formatter so we get the fancy unstable flags
+            nightlyRustfmt = super.rust-bin.selectLatestNightlyWith (toolchain:
+              toolchain.default.override {
+                extensions = ["rustfmt"]; # just the formatter
+              });
           })
         ];
         pkgs = import nixpkgs {
@@ -33,6 +39,8 @@
             nativeBuildInputs =
               (with pkgs; [
                 rustToolchain
+                nightlyRustfmt
+                cargo-sort
                 toml-cli
                 openssl
                 postgresql
@@ -41,7 +49,7 @@
               ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
                 ]);
 
-            RUSTFMT = "${pkgs.rust-bin.nightly.latest.rustfmt}/bin/rustfmt";
+            RUSTFMT = "${pkgs.nightlyRustfmt}/bin/rustfmt";
           };
       }
     );

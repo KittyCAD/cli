@@ -1,11 +1,9 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
-use kcl_lib::native_engine::EngineConnection;
-use kcl_lib::EngineManager;
-use kcmc::each_cmd as mcmd;
-use kcmc::websocket::OkWebSocketResponseData;
-use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadIteration};
+use kcl_lib::{native_engine::EngineConnection, EngineManager};
+use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
+use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
 use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd};
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
@@ -288,12 +286,13 @@ impl Context<'_> {
     pub async fn get_edit_for_prompt(
         &self,
         hostname: &str,
-        body: &kittycad::types::TextToCadIterationBody,
-    ) -> Result<TextToCadIteration> {
+        body: &kittycad::types::TextToCadMultiFileIterationBody,
+        files: Vec<kittycad::types::multipart::Attachment>,
+    ) -> Result<TextToCadMultiFileIteration> {
         let client = self.api_client(hostname)?;
 
         // Create the text-to-cad request.
-        let mut gen_model = client.ml().create_text_to_cad_iteration(body).await?;
+        let mut gen_model = client.ml().create_text_to_cad_multi_file_iteration(files, body).await?;
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -308,7 +307,7 @@ impl Context<'_> {
             // Poll for the status.
             let result = client.api_calls().get_async_operation(gen_model.id).await?;
 
-            if let AsyncApiCallOutput::TextToCadIteration {
+            if let AsyncApiCallOutput::TextToCadMultiFileIteration {
                 completed_at,
                 created_at,
                 error,
@@ -320,13 +319,12 @@ impl Context<'_> {
                 status,
                 updated_at,
                 user_id,
-                code,
                 model,
-                original_source_code,
                 source_ranges,
+                outputs,
             } = result
             {
-                gen_model = TextToCadIteration {
+                gen_model = TextToCadMultiFileIteration {
                     completed_at,
                     created_at,
                     error,
@@ -338,10 +336,9 @@ impl Context<'_> {
                     status,
                     updated_at,
                     user_id,
-                    code,
                     model,
-                    original_source_code,
                     source_ranges,
+                    outputs,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);
@@ -474,6 +471,75 @@ impl Context<'_> {
         // Parse the input as a string.
         let code = std::str::from_utf8(&b)?;
         Ok((code.to_string(), path))
+    }
+
+    /// Collect all the kcl files in the given directory or parent directory to the given path.
+    pub async fn collect_kcl_files(
+        &mut self,
+        path: &std::path::Path,
+    ) -> Result<(Vec<kittycad::types::multipart::Attachment>, std::path::PathBuf)> {
+        let mut files = Vec::new();
+
+        let (code, filepath) = self.get_code_and_file_path(path).await?;
+        files.push(kittycad::types::multipart::Attachment {
+            name: filepath.to_string_lossy().to_string(),
+            filepath: Some(filepath.clone()),
+            content_type: Some("text/plain".parse()?),
+            data: code.as_bytes().to_vec(),
+        });
+
+        // Walk the directory and collect all the kcl files.
+        let parent = filepath
+            .parent()
+            .ok_or_else(|| anyhow!("Could not get parent directory to: `{}`", filepath.display()))?;
+        let walked_kcl = kcl_lib::walk_dir(&parent.to_path_buf()).await?;
+
+        // Get all the attachements async.
+        let futures = walked_kcl
+            .into_iter()
+            .filter(|file| *file != filepath)
+            .map(|file| {
+                tokio::spawn(async move {
+                    let contents = tokio::fs::read(&file)
+                        .await
+                        .map_err(|err| anyhow::anyhow!("Failed to read file `{}`: {:?}", file.display(), err))?;
+
+                    Ok::<kittycad::types::multipart::Attachment, anyhow::Error>(
+                        kittycad::types::multipart::Attachment {
+                            name: file.to_string_lossy().to_string(),
+                            filepath: Some(file),
+                            content_type: Some("text/plain".parse()?),
+                            data: contents,
+                        },
+                    )
+                })
+            })
+            .collect::<Vec<_>>();
+
+        // Join all futures and await their completion
+        let results = futures::future::join_all(futures).await;
+
+        // Check if any of the futures failed.
+        let mut errors = Vec::new();
+        for result in results {
+            match result {
+                Ok(Ok(attachment)) => {
+                    files.push(attachment);
+                }
+                Ok(Err(err)) => {
+                    errors.push(err);
+                }
+                Err(err) => {
+                    errors.push(anyhow::anyhow!("Failed to join future: {:?}", err));
+                }
+            }
+        }
+
+        if !errors.is_empty() {
+            anyhow::bail!("Failed to walk some kcl files: {:?}", errors);
+        }
+
+        Ok((files, filepath))
     }
 }
 

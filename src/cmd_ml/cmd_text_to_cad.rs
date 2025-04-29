@@ -1,11 +1,10 @@
 use anyhow::Result;
 use clap::Parser;
 use kcl_lib::EngineManager;
-use kcmc::each_cmd as mcmd;
-use kcmc::format::InputFormat3d;
-use kcmc::ok_response::OkModelingCmdResponse;
-use kcmc::websocket::OkWebSocketResponseData;
-use kcmc::{ImageFormat, ModelingCmd};
+use kcmc::{
+    each_cmd as mcmd, format::InputFormat3d, ok_response::OkModelingCmdResponse, websocket::OkWebSocketResponseData,
+    ImageFormat, ModelingCmd,
+};
 use kittycad_modeling_cmds::{self as kcmc, ImportFile};
 
 /// Perform Text-to-CAD commands.
