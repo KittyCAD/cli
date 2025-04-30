@@ -77,7 +77,7 @@
         pname = "zoo";
         version = "0.1.0";
         release = true;
-        src = ./../;
+        src = ./.;
 
         buildInputs = [pkgs.openssl pkgs.pkg-config];
       };
