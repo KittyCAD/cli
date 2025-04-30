@@ -1794,6 +1794,7 @@ checksum = "cea70ddb795996207ad57735b50c5982d8844f38ba9ee5f1aedcfb708a2aa11e"
 dependencies = [
  "equivalent",
  "hashbrown 0.15.2",
+ "rayon",
  "serde",
 ]
 
@@ -1965,9 +1966,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.64"
+version = "0.2.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2621c3354939ea1a896ed2f0bbb782814f755341fbb9e709b6314b95296df631"
+checksum = "9396cec5f96f5d3da3acd6e14c729a2f4cb6621012b17ac0d7f78c9a6565a6c1"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2029,9 +2030,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.64"
+version = "0.1.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c949370c7096d2757342535f629bd3580ab3b3f5b7ea24e9075f8f556243584"
+checksum = "32339e5b4d307dc3be931d161e9e9fb3c5cd0183843c42ea75146e97f9af8b0d"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -3182,6 +3183,16 @@ dependencies = [
  "quick-error",
  "rav1e",
  "rgb",
+]
+
+[[package]]
+name = "rayon"
+version = "1.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
+dependencies = [
+ "either",
+ "rayon-core",
 ]
 
 [[package]]
@@ -5741,7 +5752,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.109"
+version = "0.2.110"
 dependencies = [
  "anyhow",
  "async-trait",
