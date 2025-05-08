@@ -2,6 +2,7 @@ use std::{net::SocketAddr, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
+use kcl_lib::TypedPath;
 use kcmc::format::OutputFormat3d as OutputFormat;
 use kittycad::types as kt;
 use kittycad_modeling_cmds as kcmc;
@@ -1040,7 +1041,8 @@ fn print_trace_link(io: &mut IoStreams, session_data: &Option<kittycad::types::M
 fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kcl_lib::ExecutorSettings> {
     // Create the default settings from the src unit if given.
     let mut default_settings: kcl_lib::ExecutorSettings = Default::default();
-    default_settings.with_current_file(input.into());
+    let typed_path = TypedPath::from(input.display().to_string().as_str());
+    default_settings.with_current_file(typed_path);
 
     // Check if the path was stdin.
     if input.to_str() == Some("-") {
@@ -1069,7 +1071,8 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
         let project_toml = std::fs::read_to_string(&project_toml)?;
         let project_toml: kcl_lib::ProjectConfiguration = toml::from_str(&project_toml)?;
         let mut settings: kcl_lib::ExecutorSettings = project_toml.into();
-        settings.with_current_file(input.into());
+        let typed_path = TypedPath::from(input.display().to_string().as_str());
+        settings.with_current_file(typed_path);
         Ok(settings)
     } else {
         Ok(default_settings)

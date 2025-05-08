@@ -778,6 +778,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "csscolorparser"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46f9a16a848a7fb95dd47ce387ac1ee9a6df879ba784b815537fcd388a1a8288"
+dependencies = [
+ "phf",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1949,9 +1958,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.64"
+version = "0.1.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b366ea7600d76007b380c5f39e99efb2574dc844eb242321ec308fb4e57e072"
+checksum = "7e1812a6e89e388fdcbe62570d02026ee04a9efcf40257eea16db0ecc879196a"
 dependencies = [
  "Inflector",
  "convert_case",
@@ -1966,9 +1975,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.65"
+version = "0.2.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9396cec5f96f5d3da3acd6e14c729a2f4cb6621012b17ac0d7f78c9a6565a6c1"
+checksum = "5a7617031eb7bb2b1d67a9a131a82abed1dd25546089107511f6467ef034608d"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1979,6 +1988,7 @@ dependencies = [
  "clap",
  "console_error_panic_hook",
  "convert_case",
+ "csscolorparser",
  "dashmap 6.1.0",
  "fnv",
  "form_urlencoded",
@@ -2016,6 +2026,7 @@ dependencies = [
  "tower-lsp",
  "ts-rs",
  "tynm",
+ "typed-path",
  "url",
  "uuid",
  "validator",
@@ -2030,9 +2041,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.65"
+version = "0.1.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32339e5b4d307dc3be931d161e9e9fb3c5cd0183843c42ea75146e97f9af8b0d"
+checksum = "8cf75a310d9709e97075f43601555165281505adbaf2ce91e0d633854cb86e93"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2087,9 +2098,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.114"
+version = "0.2.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "681ce29b9da92aa6f8bfc003ccb79a9f1a84368e064d68684327b3181dfe16ec"
+checksum = "8940f96274c15504bbf9e31b7f599fb69da4be0c1cd08deb2d52ace4f5a894a9"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2776,6 +2787,48 @@ name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
+
+[[package]]
+name = "phf"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fd6780a80ae0c52cc120a26a1a42c1ae51b247a253e4e06113d23d2c2edd078"
+dependencies = [
+ "phf_macros",
+ "phf_shared",
+]
+
+[[package]]
+name = "phf_generator"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d"
+dependencies = [
+ "phf_shared",
+ "rand 0.8.5",
+]
+
+[[package]]
+name = "phf_macros"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f84ac04429c13a7ff43785d75ad27569f2951ce0ffd30a3321230db2fc727216"
+dependencies = [
+ "phf_generator",
+ "phf_shared",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
+dependencies = [
+ "siphasher",
+]
 
 [[package]]
 name = "phonenumber"
@@ -3999,6 +4052,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbbb5d9659141646ae647b42fe094daf6c6192d1620870b449d9557f748b2daa"
 
 [[package]]
+name = "siphasher"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
+
+[[package]]
 name = "slab"
 version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4845,6 +4904,12 @@ checksum = "bd30d05e69d1478e13fe3e7a853409cfec82cebc2cf9b8d613b3c6b0081781ed"
 dependencies = [
  "nom",
 ]
+
+[[package]]
+name = "typed-path"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c462d18470a2857aa657d338af5fa67170bb48bcc80a296710ce3b0802a32566"
 
 [[package]]
 name = "typenum"
