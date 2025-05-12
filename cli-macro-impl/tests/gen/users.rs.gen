@@ -56,7 +56,7 @@ pub struct CmdUserEdit {
     #[clap(long = "image", short = 'i', required = true)]
     pub new_image: String,
     #[doc = "If the user is now onboarded."]
-    #[clap(long = "is-onboarded", short = 'i', required = false)]
+    #[clap(long = "is-onboarded", short = 'o', required = false)]
     pub new_is_onboarded: Option<bool>,
     #[doc = "The user's last name."]
     #[clap(long = "last-name", short = 'l', required = false)]

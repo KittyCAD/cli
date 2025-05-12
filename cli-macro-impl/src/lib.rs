@@ -1436,6 +1436,8 @@ fn get_flags(name: &str) -> Result<Flags> {
         flags.short = '4';
     } else if flags.long == "ipv6-block" {
         flags.short = '6';
+    } else if flags.long == "is-onboarded" {
+        flags.short = 'o';
     }
 
     Ok(flags)
