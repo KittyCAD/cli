@@ -116,9 +116,28 @@ impl Context<'_> {
 
     async fn engine_ws(&self, hostname: &str, replay: Option<String>) -> Result<reqwest::Upgraded> {
         let client = self.api_client(hostname)?;
+        let api_call_id = None;
+        let fps = None;
+        let pool = None;
+        let post_effect = None;
+        let show_grid = None;
+        let unlocked_framerate = None;
+        let video_res_height = None;
+        let video_res_width = None;
         let (ws, _headers) = client
             .modeling()
-            .commands_ws(None, None, None, replay, None, None, None, None, Some(false))
+            .commands_ws(
+                api_call_id,
+                fps,
+                pool,
+                post_effect,
+                replay,
+                show_grid,
+                unlocked_framerate,
+                video_res_height,
+                video_res_width,
+                Some(false),
+            )
             .await?;
         Ok(ws)
     }
@@ -322,6 +341,8 @@ impl Context<'_> {
                 model,
                 source_ranges,
                 outputs,
+                kcl_version,
+                project_name,
             } = result
             {
                 gen_model = TextToCadMultiFileIteration {
@@ -339,6 +360,8 @@ impl Context<'_> {
                     model,
                     source_ranges,
                     outputs,
+                    kcl_version,
+                    project_name,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);
