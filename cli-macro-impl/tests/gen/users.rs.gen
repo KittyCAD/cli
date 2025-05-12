@@ -55,6 +55,9 @@ pub struct CmdUserEdit {
     #[doc = "The image URL for the user. NOTE: If the user uses an OAuth2 provider, this will be overwritten by the provider's image URL when the user logs in next."]
     #[clap(long = "image", short = 'i', required = true)]
     pub new_image: String,
+    #[doc = "If the user is now onboarded."]
+    #[clap(long = "is-onboarded", short = 'i', required = false)]
+    pub new_is_onboarded: Option<bool>,
     #[doc = "The user's last name."]
     #[clap(long = "last-name", short = 'l', required = false)]
     pub new_last_name: Option<String>,
@@ -71,6 +74,7 @@ impl crate::cmd::Command for CmdUserEdit {
             && self.new_first_name.is_none()
             && self.new_github.is_none()
             && self.new_image.is_empty()
+            && self.new_is_onboarded.is_none()
             && self.new_last_name.is_none()
             && self.new_phone.is_none()
         {
@@ -86,6 +90,7 @@ impl crate::cmd::Command for CmdUserEdit {
                 first_name: self.new_first_name.clone(),
                 github: self.new_github.clone(),
                 image: self.new_image.clone(),
+                is_onboarded: self.new_is_onboarded.clone(),
                 last_name: self.new_last_name.clone(),
                 phone: self.new_phone.clone(),
             })
