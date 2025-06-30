@@ -61,7 +61,7 @@ impl CmdGenerateMarkdown {
 
         let mut p = parent.to_string();
         if !p.is_empty() {
-            p = format!("{}_{}", p, name);
+            p = format!("{p}_{name}");
         } else {
             p = name.to_string();
         }

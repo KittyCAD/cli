@@ -201,7 +201,7 @@ impl Operation {
                 Err(_) => return false,
             };
 
-            if parameter_data.name == parameter || parameter_data.name.starts_with(&format!("{}_", parameter)) {
+            if parameter_data.name == parameter || parameter_data.name.starts_with(&format!("{parameter}_")) {
                 return true;
             }
         }
@@ -281,7 +281,7 @@ impl Operation {
             if self.method == "PUT" {
                 // We add the `new_` part onto the parameter since it will be
                 // overwriting an existing field.
-                key = format!("new_{}", key);
+                key = format!("new_{key}");
             }
 
             properties.insert(
@@ -516,11 +516,11 @@ impl Operation {
             )
             .replace(" dns ", " DNS ")
         } else if name == "description" {
-            format!("The description for the {}.", prop)
+            format!("The description for the {prop}.")
         } else if self.is_root_list_operation(tag) {
             format!("The {} that holds the {}.", n, plural(&prop))
         } else {
-            format!("The {} that holds the {}.", n, prop)
+            format!("The {n} that holds the {prop}.")
         };
 
         let mut type_name = self.render_type(schema, required)?;
@@ -615,7 +615,7 @@ impl Operation {
             &singular(tag)
         );
 
-        let struct_inner_name_doc = format!("The name of the {} to create.", singular_tag_str);
+        let struct_inner_name_doc = format!("The name of the {singular_tag_str} to create.");
 
         let mut mutable_variables: Vec<TokenStream> = Vec::new();
         for (p, _) in self.get_all_required_param_names_and_types()? {
@@ -642,13 +642,13 @@ impl Operation {
 
             let formatted = if n == singular(tag) {
                 // Format like an argument not a flag.
-                format!("[{}]", n)
+                format!("[{n}]")
             } else {
                 let flags = get_flags(&n)?;
                 flags.format_help()
             };
 
-            let error_msg = format!("{} required in non-interactive mode", formatted);
+            let error_msg = format!("{formatted} required in non-interactive mode");
 
             let is_check = self.get_is_check_fn(t, true)?;
 
@@ -685,7 +685,7 @@ impl Operation {
 
             let p = format_ident!("{}", n);
 
-            let title = format!("{} {}", singular_tag_str, n);
+            let title = format!("{singular_tag_str} {n}");
 
             let is_check = self.get_is_check_fn(v.clone(), true)?;
 
@@ -843,9 +843,9 @@ impl Operation {
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}Edit", to_title_case(&singular(tag)));
 
-        let struct_doc = format!("Edit {} settings.", singular_tag_str,);
+        let struct_doc = format!("Edit {singular_tag_str} settings.",);
 
-        let struct_inner_name_doc = format!("The {} to edit. Can be an ID or name.", singular_tag_str);
+        let struct_inner_name_doc = format!("The {singular_tag_str} to edit. Can be an ID or name.");
 
         let api_call_params = self.get_api_call_params(tag)?;
 
@@ -955,12 +955,11 @@ impl Operation {
         let struct_name = format_ident!("Cmd{}View", to_title_case(&singular(tag)));
 
         let struct_doc = format!(
-            "View {}.\n\nDisplay information about a Zoo {}.\n\nWith `--web`, open the {} in a web browser instead.",
-            singular_tag_str, singular_tag_str, singular_tag_str
+            "View {singular_tag_str}.\n\nDisplay information about a Zoo {singular_tag_str}.\n\nWith `--web`, open the {singular_tag_str} in a web browser instead."
         );
 
-        let struct_inner_web_doc = format!("Open the {} in the browser.", singular_tag_str);
-        let struct_inner_name_doc = format!("The {} to view. Can be an ID or name.", singular_tag_str);
+        let struct_inner_web_doc = format!("Open the {singular_tag_str} in the browser.");
+        let struct_inner_name_doc = format!("The {singular_tag_str} to view. Can be an ID or name.");
 
         let api_call_params = self.get_api_call_params(tag)?;
 
@@ -1137,8 +1136,8 @@ impl Operation {
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}Delete", to_title_case(&singular(tag)));
 
-        let struct_doc = format!("Delete {}.", singular_tag_str);
-        let struct_inner_name_doc = format!("The {} to delete. Can be an ID or name.", singular_tag_str);
+        let struct_doc = format!("Delete {singular_tag_str}.");
+        let struct_inner_name_doc = format!("The {singular_tag_str} to delete. Can be an ID or name.");
 
         let api_call_params = self.get_api_call_params(tag)?;
 
@@ -1345,12 +1344,12 @@ fn plural(s: &str) -> String {
     let s = singular(s);
 
     if s.ends_with('s') {
-        return format!("{}es", s);
+        return format!("{s}es");
     } else if s.ends_with('y') {
         return format!("{}ies", s.trim_end_matches('y'));
     }
 
-    format!("{}s", s)
+    format!("{s}s")
 }
 
 /// Return the singular version of a string (if it plural).

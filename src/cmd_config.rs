@@ -151,7 +151,7 @@ impl crate::cmd::Command for CmdConfigList {
         for option in CONFIG_OPTIONS {
             if let &ConfigOption::TopLevel { key, description, .. } = option {
                 match ctx.config.get(&host, key) {
-                    Ok(value) => writeln!(ctx.io.out, "{}\n{}={}\n", description, key, value)?,
+                    Ok(value) => writeln!(ctx.io.out, "{description}\n{key}={value}\n")?,
                     Err(err) => {
                         if host.is_empty() {
                             // Only bail if the host is empty, since some hosts may not have
