@@ -182,12 +182,12 @@ pub fn new_blank_root() -> Result<toml_edit::DocumentMut> {
         } = option
         {
             if !comment.is_empty() {
-                writeln!(s, "# {}", comment)?;
+                writeln!(s, "# {comment}")?;
                 if !allowed_values.is_empty() {
                     writeln!(s, "# Supported values: {}", allowed_values.join(", "))?;
                 }
             }
-            writeln!(s, "{} = \"{}\"\n", key, default_value)?;
+            writeln!(s, "{key} = \"{default_value}\"\n")?;
         }
     }
 

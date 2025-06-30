@@ -229,7 +229,7 @@ impl crate::cmd::Command for CmdKclFormat {
             }
         } else {
             // Print the formatted file to stdout.
-            writeln!(ctx.io.out, "{}", formatted)?;
+            writeln!(ctx.io.out, "{formatted}")?;
         }
 
         Ok(())
@@ -1029,7 +1029,7 @@ fn print_trace_link(io: &mut IoStreams, session_data: &Option<kittycad::types::M
         return;
     };
     let api_call_id = &data.api_call_id;
-    let link = format!("https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D", api_call_id);
+    let link = format!("https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{api_call_id}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D");
     let _ = writeln!(
         io.out,
         "Was this request slow? Send a Zoo employee this link:\n----\n{link}"

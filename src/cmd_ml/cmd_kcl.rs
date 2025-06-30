@@ -88,7 +88,7 @@ impl crate::cmd::Command for CmdKclEdit {
         for (file, output) in outputs {
             // We could do these in parallel...
             tokio::fs::write(&file, output).await?;
-            writeln!(ctx.io.out, "Wrote to {}", file)?;
+            writeln!(ctx.io.out, "Wrote to {file}")?;
         }
 
         Ok(())

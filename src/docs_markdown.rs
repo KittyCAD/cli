@@ -73,7 +73,7 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
 
         let mut html = "<dl class=\"flags\">\n".to_string();
 
-        println!("{:#?}", args);
+        println!("{args:#?}");
 
         for (i, arg) in args.iter().enumerate() {
             if i > 0 {
