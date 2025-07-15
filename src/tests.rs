@@ -633,7 +633,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "fmt".to_string(),
                 "tests/gear.kcl".to_string(),
             ],
-            want_out: r#"startSketchOn(body, face = END)"#.to_string(),
+            want_out: r#"startSketchOn(XY)"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
