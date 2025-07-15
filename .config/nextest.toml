@@ -1,0 +1,7 @@
+[test-groups]
+serial-integration = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'test(serial_test_)'
+test-group = 'serial-integration'
+

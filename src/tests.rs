@@ -44,8 +44,7 @@ impl AsyncTestContext for MainContext {
 }
 
 #[tokio::test]
-#[serial_test::serial]
-async fn test_existing_command() {
+async fn serial_test_existing_command() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -62,8 +61,7 @@ async fn test_existing_command() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_existing_command_with_args() {
+async fn serial_test_existing_command_with_args() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -85,8 +83,7 @@ async fn test_existing_command_with_args() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_add_an_alias() {
+async fn serial_test_add_an_alias() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -109,8 +106,7 @@ async fn test_add_an_alias() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_add_a_shell_alias() {
+async fn serial_test_add_a_shell_alias() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -134,8 +130,7 @@ async fn test_add_a_shell_alias() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_list_our_aliases() {
+async fn serial_test_list_our_aliases() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -152,8 +147,7 @@ async fn test_list_our_aliases() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_call_alias() {
+async fn serial_test_call_alias() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -170,8 +164,7 @@ async fn test_call_alias() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_call_alias_with_different_binary_name() {
+async fn serial_test_call_alias_with_different_binary_name() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -188,8 +181,7 @@ async fn test_call_alias_with_different_binary_name() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_call_shell_alias() {
+async fn serial_test_call_shell_alias() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -206,8 +198,7 @@ async fn test_call_shell_alias() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test() {
+async fn serial_test() {
     let mut ctx = MainContext::setup().await;
     let version = clap::crate_version!();
 
@@ -231,8 +222,7 @@ async fn test() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_login() {
+async fn serial_test_login() {
     let mut ctx = MainContext::setup().await;
     let test_host = ctx.test_host.clone();
     let test_token = ctx.test_token.clone();
@@ -259,8 +249,7 @@ async fn test_login() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_api_user() {
+async fn serial_test_api_user() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -277,8 +266,7 @@ async fn test_api_user() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_api_user_no_leading_fwd_slash() {
+async fn serial_test_api_user_no_leading_fwd_slash() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -295,8 +283,7 @@ async fn test_api_user_no_leading_fwd_slash() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_api_user_with_header() {
+async fn serial_test_api_user_with_header() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -319,8 +306,7 @@ async fn test_api_user_with_header() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_api_user_with_headers() {
+async fn serial_test_api_user_with_headers() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -345,8 +331,7 @@ async fn test_api_user_with_headers() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_api_user_with_output_headers() {
+async fn serial_test_api_user_with_output_headers() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -368,8 +353,7 @@ async fn test_api_user_with_output_headers() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_api_endpoint_does_not_exist() {
+async fn serial_test_api_endpoint_does_not_exist() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -386,8 +370,7 @@ async fn test_api_endpoint_does_not_exist() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_try_to_paginate_over_a_post() {
+async fn serial_test_try_to_paginate_over_a_post() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -411,8 +394,7 @@ async fn test_try_to_paginate_over_a_post() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_your_user() {
+async fn serial_test_get_your_user() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -429,8 +411,7 @@ async fn test_get_your_user() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_your_user_as_json() {
+async fn serial_test_get_your_user_as_json() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -452,8 +433,7 @@ async fn test_get_your_user_as_json() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_convert_a_file() {
+async fn serial_test_convert_a_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -478,8 +458,7 @@ async fn test_convert_a_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_file_volume() {
+async fn serial_test_get_the_file_volume() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -503,8 +482,7 @@ async fn test_get_the_file_volume() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_file_density() {
+async fn serial_test_get_the_file_density() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -532,8 +510,7 @@ async fn test_get_the_file_density() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_file_mass() {
+async fn serial_test_get_the_file_mass() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -561,8 +538,7 @@ async fn test_get_the_file_mass() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_file_surface_area() {
+async fn serial_test_get_the_file_surface_area() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -586,8 +562,7 @@ async fn test_get_the_file_surface_area() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_file_center_of_mass() {
+async fn serial_test_get_the_file_center_of_mass() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -611,8 +586,7 @@ async fn test_get_the_file_center_of_mass() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_file_mass_as_json() {
+async fn serial_test_get_the_file_mass_as_json() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -641,8 +615,7 @@ async fn test_get_the_file_mass_as_json() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_kcl_file_as_png() {
+async fn serial_test_snapshot_a_kcl_file_as_png() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -665,8 +638,7 @@ async fn test_snapshot_a_kcl_file_as_png() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png() {
+async fn serial_test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -689,8 +661,7 @@ async fn test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_kcl_file_with_a_nested_project_dot_toml_as_png() {
+async fn serial_test_snapshot_a_kcl_file_with_a_nested_project_dot_toml_as_png() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -713,8 +684,7 @@ async fn test_snapshot_a_kcl_file_with_a_nested_project_dot_toml_as_png() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_kcl_assembly_as_png() {
+async fn serial_test_snapshot_a_kcl_assembly_as_png() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -737,8 +707,7 @@ async fn test_snapshot_a_kcl_assembly_as_png() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_kcl_assembly_as_png_with_dot() {
+async fn serial_test_snapshot_a_kcl_assembly_as_png_with_dot() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -762,8 +731,7 @@ async fn test_snapshot_a_kcl_assembly_as_png_with_dot() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_mass_of_a_kcl_file() {
+async fn serial_test_get_the_mass_of_a_kcl_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -792,8 +760,7 @@ async fn test_get_the_mass_of_a_kcl_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_mass_of_a_kcl_file_but_use_project_dot_toml() {
+async fn serial_test_get_the_mass_of_a_kcl_file_but_use_project_dot_toml() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -822,8 +789,7 @@ async fn test_get_the_mass_of_a_kcl_file_but_use_project_dot_toml() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_dot_toml() {
+async fn serial_test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_dot_toml() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -852,8 +818,7 @@ async fn test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_dot_toml
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_density_of_a_kcl_file() {
+async fn serial_test_get_the_density_of_a_kcl_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -881,8 +846,7 @@ async fn test_get_the_density_of_a_kcl_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_volume_of_a_kcl_file() {
+async fn serial_test_get_the_volume_of_a_kcl_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -906,8 +870,7 @@ async fn test_get_the_volume_of_a_kcl_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_surface_area_of_a_kcl_file() {
+async fn serial_test_get_the_surface_area_of_a_kcl_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -931,8 +894,7 @@ async fn test_get_the_surface_area_of_a_kcl_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_get_the_center_of_mass_of_a_kcl_file() {
+async fn serial_test_get_the_center_of_mass_of_a_kcl_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -956,8 +918,7 @@ async fn test_get_the_center_of_mass_of_a_kcl_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_export_a_kcl_file_as_gltf() {
+async fn serial_test_export_a_kcl_file_as_gltf() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -981,8 +942,7 @@ async fn test_export_a_kcl_file_as_gltf() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_export_a_kcl_file_as_step_deterministically() {
+async fn serial_test_export_a_kcl_file_as_step_deterministically() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1007,8 +967,7 @@ async fn test_export_a_kcl_file_as_step_deterministically() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_export_a_kcl_file_with_a_parse_error() {
+async fn serial_test_export_a_kcl_file_with_a_parse_error() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1032,8 +991,7 @@ async fn test_export_a_kcl_file_with_a_parse_error() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_format_a_kcl_file() {
+async fn serial_test_format_a_kcl_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1055,8 +1013,7 @@ async fn test_format_a_kcl_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_format_a_directory() {
+async fn serial_test_format_a_directory() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1079,8 +1036,7 @@ async fn test_format_a_directory() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_lint_some_kcl() {
+async fn serial_test_lint_some_kcl() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1102,8 +1058,7 @@ async fn test_lint_some_kcl() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_gltf_with_embedded_buffer() {
+async fn serial_test_snapshot_a_gltf_with_embedded_buffer() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1126,8 +1081,7 @@ async fn test_snapshot_a_gltf_with_embedded_buffer() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_gltf_with_external_buffer() {
+async fn serial_test_snapshot_a_gltf_with_external_buffer() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1150,8 +1104,7 @@ async fn test_snapshot_a_gltf_with_external_buffer() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_snapshot_a_text_to_cad_prompt_as_png() {
+async fn serial_test_snapshot_a_text_to_cad_prompt_as_png() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1179,8 +1132,7 @@ async fn test_snapshot_a_text_to_cad_prompt_as_png() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_export_a_text_to_cad_prompt_as_obj() {
+async fn serial_test_export_a_text_to_cad_prompt_as_obj() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1207,8 +1159,7 @@ async fn test_export_a_text_to_cad_prompt_as_obj() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_export_a_text_to_cad_prompt_as_kcl() {
+async fn serial_test_export_a_text_to_cad_prompt_as_kcl() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1235,8 +1186,7 @@ async fn test_export_a_text_to_cad_prompt_as_kcl() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_edit_a_kcl_file() {
+async fn serial_test_edit_a_kcl_file() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
@@ -1263,8 +1213,7 @@ async fn test_edit_a_kcl_file() {
     ctx.teardown().await;
 }
 #[tokio::test]
-#[serial_test::serial]
-async fn test_view_a_kcl_file_with_multi_file_errors() {
+async fn serial_test_view_a_kcl_file_with_multi_file_errors() {
     let mut ctx = MainContext::setup().await;
     run_test(
         &mut ctx,
