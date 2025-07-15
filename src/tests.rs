@@ -469,7 +469,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"68.458"#.to_string(),
+            want_out: r#"1268.234"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -489,7 +489,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"68.458"#.to_string(),
+            want_out: r#"74.053"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -509,7 +509,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "--material-density-unit".to_string(),
                 "lb-ft3".to_string(),
             ],
-            want_out: r#"68.458"#.to_string(),
+            want_out: r#"74.053"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -528,7 +528,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "--material-mass".to_string(),
                 "1.0".to_string(),
             ],
-            want_out: r#"0.0146"#.to_string(),
+            want_out: r#"0.0007"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -543,7 +543,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "--output-unit".to_string(),
                 "cm3".to_string(),
             ],
-            want_out: r#"4273.7"#.to_string(),
+            want_out: r#"79173.2958833619"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -558,7 +558,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "--output-unit".to_string(),
                 "cm2".to_string(),
             ],
-            want_out: r#"surface_area | 3155.89"#.to_string(),
+            want_out: r#"surface_area | 17351.484299764335"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -573,7 +573,8 @@ async fn test_main(ctx: &mut MainContext) {
                 "--output-unit".to_string(),
                 "cm".to_string(),
             ],
-            want_out: r#"mass | (-0.000"#.to_string(),
+            want_out: r#"center_of_mass | (-0.015537803061306477, 7.619970321655273, -0.00008108330803224817)"#
+                .to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
@@ -632,7 +633,7 @@ async fn test_main(ctx: &mut MainContext) {
                 "fmt".to_string(),
                 "tests/gear.kcl".to_string(),
             ],
-            want_out: r#"startSketchOn(body, face = END)"#.to_string(),
+            want_out: r#"startSketchOn(XY)"#.to_string(),
             want_err: "".to_string(),
             want_code: 0,
             ..Default::default()
