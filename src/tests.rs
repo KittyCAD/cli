@@ -45,7 +45,7 @@ impl AsyncTestContext for MainContext {
 
 async fn login(test_host: String, test_token: String) {
     let local_set = tokio::task::LocalSet::new();
-    local_set.spawn_local(async move {
+    let handle = local_set.spawn_local(async move {
         run_test(TestItem {
             name: "login".to_string(),
             args: vec![
@@ -64,6 +64,7 @@ async fn login(test_host: String, test_token: String) {
         })
         .await;
     });
+    handle.await.unwrap();
 }
 
 #[test_context(MainContext)]
