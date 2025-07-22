@@ -32,7 +32,6 @@ impl AsyncTestContext for MainContext {
         if !test_host.is_empty() {
             zoo.set_base_url(&test_host);
         }
-        login(test_host.clone(), test_token.clone()).await;
 
         Self {
             test_host,
@@ -69,7 +68,8 @@ async fn login(test_host: String, test_token: String) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_existing_command(_ctx: &mut MainContext) {
+async fn serial_test_existing_command(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "existing command".to_string(),
         args: vec!["zoo".to_string(), "completion".to_string()],
@@ -84,7 +84,8 @@ async fn serial_test_existing_command(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_existing_command_with_args(_ctx: &mut MainContext) {
+async fn serial_test_existing_command_with_args(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "existing command with args".to_string(),
         args: vec![
@@ -104,7 +105,8 @@ async fn serial_test_existing_command_with_args(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_add_an_alias(_ctx: &mut MainContext) {
+async fn serial_test_add_an_alias(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "add an alias".to_string(),
         args: vec![
@@ -125,7 +127,8 @@ async fn serial_test_add_an_alias(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_add_a_shell_alias(_ctx: &mut MainContext) {
+async fn serial_test_add_a_shell_alias(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "add a shell alias".to_string(),
         args: vec![
@@ -147,7 +150,8 @@ async fn serial_test_add_a_shell_alias(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_list_our_aliases(_ctx: &mut MainContext) {
+async fn serial_test_list_our_aliases(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "list our aliases".to_string(),
         args: vec!["zoo".to_string(), "alias".to_string(), "list".to_string()],
@@ -162,7 +166,8 @@ async fn serial_test_list_our_aliases(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_call_alias(_ctx: &mut MainContext) {
+async fn serial_test_call_alias(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "call alias".to_string(),
         args: vec!["zoo".to_string(), "foo".to_string()],
@@ -177,7 +182,8 @@ async fn serial_test_call_alias(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_call_alias_with_different_binary_name(_ctx: &mut MainContext) {
+async fn serial_test_call_alias_with_different_binary_name(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "call alias with different binary name".to_string(),
         args: vec!["/bin/thing/zoo".to_string(), "foo".to_string()],
@@ -192,7 +198,8 @@ async fn serial_test_call_alias_with_different_binary_name(_ctx: &mut MainContex
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_call_shell_alias(_ctx: &mut MainContext) {
+async fn serial_test_call_shell_alias(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "call shell alias".to_string(),
         args: vec!["zoo".to_string(), "bar".to_string()],
@@ -207,8 +214,9 @@ async fn serial_test_call_shell_alias(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_version(_ctx: &mut MainContext) {
+async fn serial_test_version(ctx: &mut MainContext) {
     let version = clap::crate_version!();
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "version".to_string(),
         args: vec!["zoo".to_string(), "version".to_string()],
@@ -228,7 +236,8 @@ async fn serial_test_version(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_api_user(_ctx: &mut MainContext) {
+async fn serial_test_api_user(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "api /user".to_string(),
         args: vec!["zoo".to_string(), "api".to_string(), "/user".to_string()],
@@ -243,7 +252,8 @@ async fn serial_test_api_user(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_api_user_no_leading_(_ctx: &mut MainContext) {
+async fn serial_test_api_user_no_leading_(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "api user (no leading /)".to_string(),
         args: vec!["zoo".to_string(), "api".to_string(), "user".to_string()],
@@ -258,7 +268,8 @@ async fn serial_test_api_user_no_leading_(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_api_user_with_header(_ctx: &mut MainContext) {
+async fn serial_test_api_user_with_header(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "api user with header".to_string(),
         args: vec![
@@ -279,7 +290,8 @@ async fn serial_test_api_user_with_header(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_api_user_with_headers(_ctx: &mut MainContext) {
+async fn serial_test_api_user_with_headers(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "api user with headers".to_string(),
         args: vec![
@@ -302,7 +314,8 @@ async fn serial_test_api_user_with_headers(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_api_user_with_output_headers(_ctx: &mut MainContext) {
+async fn serial_test_api_user_with_output_headers(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "api user with output headers".to_string(),
         args: vec![
@@ -322,7 +335,8 @@ async fn serial_test_api_user_with_output_headers(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_api_endpoint_does_not_exist(_ctx: &mut MainContext) {
+async fn serial_test_api_endpoint_does_not_exist(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "api endpoint does not exist".to_string(),
         args: vec!["zoo".to_string(), "api".to_string(), "foo/bar".to_string()],
@@ -337,7 +351,8 @@ async fn serial_test_api_endpoint_does_not_exist(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_try_to_paginate_over_a_post(_ctx: &mut MainContext) {
+async fn serial_test_try_to_paginate_over_a_post(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "try to paginate over a post".to_string(),
         args: vec![
@@ -359,7 +374,8 @@ async fn serial_test_try_to_paginate_over_a_post(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_your_user(_ctx: &mut MainContext) {
+async fn serial_test_get_your_user(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get your user".to_string(),
         args: vec!["zoo".to_string(), "user".to_string(), "view".to_string()],
@@ -374,7 +390,8 @@ async fn serial_test_get_your_user(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_your_user_as_json(_ctx: &mut MainContext) {
+async fn serial_test_get_your_user_as_json(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get your user as json".to_string(),
         args: vec![
@@ -394,7 +411,8 @@ async fn serial_test_get_your_user_as_json(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_convert_a_file(_ctx: &mut MainContext) {
+async fn serial_test_convert_a_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "convert a file".to_string(),
         args: vec![
@@ -417,7 +435,8 @@ async fn serial_test_convert_a_file(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_file_volume(_ctx: &mut MainContext) {
+async fn serial_test_get_the_file_volume(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the file volume".to_string(),
         args: vec![
@@ -439,7 +458,8 @@ async fn serial_test_get_the_file_volume(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_file_density(_ctx: &mut MainContext) {
+async fn serial_test_get_the_file_density(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the file density".to_string(),
         args: vec![
@@ -465,7 +485,8 @@ async fn serial_test_get_the_file_density(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_file_mass(_ctx: &mut MainContext) {
+async fn serial_test_get_the_file_mass(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the file mass".to_string(),
         args: vec![
@@ -491,7 +512,8 @@ async fn serial_test_get_the_file_mass(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_file_surface_area(_ctx: &mut MainContext) {
+async fn serial_test_get_the_file_surface_area(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the file surface-area".to_string(),
         args: vec![
@@ -513,7 +535,8 @@ async fn serial_test_get_the_file_surface_area(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_file_center_of_mass(_ctx: &mut MainContext) {
+async fn serial_test_get_the_file_center_of_mass(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the file center-of-mass".to_string(),
         args: vec![
@@ -535,7 +558,8 @@ async fn serial_test_get_the_file_center_of_mass(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_file_mass_as_json(_ctx: &mut MainContext) {
+async fn serial_test_get_the_file_mass_as_json(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the file mass as json".to_string(),
         args: vec![
@@ -562,7 +586,8 @@ async fn serial_test_get_the_file_mass_as_json(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_file_as_png(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_kcl_file_as_png(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a kcl file as png".to_string(),
         args: vec![
@@ -583,7 +608,8 @@ async fn serial_test_snapshot_a_kcl_file_as_png(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a kcl file with a project.toml as png".to_string(),
         args: vec![
@@ -604,7 +630,8 @@ async fn serial_test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png(_ctx: &m
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_file_with_a_nested_project_toml_as_png(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_kcl_file_with_a_nested_project_toml_as_png(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a kcl file with a nested project.toml as png".to_string(),
         args: vec![
@@ -625,7 +652,8 @@ async fn serial_test_snapshot_a_kcl_file_with_a_nested_project_toml_as_png(_ctx:
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_assembly_as_png(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_kcl_assembly_as_png(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a kcl assembly as png".to_string(),
         args: vec![
@@ -646,7 +674,8 @@ async fn serial_test_snapshot_a_kcl_assembly_as_png(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_assembly_as_png_with_(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_kcl_assembly_as_png_with_(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a kcl assembly as png with .".to_string(),
         current_directory: Some(std::env::current_dir().unwrap().join("tests/walkie-talkie")),
@@ -668,7 +697,8 @@ async fn serial_test_snapshot_a_kcl_assembly_as_png_with_(_ctx: &mut MainContext
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_mass_of_a_kcl_file(_ctx: &mut MainContext) {
+async fn serial_test_get_the_mass_of_a_kcl_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the mass of a kcl file".to_string(),
         args: vec![
@@ -695,7 +725,8 @@ async fn serial_test_get_the_mass_of_a_kcl_file(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_mass_of_a_kcl_file_but_use_project_toml(_ctx: &mut MainContext) {
+async fn serial_test_get_the_mass_of_a_kcl_file_but_use_project_toml(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the mass of a kcl file but use project.toml".to_string(),
         args: vec![
@@ -722,7 +753,8 @@ async fn serial_test_get_the_mass_of_a_kcl_file_but_use_project_toml(_ctx: &mut 
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_dot_toml(_ctx: &mut MainContext) {
+async fn serial_test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_dot_toml(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the mass of a kcl file with nested dirs and a project.toml".to_string(),
         args: vec![
@@ -749,7 +781,8 @@ async fn serial_test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_d
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_density_of_a_kcl_file(_ctx: &mut MainContext) {
+async fn serial_test_get_the_density_of_a_kcl_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the density of a kcl file".to_string(),
         args: vec![
@@ -775,7 +808,8 @@ async fn serial_test_get_the_density_of_a_kcl_file(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_volume_of_a_kcl_file(_ctx: &mut MainContext) {
+async fn serial_test_get_the_volume_of_a_kcl_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the volume of a kcl file".to_string(),
         args: vec![
@@ -797,7 +831,8 @@ async fn serial_test_get_the_volume_of_a_kcl_file(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_surface_area_of_a_kcl_file(_ctx: &mut MainContext) {
+async fn serial_test_get_the_surface_area_of_a_kcl_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the surface-area of a kcl file".to_string(),
         args: vec![
@@ -819,7 +854,8 @@ async fn serial_test_get_the_surface_area_of_a_kcl_file(_ctx: &mut MainContext) 
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_get_the_center_of_mass_of_a_kcl_file(_ctx: &mut MainContext) {
+async fn serial_test_get_the_center_of_mass_of_a_kcl_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "get the center-of-mass of a kcl file".to_string(),
         args: vec![
@@ -841,7 +877,8 @@ async fn serial_test_get_the_center_of_mass_of_a_kcl_file(_ctx: &mut MainContext
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_export_a_kcl_file_as_gltf(_ctx: &mut MainContext) {
+async fn serial_test_export_a_kcl_file_as_gltf(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "export a kcl file as gltf".to_string(),
         args: vec![
@@ -863,7 +900,8 @@ async fn serial_test_export_a_kcl_file_as_gltf(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_export_a_kcl_file_as_step_deterministically(_ctx: &mut MainContext) {
+async fn serial_test_export_a_kcl_file_as_step_deterministically(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "export a kcl file as step, deterministically".to_string(),
         args: vec![
@@ -886,7 +924,8 @@ async fn serial_test_export_a_kcl_file_as_step_deterministically(_ctx: &mut Main
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_export_a_kcl_file_with_a_parse_error(_ctx: &mut MainContext) {
+async fn serial_test_export_a_kcl_file_with_a_parse_error(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "export a kcl file with a parse error".to_string(),
         args: vec![
@@ -908,7 +947,8 @@ async fn serial_test_export_a_kcl_file_with_a_parse_error(_ctx: &mut MainContext
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_format_a_kcl_file(_ctx: &mut MainContext) {
+async fn serial_test_format_a_kcl_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "format a kcl file".to_string(),
         args: vec![
@@ -928,7 +968,8 @@ async fn serial_test_format_a_kcl_file(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_format_a_directory(_ctx: &mut MainContext) {
+async fn serial_test_format_a_directory(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "format a directory".to_string(),
         args: vec![
@@ -949,7 +990,8 @@ async fn serial_test_format_a_directory(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_lint_some_kcl(_ctx: &mut MainContext) {
+async fn serial_test_lint_some_kcl(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "lint some kcl".to_string(),
         args: vec![
@@ -969,7 +1011,8 @@ async fn serial_test_lint_some_kcl(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_gltf_with_embedded_buffer(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_gltf_with_embedded_buffer(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a gltf with embedded buffer".to_string(),
         args: vec![
@@ -990,7 +1033,8 @@ async fn serial_test_snapshot_a_gltf_with_embedded_buffer(_ctx: &mut MainContext
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_gltf_with_external_buffer(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_gltf_with_external_buffer(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a gltf with external buffer".to_string(),
         args: vec![
@@ -1011,7 +1055,8 @@ async fn serial_test_snapshot_a_gltf_with_external_buffer(_ctx: &mut MainContext
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_snapshot_a_text_to_cad_prompt_as_png(_ctx: &mut MainContext) {
+async fn serial_test_snapshot_a_text_to_cad_prompt_as_png(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "snapshot a text-to-cad prompt as png".to_string(),
         args: vec![
@@ -1037,7 +1082,8 @@ async fn serial_test_snapshot_a_text_to_cad_prompt_as_png(_ctx: &mut MainContext
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_export_a_text_to_cad_prompt_as_obj(_ctx: &mut MainContext) {
+async fn serial_test_export_a_text_to_cad_prompt_as_obj(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "export a text-to-cad prompt as obj".to_string(),
         args: vec![
@@ -1062,7 +1108,8 @@ async fn serial_test_export_a_text_to_cad_prompt_as_obj(_ctx: &mut MainContext) 
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_export_a_text_to_cad_prompt_as_kcl(_ctx: &mut MainContext) {
+async fn serial_test_export_a_text_to_cad_prompt_as_kcl(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "export a text-to-cad prompt as kcl".to_string(),
         args: vec![
@@ -1087,7 +1134,8 @@ async fn serial_test_export_a_text_to_cad_prompt_as_kcl(_ctx: &mut MainContext) 
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_edit_a_kcl_file(_ctx: &mut MainContext) {
+async fn serial_test_edit_a_kcl_file(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "edit a kcl file".to_string(),
         args: vec![
@@ -1112,7 +1160,8 @@ async fn serial_test_edit_a_kcl_file(_ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_view_a_kcl_file_with_multi_file_errors(_ctx: &mut MainContext) {
+async fn serial_test_view_a_kcl_file_with_multi_file_errors(ctx: &mut MainContext) {
+    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "view a kcl file with multi-file errors".to_string(),
         args: vec![
