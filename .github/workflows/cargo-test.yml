@@ -65,7 +65,7 @@ jobs:
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Run cargo test
         run: |
-          cargo nextest run --workspace
+          cargo nextest run --workspace --no-fail-fast
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
