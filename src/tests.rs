@@ -32,6 +32,7 @@ impl AsyncTestContext for MainContext {
         if !test_host.is_empty() {
             zoo.set_base_url(&test_host);
         }
+        login(test_host.clone(), test_token.clone()).await;
 
         Self {
             test_host,
@@ -41,6 +42,28 @@ impl AsyncTestContext for MainContext {
     }
 
     async fn teardown(self) {}
+}
+
+async fn login(test_host: String, test_token: String) {
+    tokio::task::spawn_local(async move {
+        run_test(TestItem {
+            name: "login".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "auth".to_string(),
+                "login".to_string(),
+                "--host".to_string(),
+                test_host.clone(),
+                "--with-token".to_string(),
+            ],
+            stdin: Some(test_token),
+            want_out: "✔ Logged in as ".to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        })
+        .await;
+    });
 }
 
 #[test_context(MainContext)]
@@ -195,29 +218,6 @@ async fn serial_test_version(_ctx: &mut MainContext) {
             git_rev::revision_string!(),
             crate::cmd_version::changelog_url(version)
         ),
-        want_err: "".to_string(),
-        want_code: 0,
-        ..Default::default()
-    })
-    .await;
-}
-
-#[test_context(MainContext)]
-#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
-#[serial_test::serial]
-async fn serial_test_login(ctx: &mut MainContext) {
-    run_test(TestItem {
-        name: "login".to_string(),
-        args: vec![
-            "zoo".to_string(),
-            "auth".to_string(),
-            "login".to_string(),
-            "--host".to_string(),
-            ctx.test_host.clone(),
-            "--with-token".to_string(),
-        ],
-        stdin: Some(ctx.test_token.clone()),
-        want_out: "✔ Logged in as ".to_string(),
         want_err: "".to_string(),
         want_code: 0,
         ..Default::default()
