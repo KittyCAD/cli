@@ -44,7 +44,7 @@ impl AsyncTestContext for MainContext {
 }
 
 async fn login(test_host: String, test_token: String) {
-    tokio::task::spawn_local(async move {
+    tokio::task::spawn(async move {
         run_test(TestItem {
             name: "login".to_string(),
             args: vec![
@@ -68,8 +68,7 @@ async fn login(test_host: String, test_token: String) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_existing_command(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_existing_command(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "existing command".to_string(),
         args: vec!["zoo".to_string(), "completion".to_string()],
@@ -84,8 +83,7 @@ async fn serial_test_existing_command(ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_existing_command_with_args(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_existing_command_with_args(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "existing command with args".to_string(),
         args: vec![
@@ -105,8 +103,7 @@ async fn serial_test_existing_command_with_args(ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_add_an_alias(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_add_an_alias(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "add an alias".to_string(),
         args: vec![
@@ -127,8 +124,7 @@ async fn serial_test_add_an_alias(ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_add_a_shell_alias(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_add_a_shell_alias(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "add a shell alias".to_string(),
         args: vec![
@@ -150,8 +146,7 @@ async fn serial_test_add_a_shell_alias(ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_list_our_aliases(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_list_our_aliases(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "list our aliases".to_string(),
         args: vec!["zoo".to_string(), "alias".to_string(), "list".to_string()],
@@ -166,8 +161,7 @@ async fn serial_test_list_our_aliases(ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_call_alias(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_call_alias(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "call alias".to_string(),
         args: vec!["zoo".to_string(), "foo".to_string()],
@@ -182,8 +176,7 @@ async fn serial_test_call_alias(ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_call_alias_with_different_binary_name(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_call_alias_with_different_binary_name(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "call alias with different binary name".to_string(),
         args: vec!["/bin/thing/zoo".to_string(), "foo".to_string()],
@@ -198,8 +191,7 @@ async fn serial_test_call_alias_with_different_binary_name(ctx: &mut MainContext
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_call_shell_alias(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_call_shell_alias(_ctx: &mut MainContext) {
     run_test(TestItem {
         name: "call shell alias".to_string(),
         args: vec!["zoo".to_string(), "bar".to_string()],
@@ -214,9 +206,8 @@ async fn serial_test_call_shell_alias(ctx: &mut MainContext) {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn serial_test_version(ctx: &mut MainContext) {
+async fn serial_test_version(_ctx: &mut MainContext) {
     let version = clap::crate_version!();
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
     run_test(TestItem {
         name: "version".to_string(),
         args: vec!["zoo".to_string(), "version".to_string()],
