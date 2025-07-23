@@ -1,5 +1,4 @@
 use pretty_assertions::assert_eq;
-use test_context::{test_context, AsyncTestContext};
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct TestItem {
@@ -13,64 +12,47 @@ pub struct TestItem {
 }
 
 struct MainContext {
-    test_host: String,
-    test_token: String,
     #[allow(dead_code)]
     client: kittycad::Client,
 }
 
-#[async_trait::async_trait]
-impl AsyncTestContext for MainContext {
-    async fn setup() -> Self {
-        let test_host = std::env::var("ZOO_TEST_HOST").unwrap_or_default();
-        let test_host = crate::cmd_auth::parse_host(&test_host)
-            .expect("invalid ZOO_TEST_HOST")
-            .to_string();
-        let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
+async fn login() -> MainContext {
+    let test_host = std::env::var("ZOO_TEST_HOST").unwrap_or_default();
+    let test_host = crate::cmd_auth::parse_host(&test_host)
+        .expect("invalid ZOO_TEST_HOST")
+        .to_string();
+    let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
 
-        let mut zoo = kittycad::Client::new(&test_token);
-        if !test_host.is_empty() {
-            zoo.set_base_url(&test_host);
-        }
+    let login_test_item = TestItem {
+        name: "login".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "auth".to_string(),
+            "login".to_string(),
+            "--host".to_string(),
+            test_host.clone(),
+            "--with-token".to_string(),
+        ],
+        stdin: Some(test_token.clone()),
+        want_out: "✔ Logged in as ".to_string(),
+        want_err: "".to_string(),
+        want_code: 0,
+        ..Default::default()
+    };
 
-        Self {
-            test_host,
-            test_token,
-            client: zoo,
-        }
+    println!("Running login test");
+    run_test(login_test_item).await;
+    println!("Run the test");
+
+    let mut zoo = kittycad::Client::new(&test_token);
+    if !test_host.is_empty() {
+        zoo.set_base_url(&test_host);
     }
-
-    async fn teardown(self) {}
+    MainContext { client: zoo }
 }
 
-async fn login(test_host: String, test_token: String) {
-    let local_set = tokio::task::LocalSet::new();
-    let handle = local_set.spawn_local(async move {
-        run_test(TestItem {
-            name: "login".to_string(),
-            args: vec![
-                "zoo".to_string(),
-                "auth".to_string(),
-                "login".to_string(),
-                "--host".to_string(),
-                test_host.clone(),
-                "--with-token".to_string(),
-            ],
-            stdin: Some(test_token),
-            want_out: "✔ Logged in as ".to_string(),
-            want_err: "".to_string(),
-            want_code: 0,
-            ..Default::default()
-        })
-        .await;
-    });
-    handle.await.unwrap();
-}
-
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_existing_command(_ctx: &mut MainContext) {
+async fn serial_test_existing_command() {
     run_test(TestItem {
         name: "existing command".to_string(),
         args: vec!["zoo".to_string(), "completion".to_string()],
@@ -82,10 +64,8 @@ async fn serial_test_existing_command(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_existing_command_with_args(_ctx: &mut MainContext) {
+async fn serial_test_existing_command_with_args() {
     run_test(TestItem {
         name: "existing command with args".to_string(),
         args: vec![
@@ -102,10 +82,8 @@ async fn serial_test_existing_command_with_args(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_add_an_alias(_ctx: &mut MainContext) {
+async fn serial_test_add_an_alias() {
     run_test(TestItem {
         name: "add an alias".to_string(),
         args: vec![
@@ -123,10 +101,8 @@ async fn serial_test_add_an_alias(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_add_a_shell_alias(_ctx: &mut MainContext) {
+async fn serial_test_add_a_shell_alias() {
     run_test(TestItem {
         name: "add a shell alias".to_string(),
         args: vec![
@@ -145,10 +121,8 @@ async fn serial_test_add_a_shell_alias(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_list_our_aliases(_ctx: &mut MainContext) {
+async fn serial_test_list_our_aliases() {
     run_test(TestItem {
         name: "list our aliases".to_string(),
         args: vec!["zoo".to_string(), "alias".to_string(), "list".to_string()],
@@ -160,10 +134,8 @@ async fn serial_test_list_our_aliases(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_call_alias(_ctx: &mut MainContext) {
+async fn serial_test_call_alias() {
     run_test(TestItem {
         name: "call alias".to_string(),
         args: vec!["zoo".to_string(), "foo".to_string()],
@@ -175,10 +147,8 @@ async fn serial_test_call_alias(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_call_alias_with_different_binary_name(_ctx: &mut MainContext) {
+async fn serial_test_call_alias_with_different_binary_name() {
     run_test(TestItem {
         name: "call alias with different binary name".to_string(),
         args: vec!["/bin/thing/zoo".to_string(), "foo".to_string()],
@@ -190,10 +160,8 @@ async fn serial_test_call_alias_with_different_binary_name(_ctx: &mut MainContex
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_call_shell_alias(_ctx: &mut MainContext) {
+async fn serial_test_call_shell_alias() {
     run_test(TestItem {
         name: "call shell alias".to_string(),
         args: vec!["zoo".to_string(), "bar".to_string()],
@@ -205,10 +173,8 @@ async fn serial_test_call_shell_alias(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_version(_ctx: &mut MainContext) {
+async fn serial_test_version() {
     let version = clap::crate_version!();
     run_test(TestItem {
         name: "version".to_string(),
@@ -226,11 +192,9 @@ async fn serial_test_version(_ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_api_user(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_api_user() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "api /user".to_string(),
         args: vec!["zoo".to_string(), "api".to_string(), "/user".to_string()],
@@ -242,11 +206,9 @@ async fn serial_test_api_user(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_api_user_no_leading_(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_api_user_no_leading_() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "api user (no leading /)".to_string(),
         args: vec!["zoo".to_string(), "api".to_string(), "user".to_string()],
@@ -258,11 +220,9 @@ async fn serial_test_api_user_no_leading_(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_api_user_with_header(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_api_user_with_header() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "api user with header".to_string(),
         args: vec![
@@ -280,11 +240,9 @@ async fn serial_test_api_user_with_header(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_api_user_with_headers(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_api_user_with_headers() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "api user with headers".to_string(),
         args: vec![
@@ -304,11 +262,9 @@ async fn serial_test_api_user_with_headers(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_api_user_with_output_headers(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_api_user_with_output_headers() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "api user with output headers".to_string(),
         args: vec![
@@ -325,11 +281,9 @@ async fn serial_test_api_user_with_output_headers(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_api_endpoint_does_not_exist(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_api_endpoint_does_not_exist() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "api endpoint does not exist".to_string(),
         args: vec!["zoo".to_string(), "api".to_string(), "foo/bar".to_string()],
@@ -341,11 +295,9 @@ async fn serial_test_api_endpoint_does_not_exist(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_try_to_paginate_over_a_post(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_try_to_paginate_over_a_post() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "try to paginate over a post".to_string(),
         args: vec![
@@ -364,11 +316,9 @@ async fn serial_test_try_to_paginate_over_a_post(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_your_user(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_your_user() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get your user".to_string(),
         args: vec!["zoo".to_string(), "user".to_string(), "view".to_string()],
@@ -380,11 +330,9 @@ async fn serial_test_get_your_user(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_your_user_as_json(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_your_user_as_json() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get your user as json".to_string(),
         args: vec![
@@ -401,11 +349,9 @@ async fn serial_test_get_your_user_as_json(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_convert_a_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_convert_a_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "convert a file".to_string(),
         args: vec![
@@ -425,11 +371,9 @@ async fn serial_test_convert_a_file(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_file_volume(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_file_volume() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the file volume".to_string(),
         args: vec![
@@ -448,11 +392,9 @@ async fn serial_test_get_the_file_volume(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_file_density(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_file_density() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the file density".to_string(),
         args: vec![
@@ -475,11 +417,9 @@ async fn serial_test_get_the_file_density(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_file_mass(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_file_mass() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the file mass".to_string(),
         args: vec![
@@ -502,11 +442,9 @@ async fn serial_test_get_the_file_mass(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_file_surface_area(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_file_surface_area() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the file surface-area".to_string(),
         args: vec![
@@ -525,11 +463,9 @@ async fn serial_test_get_the_file_surface_area(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_file_center_of_mass(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_file_center_of_mass() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the file center-of-mass".to_string(),
         args: vec![
@@ -548,11 +484,9 @@ async fn serial_test_get_the_file_center_of_mass(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_file_mass_as_json(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_file_mass_as_json() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the file mass as json".to_string(),
         args: vec![
@@ -576,11 +510,9 @@ async fn serial_test_get_the_file_mass_as_json(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_file_as_png(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_kcl_file_as_png() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a kcl file as png".to_string(),
         args: vec![
@@ -598,11 +530,9 @@ async fn serial_test_snapshot_a_kcl_file_as_png(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a kcl file with a project.toml as png".to_string(),
         args: vec![
@@ -620,11 +550,9 @@ async fn serial_test_snapshot_a_kcl_file_with_a_project_dot_toml_as_png(ctx: &mu
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_file_with_a_nested_project_toml_as_png(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_kcl_file_with_a_nested_project_toml_as_png() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a kcl file with a nested project.toml as png".to_string(),
         args: vec![
@@ -642,11 +570,9 @@ async fn serial_test_snapshot_a_kcl_file_with_a_nested_project_toml_as_png(ctx: 
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_assembly_as_png(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_kcl_assembly_as_png() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a kcl assembly as png".to_string(),
         args: vec![
@@ -664,11 +590,9 @@ async fn serial_test_snapshot_a_kcl_assembly_as_png(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_kcl_assembly_as_png_with_(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_kcl_assembly_as_png_with_() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a kcl assembly as png with .".to_string(),
         current_directory: Some(std::env::current_dir().unwrap().join("tests/walkie-talkie")),
@@ -687,11 +611,9 @@ async fn serial_test_snapshot_a_kcl_assembly_as_png_with_(ctx: &mut MainContext)
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_mass_of_a_kcl_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_mass_of_a_kcl_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the mass of a kcl file".to_string(),
         args: vec![
@@ -715,11 +637,9 @@ async fn serial_test_get_the_mass_of_a_kcl_file(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_mass_of_a_kcl_file_but_use_project_toml(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_mass_of_a_kcl_file_but_use_project_toml() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the mass of a kcl file but use project.toml".to_string(),
         args: vec![
@@ -743,11 +663,9 @@ async fn serial_test_get_the_mass_of_a_kcl_file_but_use_project_toml(ctx: &mut M
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_dot_toml(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_dot_toml() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the mass of a kcl file with nested dirs and a project.toml".to_string(),
         args: vec![
@@ -771,11 +689,9 @@ async fn serial_test_get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_d
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_density_of_a_kcl_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_density_of_a_kcl_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the density of a kcl file".to_string(),
         args: vec![
@@ -798,11 +714,9 @@ async fn serial_test_get_the_density_of_a_kcl_file(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_volume_of_a_kcl_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_volume_of_a_kcl_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the volume of a kcl file".to_string(),
         args: vec![
@@ -821,11 +735,9 @@ async fn serial_test_get_the_volume_of_a_kcl_file(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_surface_area_of_a_kcl_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_surface_area_of_a_kcl_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the surface-area of a kcl file".to_string(),
         args: vec![
@@ -844,11 +756,9 @@ async fn serial_test_get_the_surface_area_of_a_kcl_file(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_get_the_center_of_mass_of_a_kcl_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_get_the_center_of_mass_of_a_kcl_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "get the center-of-mass of a kcl file".to_string(),
         args: vec![
@@ -867,11 +777,9 @@ async fn serial_test_get_the_center_of_mass_of_a_kcl_file(ctx: &mut MainContext)
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_export_a_kcl_file_as_gltf(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_export_a_kcl_file_as_gltf() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "export a kcl file as gltf".to_string(),
         args: vec![
@@ -890,11 +798,9 @@ async fn serial_test_export_a_kcl_file_as_gltf(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_export_a_kcl_file_as_step_deterministically(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_export_a_kcl_file_as_step_deterministically() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "export a kcl file as step, deterministically".to_string(),
         args: vec![
@@ -914,11 +820,9 @@ async fn serial_test_export_a_kcl_file_as_step_deterministically(ctx: &mut MainC
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_export_a_kcl_file_with_a_parse_error(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_export_a_kcl_file_with_a_parse_error() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "export a kcl file with a parse error".to_string(),
         args: vec![
@@ -937,11 +841,9 @@ async fn serial_test_export_a_kcl_file_with_a_parse_error(ctx: &mut MainContext)
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_format_a_kcl_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_format_a_kcl_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "format a kcl file".to_string(),
         args: vec![
@@ -958,11 +860,9 @@ async fn serial_test_format_a_kcl_file(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_format_a_directory(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_format_a_directory() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "format a directory".to_string(),
         args: vec![
@@ -980,11 +880,9 @@ async fn serial_test_format_a_directory(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_lint_some_kcl(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_lint_some_kcl() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "lint some kcl".to_string(),
         args: vec![
@@ -1001,11 +899,9 @@ async fn serial_test_lint_some_kcl(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_gltf_with_embedded_buffer(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_gltf_with_embedded_buffer() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a gltf with embedded buffer".to_string(),
         args: vec![
@@ -1023,11 +919,9 @@ async fn serial_test_snapshot_a_gltf_with_embedded_buffer(ctx: &mut MainContext)
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_gltf_with_external_buffer(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_gltf_with_external_buffer() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a gltf with external buffer".to_string(),
         args: vec![
@@ -1045,11 +939,9 @@ async fn serial_test_snapshot_a_gltf_with_external_buffer(ctx: &mut MainContext)
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_snapshot_a_text_to_cad_prompt_as_png(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_snapshot_a_text_to_cad_prompt_as_png() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "snapshot a text-to-cad prompt as png".to_string(),
         args: vec![
@@ -1072,11 +964,9 @@ async fn serial_test_snapshot_a_text_to_cad_prompt_as_png(ctx: &mut MainContext)
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_export_a_text_to_cad_prompt_as_obj(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_export_a_text_to_cad_prompt_as_obj() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "export a text-to-cad prompt as obj".to_string(),
         args: vec![
@@ -1098,11 +988,9 @@ async fn serial_test_export_a_text_to_cad_prompt_as_obj(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_export_a_text_to_cad_prompt_as_kcl(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_export_a_text_to_cad_prompt_as_kcl() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "export a text-to-cad prompt as kcl".to_string(),
         args: vec![
@@ -1124,11 +1012,9 @@ async fn serial_test_export_a_text_to_cad_prompt_as_kcl(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_edit_a_kcl_file(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_edit_a_kcl_file() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "edit a kcl file".to_string(),
         args: vec![
@@ -1150,11 +1036,9 @@ async fn serial_test_edit_a_kcl_file(ctx: &mut MainContext) {
     .await;
 }
 
-#[test_context(MainContext)]
 #[tokio::test(flavor = "current_thread")]
-#[serial_test::serial]
-async fn serial_test_view_a_kcl_file_with_multi_file_errors(ctx: &mut MainContext) {
-    login(ctx.test_host.clone(), ctx.test_token.clone()).await;
+async fn serial_test_view_a_kcl_file_with_multi_file_errors() {
+    let _ctx = login().await;
     run_test(TestItem {
         name: "view a kcl file with multi-file errors".to_string(),
         args: vec![
@@ -1221,14 +1105,14 @@ async fn run_test(t: TestItem) {
             assert_eq!(
                 stderr.to_string().is_empty(),
                 t.want_err.is_empty(),
-                "test {} -> stderr: {}\nwant_err: {}",
+                "test {} -> Actual stderr: {}\nExpected stderr: {}",
                 t.name,
                 stderr,
                 t.want_err
             );
             assert!(
                 stderr.contains(&t.want_err),
-                "test {} ->\nstderr: {}\nwant: {}\n\nstdout: {}",
+                "test {} ->\nActual stderr: {}\nExpected stderr: {}\n\nActual stdout: {}",
                 t.name,
                 stderr,
                 t.want_err,
@@ -1239,7 +1123,7 @@ async fn run_test(t: TestItem) {
             assert!(!t.want_err.is_empty(), "test {}", t.name);
             assert!(
                 err.to_string().contains(&t.want_err),
-                "test {} -> err: {}\nwant_err: {}",
+                "test {} -> Actual error: {}\nExpected error: {}",
                 t.name,
                 err,
                 t.want_err
@@ -1247,7 +1131,7 @@ async fn run_test(t: TestItem) {
             assert_eq!(
                 err.to_string().is_empty(),
                 t.want_err.is_empty(),
-                "test {} -> err: {}\nwant_err: {}",
+                "test {} -> Actual error: {}\nExpected error: {}",
                 t.name,
                 err,
                 t.want_err
@@ -1255,4 +1139,5 @@ async fn run_test(t: TestItem) {
             assert!(stderr.is_empty(), "test {}", t.name);
         }
     }
+    println!("Passed test '{}'", t.name);
 }
