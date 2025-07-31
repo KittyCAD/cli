@@ -1970,9 +1970,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.87"
+version = "0.1.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7db0f35f1c8a4dadbea352c172838e27230e7315ba7a5ece9f902473159aa297"
+checksum = "655b8f9573622ec9b2d9741fb3a7337118f7eebcf089309ffb339407ee28034e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1981,9 +1981,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.87"
+version = "0.2.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae462e5e64e70044d992e828bec798dd15625fa73d882bd6dd03d791bad7c41c"
+checksum = "514f5dbffc3112971b3e089697d543f5635c0b8b4030cd4000688934746862e8"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2029,7 +2029,7 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tokio-tungstenite",
- "toml",
+ "toml 0.9.4",
  "tower-lsp",
  "ts-rs",
  "tynm",
@@ -2049,9 +2049,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.87"
+version = "0.1.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6645ae45a7b9bc90e88b9bb96c83c1bfc78458e6fd61950603bfc5104503865"
+checksum = "0bafd9580bb665ef47cd807ce07598b42522afba29fecfd6db55b5e4ba78d1d5"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -3647,7 +3647,7 @@ dependencies = [
  "serde",
  "tempfile",
  "thiserror 1.0.69",
- "toml",
+ "toml 0.8.23",
  "toolchain_find",
 ]
 
@@ -3972,6 +3972,15 @@ name = "serde_spanned"
 version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "serde_spanned"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40734c41988f7306bb04f0ecf60ec0f3f1caa34290e4e8ea471dcd3346483b83"
 dependencies = [
  "serde",
 ]
@@ -4406,7 +4415,7 @@ dependencies = [
  "cfg-expr",
  "heck",
  "pkg-config",
- "toml",
+ "toml 0.8.23",
  "version-compare",
 ]
 
@@ -4738,9 +4747,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc1beb996b9d83529a9e75c17a1686767d148d70663143c7854d8b4a09ced362"
 dependencies = [
  "serde",
- "serde_spanned",
- "toml_datetime",
+ "serde_spanned 0.6.9",
+ "toml_datetime 0.6.11",
  "toml_edit",
+]
+
+[[package]]
+name = "toml"
+version = "0.9.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41ae868b5a0f67631c14589f7e250c1ea2c574ee5ba21c6c8dd4b1485705a5a1"
+dependencies = [
+ "indexmap 2.10.0",
+ "serde",
+ "serde_spanned 1.0.0",
+ "toml_datetime 0.7.0",
+ "toml_parser",
+ "toml_writer",
+ "winnow",
 ]
 
 [[package]]
@@ -4753,6 +4777,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml_datetime"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bade1c3e902f58d73d3f294cd7f20391c1cb2fbcb643b73566bc773971df91e3"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "toml_edit"
 version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4760,9 +4793,18 @@ checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
 dependencies = [
  "indexmap 2.10.0",
  "serde",
- "serde_spanned",
- "toml_datetime",
+ "serde_spanned 0.6.9",
+ "toml_datetime 0.6.11",
  "toml_write",
+ "winnow",
+]
+
+[[package]]
+name = "toml_parser"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97200572db069e74c512a14117b296ba0a80a30123fbbb5aa1f4a348f639ca30"
+dependencies = [
  "winnow",
 ]
 
@@ -4771,6 +4813,12 @@ name = "toml_write"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
+
+[[package]]
+name = "toml_writer"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcc842091f2def52017664b53082ecbbeb5c7731092bad69d2c63050401dfd64"
 
 [[package]]
 name = "toolchain_find"
@@ -5907,7 +5955,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.115"
+version = "0.2.116"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5962,7 +6010,7 @@ dependencies = [
  "test-context",
  "thiserror 2.0.12",
  "tokio",
- "toml",
+ "toml 0.8.23",
  "toml_edit",
  "unicode-segmentation",
  "url",
