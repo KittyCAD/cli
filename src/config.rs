@@ -23,7 +23,7 @@ pub trait Config: Send + Sync {
     fn default_host_with_source(&self) -> Result<(String, String)>;
 
     /// Get the aliases.
-    fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig>;
+    fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig<'_>>;
     /// Save the aliases to our config.
     fn save_aliases(&mut self, aliases: &crate::config_map::ConfigMap) -> Result<()>;
     /// expand_alias processes argv to see if it should be rewritten according to a user's aliases. The

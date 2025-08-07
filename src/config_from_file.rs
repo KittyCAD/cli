@@ -218,7 +218,7 @@ impl crate::config::Config for FileConfig {
         ))
     }
 
-    fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig> {
+    fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig<'_>> {
         let aliases_table = self.get_aliases_table()?;
 
         Ok(AliasConfig {

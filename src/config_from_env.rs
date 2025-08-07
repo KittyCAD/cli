@@ -13,7 +13,7 @@ pub struct EnvConfig<'a> {
 }
 
 impl EnvConfig<'_> {
-    pub fn inherit_env(config: &mut dyn crate::config::Config) -> EnvConfig {
+    pub fn inherit_env(config: &mut dyn crate::config::Config) -> EnvConfig<'_> {
         EnvConfig { config }
     }
 }
@@ -73,7 +73,7 @@ impl crate::config::Config for EnvConfig<'_> {
         }
     }
 
-    fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig> {
+    fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig<'_>> {
         self.config.aliases()
     }
 
