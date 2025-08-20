@@ -523,9 +523,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.41"
+version = "4.5.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be92d32e80243a54711e5d7ce823c35c41c9d929dc4ab58e1276f625841aadf9"
+checksum = "1fc0e74a703892159f5ae7d3aac52c8e6c392f5ae5f359c70b5881d60aaac318"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -533,9 +533,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.41"
+version = "4.5.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707eab41e9622f9139419d573eca0900137718000c517d47da73045f54331c3d"
+checksum = "b3e7f4214277f3c7aa526a59dd3fbe306a370daee1f8b7b8c987069cd8e888a8"
 dependencies = [
  "anstream",
  "anstyle",
@@ -557,9 +557,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.41"
+version = "4.5.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef4f52386a59ca4c860f7393bcf8abd8dfd91ecccc0f774635ff68e92eeef491"
+checksum = "14cb31bb0a7d536caef2639baa7fad459e15c3144efefa6dbd1c84562c4739f6"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1173,9 +1173,9 @@ checksum = "9e5c1b78ca4aae1ac06c48a526a655760685149f0d465d21f37abfe57ce075c6"
 
 [[package]]
 name = "futures-lite"
-version = "2.6.0"
+version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5edaec856126859abb19ed65f39e90fea3a9574b9707f13539acf4abf7eb532"
+checksum = "f78e10609fe0e0b3f4157ffab1876319b5b0db102a2c60dc4626306dc46b44ad"
 dependencies = [
  "fastrand",
  "futures-core",
@@ -1970,9 +1970,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.92"
+version = "0.1.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25c711c963a5be8e4fcf303c1303fb0f45e910044f34113c5889f6f0e249dcf8"
+checksum = "ebd7f5c4f4cacfbdad83b929a43082615cb1594ded909535d43c4f39cdb2ef29"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1981,9 +1981,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.92"
+version = "0.2.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8e5ae8e6127993fab665f93bb6fa527733256c8892783652edf9cf350918e86"
+checksum = "6860abf7ab976569b78b13db86be27fc617bdbc7629414de4b47edc0f0ba85fd"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2029,7 +2029,7 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tokio-tungstenite",
- "toml 0.9.4",
+ "toml 0.9.5",
  "tower-lsp",
  "ts-rs",
  "tynm",
@@ -2049,9 +2049,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.92"
+version = "0.1.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c03f4e2ee78d49a937e8e931a441e52d4dccbaccf0d5255b5c7bdf05b03f63fb"
+checksum = "2609c2a7059ca9f374807f29c9fa13e11ec38311b9347a456b8c2635a56709ea"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2106,9 +2106,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.130"
+version = "0.2.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "363432fd3dafb83a2560d82fb13b56157f9fae732d20a281821e5e5324e6d9a7"
+checksum = "b589ac0110d08e13371ee186c2c49f8bf1fffdf37aa9885fbbf43f2d4b977b7c"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4754,9 +4754,9 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.9.4"
+version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41ae868b5a0f67631c14589f7e250c1ea2c574ee5ba21c6c8dd4b1485705a5a1"
+checksum = "75129e1dc5000bfbaa9fee9d1b21f974f9fbad9daec557a521ee6e080825f6e8"
 dependencies = [
  "indexmap 2.10.0",
  "serde",
@@ -4801,9 +4801,9 @@ dependencies = [
 
 [[package]]
 name = "toml_parser"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97200572db069e74c512a14117b296ba0a80a30123fbbb5aa1f4a348f639ca30"
+checksum = "b551886f449aa90d4fe2bdaa9f4a2577ad2dde302c61ecf262d80b116db95c10"
 dependencies = [
  "winnow",
 ]
@@ -5955,7 +5955,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.117"
+version = "0.2.118"
 dependencies = [
  "anyhow",
  "async-trait",
