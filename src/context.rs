@@ -659,7 +659,7 @@ impl ReasoningGuard {
     async fn finish(mut self) {
         if let Some(handle) = self.0.take() {
             handle.abort();
-            let _ = handle.await;
+            let _ = tokio::time::timeout(Duration::from_secs(1), handle).await;
         }
     }
 }
