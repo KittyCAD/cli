@@ -773,36 +773,41 @@ fn preview_image_terminal(ctx: &mut crate::context::Context<'_>, path: &std::pat
 /// `kcl_lib::RELEVANT_FILE_EXTENSIONS`. Returns a map of relative path -> file bytes.
 pub(crate) fn scan_relevant_files(root: &std::path::Path) -> std::collections::HashMap<String, Vec<u8>> {
     let mut out = std::collections::HashMap::new();
-    fn walk(dir: &std::path::Path, root: &std::path::Path, out: &mut std::collections::HashMap<String, Vec<u8>>) {
-        if let Ok(rd) = std::fs::read_dir(dir) {
-            for ent in rd.flatten() {
-                let path = ent.path();
-                let name = ent.file_name().to_string_lossy().to_string();
-                if let Ok(ft) = ent.file_type() {
-                    if ft.is_dir() {
-                        if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') {
-                            continue;
-                        }
-                        walk(&path, root, out);
-                    } else if ft.is_file() {
-                        let is_relevant = path
-                            .extension()
-                            .and_then(|e| e.to_str())
-                            .map(|e| e.to_ascii_lowercase())
-                            .map(|e| kcl_lib::RELEVANT_FILE_EXTENSIONS.contains(&e))
-                            .unwrap_or(false);
-                        if is_relevant {
-                            let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
-                            if let Ok(bytes) = std::fs::read(&path) {
-                                out.insert(rel, bytes);
-                            }
-                        }
+    let mut stack: Vec<std::path::PathBuf> = vec![root.to_path_buf()];
+
+    while let Some(dir) = stack.pop() {
+        let rd = match std::fs::read_dir(&dir) {
+            Ok(rd) => rd,
+            Err(_) => continue,
+        };
+        for ent in rd.flatten() {
+            let path = ent.path();
+            let name = ent.file_name().to_string_lossy().to_string();
+            let ft = match ent.file_type() {
+                Ok(ft) => ft,
+                Err(_) => continue,
+            };
+            if ft.is_dir() {
+                if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') {
+                    continue;
+                }
+                stack.push(path);
+            } else if ft.is_file() {
+                let is_relevant = path
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .map(|e| e.to_ascii_lowercase())
+                    .map(|e| kcl_lib::RELEVANT_FILE_EXTENSIONS.contains(&e))
+                    .unwrap_or(false);
+                if is_relevant {
+                    let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
+                    if let Ok(bytes) = std::fs::read(&path) {
+                        out.insert(rel, bytes);
                     }
                 }
             }
         }
     }
-    walk(root, root, &mut out);
     out
 }
 
@@ -860,6 +865,29 @@ mod tests {
         assert!(keys.contains(&"main.kcl".to_string()));
         assert!(keys.contains(&"thing.kcl".to_string()));
         assert!(keys.contains(&"blah.obj".to_string()));
+    }
+
+    #[test]
+    fn scan_handles_deep_nesting_iterative() {
+        let tmp = tempfile::tempdir().expect("create tempdir");
+        let mut cur = tmp.path().to_path_buf();
+        // Create a deeply nested directory tree with short names to avoid path length issues
+        for _ in 0..120 {
+            cur.push("d");
+            std::fs::create_dir(&cur).unwrap();
+        }
+        let deep_file = cur.join("main.kcl");
+        std::fs::write(&deep_file, b"cube(1)\n").unwrap();
+
+        let files = scan_relevant_files(tmp.path());
+        // Must contain the deeply nested main.kcl
+        let has_main = files.keys().any(|k| k.ends_with("main.kcl"));
+        assert!(has_main, "expected to find deeply nested main.kcl");
+        // And the contents should be correct
+        let (k, v) = files.iter().find(|(k, _)| k.ends_with("main.kcl")).unwrap();
+        assert_eq!(v, b"cube(1)\n");
+        // Ensure we didn't recurse-stack-overflow (test would crash) and completed quickly
+        assert!(k.matches('/').count() >= 120 - 1);
     }
 
     #[test]
