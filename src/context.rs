@@ -229,9 +229,10 @@ impl Context<'_> {
             .await?;
 
         // Start reasoning websocket to stream reasoning messages for this generation.
-        let reasoning_task = self
-            .spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
-            .await;
+        let reasoning_guard = ReasoningGuard::new(
+            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+                .await,
+        );
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -308,10 +309,8 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model!
-        if let Some(handle) = reasoning_task {
-            handle.abort();
-        }
+        // Okay, we successfully got a model! Ensure the guard finishes before returning.
+        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
@@ -329,9 +328,10 @@ impl Context<'_> {
 
         // Start reasoning websocket to stream reasoning messages for this edit.
         // default to showing reasoning for edits as well; caller can pass false by wrapping here if needed later
-        let reasoning_task = self
-            .spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
-            .await;
+        let reasoning_guard = ReasoningGuard::new(
+            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+                .await,
+        );
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -408,10 +408,8 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model!
-        if let Some(handle) = reasoning_task {
-            handle.abort();
-        }
+        // Okay, we successfully got a model! Ensure the guard finishes before returning.
+        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
@@ -611,7 +609,9 @@ impl Context<'_> {
                         let Ok(msg) = msg else { break };
                         if msg.is_text() {
                             let txt = msg.into_text().unwrap_or_default();
-                            if let Ok(server_msg) = serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt) {
+                            if let Ok(server_msg) =
+                                serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt)
+                            {
                                 match server_msg {
                                     kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
                                         print_reasoning(reason, use_color);
@@ -644,7 +644,35 @@ impl Context<'_> {
 // Print only reasoning messages in a friendly, concise CLI format.
 fn print_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) {
     for line in format_reasoning(reason, use_color) {
-        eprintln!("{}", line);
+        eprintln!("{line}");
+    }
+}
+
+// RAII guard to ensure the reasoning websocket task is cancelled and joined.
+struct ReasoningGuard(Option<tokio::task::JoinHandle<()>>);
+
+impl ReasoningGuard {
+    fn new(handle: Option<tokio::task::JoinHandle<()>>) -> Self {
+        ReasoningGuard(handle)
+    }
+
+    async fn finish(mut self) {
+        if let Some(handle) = self.0.take() {
+            handle.abort();
+            let _ = handle.await;
+        }
+    }
+}
+
+impl Drop for ReasoningGuard {
+    fn drop(&mut self) {
+        if let Some(handle) = self.0.take() {
+            handle.abort();
+            // Ensure the task is polled to completion without blocking the drop.
+            tokio::spawn(async move {
+                let _ = handle.await;
+            });
+        }
     }
 }
 
