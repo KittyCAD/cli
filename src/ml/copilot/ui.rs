@@ -107,7 +107,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
             Span::raw(assistant_buf),
         ]));
     }
-    let mut messages = Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title("Chat"));
+    let mut messages = Paragraph::new(lines)
+        .wrap(Wrap { trim: false })
+        .block(Block::default().borders(Borders::ALL).title("Chat"));
     if app.pending_edits.is_none() {
         messages = messages.scroll((app.msg_scroll, 0));
     }
@@ -247,5 +249,101 @@ mod tests {
             content2.push('\n');
         }
         assert!(content2.contains("Scanning files"));
+    }
+
+    #[test]
+    fn messages_wrap_and_scroll() {
+        let backend = TestBackend::new(20, 8);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        // very long user message to force wrap
+        app.events
+            .push(ChatEvent::User("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into()));
+        // draw without scroll
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        // Content should include label and long text split across lines
+        let mut content = String::new();
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content.push('\n');
+        }
+        assert!(content.contains("You>"));
+        assert!(content.matches('a').count() > 20);
+
+        // Now add many lines and verify scroll moves viewport
+        app.msg_scroll = 0;
+        for i in 0..20 {
+            app.events.push(ChatEvent::User(format!("line {i:02}")));
+        }
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let content_before = {
+            let buf = terminal.backend().buffer();
+            let mut s = String::new();
+            for y in 0..area.height {
+                for x in 0..area.width {
+                    s.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                }
+                s.push('\n');
+            }
+            s
+        };
+        app.msg_scroll = 5;
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let content_after = {
+            let buf = terminal.backend().buffer();
+            let mut s = String::new();
+            for y in 0..area.height {
+                for x in 0..area.width {
+                    s.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                }
+                s.push('\n');
+            }
+            s
+        };
+        assert_ne!(content_before, content_after);
+    }
+
+    #[test]
+    fn diff_wraps_and_scrolls() {
+        let backend = TestBackend::new(30, 10);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        // create a big diff
+        let mut lines = Vec::new();
+        lines.push("--- a/main.kcl".to_string());
+        lines.push("+++ b/main.kcl".to_string());
+        for i in 0..100 {
+            lines.push(format!("-old line {i}"));
+            lines.push(format!("+new line {i}"));
+        }
+        app.pending_edits = Some(vec![crate::ml::copilot::state::PendingFileEdit {
+            path: "main.kcl".into(),
+            old: String::new(),
+            new: String::new(),
+            diff_lines: lines,
+        }]);
+        app.diff_scroll = 0;
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        // The header should be visible at top initially
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut row0 = String::new();
+        for x in 0..area.width {
+            row0.push(buf.get(x, 0).symbol().chars().next().unwrap_or(' '));
+        }
+        assert!(row0.contains("Proposed Changes"));
+        // Scroll and ensure top row changes away from header
+        app.diff_scroll = 10;
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf2 = terminal.backend().buffer();
+        let mut row0b = String::new();
+        for x in 0..area.width {
+            row0b.push(buf2.get(x, 0).symbol().chars().next().unwrap_or(' '));
+        }
+        assert!(!row0b.contains("Proposed Changes"));
     }
 }
