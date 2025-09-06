@@ -3,65 +3,85 @@ use ratatui::{prelude::*, widgets::*};
 use super::state::{App, ChatEvent};
 
 fn render_markdown_to_lines(md: &str) -> Vec<String> {
-    use pulldown_cmark::{Event, Options, Parser, Tag};
+    use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
     let mut lines: Vec<String> = Vec::new();
     let mut cur = String::new();
     let mut list_prefix = String::new();
-    let _in_code = false;
+    let mut in_code_block = false;
+    let mut code_lang: Option<String> = None;
     let parser = Parser::new_ext(md, Options::all());
     for ev in parser {
         match ev {
             Event::Start(Tag::List(_)) => {
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
                 list_prefix = "- ".to_string();
             }
             Event::End(Tag::List(_)) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
                 list_prefix.clear();
             }
             Event::Start(Tag::Item) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
                 cur.push_str(&list_prefix);
             }
             Event::End(Tag::Item) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+            }
+            Event::Start(Tag::Paragraph) | Event::Start(Tag::Heading(_, _, _)) => {
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+            }
+            Event::End(Tag::Paragraph) | Event::End(Tag::Heading(_, _, _)) => {
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+            }
+            Event::Start(Tag::CodeBlock(kind)) => {
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                in_code_block = true;
+                code_lang = match kind {
+                    CodeBlockKind::Fenced(lang) => Some(lang.to_string()),
+                    _ => None,
+                };
+                // Show a fence line so it’s visually clear in TUI
+                lines.push(match &code_lang {
+                    Some(l) if !l.is_empty() => format!("```{}", l),
+                    _ => "```".to_string(),
+                });
+            }
+            Event::End(Tag::CodeBlock(_)) => {
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                in_code_block = false;
+                code_lang = None;
+                lines.push("```".to_string());
+            }
+            Event::Text(t) => {
+                if in_code_block {
+                    // Preserve line breaks within code blocks
+                    for (i, part) in t.split('\n').enumerate() {
+                        if i > 0 {
+                            if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                        }
+                        if !part.is_empty() {
+                            lines.push(part.to_string());
+                        } else {
+                            lines.push(String::new());
+                        }
+                    }
+                } else {
+                    cur.push_str(&t);
                 }
             }
-            Event::Start(Tag::Paragraph) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
-            }
-            Event::End(Tag::Paragraph) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
-            }
-            Event::Start(Tag::Heading(_level, _, _)) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
-            }
-            Event::End(Tag::Heading(_, _, _)) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
-            }
-            Event::Text(t) => cur.push_str(&t),
             Event::Code(t) => {
-                cur.push_str(&t);
+                if in_code_block {
+                    lines.push(t.to_string());
+                } else {
+                    cur.push_str(&t);
+                }
             }
             Event::SoftBreak | Event::HardBreak => {
                 lines.push(std::mem::take(&mut cur));
             }
             Event::Rule => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
+                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                lines.push(String::from("────"));
             }
             _ => {}
         }
@@ -109,10 +129,12 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 }
                 kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
                     if !assistant_buf.is_empty() {
-                        lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                            Span::raw(assistant_buf.clone()),
-                        ]));
+                        for l in render_markdown_to_lines(&assistant_buf) {
+                            lines.push(Line::from(vec![
+                                Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                                Span::raw(l),
+                            ]));
+                        }
                         assistant_buf.clear();
                     }
                 }
@@ -157,10 +179,13 @@ pub fn draw(frame: &mut Frame, app: &App) {
         }
     }
     if !assistant_buf.is_empty() {
-        lines.push(Line::from(vec![
-            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-            Span::raw(assistant_buf),
-        ]));
+        // Live-render markdown while deltas stream in
+        for l in render_markdown_to_lines(&assistant_buf) {
+            lines.push(Line::from(vec![
+                Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                Span::raw(l),
+            ]));
+        }
     }
     if app.pending_edits.is_none() {
         let messages = Paragraph::new(lines)
@@ -203,8 +228,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
         let off = app.diff_scroll.min(max_off);
         let diffs = Paragraph::new(diff_lines)
             .wrap(Wrap { trim: false })
-            .scroll((off, 0))
-            .block(Block::default().borders(Borders::ALL).title("Chat"));
+            .scroll((off, 0));
         frame.render_widget(diffs, chunks[0]);
     }
 
@@ -393,6 +417,7 @@ mod tests {
         for x in 0..area.width {
             row0.push(buf.get(x, 0).symbol().chars().next().unwrap_or(' '));
         }
+        // Debug note: this row should contain the header when scroll == 0
         assert!(row0.contains("Proposed Changes"));
         // Scroll and ensure top row changes away from header
         app.diff_scroll = 10;
@@ -472,6 +497,37 @@ mod tests {
         assert!(content.contains("ML-ephant> - item1"));
         assert!(content.contains("ML-ephant> - item2"));
         assert!(content.contains("ML-ephant> A code span."));
+    }
+
+    #[test]
+    fn live_markdown_renders_for_deltas() {
+        let backend = TestBackend::new(60, 12);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        // Stream two deltas that together make a small markdown doc
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
+                delta: "# Title\n\n- one".into(),
+            }));
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
+                delta: "\n- two".into(),
+            }));
+        // Do not send EndOfStream so we exercise the live path
+        terminal.draw(|f| draw(f, &app)).unwrap();
+
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut content = String::new();
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content.push('\n');
+        }
+        assert!(content.contains("ML-ephant> Title"));
+        assert!(content.contains("ML-ephant> - one"));
+        assert!(content.contains("ML-ephant> - two"));
     }
 
     #[test]
