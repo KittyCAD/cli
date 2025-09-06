@@ -2,6 +2,8 @@ use ratatui::{prelude::*, widgets::*};
 
 use super::state::{App, ChatEvent};
 
+const ASSISTANT_INDENT: &str = "    "; // 4 spaces for a pleasant left gutter
+
 // Very simple renderer that preserves newlines exactly as provided.
 fn render_preserving_newlines(s: &str) -> Vec<String> {
     // `split('\n')` keeps trailing empty segments, which is what we want
@@ -132,8 +134,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
         match ev {
             ChatEvent::User(s) => {
                 if !assistant_buf.is_empty() {
+                    // Flush any pending assistant text without a label; keep a small left indent.
                     lines.push(Line::from(vec![
-                        Span::styled("ML-ephant: ", Style::default().fg(Color::Green)),
+                        Span::raw(ASSISTANT_INDENT),
                         Span::raw(assistant_buf.clone()),
                     ]));
                     assistant_buf.clear();
@@ -150,10 +153,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
                     if !assistant_buf.is_empty() {
                         for l in render_preserving_newlines(&assistant_buf) {
-                            lines.push(Line::from(vec![
-                                Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                                Span::raw(l),
-                            ]));
+                            lines.push(Line::from(vec![Span::raw(ASSISTANT_INDENT), Span::raw(l)]));
                         }
                         assistant_buf.clear();
                     }
@@ -163,7 +163,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     let md = crate::context::reasoning_to_markdown(reason);
                     for l in render_markdown_to_lines(&md) {
                         lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(ASSISTANT_INDENT),
                             Span::styled(l, Style::default().fg(Color::Rgb(150, 150, 150))),
                         ]));
                     }
@@ -171,16 +171,13 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 kittycad::types::MlCopilotServerMessage::Info { text } => {
                     // Render info text as markdown, split into lines; print each on its own row.
                     for part in render_markdown_to_lines(text) {
-                        lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                            Span::raw(part),
-                        ]));
+                        lines.push(Line::from(vec![Span::raw(ASSISTANT_INDENT), Span::raw(part)]));
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::Error { detail } => {
                     for part in detail.split('\n') {
                         lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(ASSISTANT_INDENT),
                             Span::styled(part.to_string(), Style::default().fg(Color::Red)),
                         ]));
                     }
@@ -189,7 +186,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     let raw = format!("{result:#?}");
                     for part in raw.split('\n') {
                         lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(ASSISTANT_INDENT),
                             Span::styled("tool output → ", Style::default().fg(Color::Yellow)),
                             Span::raw(part.to_string()),
                         ]));
@@ -201,10 +198,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
     if !assistant_buf.is_empty() {
         // Live-render preserving newlines exactly
         for l in render_preserving_newlines(&assistant_buf) {
-            lines.push(Line::from(vec![
-                Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                Span::raw(l),
-            ]));
+            lines.push(Line::from(vec![Span::raw(ASSISTANT_INDENT), Span::raw(l)]));
         }
     }
     if app.pending_edits.is_none() {
@@ -224,7 +218,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
         ]));
         for edit in edits {
             diff_lines.push(Line::from(vec![
-                Span::styled("\nML-ephant> ", Style::default().fg(Color::Green)),
+                Span::raw("\n"),
+                Span::raw(ASSISTANT_INDENT),
                 Span::styled(
                     edit.path.clone(),
                     Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
@@ -238,7 +233,10 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 } else {
                     Style::default()
                 };
-                diff_lines.push(Line::from(Span::styled(l.clone(), style)));
+                diff_lines.push(Line::from(vec![
+                    Span::raw(ASSISTANT_INDENT),
+                    Span::styled(l.clone(), style),
+                ]));
             }
         }
         // Clamp scroll to available content
@@ -296,7 +294,7 @@ mod tests {
         // Act
         terminal.draw(|f| draw(f, &app)).unwrap();
 
-        // Assert buffer contains "ML-ephant> hello world" and "You> make it blue"
+        // Assert buffer contains assistant text and user label
         let buf = terminal.backend().buffer();
         let screen = buf.area; // just ensure we can scan rows
         let mut content = String::new();
@@ -310,7 +308,6 @@ mod tests {
         }
         assert!(content.contains("You>"));
         assert!(content.contains("make it blue"));
-        assert!(content.contains("ML-ephant>"));
         assert!(content.contains("hello world"));
     }
 
@@ -511,10 +508,10 @@ mod tests {
             }
             content.push('\n');
         }
-        assert!(content.contains("ML-ephant> Title"));
-        assert!(content.contains("ML-ephant> - item1"));
-        assert!(content.contains("ML-ephant> - item2"));
-        assert!(content.contains("ML-ephant> A code span."));
+        assert!(content.contains("Title"));
+        assert!(content.contains("- item1"));
+        assert!(content.contains("- item2"));
+        assert!(content.contains("A code span."));
     }
 
     #[test]
@@ -544,9 +541,9 @@ mod tests {
             content.push('\n');
         }
         // We expect raw lines preserved, including heading marker and list dashes
-        assert!(content.contains("ML-ephant> # Title"));
-        assert!(content.contains("ML-ephant> - one"));
-        assert!(content.contains("ML-ephant> - two"));
+        assert!(content.contains("# Title"));
+        assert!(content.contains("- one"));
+        assert!(content.contains("- two"));
     }
 
     #[test]
@@ -597,7 +594,7 @@ mod tests {
             "first message prepended to second user line"
         );
         // Assistant segments present separately
-        assert!(content.contains("ML-ephant> Hello, Jess"));
-        assert!(content.contains("ML-ephant> Hi again"));
+        assert!(content.contains("Hello, Jess"));
+        assert!(content.contains("Hi again"));
     }
 }
