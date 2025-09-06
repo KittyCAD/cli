@@ -178,18 +178,93 @@ pub async fn run_copilot_tui(
             }
         }
 
-        let dbg = |text: String, debug: bool, tx: &mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>| {
-            if debug {
-                let _ = tx.send(kittycad::types::MlCopilotServerMessage::Info { text });
+        struct ServerMsgBatcher {
+            tx: mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>,
+            info: Option<String>,
+            reasoning_text: Option<String>,
+        }
+        impl ServerMsgBatcher {
+            fn new(tx: mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>) -> Self {
+                Self {
+                    tx,
+                    info: None,
+                    reasoning_text: None,
+                }
             }
-        };
+            fn flush_info(&mut self) {
+                if let Some(mut s) = self.info.take() {
+                    if s.ends_with('\n') {
+                        s.pop();
+                    }
+                    let _ = self.tx.send(kittycad::types::MlCopilotServerMessage::Info { text: s });
+                }
+            }
+            fn flush_reasoning(&mut self) {
+                if let Some(mut s) = self.reasoning_text.take() {
+                    if s.ends_with('\n') {
+                        s.pop();
+                    }
+                    let _ = self.tx.send(kittycad::types::MlCopilotServerMessage::Reasoning(
+                        kittycad::types::ReasoningMessage::Text { content: s },
+                    ));
+                }
+            }
+            fn push(&mut self, msg: kittycad::types::MlCopilotServerMessage) {
+                match msg {
+                    kittycad::types::MlCopilotServerMessage::Info { text } => {
+                        // Accumulate consecutive info lines
+                        if let Some(buf) = &mut self.info {
+                            buf.push_str(&text);
+                            buf.push('\n');
+                        } else {
+                            self.info = Some({
+                                let mut t = text;
+                                t.push('\n');
+                                t
+                            });
+                        }
+                    }
+                    kittycad::types::MlCopilotServerMessage::Reasoning(kittycad::types::ReasoningMessage::Text {
+                        content,
+                    }) => {
+                        // Accumulate consecutive plain reasoning text
+                        if let Some(buf) = &mut self.reasoning_text {
+                            buf.push_str(&content);
+                            buf.push('\n');
+                        } else {
+                            self.reasoning_text = Some({
+                                let mut t = content;
+                                t.push('\n');
+                                t
+                            });
+                        }
+                    }
+                    other => {
+                        // Flush accumulators before forwarding structured or non-text messages
+                        self.flush_info();
+                        self.flush_reasoning();
+                        let _ = self.tx.send(other);
+                    }
+                }
+            }
+            fn flush_all(&mut self) {
+                self.flush_info();
+                self.flush_reasoning();
+            }
+        }
+
+        let mut batch = ServerMsgBatcher::new(tx_server_reader.clone());
 
         let mut end_reason: Option<String> = None;
         while let Some(msg_res) = read.next().await {
             let msg = match msg_res {
                 Ok(m) => m,
                 Err(e) => {
-                    dbg(format!("[copilot/ws<-] reader error: {e}"), debug, &tx_server_reader);
+                    if debug {
+                        batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                            text: format!("[copilot/ws<-] reader error: {e}"),
+                        });
+                    }
                     end_reason = Some(format!("error: {e}"));
                     break;
                 }
@@ -197,58 +272,82 @@ pub async fn run_copilot_tui(
             if msg.is_text() {
                 match msg.into_text() {
                     Ok(t) => {
-                        dbg(
-                            format!("[copilot/ws<-] text {} bytes: {}", t.len(), truncate(&t, 200)),
-                            debug,
-                            &tx_server_reader,
-                        );
+                        if debug {
+                            batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                                text: format!("[copilot/ws<-] text {} bytes: {}", t.len(), truncate(&t, 200)),
+                            });
+                        }
                         match serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&t) {
                             Ok(parsed) => {
-                                let _ = tx_server_reader.send(parsed);
+                                batch.push(parsed);
                             }
                             Err(err) => {
-                                dbg(format!("[copilot/ws<-] parse error: {err}"), debug, &tx_server_reader);
+                                if debug {
+                                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                                        text: format!("[copilot/ws<-] parse error: {err}"),
+                                    });
+                                }
                             }
                         }
                     }
                     Err(e) => {
-                        dbg(format!("[copilot/ws<-] to_text error: {e}"), debug, &tx_server_reader);
+                        if debug {
+                            batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                                text: format!("[copilot/ws<-] to_text error: {e}"),
+                            });
+                        }
                     }
                 }
             } else if msg.is_binary() {
                 let b = msg.into_data();
-                dbg(
-                    format!("[copilot/ws<-] binary {} bytes", b.len()),
-                    debug,
-                    &tx_server_reader,
-                );
+                if debug {
+                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                        text: format!("[copilot/ws<-] binary {} bytes", b.len()),
+                    });
+                }
             } else if msg.is_ping() {
-                dbg("[copilot/ws<-] ping".to_string(), debug, &tx_server_reader);
+                if debug {
+                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                        text: "[copilot/ws<-] ping".to_string(),
+                    });
+                }
             } else if msg.is_pong() {
-                dbg("[copilot/ws<-] pong".to_string(), debug, &tx_server_reader);
+                if debug {
+                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                        text: "[copilot/ws<-] pong".to_string(),
+                    });
+                }
             } else if let Message::Close(cf) = msg {
                 if let Some(cf) = cf {
-                    dbg(
-                        format!("[copilot/ws<-] close frame code={} reason='{}'", cf.code, cf.reason),
-                        debug,
-                        &tx_server_reader,
-                    );
+                    if debug {
+                        batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                            text: format!("[copilot/ws<-] close frame code={} reason='{}'", cf.code, cf.reason),
+                        });
+                    }
                     end_reason = Some(format!("close code {}", cf.code));
                 } else {
-                    dbg("[copilot/ws<-] close frame".to_string(), debug, &tx_server_reader);
+                    if debug {
+                        batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                            text: "[copilot/ws<-] close frame".to_string(),
+                        });
+                    }
                     end_reason = Some("close frame".to_string());
                 }
                 break;
             } else if debug {
-                dbg("[copilot/ws<-] other frame".to_string(), debug, &tx_server_reader);
+                batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                    text: "[copilot/ws<-] other frame".to_string(),
+                });
             }
         }
         let reason = end_reason.unwrap_or_else(|| "eof".to_string());
-        dbg(
-            format!("[copilot/ws<-] reader task end ({reason})"),
-            debug,
-            &tx_server_reader,
-        );
+        batch.flush_all();
+        if debug {
+            batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                text: format!("[copilot/ws<-] reader task end ({reason})"),
+            });
+        }
+        batch.flush_all();
     });
 
     // Start scanning files in the background with progress.
