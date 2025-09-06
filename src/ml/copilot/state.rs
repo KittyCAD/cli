@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone)]
 pub struct App {
@@ -12,12 +13,40 @@ pub struct App {
     pub awaiting_response: bool,
     pub queue: VecDeque<String>,
     pub sent_files_once: bool,
+    pub pending_edits: Option<Vec<PendingFileEdit>>, // prepared diffs to accept/reject
 }
 
 #[derive(Debug, Clone)]
 pub enum ChatEvent {
     User(String),
     Server(kittycad::types::MlCopilotServerMessage),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PendingFileEdit {
+    pub path: String,
+    pub old: String,
+    pub new: String,
+    pub diff_lines: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SlashCommand {
+    Accept,
+    Reject,
+    Quit,
+    Exit,
+}
+
+pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
+    let s = input.trim();
+    match s {
+        "/accept" => Some(SlashCommand::Accept),
+        "/reject" => Some(SlashCommand::Reject),
+        "/quit" => Some(SlashCommand::Quit),
+        "/exit" => Some(SlashCommand::Exit),
+        _ => None,
+    }
 }
 
 impl App {
@@ -31,6 +60,7 @@ impl App {
             awaiting_response: false,
             queue: VecDeque::new(),
             sent_files_once: false,
+            pending_edits: None,
         }
     }
 
@@ -186,5 +216,15 @@ mod tests {
         // Another EOS with no queue -> nothing, awaiting false
         assert!(app.on_end_of_stream(true).is_none());
         assert!(!app.awaiting_response);
+    }
+
+    #[test]
+    fn parse_slash_commands() {
+        assert_eq!(parse_slash_command("/accept"), Some(SlashCommand::Accept));
+        assert_eq!(parse_slash_command("/reject"), Some(SlashCommand::Reject));
+        assert_eq!(parse_slash_command("/quit"), Some(SlashCommand::Quit));
+        assert_eq!(parse_slash_command("/exit"), Some(SlashCommand::Exit));
+        assert_eq!(parse_slash_command("/nope"), None);
+        assert_eq!(parse_slash_command("   /accept   "), Some(SlashCommand::Accept));
     }
 }

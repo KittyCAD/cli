@@ -110,6 +110,36 @@ pub fn draw(frame: &mut Frame, app: &App) {
     let messages = Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title("Chat"));
     frame.render_widget(messages, chunks[0]);
 
+    // If there are pending edits, render a diff preview with accept/reject hint.
+    if let Some(edits) = &app.pending_edits {
+        let mut diff_lines: Vec<Line> = Vec::new();
+        diff_lines.push(Line::from(vec![
+            Span::styled("Proposed Changes:", Style::default().fg(Color::Yellow)),
+            Span::raw("  type /accept to apply, /reject to discard"),
+        ]));
+        for edit in edits {
+            diff_lines.push(Line::from(vec![
+                Span::styled("\nML-ephant> ", Style::default().fg(Color::Green)),
+                Span::styled(
+                    edit.path.clone(),
+                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+            for l in &edit.diff_lines {
+                let style = if l.starts_with('+') {
+                    Style::default().fg(Color::Green)
+                } else if l.starts_with('-') {
+                    Style::default().fg(Color::Red)
+                } else {
+                    Style::default()
+                };
+                diff_lines.push(Line::from(Span::styled(l.clone(), style)));
+            }
+        }
+        let diffs = Paragraph::new(diff_lines).wrap(Wrap { trim: false });
+        frame.render_widget(diffs, chunks[0]);
+    }
+
     // Input view
     let title = if app.scanning {
         format!("You> (Scanning files… {} read)", app.scanned_files)

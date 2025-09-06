@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use crossterm::{
     event::{Event, EventStream},
@@ -7,6 +9,7 @@ use crossterm::{
 use futures::{SinkExt, StreamExt};
 use log::LevelFilter;
 use ratatui::{backend::CrosstermBackend, Terminal};
+use similar::TextDiff;
 use tokio::sync::mpsc;
 use tokio_tungstenite::{
     tungstenite::{protocol::Role, Message},
@@ -14,6 +17,7 @@ use tokio_tungstenite::{
 };
 
 use crate::ml::copilot::{
+    state,
     state::{App, ChatEvent, KeyAction},
     ui::draw,
 };
@@ -476,7 +480,48 @@ pub async fn run_copilot_tui(
                     match app.handle_key_action(key) {
                         KeyAction::Exit => { exit = true; }
                         KeyAction::Submit(submit) => {
-                            if submit == "/quit" || submit == "/exit" { exit = true; continue; }
+                            if let Some(cmd) = state::parse_slash_command(&submit) {
+                                match cmd {
+                                    state::SlashCommand::Quit | state::SlashCommand::Exit => { exit = true; }
+                                    state::SlashCommand::Accept => {
+                                        if let Some(edits) = app.pending_edits.take() {
+                                            match apply_pending_edits(&edits) {
+                                                Ok(n) => app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("Applied {n} file(s)") })),
+                                                Err(e) => app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail: format!("apply failed: {e}") })),
+                                            }
+                                        } else {
+                                            app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
+                                        }
+                                    }
+                                    state::SlashCommand::Reject => {
+                                        if app.pending_edits.take().is_some() {
+                                            app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "Discarded pending changes".to_string() }));
+                                        } else {
+                                            app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
+                                        }
+                                    }
+                                }
+                                continue;
+                            }
+                            if submit == "/accept" {
+                                if let Some(edits) = app.pending_edits.take() {
+                                    match apply_pending_edits(&edits) {
+                                        Ok(n) => app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("Applied {n} file(s)") })),
+                                        Err(e) => app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail: format!("apply failed: {e}") })),
+                                    }
+                                } else {
+                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
+                                }
+                                continue;
+                            }
+                            if submit == "/reject" {
+                                if app.pending_edits.take().is_some() {
+                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "Discarded pending changes".to_string() }));
+                                } else {
+                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
+                                }
+                                continue;
+                            }
                             let files_ready = files_opt.is_some();
                             if let Some(to_send) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
@@ -501,8 +546,11 @@ pub async fn run_copilot_tui(
                     } else {
                         let _ = app.on_end_of_stream(false);
                     }
+                } else if let kittycad::types::MlCopilotServerMessage::ToolOutput { result } = &server_msg {
+                    handle_tool_output(&mut app, result);
+                } else {
+                    app.events.push(ChatEvent::Server(server_msg));
                 }
-                app.events.push(ChatEvent::Server(server_msg));
             }
             Some(scan_ev) = scan_rx.recv() => {
                 match scan_ev {
@@ -539,6 +587,80 @@ pub async fn run_copilot_tui(
         log::set_max_level(prev);
     }
     Ok(())
+}
+
+fn handle_tool_output(app: &mut App, result: &kittycad::types::MlToolResult) {
+    // Convert to JSON for robust field access across variants.
+    let Ok(val) = serde_json::to_value(result) else { return };
+    let tool_type = val.get("type").and_then(|v| v.as_str()).unwrap_or("");
+    let status = val.get("status_code").and_then(|v| v.as_i64()).unwrap_or(-1);
+    if let Some(err) = val.get("error").and_then(|v| v.as_str()).filter(|s| !s.is_empty()) {
+        let name = match tool_type {
+            "text_to_cad" => "TextToCad",
+            "edit_kcl_code" => "EditKclCode",
+            _ => tool_type,
+        };
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error {
+                detail: format!("{name} failed (status {status}): {err}"),
+            }));
+        return;
+    }
+    // Outputs -> propose diffs
+    let outputs = val.get("outputs").and_then(|v| v.as_object());
+    if let Some(map) = outputs {
+        let mut edits = Vec::new();
+        for (path, new_val) in map {
+            let new = new_val.as_str().unwrap_or("").to_string();
+            let mut pb = PathBuf::from(path);
+            // Normalize path: prevent escaping upward
+            if pb.is_absolute() {
+                pb = pb
+                    .strip_prefix(std::path::MAIN_SEPARATOR.to_string())
+                    .unwrap_or(&pb)
+                    .to_path_buf();
+            }
+            let old = std::fs::read_to_string(&pb).unwrap_or_default();
+            let diff = TextDiff::from_lines(&old, &new)
+                .unified_diff()
+                .context_radius(3)
+                .header(&format!("a/{path}"), &format!("b/{path}"))
+                .to_string();
+            let diff_lines: Vec<String> = diff.lines().map(|s| s.to_string()).collect();
+            edits.push(state::PendingFileEdit {
+                path: path.clone(),
+                old,
+                new,
+                diff_lines,
+            });
+        }
+        app.pending_edits = Some(edits);
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                text: format!(
+                    "Proposed changes from {} (status {}) — type /accept or /reject",
+                    match tool_type {
+                        "text_to_cad" => "TextToCad",
+                        "edit_kcl_code" => "EditKclCode",
+                        _ => tool_type,
+                    },
+                    status
+                ),
+            }));
+    }
+}
+
+fn apply_pending_edits(edits: &[state::PendingFileEdit]) -> anyhow::Result<usize> {
+    let mut n = 0usize;
+    for e in edits {
+        let pb = PathBuf::from(&e.path);
+        if let Some(parent) = pb.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&pb, &e.new)?;
+        n += 1;
+    }
+    Ok(n)
 }
 
 /// Walk the `root` directory and collect only files with extensions present in
@@ -617,5 +739,58 @@ mod tests {
 
         // Ensure contents match something small and non-empty
         assert_eq!(files.get("main.kcl").unwrap(), b"cube(1)");
+    }
+
+    #[test]
+    fn tool_output_error_displays_error() {
+        let mut app = App::new();
+        let val = serde_json::json!({
+            "type": "text_to_cad",
+            "status_code": 500,
+            "error": "boom"
+        });
+        let tool: kittycad::types::MlToolResult = serde_json::from_value(val).unwrap();
+        handle_tool_output(&mut app, &tool);
+        // Expect last event to be an Error with details
+        match app.events.last().unwrap() {
+            ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail }) => {
+                assert!(detail.contains("TextToCad"));
+                assert!(detail.contains("500"));
+                assert!(detail.contains("boom"));
+            }
+            other => panic!("unexpected event: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn tool_output_outputs_sets_pending_edits_and_accept_applies() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(tmp.path()).unwrap();
+        // existing file
+        std::fs::write("main.kcl", "cube(1)\n").unwrap();
+
+        let mut app = App::new();
+        let val = serde_json::json!({
+            "type": "edit_kcl_code",
+            "status_code": 200,
+            "outputs": {"main.kcl": "cube(2)\n"}
+        });
+        let tool: kittycad::types::MlToolResult = serde_json::from_value(val).unwrap();
+        handle_tool_output(&mut app, &tool);
+        assert!(app.pending_edits.is_some());
+        let edits = app.pending_edits.clone().unwrap();
+        assert_eq!(edits.len(), 1);
+        assert!(edits[0].diff_lines.iter().any(|l| l.starts_with("-")));
+        assert!(edits[0].diff_lines.iter().any(|l| l.starts_with("+")));
+
+        // Apply
+        let n = apply_pending_edits(&edits).unwrap();
+        assert_eq!(n, 1);
+        let new = std::fs::read_to_string("main.kcl").unwrap();
+        assert_eq!(new, "cube(2)\n");
+
+        // restore cwd
+        std::env::set_current_dir(cwd).unwrap();
     }
 }
