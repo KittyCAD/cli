@@ -2,7 +2,35 @@ use ratatui::{prelude::*, widgets::*};
 
 use super::state::{App, ChatEvent};
 
+const ASSISTANT_LABEL: &str = "ML-ephant> ";
 const ASSISTANT_INDENT: &str = "    "; // 4 spaces for a pleasant left gutter
+
+fn push_assistant_block<'a>(
+    lines: &mut Vec<Line<'a>>,
+    parts: Vec<String>,
+    style: Option<Style>,
+    first_line_prefix: Option<Span<'a>>,
+) {
+    if parts.is_empty() {
+        return;
+    }
+    for (i, part) in parts.into_iter().enumerate() {
+        let mut spans: Vec<Span> = Vec::new();
+        if i == 0 {
+            spans.push(Span::styled(ASSISTANT_LABEL, Style::default().fg(Color::Green)));
+            if let Some(pref) = &first_line_prefix {
+                spans.push(pref.clone());
+            }
+        } else {
+            spans.push(Span::raw(ASSISTANT_INDENT));
+        }
+        match style {
+            Some(st) => spans.push(Span::styled(part, st)),
+            None => spans.push(Span::raw(part)),
+        }
+        lines.push(Line::from(spans));
+    }
+}
 
 // Very simple renderer that preserves newlines exactly as provided.
 fn render_preserving_newlines(s: &str) -> Vec<String> {
@@ -134,11 +162,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
         match ev {
             ChatEvent::User(s) => {
                 if !assistant_buf.is_empty() {
-                    // Flush any pending assistant text without a label; keep a small left indent.
-                    lines.push(Line::from(vec![
-                        Span::raw(ASSISTANT_INDENT),
-                        Span::raw(assistant_buf.clone()),
-                    ]));
+                    let rows = render_preserving_newlines(&assistant_buf);
+                    push_assistant_block(&mut lines, rows, None, None);
                     assistant_buf.clear();
                 }
                 lines.push(Line::from(vec![
@@ -152,54 +177,43 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 }
                 kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
                     if !assistant_buf.is_empty() {
-                        for l in render_preserving_newlines(&assistant_buf) {
-                            lines.push(Line::from(vec![Span::raw(ASSISTANT_INDENT), Span::raw(l)]));
-                        }
+                        let rows = render_preserving_newlines(&assistant_buf);
+                        push_assistant_block(&mut lines, rows, None, None);
                         assistant_buf.clear();
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
-                    // Render reasoning as dimmed markdown lines for readability.
+                    // Render reasoning as dimmed markdown lines with a single label.
                     let md = crate::context::reasoning_to_markdown(reason);
-                    for l in render_markdown_to_lines(&md) {
-                        lines.push(Line::from(vec![
-                            Span::raw(ASSISTANT_INDENT),
-                            Span::styled(l, Style::default().fg(Color::Rgb(150, 150, 150))),
-                        ]));
-                    }
+                    let rows = render_markdown_to_lines(&md);
+                    push_assistant_block(
+                        &mut lines,
+                        rows,
+                        Some(Style::default().fg(Color::Rgb(150, 150, 150))),
+                        None,
+                    );
                 }
                 kittycad::types::MlCopilotServerMessage::Info { text } => {
-                    // Render info text as markdown, split into lines; print each on its own row.
-                    for part in render_markdown_to_lines(text) {
-                        lines.push(Line::from(vec![Span::raw(ASSISTANT_INDENT), Span::raw(part)]));
-                    }
+                    let rows = render_markdown_to_lines(text);
+                    push_assistant_block(&mut lines, rows, None, None);
                 }
                 kittycad::types::MlCopilotServerMessage::Error { detail } => {
-                    for part in detail.split('\n') {
-                        lines.push(Line::from(vec![
-                            Span::raw(ASSISTANT_INDENT),
-                            Span::styled(part.to_string(), Style::default().fg(Color::Red)),
-                        ]));
-                    }
+                    let rows: Vec<String> = detail.split('\n').map(|s| s.to_string()).collect();
+                    push_assistant_block(&mut lines, rows, Some(Style::default().fg(Color::Red)), None);
                 }
                 kittycad::types::MlCopilotServerMessage::ToolOutput { result } => {
                     let raw = format!("{result:#?}");
-                    for part in raw.split('\n') {
-                        lines.push(Line::from(vec![
-                            Span::raw(ASSISTANT_INDENT),
-                            Span::styled("tool output → ", Style::default().fg(Color::Yellow)),
-                            Span::raw(part.to_string()),
-                        ]));
-                    }
+                    let rows: Vec<String> = raw.split('\n').map(|s| s.to_string()).collect();
+                    let prefix = Span::styled("tool output → ", Style::default().fg(Color::Yellow));
+                    push_assistant_block(&mut lines, rows, None, Some(prefix));
                 }
             },
         }
     }
     if !assistant_buf.is_empty() {
-        // Live-render preserving newlines exactly
-        for l in render_preserving_newlines(&assistant_buf) {
-            lines.push(Line::from(vec![Span::raw(ASSISTANT_INDENT), Span::raw(l)]));
-        }
+        // Live-render preserving newlines exactly, with a single label at the start
+        let rows = render_preserving_newlines(&assistant_buf);
+        push_assistant_block(&mut lines, rows, None, None);
     }
     if app.pending_edits.is_none() {
         let messages = Paragraph::new(lines)
