@@ -12,6 +12,7 @@ pub struct CmdKcl {
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
     Edit(CmdKclEdit),
+    Copilot(CmdKclCopilot),
 }
 
 #[async_trait::async_trait(?Send)]
@@ -19,6 +20,7 @@ impl crate::cmd::Command for CmdKcl {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
             SubCommand::Edit(cmd) => cmd.run(ctx).await,
+            SubCommand::Copilot(cmd) => cmd.run(ctx).await,
         }
     }
 }
@@ -98,6 +100,147 @@ impl crate::cmd::Command for CmdKclEdit {
 
         Ok(())
     }
+}
+
+/// Start an interactive Copilot chat for KCL in the current project directory.
+///
+///     $ zoo ml kcl copilot
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdKclCopilot {
+    /// Optional project name to associate with messages.
+    #[clap(long = "project-name")]
+    pub project_name: Option<String>,
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdKclCopilot {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        use futures::{SinkExt, StreamExt};
+        use tokio_tungstenite::{
+            tungstenite::{protocol::Role, Message},
+            WebSocketStream,
+        };
+
+        let client = ctx.api_client("")?;
+
+        // Connect to Copilot websocket.
+        let (upgraded, _headers) = client.ml().copilot_ws().await?;
+        let ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
+        let (mut write, mut read) = ws.split();
+
+        // Capture project snapshot (files) once at start.
+        let files = gather_cwd_files()?;
+
+        // Reader task printing server messages.
+        let mut pending_answer = String::new();
+        let use_color = ctx.io.color_enabled() && ctx.io.is_stderr_tty();
+        let reader = tokio::spawn(async move {
+            while let Some(msg) = read.next().await {
+                let Ok(msg) = msg else { break };
+                if msg.is_text() {
+                    let txt = msg.into_text().unwrap_or_default();
+                    if let Ok(server_msg) = serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt) {
+                        match server_msg {
+                            kittycad::types::MlCopilotServerMessage::Delta { delta } => {
+                                use std::io::Write as _;
+                                pending_answer.push_str(&delta);
+                                let _ = write!(std::io::stdout(), "{delta}");
+                                let _ = std::io::stdout().flush();
+                            }
+                            kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
+                                use std::io::Write as _;
+                                let _ = writeln!(std::io::stdout());
+                                let _ = std::io::stdout().flush();
+                                pending_answer.clear();
+                            }
+                            kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
+                                crate::context::print_reasoning(reason, use_color);
+                            }
+                            kittycad::types::MlCopilotServerMessage::Info { text } => {
+                                eprintln!("info: {}", text.trim());
+                            }
+                            kittycad::types::MlCopilotServerMessage::Error { detail } => {
+                                eprintln!("ml error: {}", detail.trim());
+                            }
+                            kittycad::types::MlCopilotServerMessage::ToolOutput { result } => {
+                                eprintln!("tool result: {result:#?}");
+                            }
+                        }
+                    }
+                } else if msg.is_close() {
+                    break;
+                }
+            }
+        });
+
+        // Helper to send a user message.
+        // Simple REPL loop.
+        loop {
+            use std::io::{stdin, Write as _};
+            eprint!("You> ");
+            let _ = std::io::stderr().flush();
+
+            let mut line = String::new();
+            if stdin().read_line(&mut line)? == 0 {
+                break; // EOF
+            }
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+            if line == "/quit" || line == "/exit" {
+                break;
+            }
+
+            let msg = kittycad::types::MlCopilotClientMessage::User {
+                content: line.to_string(),
+                current_files: Some(files.clone()),
+                project_name: self.project_name.clone(),
+                source_ranges: None,
+            };
+            let body = serde_json::to_string(&msg)?;
+            write.send(Message::Text(body)).await?;
+        }
+
+        // Try to close nicely and stop reader.
+        let _ = write.close().await;
+        let _ = reader.await;
+
+        Ok(())
+    }
+}
+
+fn gather_cwd_files() -> Result<std::collections::HashMap<String, Vec<u8>>> {
+    use std::{collections::HashMap, fs, path::Path};
+
+    let root = std::env::current_dir()?;
+    let mut out: HashMap<String, Vec<u8>> = HashMap::new();
+
+    fn walk(dir: &Path, root: &Path, out: &mut HashMap<String, Vec<u8>>) -> anyhow::Result<()> {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            let name = entry.file_name();
+            let name = name.to_string_lossy();
+            if entry.file_type()?.is_dir() {
+                if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') {
+                    continue;
+                }
+                walk(&path, root, out)?;
+            } else if entry.file_type()?.is_file() {
+                let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
+                // Best-effort read; skip unreadable files.
+                if let Ok(bytes) = fs::read(&path) {
+                    out.insert(rel, bytes);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    walk(&root, &root, &mut out)?;
+    Ok(out)
 }
 
 /// Convert from a string like "4:2-4:5" to a source range.

@@ -642,7 +642,7 @@ impl Context<'_> {
 }
 
 // Print only reasoning messages in a friendly, concise CLI format.
-fn print_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) {
+pub(crate) fn print_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) {
     for line in format_reasoning(reason, use_color) {
         eprintln!("{line}");
     }
