@@ -2,6 +2,13 @@ use ratatui::{prelude::*, widgets::*};
 
 use super::state::{App, ChatEvent};
 
+// Very simple renderer that preserves newlines exactly as provided.
+fn render_preserving_newlines(s: &str) -> Vec<String> {
+    // `split('\n')` keeps trailing empty segments, which is what we want
+    // to ensure blank lines are visible as separate rows.
+    s.split('\n').map(|t| t.to_string()).collect()
+}
+
 fn render_markdown_to_lines(md: &str) -> Vec<String> {
     use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
     let mut lines: Vec<String> = Vec::new();
@@ -142,7 +149,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 }
                 kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
                     if !assistant_buf.is_empty() {
-                        for l in render_markdown_to_lines(&assistant_buf) {
+                        for l in render_preserving_newlines(&assistant_buf) {
                             lines.push(Line::from(vec![
                                 Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                                 Span::raw(l),
@@ -192,8 +199,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
         }
     }
     if !assistant_buf.is_empty() {
-        // Live-render markdown while deltas stream in
-        for l in render_markdown_to_lines(&assistant_buf) {
+        // Live-render preserving newlines exactly
+        for l in render_preserving_newlines(&assistant_buf) {
             lines.push(Line::from(vec![
                 Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                 Span::raw(l),
@@ -511,7 +518,7 @@ mod tests {
     }
 
     #[test]
-    fn live_markdown_renders_for_deltas() {
+    fn live_deltas_preserve_newlines() {
         let backend = TestBackend::new(60, 12);
         let mut terminal = Terminal::new(backend).unwrap();
         let mut app = App::new();
@@ -536,7 +543,8 @@ mod tests {
             }
             content.push('\n');
         }
-        assert!(content.contains("ML-ephant> Title"));
+        // We expect raw lines preserved, including heading marker and list dashes
+        assert!(content.contains("ML-ephant> # Title"));
         assert!(content.contains("ML-ephant> - one"));
         assert!(content.contains("ML-ephant> - two"));
     }
