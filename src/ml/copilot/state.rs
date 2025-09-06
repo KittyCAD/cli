@@ -138,7 +138,7 @@ mod tests {
         let out = app.handle_key_action(key(KeyCode::Enter, KeyModifiers::NONE));
         match out {
             KeyAction::Submit(ref s) => assert_eq!(s, "make it blue"),
-            other => panic!("expected Submit, got {:?}", other),
+            other => panic!("expected Submit, got {other:?}"),
         }
         assert!(app.input.is_empty());
         match app.events.last().unwrap() {
