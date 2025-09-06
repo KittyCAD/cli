@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 #[derive(Debug, Default, Clone)]
 pub struct App {
@@ -29,43 +29,6 @@ impl App {
             scanned_files: 0,
             awaiting_response: false,
             queue: VecDeque::new(),
-        }
-    }
-
-    /// Handle a key event. Returns Some(submitted_content) when Enter (without Shift) submits.
-    pub fn handle_key(&mut self, key: KeyEvent) -> Option<String> {
-        // Be lenient on kind: some terminals/platforms emit other kinds for Enter.
-        match key.code {
-            KeyCode::Enter => {
-                if key.modifiers.contains(KeyModifiers::SHIFT) {
-                    self.input.push('\n');
-                    None
-                } else {
-                    let submitted = self.input.clone();
-                    // Submit even if empty, per product requirement.
-                    self.events.push(ChatEvent::User(submitted.clone()));
-                    self.input.clear();
-                    Some(submitted)
-                }
-            }
-            KeyCode::Backspace => {
-                self.input.pop();
-                None
-            }
-            KeyCode::Tab => {
-                self.input.push_str("    ");
-                None
-            }
-            KeyCode::Char(c) => {
-                let c = if key.modifiers.contains(KeyModifiers::SHIFT) {
-                    c.to_ascii_uppercase()
-                } else {
-                    c
-                };
-                self.input.push(c);
-                None
-            }
-            _ => None,
         }
     }
 
@@ -157,6 +120,7 @@ pub enum KeyAction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crossterm::event::KeyEventKind;
 
     fn key(code: KeyCode, modifiers: KeyModifiers) -> KeyEvent {
         KeyEvent {
@@ -171,8 +135,11 @@ mod tests {
     fn enter_submits_and_clears_input() {
         let mut app = App::new();
         app.input = "make it blue".into();
-        let submitted = app.handle_key(key(KeyCode::Enter, KeyModifiers::NONE));
-        assert_eq!(submitted.as_deref(), Some("make it blue"));
+        let out = app.handle_key_action(key(KeyCode::Enter, KeyModifiers::NONE));
+        match out {
+            KeyAction::Submit(ref s) => assert_eq!(s, "make it blue"),
+            other => panic!("expected Submit, got {:?}", other),
+        }
         assert!(app.input.is_empty());
         match app.events.last().unwrap() {
             ChatEvent::User(s) => assert_eq!(s, "make it blue"),
