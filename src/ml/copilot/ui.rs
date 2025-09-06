@@ -8,56 +8,67 @@ fn render_markdown_to_lines(md: &str) -> Vec<String> {
     let mut cur = String::new();
     let mut list_prefix = String::new();
     let mut in_code_block = false;
-    let mut code_lang: Option<String> = None;
+    // Track if we're inside a fenced code block; we emit visible fences for clarity in TUI.
     let parser = Parser::new_ext(md, Options::all());
     for ev in parser {
         match ev {
             Event::Start(Tag::List(_)) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
                 list_prefix = "- ".to_string();
             }
             Event::End(Tag::List(_)) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
                 list_prefix.clear();
             }
             Event::Start(Tag::Item) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
                 cur.push_str(&list_prefix);
             }
             Event::End(Tag::Item) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
             }
             Event::Start(Tag::Paragraph) | Event::Start(Tag::Heading(_, _, _)) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
             }
             Event::End(Tag::Paragraph) | Event::End(Tag::Heading(_, _, _)) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
             }
             Event::Start(Tag::CodeBlock(kind)) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
                 in_code_block = true;
-                code_lang = match kind {
-                    CodeBlockKind::Fenced(lang) => Some(lang.to_string()),
-                    _ => None,
-                };
                 // Show a fence line so it’s visually clear in TUI
-                lines.push(match &code_lang {
-                    Some(l) if !l.is_empty() => format!("```{}", l),
+                lines.push(match kind {
+                    CodeBlockKind::Fenced(lang) if !lang.is_empty() => format!("```{lang}"),
                     _ => "```".to_string(),
                 });
             }
             Event::End(Tag::CodeBlock(_)) => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
                 in_code_block = false;
-                code_lang = None;
                 lines.push("```".to_string());
             }
             Event::Text(t) => {
                 if in_code_block {
                     // Preserve line breaks within code blocks
                     for (i, part) in t.split('\n').enumerate() {
-                        if i > 0 {
-                            if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                        if i > 0 && !cur.is_empty() {
+                            lines.push(std::mem::take(&mut cur));
                         }
                         if !part.is_empty() {
                             lines.push(part.to_string());
@@ -80,7 +91,9 @@ fn render_markdown_to_lines(md: &str) -> Vec<String> {
                 lines.push(std::mem::take(&mut cur));
             }
             Event::Rule => {
-                if !cur.is_empty() { lines.push(std::mem::take(&mut cur)); }
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
                 lines.push(String::from("────"));
             }
             _ => {}
@@ -226,9 +239,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
         let height = chunks[0].height;
         let max_off = total.saturating_sub(height);
         let off = app.diff_scroll.min(max_off);
-        let diffs = Paragraph::new(diff_lines)
-            .wrap(Wrap { trim: false })
-            .scroll((off, 0));
+        let diffs = Paragraph::new(diff_lines).wrap(Wrap { trim: false }).scroll((off, 0));
         frame.render_widget(diffs, chunks[0]);
     }
 
