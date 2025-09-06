@@ -90,8 +90,24 @@ impl App {
                 KeyAction::None
             }
             KeyCode::Tab => {
-                self.input.push_str("    ");
-                KeyAction::Inserted
+                // Slash command autocomplete
+                if self.input.trim_start().starts_with('/') {
+                    let current = self.input.trim().to_string();
+                    if let Some(completed) = autocomplete_slash(&current) {
+                        self.input = completed;
+                    } else {
+                        // Show suggestions if no progress could be made
+                        let sugg = slash_commands().join(" ");
+                        self.events
+                            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                text: format!("suggest: {sugg}"),
+                            }));
+                    }
+                    KeyAction::Inserted
+                } else {
+                    self.input.push_str("    ");
+                    KeyAction::Inserted
+                }
             }
             KeyCode::Char(c) => {
                 let c = if key.modifiers.contains(KeyModifiers::SHIFT) {
@@ -147,6 +163,47 @@ pub enum KeyAction {
     Inserted,
     Exit,
     None,
+}
+
+fn slash_commands() -> Vec<&'static str> {
+    vec!["/accept", "/reject", "/quit", "/exit"]
+}
+
+fn common_prefix(strings: &[&str]) -> String {
+    if strings.is_empty() {
+        return String::new();
+    }
+    let mut prefix = strings[0].to_string();
+    for s in strings.iter().skip(1) {
+        let mut i = 0;
+        let bytes_p = prefix.as_bytes();
+        let bytes_s = s.as_bytes();
+        while i < bytes_p.len() && i < bytes_s.len() && bytes_p[i] == bytes_s[i] {
+            i += 1;
+        }
+        prefix.truncate(i);
+        if prefix.is_empty() {
+            break;
+        }
+    }
+    prefix
+}
+
+fn autocomplete_slash(current: &str) -> Option<String> {
+    let cmds = slash_commands();
+    let matches: Vec<&str> = cmds.iter().copied().filter(|c| c.starts_with(current)).collect();
+    if matches.is_empty() {
+        return None;
+    }
+    if matches.len() == 1 {
+        return Some(matches[0].to_string());
+    }
+    let cp = common_prefix(&matches);
+    if cp.len() > current.len() {
+        Some(cp)
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
@@ -226,5 +283,30 @@ mod tests {
         assert_eq!(parse_slash_command("/exit"), Some(SlashCommand::Exit));
         assert_eq!(parse_slash_command("/nope"), None);
         assert_eq!(parse_slash_command("   /accept   "), Some(SlashCommand::Accept));
+    }
+
+    #[test]
+    fn tab_autocomplete_unique() {
+        let mut app = App::new();
+        app.input = "/a".into();
+        let _ = app.handle_key_action(key(KeyCode::Tab, KeyModifiers::NONE));
+        assert_eq!(app.input, "/accept");
+    }
+
+    #[test]
+    fn tab_autocomplete_suggestions() {
+        let mut app = App::new();
+        app.input = "/".into();
+        let _ = app.handle_key_action(key(KeyCode::Tab, KeyModifiers::NONE));
+        // input unchanged, suggestions printed
+        assert_eq!(app.input, "/");
+        let last = app.events.last().unwrap();
+        match last {
+            ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text }) => {
+                assert!(text.contains("/accept"));
+                assert!(text.contains("/reject"));
+            }
+            other => panic!("expected Info, got {other:?}"),
+        }
     }
 }
