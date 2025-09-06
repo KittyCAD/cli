@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
+use futures::StreamExt;
 use kcl_lib::{native_engine::EngineConnection, EngineManager};
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
 use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd};
 use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
-use futures::StreamExt;
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
@@ -229,7 +229,9 @@ impl Context<'_> {
             .await?;
 
         // Start reasoning websocket to stream reasoning messages for this generation.
-        let reasoning_task = self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning).await;
+        let reasoning_task = self
+            .spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+            .await;
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -307,7 +309,9 @@ impl Context<'_> {
         }
 
         // Okay, we successfully got a model!
-        if let Some(handle) = reasoning_task { handle.abort(); }
+        if let Some(handle) = reasoning_task {
+            handle.abort();
+        }
         Ok(gen_model)
     }
 
@@ -405,7 +409,9 @@ impl Context<'_> {
         }
 
         // Okay, we successfully got a model!
-        if let Some(handle) = reasoning_task { handle.abort(); }
+        if let Some(handle) = reasoning_task {
+            handle.abort();
+        }
         Ok(gen_model)
     }
 
@@ -519,7 +525,7 @@ impl Context<'_> {
     pub async fn collect_kcl_files(
         &mut self,
         path: &std::path::Path,
-        ) -> Result<(Vec<kittycad::types::multipart::Attachment>, std::path::PathBuf)> {
+    ) -> Result<(Vec<kittycad::types::multipart::Attachment>, std::path::PathBuf)> {
         let mut files = Vec::new();
 
         let (code, filepath) = self.get_code_and_file_path(path).await?;
@@ -600,19 +606,21 @@ impl Context<'_> {
             Ok((upgraded, _headers)) => {
                 let use_color = self.io.color_enabled() && self.io.is_stderr_tty();
                 Some(tokio::spawn(async move {
-                let mut ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
-                while let Some(msg) = ws.next().await {
-                    let Ok(msg) = msg else { break };
-                    if msg.is_text() {
-                        let txt = msg.into_text().unwrap_or_default();
-                        if let Ok(server_msg) = serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt) {
-                            if let kittycad::types::MlCopilotServerMessage::Reasoning(reason) = server_msg {
-                                print_reasoning(reason, use_color);
+                    let mut ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
+                    while let Some(msg) = ws.next().await {
+                        let Ok(msg) = msg else { break };
+                        if msg.is_text() {
+                            let txt = msg.into_text().unwrap_or_default();
+                            if let Ok(server_msg) =
+                                serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt)
+                            {
+                                if let kittycad::types::MlCopilotServerMessage::Reasoning(reason) = server_msg {
+                                    print_reasoning(reason, use_color);
+                                }
                             }
                         }
                     }
-                }
-            }))
+                }))
             }
             Err(err) => {
                 if self.debug {
@@ -634,7 +642,11 @@ fn print_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) {
 fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) -> Vec<String> {
     use nu_ansi_term::Color;
     let lbl = |plain: &str, color: Color| -> String {
-        if use_color { color.paint(plain).to_string() } else { plain.to_string() }
+        if use_color {
+            color.paint(plain).to_string()
+        } else {
+            plain.to_string()
+        }
     };
     match reason {
         kittycad::types::ReasoningMessage::Text { content } => {
@@ -652,8 +664,16 @@ fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) 
         kittycad::types::ReasoningMessage::DesignPlan { steps } => {
             let mut v = vec![lbl("design plan:", Color::Cyan)];
             for (idx, step) in steps.iter().enumerate() {
-                let n = if use_color { Color::Green.paint(format!("{:>2}.", idx + 1)).to_string() } else { format!("{:>2}.", idx + 1) };
-                let file = if use_color { Color::Yellow.paint(&step.filepath_to_edit).to_string() } else { step.filepath_to_edit.clone() };
+                let n = if use_color {
+                    Color::Green.paint(format!("{:>2}.", idx + 1)).to_string()
+                } else {
+                    format!("{:>2}.", idx + 1)
+                };
+                let file = if use_color {
+                    Color::Yellow.paint(&step.filepath_to_edit).to_string()
+                } else {
+                    step.filepath_to_edit.clone()
+                };
                 v.push(format!("  {} {} {}", n, file, step.edit_instructions));
             }
             v
@@ -666,12 +686,16 @@ fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) 
         }
         kittycad::types::ReasoningMessage::CreatedKclFile { file_name, content } => {
             let mut v = vec![format!("{} {}", lbl("created file:", Color::Green), file_name)];
-            if !content.trim().is_empty() { v.push(indent_block(&content)); }
+            if !content.trim().is_empty() {
+                v.push(indent_block(&content));
+            }
             v
         }
         kittycad::types::ReasoningMessage::UpdatedKclFile { file_name, content } => {
             let mut v = vec![format!("{} {}", lbl("updated file:", Color::Yellow), file_name)];
-            if !content.trim().is_empty() { v.push(indent_block(&content)); }
+            if !content.trim().is_empty() {
+                v.push(indent_block(&content));
+            }
             v
         }
         kittycad::types::ReasoningMessage::DeletedKclFile { file_name } => {
@@ -846,7 +870,9 @@ mod test {
     #[test]
     fn test_format_reasoning_plain() {
         let lines = format_reasoning(
-            kittycad::types::ReasoningMessage::Text { content: "hello world".into() },
+            kittycad::types::ReasoningMessage::Text {
+                content: "hello world".into(),
+            },
             false,
         );
         assert_eq!(lines[0], "reasoning: hello world");
@@ -878,6 +904,9 @@ mod test {
             true,
         );
         assert!(lines[0].contains("boom"));
-        assert!(lines[0].contains("\u{1b}["), "expected ANSI color codes in colored output");
+        assert!(
+            lines[0].contains("\u{1b}["),
+            "expected ANSI color codes in colored output"
+        );
     }
 }

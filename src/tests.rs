@@ -71,6 +71,53 @@ async fn test_main(ctx: &mut MainContext) {
             want_code: 0,
             ..Default::default()
         },
+        // ML: text-to-cad export streams reasoning to stderr by default.
+        TestItem {
+            name: "ml text-to-cad export reasoning on".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "export".to_string(),
+                "-t".to_string(),
+                "obj".to_string(),
+                "--output-dir".to_string(),
+                "/tmp".to_string(),
+                "A".to_string(),
+                "2x4".to_string(),
+                "lego".to_string(),
+                "brick".to_string(),
+            ],
+            // Just assert completion appears in stdout table.
+            want_out: "Completed".to_string(),
+            // Any reasoning line has a ':' label; assert stderr is non-empty and contains a ':'
+            want_err: ":".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        // ML: text-to-cad export does not stream when disabled.
+        TestItem {
+            name: "ml text-to-cad export no reasoning".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "export".to_string(),
+                "-t".to_string(),
+                "obj".to_string(),
+                "--output-dir".to_string(),
+                "/tmp".to_string(),
+                "--no-reasoning".to_string(),
+                "A".to_string(),
+                "2x4".to_string(),
+                "lego".to_string(),
+                "brick".to_string(),
+            ],
+            want_out: "Completed".to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
         TestItem {
             name: "add an alias".to_string(),
             args: vec![

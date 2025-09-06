@@ -250,7 +250,13 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
         }
 
         let model = ctx
-            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf, !self.no_reasoning)
+            .get_model_for_prompt(
+                "",
+                &prompt,
+                false,
+                kittycad::types::FileExportFormat::Gltf,
+                !self.no_reasoning,
+            )
             .await?;
 
         // Get the gltf bytes.
@@ -320,7 +326,13 @@ impl crate::cmd::Command for CmdTextToCadView {
         }
 
         let model = ctx
-            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf, !self.no_reasoning)
+            .get_model_for_prompt(
+                "",
+                &prompt,
+                false,
+                kittycad::types::FileExportFormat::Gltf,
+                !self.no_reasoning,
+            )
             .await?;
 
         // Get the gltf bytes.
