@@ -1,10 +1,11 @@
-use std::path::PathBuf;
+use std::{io::Write as _, path::PathBuf};
 
 use anyhow::Result;
 use crossterm::{
+    cursor::MoveTo,
     event::{Event, EventStream},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    execute, queue,
+    terminal::{disable_raw_mode, enable_raw_mode, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use futures::{SinkExt, StreamExt};
 use kcl_lib::TypedPath;
@@ -388,6 +389,10 @@ pub async fn run_copilot_tui(
                                             let edits = app.pending_edits.clone().unwrap();
                                             match render_side_by_side(ctx, &host, &edits).await {
                                                 Ok(path) => {
+                                                    // Try to preview in-terminal; fall back to just a message on error
+                                                    if let Err(e) = preview_image_terminal(ctx, &path) {
+                                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail: format!("preview failed: {e}") }));
+                                                    }
                                                     app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("Rendered comparison saved to: {}", path.display()) }));
                                                 }
                                                 Err(e) => {
@@ -663,6 +668,26 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::R
     } else {
         Ok(settings)
     }
+}
+
+fn preview_image_terminal(ctx: &mut crate::context::Context<'_>, path: &std::path::Path) -> anyhow::Result<()> {
+    let (w, h) = (ctx.io.tty_size)()?;
+    let cfg = viuer::Config {
+        x: 0,
+        y: 0,
+        width: Some(w as u32),
+        height: Some(h.saturating_sub(1) as u32),
+        ..Default::default()
+    };
+    viuer::print_from_file(path, &cfg)?;
+    // Block until a key press to return to TUI
+    // (raw mode already enabled by caller)
+    let _ = crossterm::event::read();
+    // Clear the screen so the next TUI draw fully repaints
+    let mut out = std::io::stdout();
+    queue!(out, crossterm::terminal::Clear(ClearType::All), MoveTo(0, 0))?;
+    out.flush()?;
+    Ok(())
 }
 
 /// Walk the `root` directory and collect only files with extensions present in
