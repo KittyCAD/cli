@@ -160,7 +160,12 @@ mod tests {
         let buf = terminal.backend().buffer();
         let area = buf.area;
         let mut content = String::new();
-        for y in 0..area.height { for x in 0..area.width { content.push(buf.get(x,y).symbol().chars().next().unwrap_or(' ')); } content.push('\n'); }
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content.push('\n');
+        }
         assert!(content.contains("Waiting for response"));
 
         // scanning
@@ -171,7 +176,12 @@ mod tests {
         let buf = terminal.backend().buffer();
         let area = buf.area;
         let mut content2 = String::new();
-        for y in 0..area.height { for x in 0..area.width { content2.push(buf.get(x,y).symbol().chars().next().unwrap_or(' ')); } content2.push('\n'); }
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content2.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content2.push('\n');
+        }
         assert!(content2.contains("Scanning files"));
     }
 }

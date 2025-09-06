@@ -1,5 +1,6 @@
-use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use std::collections::VecDeque;
+
+use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
 #[derive(Debug, Default, Clone)]
 pub struct App {

@@ -52,41 +52,22 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
 
     // Start scanning files in the background with progress.
     #[derive(Debug)]
-    enum ScanEvent { Progress(usize), Done(std::collections::HashMap<String, Vec<u8>>), Error(String) }
+    enum ScanEvent {
+        Progress(usize),
+        Done(std::collections::HashMap<String, Vec<u8>>),
+        Error(String),
+    }
     let (scan_tx, mut scan_rx) = mpsc::unbounded_channel::<ScanEvent>();
     tokio::task::spawn_blocking(move || {
-        let mut count = 0usize;
-        let mut out = std::collections::HashMap::new();
-        let root = match std::env::current_dir() { Ok(p) => p, Err(e) => { let _=scan_tx.send(ScanEvent::Error(format!("{e}"))); return; } };
-        fn walk(dir: &std::path::Path, root: &std::path::Path, out: &mut std::collections::HashMap<String, Vec<u8>>, count: &mut usize, scan_tx: &mpsc::UnboundedSender<ScanEvent>) {
-            if let Ok(rd) = std::fs::read_dir(dir) {
-                for ent in rd.flatten() {
-                    let path = ent.path();
-                    let name = ent.file_name().to_string_lossy().to_string();
-                    if let Ok(ft) = ent.file_type() {
-                        if ft.is_dir() {
-                            if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') { continue; }
-                            walk(&path, root, out, count, scan_tx);
-                        } else if ft.is_file() {
-                            // Only include relevant extensions from kcl_lib
-                            let is_relevant = path
-                                .extension()
-                                .and_then(|e| e.to_str())
-                                .map(|e| e.to_ascii_lowercase())
-                                .map(|e| kcl_lib::RELEVANT_FILE_EXTENSIONS.contains(&e))
-                                .unwrap_or(false);
-                            if is_relevant {
-                                let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
-                                if let Ok(bytes) = std::fs::read(&path) { out.insert(rel, bytes); }
-                                *count += 1;
-                                if *count % 100 == 0 { let _ = scan_tx.send(ScanEvent::Progress(*count)); }
-                            }
-                        }
-                    }
-                }
+        let root = match std::env::current_dir() {
+            Ok(p) => p,
+            Err(e) => {
+                let _ = scan_tx.send(ScanEvent::Error(format!("{e}")));
+                return;
             }
-        }
-        walk(&root, &root, &mut out, &mut count, &scan_tx);
+        };
+        let out = scan_relevant_files(&root);
+        let count = out.len();
         let _ = scan_tx.send(ScanEvent::Progress(count));
         let _ = scan_tx.send(ScanEvent::Done(out));
     });
@@ -117,9 +98,9 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                     }
                 } else if maybe_ev.is_none() { exit = true; }
             }
-            Some(server_msg) = rx_server.recv() => { 
+            Some(server_msg) = rx_server.recv() => {
                 if ctx.debug { eprintln!("[copilot] server: {:?}", &server_msg); }
-                if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg { 
+                if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg {
                     if let Some(files) = &files_opt {
                         if let Some(next) = app.on_end_of_stream(true) {
                             let msg = kittycad::types::MlCopilotClientMessage::User { content: next, current_files: Some(files.clone()), project_name: project_name.clone(), source_ranges: None };
@@ -160,4 +141,83 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
     execute!(std::io::stdout(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
     Ok(())
+}
+
+/// Walk the `root` directory and collect only files with extensions present in
+/// `kcl_lib::RELEVANT_FILE_EXTENSIONS`. Returns a map of relative path -> file bytes.
+pub(crate) fn scan_relevant_files(root: &std::path::Path) -> std::collections::HashMap<String, Vec<u8>> {
+    let mut out = std::collections::HashMap::new();
+    fn walk(dir: &std::path::Path, root: &std::path::Path, out: &mut std::collections::HashMap<String, Vec<u8>>) {
+        if let Ok(rd) = std::fs::read_dir(dir) {
+            for ent in rd.flatten() {
+                let path = ent.path();
+                let name = ent.file_name().to_string_lossy().to_string();
+                if let Ok(ft) = ent.file_type() {
+                    if ft.is_dir() {
+                        if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') {
+                            continue;
+                        }
+                        walk(&path, root, out);
+                    } else if ft.is_file() {
+                        let is_relevant = path
+                            .extension()
+                            .and_then(|e| e.to_str())
+                            .map(|e| e.to_ascii_lowercase())
+                            .map(|e| kcl_lib::RELEVANT_FILE_EXTENSIONS.contains(&e))
+                            .unwrap_or(false);
+                        if is_relevant {
+                            let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
+                            if let Ok(bytes) = std::fs::read(&path) {
+                                out.insert(rel, bytes);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    walk(root, root, &mut out);
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+
+    use super::*;
+
+    #[test]
+    fn scan_only_relevant_file_extensions() {
+        let tmp = tempfile::tempdir().expect("create tempdir");
+        let root = tmp.path();
+
+        // Relevant files
+        std::fs::write(root.join("main.kcl"), b"cube(1)").unwrap();
+        std::fs::write(root.join("foo.KCL"), b"sphere(2)").unwrap(); // case-insensitive
+        std::fs::create_dir(root.join("sub")).unwrap();
+        std::fs::write(root.join("sub/bar.kcl"), b"cylinder(3)").unwrap();
+
+        // Irrelevant files
+        std::fs::write(root.join("README.md"), b"docs").unwrap();
+        std::fs::write(root.join("notes.txt"), b"hello").unwrap();
+        std::fs::create_dir(root.join("target")).unwrap();
+        std::fs::write(root.join("target/skip.kcl"), b"should not be read").unwrap();
+        std::fs::create_dir(root.join("node_modules")).unwrap();
+        std::fs::write(root.join("node_modules/also_skip.kcl"), b"nope").unwrap();
+        std::fs::create_dir(root.join(".git")).unwrap();
+        std::fs::write(root.join(".git/also_skip.kcl"), b"nope").unwrap();
+        std::fs::create_dir(root.join(".hidden")).unwrap();
+        std::fs::write(root.join(".hidden/also_skip.kcl"), b"nope").unwrap();
+
+        let files = scan_relevant_files(root);
+        let mut keys: Vec<_> = files.keys().cloned().collect();
+        keys.sort();
+        assert_eq!(
+            keys,
+            vec!["foo.KCL".to_string(), "main.kcl".to_string(), "sub/bar.kcl".to_string(),]
+        );
+
+        // Ensure contents match something small and non-empty
+        assert_eq!(files.get("main.kcl").unwrap(), b"cube(1)");
+    }
 }
