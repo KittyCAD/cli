@@ -741,6 +741,90 @@ pub(crate) fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_co
     }
 }
 
+/// Render a ReasoningMessage as Markdown with a bold header and
+/// pretty-printed structured content. Intended for Copilot UI rendering.
+pub(crate) fn reasoning_to_markdown(reason: &kittycad::types::ReasoningMessage) -> String {
+    use serde_json::json;
+
+    match reason {
+        kittycad::types::ReasoningMessage::Text { content } => {
+            format!("**Reasoning**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::KclDocs { content } => {
+            format!("**KCL Docs**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::KclCodeExamples { content } => {
+            format!("**KCL Examples**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::FeatureTreeOutline { content } => {
+            format!("**Feature Tree**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::DesignPlan { steps } => {
+            let mut md = String::from("**Design Plan**\n");
+            for step in steps {
+                let obj = json!({
+                    "file": step.filepath_to_edit,
+                    "edit_instructions": step.edit_instructions,
+                });
+                let pretty = serde_json::to_string_pretty(&obj).unwrap_or_else(|_| obj.to_string());
+                md.push_str("\n```json\n");
+                md.push_str(&pretty);
+                md.push_str("\n```\n");
+            }
+            md
+        }
+        kittycad::types::ReasoningMessage::GeneratedKclCode { code } => {
+            // Keep as fenced code for readability; UI flattens to lines.
+            let mut md = String::from("**Generated KCL**\n\n");
+            md.push_str("```kcl\n");
+            md.push_str(code);
+            md.push_str("\n```\n");
+            md
+        }
+        kittycad::types::ReasoningMessage::KclCodeError { error } => {
+            let mut md = String::from("**KCL Error**\n\n");
+            md.push_str("```text\n");
+            md.push_str(error.trim());
+            md.push_str("\n```\n");
+            md
+        }
+        kittycad::types::ReasoningMessage::CreatedKclFile { file_name, content } => {
+            let meta = json!({ "action": "created", "file": file_name });
+            let mut md = String::from("**Created File**\n\n");
+            md.push_str("```json\n");
+            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
+            md.push_str("\n```\n");
+            if !content.trim().is_empty() {
+                md.push_str("\n```kcl\n");
+                md.push_str(content);
+                md.push_str("\n```\n");
+            }
+            md
+        }
+        kittycad::types::ReasoningMessage::UpdatedKclFile { file_name, content } => {
+            let meta = json!({ "action": "updated", "file": file_name });
+            let mut md = String::from("**Updated File**\n\n");
+            md.push_str("```json\n");
+            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
+            md.push_str("\n```\n");
+            if !content.trim().is_empty() {
+                md.push_str("\n```kcl\n");
+                md.push_str(content);
+                md.push_str("\n```\n");
+            }
+            md
+        }
+        kittycad::types::ReasoningMessage::DeletedKclFile { file_name } => {
+            let meta = json!({ "action": "deleted", "file": file_name });
+            let mut md = String::from("**Deleted File**\n\n");
+            md.push_str("```json\n");
+            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
+            md.push_str("\n```\n");
+            md
+        }
+    }
+}
+
 fn indent_block(s: &str) -> String {
     let mut out = String::new();
     for line in s.lines() {

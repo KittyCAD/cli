@@ -117,10 +117,12 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
-                    for l in crate::context::format_reasoning(reason.clone(), false) {
+                    // Render reasoning as dimmed markdown lines for readability.
+                    let md = crate::context::reasoning_to_markdown(reason);
+                    for l in render_markdown_to_lines(&md) {
                         lines.push(Line::from(vec![
                             Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                            Span::raw(l),
+                            Span::styled(l, Style::default().fg(Color::Rgb(150, 150, 150))),
                         ]));
                     }
                 }
