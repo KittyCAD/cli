@@ -392,6 +392,7 @@ mod tests {
             ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text }) => {
                 assert!(text.contains("/accept"));
                 assert!(text.contains("/reject"));
+                assert!(text.contains("/render"));
             }
             other => panic!("expected Info, got {other:?}"),
         }

@@ -228,7 +228,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
         let mut diff_lines: Vec<Line> = Vec::new();
         diff_lines.push(Line::from(vec![
             Span::styled("Proposed Changes:", Style::default().fg(Color::Yellow)),
-            Span::raw("  type /accept to apply, /reject to discard"),
+            Span::raw("  type /accept to apply, /reject to discard, /render to preview"),
         ]));
         for edit in edits {
             diff_lines.push(Line::from(vec![
@@ -360,6 +360,33 @@ mod tests {
             content2.push('\n');
         }
         assert!(content2.contains("Scanning files"));
+    }
+
+    #[test]
+    fn diff_header_shows_commands() {
+        let backend = TestBackend::new(60, 12);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        // Simulate pending edits
+        app.pending_edits = Some(vec![super::super::state::PendingFileEdit {
+            path: "main.kcl".into(),
+            old: "cube(1)\n".into(),
+            new: "cube(2)\n".into(),
+            diff_lines: vec!["-cube(1)".into(), "+cube(2)".into()],
+        }]);
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut content = String::new();
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content.push('\n');
+        }
+        assert!(content.contains("/accept"));
+        assert!(content.contains("/reject"));
+        assert!(content.contains("/render"));
     }
 
     #[test]
