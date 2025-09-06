@@ -596,24 +596,47 @@ fn apply_pending_edits(edits: &[state::PendingFileEdit]) -> anyhow::Result<usize
 
 /// Join `base` with `candidate` and ensure the resulting path stays under `base`.
 fn join_secure(base: &Path, candidate: &Path) -> anyhow::Result<PathBuf> {
-    let base = std::fs::canonicalize(base).unwrap_or_else(|_| base.to_path_buf());
-    let mut out = base.clone();
+    // Base must canonicalize; otherwise we cannot reason safely about ancestry.
+    let base_canon = std::fs::canonicalize(base)
+        .map_err(|e| anyhow::anyhow!("failed to canonicalize base '{}': {e}", base.display()))?;
+
+    // Build a lexically normalized path under base (reject absolute and prefix comps).
+    let mut out_lex = base_canon.clone();
     for comp in candidate.components() {
         match comp {
             Component::Prefix(_) | Component::RootDir => anyhow::bail!("absolute paths are not allowed"),
             Component::ParentDir => {
-                if !out.pop() {
+                if !out_lex.pop() || !out_lex.starts_with(&base_canon) {
                     anyhow::bail!("path escapes project root")
                 }
             }
             Component::CurDir => {}
-            Component::Normal(seg) => out.push(seg),
-        }
-        if !out.starts_with(&base) {
-            anyhow::bail!("path escapes project root")
+            Component::Normal(seg) => {
+                out_lex.push(seg);
+                if !out_lex.starts_with(&base_canon) {
+                    anyhow::bail!("path escapes project root")
+                }
+            }
         }
     }
-    Ok(out)
+
+    // Resolve the nearest existing ancestor to catch symlink escapes. If any existing
+    // ancestor resolves outside of the canonical base, reject.
+    let mut probe = out_lex.clone();
+    while !probe.exists() {
+        if !probe.pop() {
+            break;
+        }
+    }
+    if probe.exists() {
+        let probe_canon = std::fs::canonicalize(&probe)
+            .map_err(|e| anyhow::anyhow!("failed to canonicalize ancestor '{}': {e}", probe.display()))?;
+        if !probe_canon.starts_with(&base_canon) {
+            anyhow::bail!("path escapes project root via symlink")
+        }
+    }
+
+    Ok(out_lex)
 }
 
 async fn render_side_by_side(
@@ -771,11 +794,26 @@ fn preview_image_terminal(ctx: &mut crate::context::Context<'_>, path: &std::pat
 
 /// Walk the `root` directory and collect only files with extensions present in
 /// `kcl_lib::RELEVANT_FILE_EXTENSIONS`. Returns a map of relative path -> file bytes.
+const SCAN_MAX_DEPTH: usize = 256;
+
 pub(crate) fn scan_relevant_files(root: &std::path::Path) -> std::collections::HashMap<String, Vec<u8>> {
     let mut out = std::collections::HashMap::new();
-    let mut stack: Vec<std::path::PathBuf> = vec![root.to_path_buf()];
+    let mut stack: Vec<(std::path::PathBuf, usize)> = vec![(root.to_path_buf(), 0)];
 
-    while let Some(dir) = stack.pop() {
+    while let Some((dir, depth)) = stack.pop() {
+        if depth >= SCAN_MAX_DEPTH {
+            continue;
+        }
+        // Re-check the popped path to avoid TOCTOU with symlinks turning into dirs
+        if let Ok(md) = std::fs::symlink_metadata(&dir) {
+            let ft = md.file_type();
+            if !ft.is_dir() || ft.is_symlink() {
+                continue;
+            }
+        } else {
+            continue;
+        }
+
         let rd = match std::fs::read_dir(&dir) {
             Ok(rd) => rd,
             Err(_) => continue,
@@ -787,19 +825,15 @@ pub(crate) fn scan_relevant_files(root: &std::path::Path) -> std::collections::H
                 Ok(ft) => ft,
                 Err(_) => continue,
             };
-            // Avoid following symlinks to prevent cycles
-            #[cfg(unix)]
-            if std::fs::symlink_metadata(&path)
-                .map(|m| m.file_type().is_symlink())
-                .unwrap_or(false)
-            {
+            // Avoid following symlinks to prevent cycles (cross-platform)
+            if ft.is_symlink() {
                 continue;
             }
             if ft.is_dir() {
                 if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') {
                     continue;
                 }
-                stack.push(path);
+                stack.push((path, depth + 1));
             } else if ft.is_file() {
                 let is_relevant = path
                     .extension()
@@ -912,6 +946,40 @@ mod tests {
         // ensure we don't hang
         let files = scan_relevant_files(root);
         assert!(files.keys().any(|k| k == "main.kcl"));
+    }
+
+    #[test]
+    fn scan_depth_limit_skips_beyond() {
+        // Build a tree deeper than the enforced limit and ensure files beyond are skipped
+        let tmp = tempfile::tempdir().expect("create tempdir");
+        let mut cur = tmp.path().to_path_buf();
+        for _ in 0..(super::SCAN_MAX_DEPTH + 10) {
+            cur.push("d");
+            std::fs::create_dir(&cur).unwrap();
+        }
+        let deep_file = cur.join("main.kcl");
+        std::fs::write(&deep_file, b"cube(9)\n").unwrap();
+
+        let files = scan_relevant_files(tmp.path());
+        assert!(
+            files.keys().all(|k| !k.ends_with("main.kcl")),
+            "expected deepest file to be skipped by depth limit"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn scan_root_symlink_is_skipped_unix() {
+        use std::os::unix::fs::symlink;
+        let real = tempfile::tempdir().expect("create tempdir");
+        let linkdir = tempfile::tempdir().expect("link container");
+        let link = linkdir.path().join("rootlink");
+        symlink(real.path(), &link).unwrap();
+        // Place a relevant file in the real dir
+        std::fs::write(real.path().join("main.kcl"), b"cube(1)\n").unwrap();
+        // Scanning the symlink as root should skip it entirely
+        let files = scan_relevant_files(&link);
+        assert!(files.is_empty());
     }
 
     #[test]

@@ -768,9 +768,7 @@ pub(crate) fn reasoning_to_markdown(reason: &kittycad::types::ReasoningMessage) 
     use serde_json::json;
 
     match reason {
-        kittycad::types::ReasoningMessage::Text { content } => {
-            format!("**Reasoning**\n\n{}", content.trim())
-        }
+        kittycad::types::ReasoningMessage::Text { content } => content.trim().to_string(),
         kittycad::types::ReasoningMessage::KclDocs { content } => {
             format!("**KCL Docs**\n\n{}", content.trim())
         }
