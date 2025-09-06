@@ -30,23 +30,36 @@ pub struct PendingFileEdit {
     pub diff_lines: Vec<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SlashCommand {
     Accept,
     Reject,
     Quit,
     Exit,
+    System(kittycad::types::MlCopilotSystemCommand),
 }
 
 pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
     let s = input.trim();
     match s {
-        "/accept" => Some(SlashCommand::Accept),
-        "/reject" => Some(SlashCommand::Reject),
-        "/quit" => Some(SlashCommand::Quit),
-        "/exit" => Some(SlashCommand::Exit),
-        _ => None,
+        "/accept" => return Some(SlashCommand::Accept),
+        "/reject" => return Some(SlashCommand::Reject),
+        "/quit" => return Some(SlashCommand::Quit),
+        "/exit" => return Some(SlashCommand::Exit),
+        _ => {}
     }
+
+    // System commands from the SDK, auto-updating as the enum evolves.
+    if let Some(rest) = s.strip_prefix('/') {
+        let name = rest.trim();
+        if name.is_empty() {
+            return None;
+        }
+        if let Ok(cmd) = name.parse::<kittycad::types::MlCopilotSystemCommand>() {
+            return Some(SlashCommand::System(cmd));
+        }
+    }
+    None
 }
 
 impl App {
@@ -197,8 +210,29 @@ pub enum KeyAction {
     None,
 }
 
-fn slash_commands() -> Vec<&'static str> {
-    vec!["/accept", "/reject", "/quit", "/exit"]
+fn slash_commands() -> Vec<String> {
+    let mut cmds = vec![
+        "/accept".to_string(),
+        "/reject".to_string(),
+        "/quit".to_string(),
+        "/exit".to_string(),
+    ];
+
+    // Append all SDK system commands as slash commands, eg: /new, /bye, ...
+    #[allow(unused_imports)]
+    use clap::ValueEnum;
+    for v in kittycad::types::MlCopilotSystemCommand::value_variants() {
+        if let Some(pv) = v.to_possible_value() {
+            cmds.push(format!("/{}", pv.get_name()));
+        } else {
+            // Fallback to Display as a best-effort
+            cmds.push(format!("/{v}"));
+        }
+    }
+    // Dedup in case of overlap (shouldn't happen, but safe)
+    cmds.sort();
+    cmds.dedup();
+    cmds
 }
 
 fn common_prefix(strings: &[&str]) -> String {
@@ -223,7 +257,11 @@ fn common_prefix(strings: &[&str]) -> String {
 
 fn autocomplete_slash(current: &str) -> Option<String> {
     let cmds = slash_commands();
-    let matches: Vec<&str> = cmds.iter().copied().filter(|c| c.starts_with(current)).collect();
+    let matches: Vec<&str> = cmds
+        .iter()
+        .map(|s| s.as_str())
+        .filter(|c| c.starts_with(current))
+        .collect();
     if matches.is_empty() {
         return None;
     }
@@ -318,6 +356,20 @@ mod tests {
     }
 
     #[test]
+    fn parse_slash_system_commands() {
+        // These come from kittycad::types::MlCopilotSystemCommand and will auto-update
+        // when the SDK adds more variants.
+        assert_eq!(
+            parse_slash_command("/new"),
+            Some(SlashCommand::System(kittycad::types::MlCopilotSystemCommand::New))
+        );
+        assert_eq!(
+            parse_slash_command("/bye"),
+            Some(SlashCommand::System(kittycad::types::MlCopilotSystemCommand::Bye))
+        );
+    }
+
+    #[test]
     fn tab_autocomplete_unique() {
         let mut app = App::new();
         app.input = "/a".into();
@@ -337,6 +389,37 @@ mod tests {
             ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text }) => {
                 assert!(text.contains("/accept"));
                 assert!(text.contains("/reject"));
+            }
+            other => panic!("expected Info, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn tab_autocomplete_system_unique_new() {
+        let mut app = App::new();
+        app.input = "/n".into();
+        let _ = app.handle_key_action(key(KeyCode::Tab, KeyModifiers::NONE));
+        assert_eq!(app.input, "/new");
+    }
+
+    #[test]
+    fn tab_autocomplete_system_unique_bye() {
+        let mut app = App::new();
+        app.input = "/b".into();
+        let _ = app.handle_key_action(key(KeyCode::Tab, KeyModifiers::NONE));
+        assert_eq!(app.input, "/bye");
+    }
+
+    #[test]
+    fn tab_autocomplete_suggestions_include_system() {
+        let mut app = App::new();
+        app.input = "/".into();
+        let _ = app.handle_key_action(key(KeyCode::Tab, KeyModifiers::NONE));
+        let last = app.events.last().unwrap();
+        match last {
+            ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text }) => {
+                assert!(text.contains("/new"));
+                assert!(text.contains("/bye"));
             }
             other => panic!("expected Info, got {other:?}"),
         }

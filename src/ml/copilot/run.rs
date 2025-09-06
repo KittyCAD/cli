@@ -379,6 +379,9 @@ pub async fn run_copilot_tui(
                                             app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
                                         }
                                     }
+                                    state::SlashCommand::System(command) => {
+                                        let _ = tx_out.send(WsSend::Client { msg: kittycad::types::MlCopilotClientMessage::System { command } });
+                                    }
                                 }
                                 continue;
                             }
