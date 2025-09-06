@@ -68,10 +68,19 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                             if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') { continue; }
                             walk(&path, root, out, count, scan_tx);
                         } else if ft.is_file() {
-                            let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
-                            if let Ok(bytes) = std::fs::read(&path) { out.insert(rel, bytes); }
-                            *count += 1;
-                            if *count % 100 == 0 { let _ = scan_tx.send(ScanEvent::Progress(*count)); }
+                            // Only include relevant extensions from kcl_lib
+                            let is_relevant = path
+                                .extension()
+                                .and_then(|e| e.to_str())
+                                .map(|e| e.to_ascii_lowercase())
+                                .map(|e| kcl_lib::RELEVANT_FILE_EXTENSIONS.contains(&e))
+                                .unwrap_or(false);
+                            if is_relevant {
+                                let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
+                                if let Ok(bytes) = std::fs::read(&path) { out.insert(rel, bytes); }
+                                *count += 1;
+                                if *count % 100 == 0 { let _ = scan_tx.send(ScanEvent::Progress(*count)); }
+                            }
                         }
                     }
                 }

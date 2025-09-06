@@ -118,6 +118,21 @@ async fn test_main(ctx: &mut MainContext) {
             want_code: 0,
             ..Default::default()
         },
+        // ML: kcl copilot should only start within a project directory containing main.kcl.
+        TestItem {
+            name: "ml kcl copilot requires main.kcl".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "kcl".to_string(),
+                "copilot".to_string(),
+            ],
+            // No stdout expected; assert error message substring.
+            want_out: "".to_string(),
+            want_err: "does not contain a main.kcl file".to_string(),
+            want_code: 1,
+            ..Default::default()
+        },
         TestItem {
             name: "add an alias".to_string(),
             args: vec![

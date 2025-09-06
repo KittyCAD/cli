@@ -116,6 +116,12 @@ pub struct CmdKclCopilot {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclCopilot {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Only allow starting the copilot in a directory containing a main.kcl.
+        // Reuse existing project discovery logic to keep error messages consistent.
+        let _ = ctx
+            .get_code_and_file_path(&std::path::PathBuf::from("."))
+            .await?;
+
         crate::ml::copilot::run::run_copilot_tui(ctx, self.project_name.clone()).await
     }
 }
