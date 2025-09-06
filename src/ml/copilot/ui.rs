@@ -346,4 +346,56 @@ mod tests {
         }
         assert!(!row0b.contains("Proposed Changes"));
     }
+
+    #[test]
+    fn two_turns_no_prepend() {
+        let backend = TestBackend::new(60, 12);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        // Turn 1
+        app.events.push(ChatEvent::User("first".into()));
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
+                delta: "Hello".into(),
+            }));
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
+                delta: ", Jess".into(),
+            }));
+        app.events.push(ChatEvent::Server(
+            kittycad::types::MlCopilotServerMessage::EndOfStream { whole_response: None },
+        ));
+        // Turn 2
+        app.events.push(ChatEvent::User("second".into()));
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
+                delta: "Hi again".into(),
+            }));
+        app.events.push(ChatEvent::Server(
+            kittycad::types::MlCopilotServerMessage::EndOfStream { whole_response: None },
+        ));
+
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut content = String::new();
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content.push('\n');
+        }
+
+        // Ensure ordering and no prepend of first into second
+        let p1 = content.find("You> first").expect("missing first user line");
+        let p2 = content.find("You> second").expect("missing second user line");
+        assert!(p2 > p1);
+        assert!(
+            !content.contains("firstYou> second"),
+            "first message prepended to second user line"
+        );
+        // Assistant segments present separately
+        assert!(content.contains("ML-ephant> Hello, Jess"));
+        assert!(content.contains("ML-ephant> Hi again"));
+    }
 }

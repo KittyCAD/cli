@@ -611,6 +611,55 @@ mod tests {
     }
 
     #[test]
+    fn client_message_content_does_not_carryover() {
+        let mut files = std::collections::HashMap::new();
+        files.insert("main.kcl".to_string(), b"cube(1)".to_vec());
+        let project_name = Some("proj".to_string());
+
+        let (m1, _) = build_user_message("first".into(), &files, &project_name);
+        let v1 = serde_json::to_value(&m1).unwrap();
+        assert_eq!(v1.get("content").unwrap().as_str().unwrap(), "first");
+
+        let (m2, _) = build_user_message("second".into(), &files, &project_name);
+        let v2 = serde_json::to_value(&m2).unwrap();
+        assert_eq!(v2.get("content").unwrap().as_str().unwrap(), "second");
+    }
+
+    #[test]
+    fn event_loop_two_submits_send_verbatim_and_files() {
+        let mut app = App::new();
+        let mut files = std::collections::HashMap::new();
+        files.insert("main.kcl".to_string(), b"cube(1)".to_vec());
+        let project_name = Some("proj".to_string());
+
+        // First submission
+        let s1 = app
+            .try_submit("hi im jess".into(), true)
+            .expect("first should send now");
+        let (m1, _len1) = build_user_message(s1, &files, &project_name);
+        let v1 = serde_json::to_value(&m1).unwrap();
+        assert_eq!(v1.get("content").unwrap().as_str().unwrap(), "hi im jess");
+        let files1 = v1.get("current_files").unwrap().as_object().unwrap();
+        assert!(files1.contains_key("main.kcl"));
+
+        // Simulate end-of-stream to clear awaiting state
+        assert!(app.on_end_of_stream(true).is_none());
+
+        // Second submission
+        let s2 = app
+            .try_submit("can you edit the kcl code to make the button blue".into(), true)
+            .expect("second should send now");
+        let (m2, _len2) = build_user_message(s2, &files, &project_name);
+        let v2 = serde_json::to_value(&m2).unwrap();
+        assert_eq!(
+            v2.get("content").unwrap().as_str().unwrap(),
+            "can you edit the kcl code to make the button blue"
+        );
+        let files2 = v2.get("current_files").unwrap().as_object().unwrap();
+        assert!(files2.contains_key("main.kcl"));
+    }
+
+    #[test]
     fn tool_output_error_displays_error() {
         let mut app = App::new();
         let val = serde_json::json!({

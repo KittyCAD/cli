@@ -368,4 +368,26 @@ mod tests {
         let _ = app.handle_key_action(key(KeyCode::PageUp, KeyModifiers::NONE));
         assert!(app.msg_scroll <= 10);
     }
+
+    #[test]
+    fn lifecycle_two_submits_no_carryover() {
+        let mut app = App::new();
+        // Files not ready yet; first submit queues
+        assert!(app.try_submit("first".into(), false).is_none());
+        assert_eq!(app.queue.len(), 1);
+        // Scan done → send first
+        let s1 = app.on_scan_done();
+        assert_eq!(s1.as_deref(), Some("first"));
+        assert!(app.awaiting_response);
+
+        // EOS → allow next
+        let s_none = app.on_end_of_stream(true);
+        assert!(s_none.is_none());
+        assert!(!app.awaiting_response);
+
+        // Second submit should return exactly "second"
+        let s2 = app.try_submit("second".into(), true);
+        assert_eq!(s2.as_deref(), Some("second"));
+        assert!(app.queue.is_empty());
+    }
 }
