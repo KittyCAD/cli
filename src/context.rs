@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use futures::StreamExt;
@@ -668,8 +669,8 @@ impl Drop for ReasoningGuard {
     fn drop(&mut self) {
         if let Some(handle) = self.0.take() {
             handle.abort();
-            // Abort the task directly without blocking the drop.
-            handle.abort();
+            // Ensure the task is polled to completion in the background.
+            tokio::spawn(async move { let _ = handle.await; });
         }
     }
 }
