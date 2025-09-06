@@ -5,6 +5,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use futures::{SinkExt, StreamExt};
+use log::LevelFilter;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tokio::sync::mpsc;
 use tokio_tungstenite::{
@@ -18,6 +19,15 @@ use crate::ml::copilot::{
 };
 
 pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name: Option<String>) -> Result<()> {
+    // Suppress global logging/tracing while the TUI is active to avoid corrupting the UI.
+    // We still surface our own debug messages inside the chat pane.
+    let _log_guard = if ctx.debug {
+        let prev = log::max_level();
+        log::set_max_level(LevelFilter::Off);
+        Some(prev)
+    } else {
+        None
+    };
     // Setup terminal
     enable_raw_mode()?;
     execute!(std::io::stdout(), EnterAlternateScreen)?;
@@ -35,6 +45,12 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
 
     // Channels
     let (tx_server, mut rx_server) = mpsc::unbounded_channel::<kittycad::types::MlCopilotServerMessage>();
+    if ctx.debug {
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                text: "[copilot/ws] connected".to_string(),
+            }));
+    }
     let debug = ctx.debug;
     tokio::spawn(async move {
         fn truncate(s: &str, n: usize) -> String {
@@ -51,8 +67,16 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
             }
         };
 
-        while let Some(msg) = read.next().await {
-            let Ok(msg) = msg else { break };
+        let mut end_reason: Option<String> = None;
+        while let Some(msg_res) = read.next().await {
+            let msg = match msg_res {
+                Ok(m) => m,
+                Err(e) => {
+                    dbg(format!("[copilot/ws<-] reader error: {e}"), debug, &tx_server);
+                    end_reason = Some(format!("error: {e}"));
+                    break;
+                }
+            };
             if msg.is_text() {
                 match msg.into_text() {
                     Ok(t) => {
@@ -81,14 +105,25 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                 dbg("[copilot/ws<-] ping".to_string(), debug, &tx_server);
             } else if msg.is_pong() {
                 dbg("[copilot/ws<-] pong".to_string(), debug, &tx_server);
-            } else if msg.is_close() {
-                dbg("[copilot/ws<-] close frame".to_string(), debug, &tx_server);
+            } else if let Message::Close(cf) = msg {
+                if let Some(cf) = cf {
+                    dbg(
+                        format!("[copilot/ws<-] close frame code={} reason='{}'", cf.code, cf.reason),
+                        debug,
+                        &tx_server,
+                    );
+                    end_reason = Some(format!("close code {}", cf.code));
+                } else {
+                    dbg("[copilot/ws<-] close frame".to_string(), debug, &tx_server);
+                    end_reason = Some("close frame".to_string());
+                }
                 break;
             } else if debug {
                 dbg("[copilot/ws<-] other frame".to_string(), debug, &tx_server);
             }
         }
-        dbg("[copilot/ws<-] reader task end".to_string(), debug, &tx_server);
+        let reason = end_reason.unwrap_or_else(|| "eof".to_string());
+        dbg(format!("[copilot/ws<-] reader task end ({reason})"), debug, &tx_server);
     });
 
     // Start scanning files in the background with progress.
@@ -120,7 +155,6 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
         tokio::select! {
             maybe_ev = events.next() => {
                 if let Some(Ok(Event::Key(key))) = maybe_ev {
-                    if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] key: {key:?}") })); }
                     match app.handle_key_action(key) {
                         KeyAction::Exit => { exit = true; }
                         KeyAction::Submit(submit) => {
@@ -128,30 +162,41 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                             let files_ready = files_opt.is_some();
                             if let Some(to_send) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
-                                    if ctx.debug {
-                                        let disp = if to_send.len() > 200 { format!("{}… ({} chars)", &to_send[..200], to_send.len()) } else { to_send.clone() };
-                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot/ws->] user: {disp}") }));
-                                    }
                                     let msg = kittycad::types::MlCopilotClientMessage::User { content: to_send, current_files: Some(files.clone()), project_name: project_name.clone(), source_ranges: None };
                                     let body = serde_json::to_string(&msg)?;
-                                    if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] send user ({} files)", files.len()) })); }
+                                    if ctx.debug {
+                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                            text: format!("[copilot/ws->] sending client message: {} bytes, files={}, project={:?}", body.len(), files.len(), project_name)
+                                        }));
+                                    }
                                     write.send(Message::Text(body)).await?;
+                                    let _ = write.flush().await;
+                                    if ctx.debug {
+                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() }));
+                                    }
                                 }
-                            } else if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot] queued user".to_string() })); }
+                            }
                         }
                         KeyAction::Inserted | KeyAction::None => {}
                     }
                 } else if maybe_ev.is_none() { exit = true; }
             }
             Some(server_msg) = rx_server.recv() => {
-                if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] server: {:?}", &server_msg) })); }
                 if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg {
                     if let Some(files) = &files_opt {
                         if let Some(next) = app.on_end_of_stream(true) {
                             let msg = kittycad::types::MlCopilotClientMessage::User { content: next, current_files: Some(files.clone()), project_name: project_name.clone(), source_ranges: None };
                             let body = serde_json::to_string(&msg)?;
-                            if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] send queued user after EOS ({} files)", files.len()) })); }
+                            if ctx.debug {
+                                app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                    text: format!("[copilot/ws->] sending client message (after EOS): {} bytes, files={}, project={:?}", body.len(), files.len(), project_name)
+                                }));
+                            }
                             write.send(Message::Text(body)).await?;
+                            let _ = write.flush().await;
+                            if ctx.debug {
+                                app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() }));
+                            }
                         }
                     } else {
                         let _ = app.on_end_of_stream(false);
@@ -167,14 +212,18 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                         app.scanning = false;
                         if let Some(files) = &files_opt {
                             if let Some(next) = app.on_scan_done() {
-                                if ctx.debug {
-                                    let disp = if next.len() > 200 { format!("{}… ({} chars)", &next[..200], next.len()) } else { next.clone() };
-                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot/ws->] user(after-scan): {disp}") }));
-                                }
                                 let msg = kittycad::types::MlCopilotClientMessage::User { content: next, current_files: Some(files.clone()), project_name: project_name.clone(), source_ranges: None };
                                 let body = serde_json::to_string(&msg)?;
-                                if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] send first queued user after scan ({} files)", files.len()) })); }
+                                if ctx.debug {
+                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                        text: format!("[copilot/ws->] sending client message (after scan): {} bytes, files={}, project={:?}", body.len(), files.len(), project_name)
+                                    }));
+                                }
                                 write.send(Message::Text(body)).await?;
+                                let _ = write.flush().await;
+                                if ctx.debug {
+                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() }));
+                                }
                             }
                         }
                     }
@@ -189,6 +238,11 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
     disable_raw_mode()?;
     execute!(std::io::stdout(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
+
+    // Restore previous log filter if we changed it.
+    if let Some(prev) = _log_guard {
+        log::set_max_level(prev);
+    }
     Ok(())
 }
 
