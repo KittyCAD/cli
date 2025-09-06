@@ -12,7 +12,6 @@ pub struct App {
     pub scanned_files: usize,
     pub awaiting_response: bool,
     pub queue: VecDeque<String>,
-    pub sent_files_once: bool,
     pub pending_edits: Option<Vec<PendingFileEdit>>, // prepared diffs to accept/reject
     pub msg_scroll: u16,
     pub diff_scroll: u16,
@@ -61,7 +60,6 @@ impl App {
             scanned_files: 0,
             awaiting_response: false,
             queue: VecDeque::new(),
-            sent_files_once: false,
             pending_edits: None,
             msg_scroll: 0,
             diff_scroll: 0,

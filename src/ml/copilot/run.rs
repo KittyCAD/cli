@@ -41,7 +41,6 @@ fn build_user_message(
     content: String,
     files_map: &std::collections::HashMap<String, Vec<u8>>,
     project_name: &Option<String>,
-    _send_every_time: bool,
 ) -> (kittycad::types::MlCopilotClientMessage, usize) {
     let files = all_files(files_map);
     let msg = kittycad::types::MlCopilotClientMessage::User {
@@ -362,9 +361,8 @@ pub async fn run_copilot_tui(
                             let files_ready = files_opt.is_some();
                             if let Some(to_send) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
-                                    let (msg, _len) = build_user_message(to_send, files, &project_name, true);
+                                    let (msg, _len) = build_user_message(to_send, files, &project_name);
                                     let _ = tx_out.send(WsSend::Client { msg });
-                                    app.sent_files_once = true;
                                 }
                             }
                         }
@@ -376,9 +374,8 @@ pub async fn run_copilot_tui(
                 if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg {
                     if let Some(files) = &files_opt {
                         if let Some(next) = app.on_end_of_stream(true) {
-                            let (msg, _len) = build_user_message(next, files, &project_name, true);
+                            let (msg, _len) = build_user_message(next, files, &project_name);
                             let _ = tx_out.send(WsSend::Client { msg });
-                            app.sent_files_once = true;
                         }
                     } else {
                         let _ = app.on_end_of_stream(false);
@@ -397,9 +394,8 @@ pub async fn run_copilot_tui(
                         app.scanning = false;
                         if let Some(files) = &files_opt {
                             if let Some(next) = app.on_scan_done() {
-                                let (msg, _len) = build_user_message(next, files, &project_name, true);
+                                let (msg, _len) = build_user_message(next, files, &project_name);
                                 let _ = tx_out.send(WsSend::Client { msg });
-                                app.sent_files_once = true;
                             }
                         }
                     }
@@ -602,7 +598,7 @@ mod tests {
         map.insert("thing.kcl".to_string(), b"b".to_vec());
         map.insert("blah.obj".to_string(), b"c".to_vec());
         let project_name = None;
-        let (msg, _len) = build_user_message("hi".into(), &map, &project_name, true);
+        let (msg, _len) = build_user_message("hi".into(), &map, &project_name);
         match msg {
             kittycad::types::MlCopilotClientMessage::User {
                 current_files: Some(files),
