@@ -60,6 +60,7 @@ mod config_map;
 mod context;
 mod docs_markdown;
 mod iostreams;
+mod ml;
 mod types;
 
 #[cfg(test)]

@@ -1,10 +1,12 @@
-use std::str::FromStr;
+use std::{str::FromStr, time::Duration};
 
 use anyhow::{anyhow, Result};
+use futures::StreamExt;
 use kcl_lib::{native_engine::EngineConnection, EngineManager};
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
 use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd};
+use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
@@ -198,6 +200,7 @@ impl Context<'_> {
         prompt: &str,
         kcl: bool,
         format: kittycad::types::FileExportFormat,
+        show_reasoning: bool,
     ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
 
@@ -224,6 +227,12 @@ impl Context<'_> {
                 },
             )
             .await?;
+
+        // Start reasoning websocket to stream reasoning messages for this generation.
+        let reasoning_guard = ReasoningGuard::new(
+            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+                .await,
+        );
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -255,6 +264,7 @@ impl Context<'_> {
                 code,
                 model,
                 kcl_version,
+                conversation_id,
             } = result
             {
                 gen_model = TextToCad {
@@ -274,6 +284,7 @@ impl Context<'_> {
                     code,
                     model,
                     kcl_version,
+                    conversation_id,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);
@@ -298,7 +309,8 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model!
+        // Okay, we successfully got a model! Ensure the guard finishes before returning.
+        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
@@ -307,11 +319,19 @@ impl Context<'_> {
         hostname: &str,
         body: &kittycad::types::TextToCadMultiFileIterationBody,
         files: Vec<kittycad::types::multipart::Attachment>,
+        show_reasoning: bool,
     ) -> Result<TextToCadMultiFileIteration> {
         let client = self.api_client(hostname)?;
 
         // Create the text-to-cad request.
         let mut gen_model = client.ml().create_text_to_cad_multi_file_iteration(files, body).await?;
+
+        // Start reasoning websocket to stream reasoning messages for this edit.
+        // default to showing reasoning for edits as well; caller can pass false by wrapping here if needed later
+        let reasoning_guard = ReasoningGuard::new(
+            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+                .await,
+        );
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -343,6 +363,7 @@ impl Context<'_> {
                 outputs,
                 kcl_version,
                 project_name,
+                conversation_id,
             } = result
             {
                 gen_model = TextToCadMultiFileIteration {
@@ -362,6 +383,7 @@ impl Context<'_> {
                     outputs,
                     kcl_version,
                     project_name,
+                    conversation_id,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);
@@ -386,7 +408,8 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model!
+        // Okay, we successfully got a model! Ensure the guard finishes before returning.
+        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
@@ -566,6 +589,261 @@ impl Context<'_> {
     }
 }
 
+impl Context<'_> {
+    async fn spawn_reasoning_ws_task(
+        &self,
+        client: &kittycad::Client,
+        id: uuid::Uuid,
+        enable: bool,
+    ) -> Option<tokio::task::JoinHandle<()>> {
+        if !enable {
+            return None;
+        }
+
+        match client.ml().reasoning_ws(id).await {
+            Ok((upgraded, _headers)) => {
+                let use_color = self.io.color_enabled() && self.io.is_stderr_tty();
+                Some(tokio::spawn(async move {
+                    let mut ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
+                    while let Some(msg) = ws.next().await {
+                        let Ok(msg) = msg else { break };
+                        if msg.is_text() {
+                            let txt = msg.into_text().unwrap_or_default();
+                            if let Ok(server_msg) =
+                                serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt)
+                            {
+                                match server_msg {
+                                    kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
+                                        print_reasoning(reason, use_color);
+                                    }
+                                    kittycad::types::MlCopilotServerMessage::Error { detail } => {
+                                        print_copilot_error(&detail, use_color);
+                                        // Do not break: errors may be non-fatal; keep streaming.
+                                    }
+                                    kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
+                                        break;
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        } else if msg.is_close() {
+                            break;
+                        }
+                    }
+                    let _ = ws.close(None).await;
+                }))
+            }
+            Err(err) => {
+                let _ = err; // suppress unused warning; intentionally silent
+                None
+            }
+        }
+    }
+}
+
+// Print only reasoning messages in a friendly, concise CLI format.
+pub(crate) fn print_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) {
+    for line in format_reasoning(reason, use_color) {
+        eprintln!("{line}");
+    }
+}
+
+// RAII guard to ensure the reasoning websocket task is cancelled and joined.
+struct ReasoningGuard(Option<tokio::task::JoinHandle<()>>);
+
+impl ReasoningGuard {
+    fn new(handle: Option<tokio::task::JoinHandle<()>>) -> Self {
+        ReasoningGuard(handle)
+    }
+
+    async fn finish(mut self) {
+        if let Some(handle) = self.0.take() {
+            handle.abort();
+            let _ = tokio::time::timeout(Duration::from_secs(1), handle).await;
+        }
+    }
+}
+
+impl Drop for ReasoningGuard {
+    fn drop(&mut self) {
+        if let Some(handle) = self.0.take() {
+            handle.abort();
+            // Ensure the task is polled to completion in the background.
+            tokio::spawn(async move {
+                let _ = handle.await;
+            });
+        }
+    }
+}
+
+pub(crate) fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) -> Vec<String> {
+    use nu_ansi_term::Color;
+    let lbl = |plain: &str, color: Color| -> String {
+        if use_color {
+            color.paint(plain).to_string()
+        } else {
+            plain.to_string()
+        }
+    };
+    match reason {
+        kittycad::types::ReasoningMessage::Text { content } => {
+            vec![format!("{} {}", lbl("reasoning:", Color::Cyan), content.trim())]
+        }
+        kittycad::types::ReasoningMessage::KclDocs { content } => {
+            vec![format!("{} {}", lbl("kcl docs:", Color::Purple), content.trim())]
+        }
+        kittycad::types::ReasoningMessage::KclCodeExamples { content } => {
+            vec![format!("{} {}", lbl("kcl examples:", Color::Purple), content.trim())]
+        }
+        kittycad::types::ReasoningMessage::FeatureTreeOutline { content } => {
+            vec![format!("{} {}", lbl("feature tree:", Color::Blue), content.trim())]
+        }
+        kittycad::types::ReasoningMessage::DesignPlan { steps } => {
+            let mut v = vec![lbl("design plan:", Color::Cyan)];
+            for (idx, step) in steps.iter().enumerate() {
+                let n = if use_color {
+                    Color::Green.paint(format!("{:>2}.", idx + 1)).to_string()
+                } else {
+                    format!("{:>2}.", idx + 1)
+                };
+                let file = if use_color {
+                    Color::Yellow.paint(&step.filepath_to_edit).to_string()
+                } else {
+                    step.filepath_to_edit.clone()
+                };
+                v.push(format!("  {} {} {}", n, file, step.edit_instructions));
+            }
+            v
+        }
+        kittycad::types::ReasoningMessage::GeneratedKclCode { code } => {
+            vec![lbl("generated kcl:", Color::Purple), indent_block(&code)]
+        }
+        kittycad::types::ReasoningMessage::KclCodeError { error } => {
+            vec![format!("{} {}", lbl("kcl error:", Color::Red), error.trim())]
+        }
+        kittycad::types::ReasoningMessage::CreatedKclFile { file_name, content } => {
+            let mut v = vec![format!("{} {}", lbl("created file:", Color::Green), file_name)];
+            if !content.trim().is_empty() {
+                v.push(indent_block(&content));
+            }
+            v
+        }
+        kittycad::types::ReasoningMessage::UpdatedKclFile { file_name, content } => {
+            let mut v = vec![format!("{} {}", lbl("updated file:", Color::Yellow), file_name)];
+            if !content.trim().is_empty() {
+                v.push(indent_block(&content));
+            }
+            v
+        }
+        kittycad::types::ReasoningMessage::DeletedKclFile { file_name } => {
+            vec![format!("{} {}", lbl("deleted file:", Color::Red), file_name)]
+        }
+    }
+}
+
+/// Render a ReasoningMessage as Markdown with a bold header and
+/// pretty-printed structured content. Intended for Copilot UI rendering.
+pub(crate) fn reasoning_to_markdown(reason: &kittycad::types::ReasoningMessage) -> String {
+    use serde_json::json;
+
+    match reason {
+        kittycad::types::ReasoningMessage::Text { content } => {
+            format!("**Reasoning**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::KclDocs { content } => {
+            format!("**KCL Docs**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::KclCodeExamples { content } => {
+            format!("**KCL Examples**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::FeatureTreeOutline { content } => {
+            format!("**Feature Tree**\n\n{}", content.trim())
+        }
+        kittycad::types::ReasoningMessage::DesignPlan { steps } => {
+            let mut md = String::from("**Design Plan**\n");
+            for step in steps {
+                let obj = json!({
+                    "file": step.filepath_to_edit,
+                    "edit_instructions": step.edit_instructions,
+                });
+                let pretty = serde_json::to_string_pretty(&obj).unwrap_or_else(|_| obj.to_string());
+                md.push_str("\n```json\n");
+                md.push_str(&pretty);
+                md.push_str("\n```\n");
+            }
+            md
+        }
+        kittycad::types::ReasoningMessage::GeneratedKclCode { code } => {
+            // Keep as fenced code for readability; UI flattens to lines.
+            let mut md = String::from("**Generated KCL**\n\n");
+            md.push_str("```kcl\n");
+            md.push_str(code);
+            md.push_str("\n```\n");
+            md
+        }
+        kittycad::types::ReasoningMessage::KclCodeError { error } => {
+            let mut md = String::from("**KCL Error**\n\n");
+            md.push_str("```text\n");
+            md.push_str(error.trim());
+            md.push_str("\n```\n");
+            md
+        }
+        kittycad::types::ReasoningMessage::CreatedKclFile { file_name, content } => {
+            let meta = json!({ "action": "created", "file": file_name });
+            let mut md = String::from("**Created File**\n\n");
+            md.push_str("```json\n");
+            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
+            md.push_str("\n```\n");
+            if !content.trim().is_empty() {
+                md.push_str("\n```kcl\n");
+                md.push_str(content);
+                md.push_str("\n```\n");
+            }
+            md
+        }
+        kittycad::types::ReasoningMessage::UpdatedKclFile { file_name, content } => {
+            let meta = json!({ "action": "updated", "file": file_name });
+            let mut md = String::from("**Updated File**\n\n");
+            md.push_str("```json\n");
+            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
+            md.push_str("\n```\n");
+            if !content.trim().is_empty() {
+                md.push_str("\n```kcl\n");
+                md.push_str(content);
+                md.push_str("\n```\n");
+            }
+            md
+        }
+        kittycad::types::ReasoningMessage::DeletedKclFile { file_name } => {
+            let meta = json!({ "action": "deleted", "file": file_name });
+            let mut md = String::from("**Deleted File**\n\n");
+            md.push_str("```json\n");
+            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
+            md.push_str("\n```\n");
+            md
+        }
+    }
+}
+
+fn indent_block(s: &str) -> String {
+    let mut out = String::new();
+    for line in s.lines() {
+        out.push_str("    ");
+        out.push_str(line);
+        out.push('\n');
+    }
+    out
+}
+
+fn print_copilot_error(detail: &str, use_color: bool) {
+    use nu_ansi_term::Color;
+    if use_color {
+        eprintln!("{} {}", Color::Red.paint("ml error:"), detail.trim());
+    } else {
+        eprintln!("ml error: {}", detail.trim());
+    }
+}
+
 #[cfg(test)]
 mod test {
     use pretty_assertions::assert_eq;
@@ -717,5 +995,48 @@ mod test {
                 );
             }
         }
+    }
+
+    #[test]
+    fn test_format_reasoning_plain() {
+        let lines = format_reasoning(
+            kittycad::types::ReasoningMessage::Text {
+                content: "hello world".into(),
+            },
+            false,
+        );
+        assert_eq!(lines[0], "reasoning: hello world");
+
+        let steps = vec![kittycad::types::PlanStep {
+            edit_instructions: "add fillet".into(),
+            filepath_to_edit: "main.kcl".into(),
+        }];
+        let lines = format_reasoning(kittycad::types::ReasoningMessage::DesignPlan { steps }, false);
+        assert_eq!(lines[0], "design plan:");
+        assert!(lines[1].contains("1."));
+        assert!(lines[1].contains("main.kcl"));
+        assert!(lines[1].contains("add fillet"));
+
+        let lines = format_reasoning(
+            kittycad::types::ReasoningMessage::GeneratedKclCode { code: "cube(1)".into() },
+            false,
+        );
+        assert_eq!(lines[0], "generated kcl:");
+        assert!(lines[1].starts_with("    "));
+        assert!(lines[1].contains("cube(1)"));
+    }
+
+    #[test]
+    fn test_format_reasoning_color() {
+        // We don't assert exact ANSI sequences; just ensure something wraps when enabled.
+        let lines = format_reasoning(
+            kittycad::types::ReasoningMessage::KclCodeError { error: "boom".into() },
+            true,
+        );
+        assert!(lines[0].contains("boom"));
+        assert!(
+            lines[0].contains("\u{1b}["),
+            "expected ANSI color codes in colored output"
+        );
     }
 }
