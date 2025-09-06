@@ -157,11 +157,7 @@ pub async fn run_copilot_tui(
     project_name: Option<String>,
     host: String,
 ) -> Result<()> {
-    // Preflight: ensure we are authenticated before starting the TUI.
     let client = ctx.api_client(&host)?;
-    if let Err(err) = client.users().get_self().await {
-        anyhow::bail!("Authentication failed or missing. Try `zoo auth login` (details: {err})");
-    }
 
     // Suppress global logging/tracing while the TUI is active to avoid corrupting the UI.
     // We still surface our own debug messages inside the chat pane.
