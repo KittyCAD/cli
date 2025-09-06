@@ -49,7 +49,7 @@ impl AsyncTestContext for MainContext {
 async fn test_main(ctx: &mut MainContext) {
     let version = clap::crate_version!();
 
-    let tests: Vec<TestItem> = vec![
+    let mut tests: Vec<TestItem> = vec![
         TestItem {
             name: "existing command".to_string(),
             args: vec!["zoo".to_string(), "completion".to_string()],
@@ -828,6 +828,53 @@ async fn test_main(ctx: &mut MainContext) {
         //          ..Default::default()
         //      },
     ];
+
+    // Add e2e tests for `ml kcl edit` using a temp project to avoid modifying repo files.
+    let mut temp_projects: Vec<tempfile::TempDir> = Vec::new();
+    let tmp = tempfile::tempdir().expect("failed to create temp dir");
+    let tmp_path = tmp.path().to_path_buf();
+    std::fs::copy("tests/gear.kcl", tmp_path.join("gear.kcl")).expect("copy gear.kcl");
+    // Hold the dir open for the duration of the test run.
+    temp_projects.push(tmp);
+
+    tests.push(TestItem {
+        name: "ml kcl edit reasoning on".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "ml".to_string(),
+            "kcl".to_string(),
+            "edit".to_string(),
+            "gear.kcl".to_string(),
+            "Make".to_string(),
+            "it".to_string(),
+            "blue".to_string(),
+        ],
+        want_out: "Wrote to".to_string(),
+        want_err: ":".to_string(),
+        want_code: 0,
+        current_directory: Some(tmp_path.clone()),
+        ..Default::default()
+    });
+
+    tests.push(TestItem {
+        name: "ml kcl edit no reasoning".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "ml".to_string(),
+            "kcl".to_string(),
+            "edit".to_string(),
+            "--no-reasoning".to_string(),
+            "gear.kcl".to_string(),
+            "Make".to_string(),
+            "it".to_string(),
+            "blue".to_string(),
+        ],
+        want_out: "Wrote to".to_string(),
+        want_err: "".to_string(),
+        want_code: 0,
+        current_directory: Some(tmp_path.clone()),
+        ..Default::default()
+    });
 
     let mut config = crate::config::new_blank_config().unwrap();
     let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
