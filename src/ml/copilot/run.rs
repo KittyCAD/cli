@@ -1,4 +1,7 @@
-use std::{io::Write as _, path::PathBuf};
+use std::{
+    io::Write as _,
+    path::{Component, Path, PathBuf},
+};
 
 use anyhow::Result;
 use crossterm::{
@@ -492,29 +495,74 @@ fn handle_tool_output(app: &mut App, result: &kittycad::types::MlToolResult) {
     let outputs = val.get("outputs").and_then(|v| v.as_object());
     if let Some(map) = outputs {
         let mut edits = Vec::new();
+        let root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+        let mut encountered_error = false;
         for (path, new_val) in map {
             let new = new_val.as_str().unwrap_or("").to_string();
-            let mut pb = PathBuf::from(path);
-            // Normalize path: prevent escaping upward
-            if pb.is_absolute() {
-                pb = pb
-                    .strip_prefix(std::path::MAIN_SEPARATOR.to_string())
-                    .unwrap_or(&pb)
-                    .to_path_buf();
+            // Resolve securely under the project root
+            let safe_abs = match join_secure(&root, Path::new(path)) {
+                Ok(p) => p,
+                Err(e) => {
+                    app.events
+                        .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error {
+                            detail: format!("Invalid path '{path}': {e}"),
+                        }));
+                    encountered_error = true;
+                    continue;
+                }
+            };
+            // Read old contents; surface errors to the UI instead of silently defaulting.
+            let old = match std::fs::read_to_string(&safe_abs) {
+                Ok(content) => content,
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    // NotFound: likely a new file; inform the user as info.
+                    app.events
+                        .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                            text: format!(
+                                "Note: previous version of '{}' not found; treating as new file.",
+                                safe_abs.strip_prefix(&root).unwrap_or(&safe_abs).display()
+                            ),
+                        }));
+                    String::new()
+                }
+                Err(e) => {
+                    // Other IO errors: bubble up as an error so the user can act.
+                    app.events
+                        .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error {
+                            detail: format!("Failed to read '{}': {e}", safe_abs.display()),
+                        }));
+                    encountered_error = true;
+                    String::new()
+                }
+            };
+            if encountered_error {
+                continue;
             }
-            let old = std::fs::read_to_string(&pb).unwrap_or_default();
+            let safe_rel = safe_abs
+                .strip_prefix(&root)
+                .unwrap_or(&safe_abs)
+                .to_string_lossy()
+                .to_string();
             let diff = TextDiff::from_lines(&old, &new)
                 .unified_diff()
                 .context_radius(3)
-                .header(&format!("a/{path}"), &format!("b/{path}"))
+                .header(&format!("a/{safe_rel}"), &format!("b/{safe_rel}"))
                 .to_string();
             let diff_lines: Vec<String> = diff.lines().map(|s| s.to_string()).collect();
             edits.push(state::PendingFileEdit {
-                path: path.clone(),
+                path: safe_rel,
                 old,
                 new,
                 diff_lines,
             });
+        }
+        if encountered_error {
+            app.pending_edits = None;
+            app.events
+                .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error {
+                    detail: "Aborting preview due to previous errors.".into(),
+                }));
+            return;
         }
         app.pending_edits = Some(edits);
         app.events
@@ -534,8 +582,9 @@ fn handle_tool_output(app: &mut App, result: &kittycad::types::MlToolResult) {
 
 fn apply_pending_edits(edits: &[state::PendingFileEdit]) -> anyhow::Result<usize> {
     let mut n = 0usize;
+    let root = std::env::current_dir()?;
     for e in edits {
-        let pb = PathBuf::from(&e.path);
+        let pb = join_secure(&root, Path::new(&e.path))?;
         if let Some(parent) = pb.parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -543,6 +592,28 @@ fn apply_pending_edits(edits: &[state::PendingFileEdit]) -> anyhow::Result<usize
         n += 1;
     }
     Ok(n)
+}
+
+/// Join `base` with `candidate` and ensure the resulting path stays under `base`.
+fn join_secure(base: &Path, candidate: &Path) -> anyhow::Result<PathBuf> {
+    let base = std::fs::canonicalize(base).unwrap_or_else(|_| base.to_path_buf());
+    let mut out = base.clone();
+    for comp in candidate.components() {
+        match comp {
+            Component::Prefix(_) | Component::RootDir => anyhow::bail!("absolute paths are not allowed"),
+            Component::ParentDir => {
+                if !out.pop() {
+                    anyhow::bail!("path escapes project root")
+                }
+            }
+            Component::CurDir => {}
+            Component::Normal(seg) => out.push(seg),
+        }
+        if !out.starts_with(&base) {
+            anyhow::bail!("path escapes project root")
+        }
+    }
+    Ok(out)
 }
 
 async fn render_side_by_side(
@@ -583,7 +654,7 @@ async fn render_side_by_side(
     let cwd = std::env::current_dir()?;
     let files = scan_relevant_files(&cwd);
     for (rel, bytes) in files {
-        let dest = new_root.join(&rel);
+        let dest = join_secure(&new_root, Path::new(&rel))?;
         if let Some(parent) = dest.parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -591,7 +662,7 @@ async fn render_side_by_side(
     }
     // Overlay edits new versions
     for e in edits {
-        let dest = new_root.join(&e.path);
+        let dest = join_secure(&new_root, Path::new(&e.path))?;
         if let Some(parent) = dest.parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -680,11 +751,19 @@ fn preview_image_terminal(ctx: &mut crate::context::Context<'_>, path: &std::pat
         ..Default::default()
     };
     viuer::print_from_file(path, &cfg)?;
-    // Block until a key press to return to TUI
-    // (raw mode already enabled by caller)
+    let mut out = std::io::stdout();
+    // Show hint in the bottom line
+    queue!(
+        out,
+        MoveTo(0, h.saturating_sub(1) as u16),
+        crossterm::terminal::Clear(ClearType::CurrentLine)
+    )?;
+    write!(out, "Press any key to return…")?;
+    out.flush()?;
+    // Block until a key press to return to TUI (raw mode already enabled)
     let _ = crossterm::event::read();
     // Clear the screen so the next TUI draw fully repaints
-    let mut out = std::io::stdout();
+
     queue!(out, crossterm::terminal::Clear(ClearType::All), MoveTo(0, 0))?;
     out.flush()?;
     Ok(())
@@ -874,6 +953,80 @@ mod tests {
         }
     }
 
+    #[test]
+    fn tool_output_missing_old_file_bubbles_info() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(tmp.path()).unwrap();
+
+        let mut app = App::new();
+        let val = serde_json::json!({
+            "type": "edit_kcl_code",
+            "status_code": 200,
+            "outputs": {"newfile.kcl": "cube(2)\n"}
+        });
+        let tool: kittycad::types::MlToolResult = serde_json::from_value(val).unwrap();
+        handle_tool_output(&mut app, &tool);
+
+        // Expect an Info about missing old file
+        let has_info = app.events.iter().any(|e| match e {
+            ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text }) => text.contains("not found"),
+            _ => false,
+        });
+        assert!(has_info, "expected info event about missing old file");
+
+        std::env::set_current_dir(cwd).unwrap();
+    }
+
+    #[test]
+    fn apply_pending_edits_blocks_traversal() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(tmp.path()).unwrap();
+
+        let edits = vec![state::PendingFileEdit {
+            path: "../evil.txt".into(),
+            old: String::new(),
+            new: "hacked".into(),
+            diff_lines: vec![],
+        }];
+        let res = apply_pending_edits(&edits);
+        assert!(res.is_err(), "expected traversal to be rejected");
+        // Ensure outside file not created
+        let outside = tmp.path().parent().unwrap().join("evil.txt");
+        assert!(!outside.exists());
+
+        std::env::set_current_dir(cwd).unwrap();
+    }
+
+    #[test]
+    fn tool_output_aborts_preview_on_read_error() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(tmp.path()).unwrap();
+        // Create directory named foo.kcl so reading as a file fails with an IO error
+        std::fs::create_dir("foo.kcl").unwrap();
+
+        let mut app = App::new();
+        let val = serde_json::json!({
+            "type": "edit_kcl_code",
+            "status_code": 200,
+            "outputs": {"foo.kcl": "cube(2)\n"}
+        });
+        let tool: kittycad::types::MlToolResult = serde_json::from_value(val).unwrap();
+        handle_tool_output(&mut app, &tool);
+        // Preview should be aborted
+        assert!(app.pending_edits.is_none());
+        let has_abort = app.events.iter().any(|e| match e {
+            ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail }) => {
+                detail.contains("Aborting preview")
+            }
+            _ => false,
+        });
+        assert!(has_abort, "expected abort message");
+
+        std::env::set_current_dir(cwd).unwrap();
+    }
     #[test]
     fn tool_output_outputs_sets_pending_edits_and_accept_applies() {
         let tmp = tempfile::tempdir().unwrap();
