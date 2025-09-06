@@ -28,6 +28,17 @@ enum AttachMode {
 const MAX_JSON_LEN: usize = 50_000;
 const PAYLOAD_LOG_LIMIT: usize = 10_000;
 
+// Strongly-typed outbound messages permitted for the WebSocket writer.
+enum WsSend {
+    Client {
+        msg: kittycad::types::MlCopilotClientMessage,
+        mode: AttachMode,
+        shrunk: bool,
+    },
+    Ping,
+    Close,
+}
+
 fn select_files_for_mode(
     mut files: std::collections::HashMap<String, Vec<u8>>,
     mode: AttachMode,
@@ -53,12 +64,12 @@ fn select_files_for_mode(
     }
 }
 
-fn build_user_body_with_fallback(
+fn build_user_message_with_fallback(
     content: String,
     files_map: &std::collections::HashMap<String, Vec<u8>>,
     project_name: &Option<String>,
     shrink_after_first_send: bool,
-) -> (String, AttachMode, bool) {
+) -> (kittycad::types::MlCopilotClientMessage, AttachMode, bool, usize) {
     // Default to attaching all files on first message, then shrink as needed.
     let mut mode = if shrink_after_first_send {
         AttachMode::None
@@ -81,7 +92,7 @@ fn build_user_body_with_fallback(
         };
         if let Ok(body) = serde_json::to_string(&msg) {
             if body.len() <= max_len || mode == AttachMode::None {
-                return (body, mode, shrunk);
+                return (msg, mode, shrunk, body.len());
             }
             // shrink
             shrunk = true;
@@ -99,23 +110,21 @@ fn build_user_body_with_fallback(
     }
 }
 
-fn push_payload_lines(app: &mut App, body: &str) {
+fn emit_payload_lines(tx: &mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>, body: &str) {
     let limit = PAYLOAD_LOG_LIMIT;
     let body = if body.len() > limit {
         format!("{}… (truncated to {limit} of {} bytes)", &body[..limit], body.len())
     } else {
         body.to_string()
     };
-    // Chunk into ~1000 byte lines for readability.
     let mut start = 0usize;
     let step = 1000usize;
     while start < body.len() {
         let end = (start + step).min(body.len());
         let chunk = &body[start..end];
-        app.events
-            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
-                text: chunk.to_string(),
-            }));
+        let _ = tx.send(kittycad::types::MlCopilotServerMessage::Info {
+            text: chunk.to_string(),
+        });
         start = end;
     }
 }
@@ -264,24 +273,73 @@ pub async fn run_copilot_tui(
         let _ = scan_tx.send(ScanEvent::Done(out));
     });
     // Dedicated writer task and ping keepalive.
-    let (tx_out, mut rx_out) = mpsc::unbounded_channel::<Message>();
+    let (tx_out, mut rx_out) = mpsc::unbounded_channel::<WsSend>();
     let tx_dbg = tx_server.clone();
     let writer_debug = debug;
     let writer_task = tokio::spawn(async move {
-        while let Some(msg) = rx_out.recv().await {
-            if let Err(e) = write.send(msg).await {
-                if writer_debug {
-                    let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
-                        text: format!("[copilot/ws->] writer error: {e}"),
-                    });
+        while let Some(out) = rx_out.recv().await {
+            match out {
+                WsSend::Ping => {
+                    if let Err(e) = write.send(Message::Ping(Vec::new())).await {
+                        if writer_debug {
+                            let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                                text: format!("[copilot/ws->] writer error: {e}"),
+                            });
+                        }
+                        break;
+                    }
+                    let _ = write.flush().await;
+                    if writer_debug {
+                        let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                            text: "[copilot/ws->] writer flushed".to_string(),
+                        });
+                    }
                 }
-                break;
-            }
-            let _ = write.flush().await;
-            if writer_debug {
-                let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
-                    text: "[copilot/ws->] writer flushed".to_string(),
-                });
+                WsSend::Close => {
+                    let _ = write.send(Message::Close(None)).await;
+                    let _ = write.flush().await;
+                    break;
+                }
+                WsSend::Client { msg, mode, shrunk } => match serde_json::to_string(&msg) {
+                    Ok(body) => {
+                        if writer_debug {
+                            let mut note = format!(
+                                "[copilot/ws->] sending client message: {} bytes (mode={:?})",
+                                body.len(),
+                                mode
+                            );
+                            if shrunk {
+                                note.push_str(" [payload shrunk]");
+                            }
+                            let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info { text: note });
+                            let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                                text: format!("payload ({} bytes):", body.len()),
+                            });
+                            emit_payload_lines(&tx_dbg, &body);
+                        }
+                        if let Err(e) = write.send(Message::Text(body)).await {
+                            if writer_debug {
+                                let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                                    text: format!("[copilot/ws->] writer error: {e}"),
+                                });
+                            }
+                            break;
+                        }
+                        let _ = write.flush().await;
+                        if writer_debug {
+                            let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                                text: "[copilot/ws->] writer flushed".to_string(),
+                            });
+                        }
+                    }
+                    Err(e) => {
+                        if writer_debug {
+                            let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Error {
+                                detail: format!("serialize error: {e}"),
+                            });
+                        }
+                    }
+                },
             }
         }
         if writer_debug {
@@ -297,7 +355,7 @@ pub async fn run_copilot_tui(
         let mut iv = tokio::time::interval(std::time::Duration::from_secs(15));
         loop {
             iv.tick().await;
-            if tx_out_ping.send(Message::Ping(Vec::new())).is_err() {
+            if tx_out_ping.send(WsSend::Ping).is_err() {
                 break;
             }
             if ping_debug {
@@ -323,18 +381,8 @@ pub async fn run_copilot_tui(
                             let files_ready = files_opt.is_some();
                             if let Some(to_send) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
-                                    let (body, mode, shrunk) = build_user_body_with_fallback(to_send, files, &project_name, app.sent_files_once);
-                                    if ctx.debug {
-                                        let mut note = format!("[copilot/ws->] sending client message: {} bytes, files={} (mode={:?})", body.len(), files.len(), mode);
-                                        if shrunk { note.push_str(" [payload shrunk]"); }
-                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
-                                    }
-                                    if ctx.debug {
-                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes):", body.len()) }));
-                                        push_payload_lines(&mut app, &body);
-                                    }
-                                    let _ = tx_out.send(Message::Text(body));
-                                    if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() })); }
+                                    let (msg, mode, shrunk, _len) = build_user_message_with_fallback(to_send, files, &project_name, app.sent_files_once);
+                                    let _ = tx_out.send(WsSend::Client { msg, mode, shrunk });
                                     app.sent_files_once = true;
                                 }
                             }
@@ -347,18 +395,8 @@ pub async fn run_copilot_tui(
                 if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg {
                     if let Some(files) = &files_opt {
                         if let Some(next) = app.on_end_of_stream(true) {
-                            let (body, mode, shrunk) = build_user_body_with_fallback(next, files, &project_name, app.sent_files_once);
-                            if ctx.debug {
-                                let mut note = format!("[copilot/ws->] sending client message (after EOS): {} bytes, files={} (mode={:?})", body.len(), files.len(), mode);
-                                if shrunk { note.push_str(" [payload shrunk]"); }
-                                app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
-                            }
-                            if ctx.debug {
-                                app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes) [after EOS]:", body.len()) }));
-                                push_payload_lines(&mut app, &body);
-                            }
-                            let _ = tx_out.send(Message::Text(body));
-                            if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() })); }
+                            let (msg, mode, shrunk, _len) = build_user_message_with_fallback(next, files, &project_name, app.sent_files_once);
+                            let _ = tx_out.send(WsSend::Client { msg, mode, shrunk });
                             app.sent_files_once = true;
                         }
                     } else {
@@ -375,18 +413,8 @@ pub async fn run_copilot_tui(
                         app.scanning = false;
                         if let Some(files) = &files_opt {
                             if let Some(next) = app.on_scan_done() {
-                                let (body, mode, shrunk) = build_user_body_with_fallback(next, files, &project_name, app.sent_files_once);
-                                if ctx.debug {
-                                    let mut note = format!("[copilot/ws->] sending client message (after scan): {} bytes, files={} (mode={:?})", body.len(), files.len(), mode);
-                                    if shrunk { note.push_str(" [payload shrunk]"); }
-                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
-                                }
-                                if ctx.debug {
-                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes) [after scan]:", body.len()) }));
-                                    push_payload_lines(&mut app, &body);
-                                }
-                                let _ = tx_out.send(Message::Text(body));
-                                if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() })); }
+                                let (msg, mode, shrunk, _len) = build_user_message_with_fallback(next, files, &project_name, app.sent_files_once);
+                                let _ = tx_out.send(WsSend::Client { msg, mode, shrunk });
                                 app.sent_files_once = true;
                             }
                         }
@@ -399,7 +427,7 @@ pub async fn run_copilot_tui(
 
     // Teardown
     // Attempt graceful close via channel, then end tasks.
-    let _ = tx_out.send(Message::Close(None));
+    let _ = tx_out.send(WsSend::Close);
     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     writer_task.abort();
     ping_task.abort();
