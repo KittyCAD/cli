@@ -76,6 +76,7 @@ impl crate::cmd::Command for CmdKclEdit {
             source_ranges,
             project_name: None,
             kcl_version: Some(kcl_lib::version().to_owned()),
+            conversation_id: None,
         };
 
         let model = ctx.get_edit_for_prompt("", &body, files).await?;

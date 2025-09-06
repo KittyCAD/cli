@@ -255,6 +255,7 @@ impl Context<'_> {
                 code,
                 model,
                 kcl_version,
+                conversation_id,
             } = result
             {
                 gen_model = TextToCad {
@@ -274,6 +275,7 @@ impl Context<'_> {
                     code,
                     model,
                     kcl_version,
+                    conversation_id,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);
@@ -343,6 +345,7 @@ impl Context<'_> {
                 outputs,
                 kcl_version,
                 project_name,
+                conversation_id,
             } = result
             {
                 gen_model = TextToCadMultiFileIteration {
@@ -362,6 +365,7 @@ impl Context<'_> {
                     outputs,
                     kcl_version,
                     project_name,
+                    conversation_id,
                 };
             } else {
                 anyhow::bail!("Unexpected response type: {:?}", result);
