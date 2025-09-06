@@ -114,6 +114,44 @@ fn build_user_body_with_fallback(
     }
 }
 
+fn should_log_payload() -> bool {
+    match std::env::var("ZOO_COPILOT_LOG_PAYLOAD") {
+        Ok(v) => {
+            let v = v.to_ascii_lowercase();
+            !(v == "0" || v == "false" || v == "no")
+        }
+        Err(_) => true,
+    }
+}
+
+fn payload_log_limit() -> usize {
+    std::env::var("ZOO_COPILOT_LOG_LIMIT")
+        .ok()
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap_or(10_000)
+}
+
+fn push_payload_lines(app: &mut App, body: &str) {
+    let limit = payload_log_limit();
+    let body = if body.len() > limit {
+        format!("{}… (truncated to {limit} of {} bytes)", &body[..limit], body.len())
+    } else {
+        body.to_string()
+    };
+    // Chunk into ~1000 byte lines for readability.
+    let mut start = 0usize;
+    let step = 1000usize;
+    while start < body.len() {
+        let end = (start + step).min(body.len());
+        let chunk = &body[start..end];
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                text: chunk.to_string(),
+            }));
+        start = end;
+    }
+}
+
 pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name: Option<String>) -> Result<()> {
     // Preflight: ensure we are authenticated before starting the TUI.
     let client = ctx.api_client("")?;
@@ -323,6 +361,10 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                                         if shrunk { note.push_str(" [payload shrunk]"); }
                                         app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
                                     }
+                                    if ctx.debug && should_log_payload() {
+                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes):", body.len()) }));
+                                        push_payload_lines(&mut app, &body);
+                                    }
                                     let _ = tx_out.send(Message::Text(body));
                                     if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() })); }
                                     app.sent_files_once = true;
@@ -342,6 +384,10 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                                 let mut note = format!("[copilot/ws->] sending client message (after EOS): {} bytes, files={} (mode={:?})", body.len(), files.len(), mode);
                                 if shrunk { note.push_str(" [payload shrunk]"); }
                                 app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
+                            }
+                            if ctx.debug && should_log_payload() {
+                                app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes) [after EOS]:", body.len()) }));
+                                push_payload_lines(&mut app, &body);
                             }
                             let _ = tx_out.send(Message::Text(body));
                             if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() })); }
@@ -366,6 +412,10 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                                     let mut note = format!("[copilot/ws->] sending client message (after scan): {} bytes, files={} (mode={:?})", body.len(), files.len(), mode);
                                     if shrunk { note.push_str(" [payload shrunk]"); }
                                     app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
+                                }
+                                if ctx.debug && should_log_payload() {
+                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes) [after scan]:", body.len()) }));
+                                    push_payload_lines(&mut app, &body);
                                 }
                                 let _ = tx_out.send(Message::Text(body));
                                 if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot/ws->] sent".to_string() })); }
