@@ -162,13 +162,13 @@ pub fn draw(frame: &mut Frame, app: &App) {
             Span::raw(assistant_buf),
         ]));
     }
-    let mut messages = Paragraph::new(lines)
-        .wrap(Wrap { trim: false })
-        .block(Block::default().borders(Borders::ALL).title("Chat"));
     if app.pending_edits.is_none() {
-        messages = messages.scroll((app.msg_scroll, 0));
+        let messages = Paragraph::new(lines)
+            .wrap(Wrap { trim: false })
+            .scroll((app.msg_scroll, 0))
+            .block(Block::default().borders(Borders::ALL).title("Chat"));
+        frame.render_widget(messages, chunks[0]);
     }
-    frame.render_widget(messages, chunks[0]);
 
     // If there are pending edits, render a diff preview with accept/reject hint.
     if let Some(edits) = &app.pending_edits {
@@ -201,7 +201,10 @@ pub fn draw(frame: &mut Frame, app: &App) {
         let height = chunks[0].height;
         let max_off = total.saturating_sub(height);
         let off = app.diff_scroll.min(max_off);
-        let diffs = Paragraph::new(diff_lines).wrap(Wrap { trim: false }).scroll((off, 0));
+        let diffs = Paragraph::new(diff_lines)
+            .wrap(Wrap { trim: false })
+            .scroll((off, 0))
+            .block(Block::default().borders(Borders::ALL).title("Chat"));
         frame.render_widget(diffs, chunks[0]);
     }
 
@@ -400,6 +403,49 @@ mod tests {
             row0b.push(buf2.get(x, 0).symbol().chars().next().unwrap_or(' '));
         }
         assert!(!row0b.contains("Proposed Changes"));
+    }
+
+    #[test]
+    fn no_overlay_when_diff_is_present() {
+        let backend = TestBackend::new(80, 12);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        // Some regular chat content
+        app.events.push(ChatEvent::User("hello".into()));
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
+                delta: "Hello".into(),
+            }));
+        app.events.push(ChatEvent::Server(
+            kittycad::types::MlCopilotServerMessage::EndOfStream { whole_response: None },
+        ));
+        // A diff to show
+        let mut lines = Vec::new();
+        lines.push("Proposed Changes:".to_string());
+        for i in 0..30 {
+            lines.push(format!("-old {i}"));
+            lines.push(format!("+new {i}"));
+        }
+        app.pending_edits = Some(vec![crate::ml::copilot::state::PendingFileEdit {
+            path: "main.kcl".into(),
+            old: String::new(),
+            new: String::new(),
+            diff_lines: lines,
+        }]);
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut content = String::new();
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content.push('\n');
+        }
+        // The diff should be visible and chat messages should not overlay beneath
+        assert!(content.contains("Proposed Changes"));
+        assert!(!content.contains("You> hello"));
+        assert!(!content.contains("ML-ephant> Hello"));
     }
 
     #[test]
