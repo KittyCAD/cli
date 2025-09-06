@@ -107,7 +107,10 @@ pub fn draw(frame: &mut Frame, app: &App) {
             Span::raw(assistant_buf),
         ]));
     }
-    let messages = Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title("Chat"));
+    let mut messages = Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title("Chat"));
+    if app.pending_edits.is_none() {
+        messages = messages.scroll((app.msg_scroll, 0));
+    }
     frame.render_widget(messages, chunks[0]);
 
     // If there are pending edits, render a diff preview with accept/reject hint.
@@ -136,7 +139,12 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 diff_lines.push(Line::from(Span::styled(l.clone(), style)));
             }
         }
-        let diffs = Paragraph::new(diff_lines).wrap(Wrap { trim: false });
+        // Clamp scroll to available content
+        let total = diff_lines.len() as u16;
+        let height = chunks[0].height;
+        let max_off = total.saturating_sub(height);
+        let off = app.diff_scroll.min(max_off);
+        let diffs = Paragraph::new(diff_lines).wrap(Wrap { trim: false }).scroll((off, 0));
         frame.render_widget(diffs, chunks[0]);
     }
 

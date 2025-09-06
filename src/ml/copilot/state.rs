@@ -14,6 +14,8 @@ pub struct App {
     pub queue: VecDeque<String>,
     pub sent_files_once: bool,
     pub pending_edits: Option<Vec<PendingFileEdit>>, // prepared diffs to accept/reject
+    pub msg_scroll: u16,
+    pub diff_scroll: u16,
 }
 
 #[derive(Debug, Clone)]
@@ -61,6 +63,8 @@ impl App {
             queue: VecDeque::new(),
             sent_files_once: false,
             pending_edits: None,
+            msg_scroll: 0,
+            diff_scroll: 0,
         }
     }
 
@@ -84,6 +88,38 @@ impl App {
                     self.input.clear();
                     KeyAction::Submit(submitted)
                 }
+            }
+            KeyCode::PageDown => {
+                if self.pending_edits.is_some() {
+                    self.diff_scroll = self.diff_scroll.saturating_add(10);
+                } else {
+                    self.msg_scroll = self.msg_scroll.saturating_add(10);
+                }
+                KeyAction::Inserted
+            }
+            KeyCode::PageUp => {
+                if self.pending_edits.is_some() {
+                    self.diff_scroll = self.diff_scroll.saturating_sub(10);
+                } else {
+                    self.msg_scroll = self.msg_scroll.saturating_sub(10);
+                }
+                KeyAction::Inserted
+            }
+            KeyCode::Up => {
+                if self.pending_edits.is_some() {
+                    self.diff_scroll = self.diff_scroll.saturating_sub(1);
+                } else {
+                    self.msg_scroll = self.msg_scroll.saturating_sub(1);
+                }
+                KeyAction::Inserted
+            }
+            KeyCode::Down => {
+                if self.pending_edits.is_some() {
+                    self.diff_scroll = self.diff_scroll.saturating_add(1);
+                } else {
+                    self.msg_scroll = self.msg_scroll.saturating_add(1);
+                }
+                KeyAction::Inserted
             }
             KeyCode::Backspace => {
                 self.input.pop();
@@ -308,5 +344,30 @@ mod tests {
             }
             other => panic!("expected Info, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn page_down_scrolls_diff() {
+        let mut app = App::new();
+        app.pending_edits = Some(vec![PendingFileEdit {
+            path: "main.kcl".into(),
+            old: "".into(),
+            new: "".into(),
+            diff_lines: vec!["a".into(); 200],
+        }]);
+        let _ = app.handle_key_action(key(KeyCode::PageDown, KeyModifiers::NONE));
+        assert!(app.diff_scroll >= 10);
+        let _ = app.handle_key_action(key(KeyCode::PageUp, KeyModifiers::NONE));
+        assert!(app.diff_scroll <= 10);
+    }
+
+    #[test]
+    fn page_down_scrolls_messages_when_no_diff() {
+        let mut app = App::new();
+        app.pending_edits = None;
+        let _ = app.handle_key_action(key(KeyCode::PageDown, KeyModifiers::NONE));
+        assert!(app.msg_scroll >= 10);
+        let _ = app.handle_key_action(key(KeyCode::PageUp, KeyModifiers::NONE));
+        assert!(app.msg_scroll <= 10);
     }
 }
