@@ -611,21 +611,30 @@ impl Context<'_> {
                         let Ok(msg) = msg else { break };
                         if msg.is_text() {
                             let txt = msg.into_text().unwrap_or_default();
-                            if let Ok(server_msg) =
-                                serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt)
-                            {
-                                if let kittycad::types::MlCopilotServerMessage::Reasoning(reason) = server_msg {
-                                    print_reasoning(reason, use_color);
+                            if let Ok(server_msg) = serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&txt) {
+                                match server_msg {
+                                    kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
+                                        print_reasoning(reason, use_color);
+                                    }
+                                    kittycad::types::MlCopilotServerMessage::Error { detail } => {
+                                        print_copilot_error(&detail, use_color);
+                                        // Do not break: errors may be non-fatal; keep streaming.
+                                    }
+                                    kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
+                                        break;
+                                    }
+                                    _ => {}
                                 }
                             }
+                        } else if msg.is_close() {
+                            break;
                         }
                     }
+                    let _ = ws.close(None).await;
                 }))
             }
             Err(err) => {
-                if self.debug {
-                    eprintln!("reasoning ws failed to connect for {id}: {err}");
-                }
+                let _ = err; // suppress unused warning; intentionally silent
                 None
             }
         }
@@ -712,6 +721,15 @@ fn indent_block(s: &str) -> String {
         out.push('\n');
     }
     out
+}
+
+fn print_copilot_error(detail: &str, use_color: bool) {
+    use nu_ansi_term::Color;
+    if use_color {
+        eprintln!("{} {}", Color::Red.paint("ml error:"), detail.trim());
+    } else {
+        eprintln!("ml error: {}", detail.trim());
+    }
 }
 
 #[cfg(test)]
