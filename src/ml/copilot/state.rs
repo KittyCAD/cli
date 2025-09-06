@@ -119,8 +119,9 @@ pub enum KeyAction {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crossterm::event::KeyEventKind;
+
+    use super::*;
 
     fn key(code: KeyCode, modifiers: KeyModifiers) -> KeyEvent {
         KeyEvent {
