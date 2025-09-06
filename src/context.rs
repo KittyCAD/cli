@@ -668,10 +668,8 @@ impl Drop for ReasoningGuard {
     fn drop(&mut self) {
         if let Some(handle) = self.0.take() {
             handle.abort();
-            // Ensure the task is polled to completion without blocking the drop.
-            tokio::spawn(async move {
-                let _ = handle.await;
-            });
+            // Abort the task directly without blocking the drop.
+            handle.abort();
         }
     }
 }
