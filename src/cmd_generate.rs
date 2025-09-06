@@ -162,6 +162,7 @@ mod test {
             config: &mut c,
             io,
             debug: false,
+            override_host: None,
         };
 
         let cmd = crate::cmd_generate::CmdGenerateMarkdown { dir: "".to_string() };
@@ -171,7 +172,7 @@ mod test {
         let stdout = std::fs::read_to_string(stdout_path).unwrap();
         let stderr = std::fs::read_to_string(stderr_path).unwrap();
 
-        assert!(stdout.contains("<dt><code>-H/--host</code></dt>"), "");
+        assert!(stdout.contains("<dt><code>--host</code></dt>"), "");
         assert!(stdout.contains("### About"), "");
 
         assert_eq!(stderr, "");
@@ -190,6 +191,7 @@ mod test {
             config: &mut c,
             io,
             debug: false,
+            override_host: None,
         };
 
         let cmd = crate::cmd_generate::CmdGenerateMarkdown { dir: "".to_string() };

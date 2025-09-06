@@ -88,26 +88,19 @@ pub fn parse_host(input: &str) -> Result<url::Url> {
 ///     $ zoo auth login
 ///
 ///     # authenticate against a specific Zoo instance by reading the token from a file
-///     $ zoo auth login --with-token --host zoo.internal < mytoken.txt
+///     $ zoo --host zoo.internal auth login --with-token < mytoken.txt
 ///
 ///     # authenticate with a specific Zoo instance
-///     $ zoo auth login --host zoo.internal
+///     $ zoo --host zoo.internal auth login
 ///
 ///     # authenticate with an insecure Zoo instance (not recommended)
-///     $ zoo auth login --host http://zoo.internal
+///     $ zoo --host http://zoo.internal auth login
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAuthLogin {
     /// Read token from standard input.
     #[clap(long)]
     pub with_token: bool,
-
-    /// The host of the Zoo instance to authenticate with.
-    /// By default this is api.zoo.dev.
-    /// This assumes the instance is an `https://` url, if not otherwise specified
-    /// as `http://`.
-    #[clap(short = 'H', long, env = "ZOO_HOST", value_parser = parse_host)]
-    pub host: Option<url::Url>,
     /// Open a browser to authenticate.
     #[clap(short, long)]
     pub web: bool,
@@ -133,14 +126,12 @@ impl crate::cmd::Command for CmdAuthLogin {
         }
 
         let default_host = parse_host(crate::DEFAULT_HOST)?;
-        let host = if let Some(host) = &self.host {
-            host.as_str()
-        } else {
-            // Set the default.
-            default_host.as_str()
-        };
+        let host = ctx
+            .global_host()
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| default_host.as_str().to_string());
 
-        if let Err(err) = ctx.config.check_writable(host, "token") {
+        if let Err(err) = ctx.config.check_writable(&host, "token") {
             if let Some(crate::config_from_env::ReadOnlyEnvVarError::Variable(var)) = err.downcast_ref() {
                 writeln!(
                     ctx.io.err_out,
@@ -162,7 +153,7 @@ impl crate::cmd::Command for CmdAuthLogin {
         if token.is_empty() {
             // We don't want to capture the error here just in case we have no host config
             // for this specific host yet.
-            let existing_token = ctx.config.get(host, "token").unwrap_or_default();
+            let existing_token = ctx.config.get(&host, "token").unwrap_or_default();
             if !existing_token.is_empty() && interactive {
                 match dialoguer::Confirm::new()
                     .with_prompt(format!(
@@ -233,7 +224,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                         **details.verification_uri(),
                         details.user_code().secret()
                     )?;
-                    ctx.browser(host, uri.secret())?;
+                    ctx.browser(&host, uri.secret())?;
                 } else {
                     writeln!(
                         ctx.io.out,
@@ -267,9 +258,9 @@ impl crate::cmd::Command for CmdAuthLogin {
         }
 
         // Set the token in the config file.
-        ctx.config.set(host, "token", Some(&token))?;
+        ctx.config.set(&host, "token", Some(&token))?;
 
-        let client = ctx.api_client(host)?;
+        let client = ctx.api_client(&host)?;
 
         // Get the session for the token.
         let session = client.users().get_self().await?;
@@ -278,7 +269,7 @@ impl crate::cmd::Command for CmdAuthLogin {
         let email = session
             .email
             .ok_or_else(|| anyhow::anyhow!("user does not have an email"))?;
-        ctx.config.set(host, "user", Some(&email))?;
+        ctx.config.set(&host, "user", Some(&email))?;
 
         // Save the config.
         ctx.config.write()?;
@@ -292,26 +283,22 @@ impl crate::cmd::Command for CmdAuthLogin {
 /// Log out of an Zoo host.
 ///
 /// This command removes the authentication configuration for a host either specified
-/// interactively or via `--host`.
+/// interactively or via the global `--host` passed to `zoo`.
 ///
 ///     $ zoo auth logout
 ///     # => select what host to log out of via a prompt
 ///
-///     $ zoo auth logout --host zoo.internal
+///     $ zoo --host zoo.internal auth logout
 ///     # => log out of specified host
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
-pub struct CmdAuthLogout {
-    /// The hostname of the Zoo instance to log out of.
-    #[clap(short = 'H', long, env = "ZOO_HOST", value_parser = parse_host)]
-    pub host: Option<url::Url>,
-}
+pub struct CmdAuthLogout {}
 
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdAuthLogout {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        if self.host.is_none() && !ctx.io.can_prompt() {
-            return Err(anyhow!("--host required when not running interactively"));
+        if ctx.global_host().is_none() && !ctx.io.can_prompt() {
+            return Err(anyhow!("--host required at top-level when not running interactively"));
         }
 
         let candidates = ctx.config.hosts()?;
@@ -319,7 +306,7 @@ impl crate::cmd::Command for CmdAuthLogout {
             return Err(anyhow!("not logged in to any hosts"));
         }
 
-        let hostname = if self.host.is_none() {
+        let hostname = if ctx.global_host().is_none() {
             if candidates.len() == 1 {
                 candidates[0].to_string()
             } else {
@@ -337,7 +324,7 @@ impl crate::cmd::Command for CmdAuthLogout {
                 }
             }
         } else {
-            let hostname = self.host.as_ref().unwrap().to_string();
+            let hostname = ctx.global_host().unwrap().to_string();
             let mut found = false;
             for c in candidates {
                 if c == hostname {
@@ -428,10 +415,6 @@ pub struct CmdAuthStatus {
     /// Display the auth token.
     #[clap(short = 't', long)]
     pub show_token: bool,
-
-    /// Check a specific hostname's auth status.
-    #[clap(short = 'H', long, env = "ZOO_HOST", value_parser = parse_host)]
-    pub host: Option<url::Url>,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -455,9 +438,12 @@ impl crate::cmd::Command for CmdAuthStatus {
         let mut failed = false;
         let mut hostname_found = false;
 
+        let only_host = ctx.global_host().map(|s| s.to_string());
         for hostname in &hostnames {
-            if matches!(&self.host, Some(host) if host.as_str() != *hostname) {
-                continue;
+            if let Some(h) = only_host.as_deref() {
+                if h != *hostname {
+                    continue;
+                }
             }
 
             hostname_found = true;
@@ -501,7 +487,7 @@ impl crate::cmd::Command for CmdAuthStatus {
             writeln!(
                 ctx.io.err_out,
                 "Hostname {} not found among authenticated Zoo hosts",
-                self.host.as_ref().unwrap().as_str(),
+                only_host.as_deref().unwrap_or("")
             )?;
             return Err(anyhow!(""));
         }
@@ -540,6 +526,7 @@ mod test {
         stdin: String,
         want_out: String,
         want_err: String,
+        host: Option<String>,
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
@@ -553,61 +540,57 @@ mod test {
         let tests: Vec<TestItem> = vec![
             TestItem {
                 name: "status".to_string(),
-                cmd: crate::cmd_auth::SubCommand::Status(crate::cmd_auth::CmdAuthStatus {
-                    show_token: false,
-                    host: None,
-                }),
+                cmd: crate::cmd_auth::SubCommand::Status(crate::cmd_auth::CmdAuthStatus { show_token: false }),
                 stdin: "".to_string(),
                 want_out: "".to_string(),
                 want_err: "Try authenticating with".to_string(),
+                host: None,
             },
             TestItem {
                 name: "login --with-token=false".to_string(),
                 cmd: crate::cmd_auth::SubCommand::Login(crate::cmd_auth::CmdAuthLogin {
-                    host: Some(test_host.clone()),
                     with_token: false,
                     web: false,
                 }),
                 stdin: test_token.to_string(),
                 want_out: "".to_string(),
                 want_err: "--with-token required when not running interactively".to_string(),
+                host: Some(test_host.as_str().to_string()),
             },
             TestItem {
                 name: "login --with-token=true".to_string(),
                 cmd: crate::cmd_auth::SubCommand::Login(crate::cmd_auth::CmdAuthLogin {
-                    host: Some(test_host.clone()),
                     with_token: true,
                     web: false,
                 }),
                 stdin: test_token.to_string(),
                 want_out: "✔ Logged in as ".to_string(),
                 want_err: "".to_string(),
+                host: Some(test_host.as_str().to_string()),
             },
             TestItem {
                 name: "status".to_string(),
-                cmd: crate::cmd_auth::SubCommand::Status(crate::cmd_auth::CmdAuthStatus {
-                    show_token: false,
-                    host: Some(test_host.clone()),
-                }),
+                cmd: crate::cmd_auth::SubCommand::Status(crate::cmd_auth::CmdAuthStatus { show_token: false }),
                 stdin: "".to_string(),
                 want_out: format!("{test_host}\n✔ Logged in to {test_host} as"),
                 want_err: "".to_string(),
+                host: Some(test_host.as_str().to_string()),
             },
             TestItem {
                 name: "logout no prompt no host".to_string(),
-                cmd: crate::cmd_auth::SubCommand::Logout(crate::cmd_auth::CmdAuthLogout { host: None }),
+                cmd: crate::cmd_auth::SubCommand::Logout(crate::cmd_auth::CmdAuthLogout {}),
                 stdin: "".to_string(),
                 want_out: "".to_string(),
-                want_err: "--host required when not running interactively".to_string(),
+                want_err: "--host required at top-level when not running interactively".to_string(),
+                host: None,
             },
             TestItem {
                 name: "logout no prompt with host".to_string(),
-                cmd: crate::cmd_auth::SubCommand::Logout(crate::cmd_auth::CmdAuthLogout {
-                    host: Some(test_host.clone()),
-                }),
+                cmd: crate::cmd_auth::SubCommand::Logout(crate::cmd_auth::CmdAuthLogout {}),
                 stdin: "".to_string(),
                 want_out: format!("✔ Logged out of {test_host}"),
                 want_err: "".to_string(),
+                host: Some(test_host.as_str().to_string()),
             },
         ];
 
@@ -628,7 +611,11 @@ mod test {
                 config: &mut c,
                 io,
                 debug: false,
+                override_host: None,
             };
+            if let Some(h) = &t.host {
+                ctx.override_host = Some(h.clone());
+            }
 
             let cmd_auth = crate::cmd_auth::CmdAuth { subcmd: t.cmd };
             match cmd_auth.run(&mut ctx).await {

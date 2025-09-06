@@ -113,12 +113,6 @@ pub struct CmdKclCopilot {
     /// Optional project name to associate with messages.
     #[clap(long = "project-name")]
     pub project_name: Option<String>,
-
-    /// The host of the Zoo instance to use for Copilot.
-    /// By default this is api.zoo.dev.
-    /// This assumes the instance is an `https://` url, if not otherwise specified as `http://`.
-    #[clap(short = 'H', long, env = "ZOO_HOST", value_parser = crate::cmd_auth::parse_host)]
-    pub host: Option<url::Url>,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -128,7 +122,7 @@ impl crate::cmd::Command for CmdKclCopilot {
         // Reuse existing project discovery logic to keep error messages consistent.
         let _ = ctx.get_code_and_file_path(&std::path::PathBuf::from(".")).await?;
 
-        let host = self.host.as_ref().map(|u| u.as_str().to_string()).unwrap_or_default();
+        let host = ctx.global_host().unwrap_or("").to_string();
         crate::ml::copilot::run::run_copilot_tui(ctx, self.project_name.clone(), host).await
     }
 }

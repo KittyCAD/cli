@@ -123,6 +123,11 @@ struct Opts {
     #[clap(short, long, global = true, env)]
     debug: bool,
 
+    /// Zoo API host to use for all commands (e.g., "api.zoo.dev" or "http://localhost:8888").
+    /// Overrides the configured default host.
+    #[clap(long, global = true, env = "ZOO_HOST", value_parser = crate::cmd_auth::parse_host)]
+    host: Option<url::Url>,
+
     #[clap(subcommand)]
     subcmd: SubCommand,
 }
@@ -243,6 +248,10 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
 
     // Set our debug flag.
     ctx.debug = opts.debug;
+    // Set the global host override, if provided.
+    if let Some(h) = opts.host {
+        ctx.override_host = Some(h.to_string());
+    }
 
     // Setup our logger. This is mainly for debug purposes.
     // And getting debug logs from other libraries we consume, like even Zoo.

@@ -211,10 +211,10 @@ async fn test_main(ctx: &mut MainContext) {
             name: "login".to_string(),
             args: vec![
                 "zoo".to_string(),
-                "auth".to_string(),
-                "login".to_string(),
                 "--host".to_string(),
                 ctx.test_host.clone(),
+                "auth".to_string(),
+                "login".to_string(),
                 "--with-token".to_string(),
             ],
             stdin: Some(ctx.test_token.clone()),
@@ -923,6 +923,7 @@ async fn test_main(ctx: &mut MainContext) {
             config: &mut c,
             io,
             debug: false,
+            override_host: None,
         };
 
         let old_current_directory = std::env::current_dir().unwrap();

@@ -14,6 +14,8 @@ pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
     pub io: crate::iostreams::IoStreams,
     pub debug: bool,
+    // If set, override the host used when commands don't specify one.
+    pub(crate) override_host: Option<String>,
 }
 
 impl Context<'_> {
@@ -51,18 +53,20 @@ impl Context<'_> {
             config,
             io,
             debug: false,
+            override_host: None,
         }
     }
 
     /// This function returns an API client for Zoo that is based on the configured
     /// user.
     pub fn api_client(&self, hostname: &str) -> Result<kittycad::Client> {
-        // Use the host passed in if it's set.
-        // Otherwise, use the default host.
-        let host = if hostname.is_empty() {
-            self.config.default_host()?
-        } else {
+        // Resolution order: explicit arg > global override > default host from config
+        let host = if !hostname.is_empty() {
             hostname.to_string()
+        } else if let Some(h) = &self.override_host {
+            h.clone()
+        } else {
+            self.config.default_host()?
         };
 
         // Change the baseURL to the one we want.
@@ -99,6 +103,11 @@ impl Context<'_> {
         }
 
         Ok(client)
+    }
+
+    /// Return the global host override if set.
+    pub fn global_host(&self) -> Option<&str> {
+        self.override_host.as_deref()
     }
 
     #[allow(dead_code)]

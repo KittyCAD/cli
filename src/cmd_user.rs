@@ -120,6 +120,7 @@ mod test {
                 config: &mut c,
                 io,
                 debug: false,
+                override_host: None,
             };
 
             let cmd_user = crate::cmd_user::CmdUser { subcmd: t.cmd };
