@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 pub struct App {
     pub input: String,
     pub events: Vec<ChatEvent>,
-    pub show_reasoning: bool,
     pub scanning: bool,
     pub scanned_files: usize,
     pub awaiting_response: bool,
@@ -55,7 +54,6 @@ impl App {
         Self {
             input: String::new(),
             events: Vec::new(),
-            show_reasoning: true,
             scanning: true,
             scanned_files: 0,
             awaiting_response: false,

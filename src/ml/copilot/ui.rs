@@ -44,54 +44,27 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
-                    if app.show_reasoning {
-                        // Dimmed reasoning output from the bot
-                        lines.push(Line::from(vec![Span::styled(
-                            "ML-ephant (reasoning)> ",
-                            Style::default().add_modifier(Modifier::DIM),
-                        )]));
-                        for l in crate::context::format_reasoning(reason.clone(), false) {
-                            lines.push(Line::from(Span::styled(
-                                l,
-                                Style::default().add_modifier(Modifier::DIM),
-                            )));
-                        }
-                    }
+                    // One line per message: join formatted reasoning into a single line.
+                    let joined = crate::context::format_reasoning(reason.clone(), false).join(" ");
+                    lines.push(Line::from(vec![
+                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                        Span::raw(joined),
+                    ]));
                 }
                 kittycad::types::MlCopilotServerMessage::Info { text } => {
-                    if !assistant_buf.is_empty() {
-                        lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                            Span::raw(assistant_buf.clone()),
-                        ]));
-                        assistant_buf.clear();
-                    }
+                    // Each info message on its own line. Do not merge or normalize.
                     lines.push(Line::from(vec![
                         Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                         Span::raw(text.clone()),
                     ]));
                 }
                 kittycad::types::MlCopilotServerMessage::Error { detail } => {
-                    if !assistant_buf.is_empty() {
-                        lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                            Span::raw(assistant_buf.clone()),
-                        ]));
-                        assistant_buf.clear();
-                    }
                     lines.push(Line::from(vec![
                         Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                         Span::styled(detail.clone(), Style::default().fg(Color::Red)),
                     ]));
                 }
                 kittycad::types::MlCopilotServerMessage::ToolOutput { result } => {
-                    if !assistant_buf.is_empty() {
-                        lines.push(Line::from(vec![
-                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                            Span::raw(assistant_buf.clone()),
-                        ]));
-                        assistant_buf.clear();
-                    }
                     lines.push(Line::from(vec![
                         Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                         Span::styled("tool output → ", Style::default().fg(Color::Yellow)),

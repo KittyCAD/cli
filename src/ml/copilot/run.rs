@@ -267,6 +267,30 @@ pub async fn run_copilot_tui(
                 WsSend::Client { msg } => match serde_json::to_string(&msg) {
                     Ok(body) => {
                         if writer_debug {
+                            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&body) {
+                                if let Some(content) = val.get("content").and_then(|v| v.as_str()) {
+                                    let disp = if content.len() > 200 {
+                                        format!("{}… ({} chars)", &content[..200], content.len())
+                                    } else {
+                                        content.to_string()
+                                    };
+                                    let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                                        text: format!("[copilot/ws->] content: {disp}"),
+                                    });
+                                }
+                                if let Some(files) = val.get("current_files").and_then(|v| v.as_object()) {
+                                    let mut keys: Vec<_> = files.keys().cloned().collect();
+                                    keys.sort();
+                                    let preview = if keys.len() > 10 {
+                                        format!("{}… (+{} more)", keys[..10].join(","), keys.len() - 10)
+                                    } else {
+                                        keys.join(",")
+                                    };
+                                    let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                                        text: format!("[copilot/ws->] files[{}]: {}", files.len(), preview),
+                                    });
+                                }
+                            }
                             let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
                                 text: format!("[copilot/ws->] sending client message: {} bytes", body.len()),
                             });
