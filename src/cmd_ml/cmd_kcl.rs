@@ -47,6 +47,10 @@ pub struct CmdKclEdit {
     /// If you don't pass this, the entire file will be edited.
     #[clap(name = "source_range", long, short = 'r')]
     pub source_range: Option<String>,
+
+    /// Disable streaming reasoning messages (prints by default).
+    #[clap(long = "no-reasoning")]
+    pub no_reasoning: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -79,7 +83,7 @@ impl crate::cmd::Command for CmdKclEdit {
             conversation_id: None,
         };
 
-        let model = ctx.get_edit_for_prompt("", &body, files).await?;
+        let model = ctx.get_edit_for_prompt("", &body, files, !self.no_reasoning).await?;
 
         let Some(outputs) = model.outputs else {
             anyhow::bail!("model did not return any outputs");

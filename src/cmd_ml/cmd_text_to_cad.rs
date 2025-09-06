@@ -108,6 +108,10 @@ pub struct CmdTextToCadExport {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Disable streaming reasoning messages (prints by default).
+    #[clap(long = "no-reasoning")]
+    pub no_reasoning: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -143,6 +147,7 @@ impl crate::cmd::Command for CmdTextToCadExport {
                 } else {
                     self.output_format.clone().try_into()?
                 },
+                !self.no_reasoning,
             )
             .await?;
 
@@ -215,6 +220,10 @@ pub struct CmdTextToCadSnapshot {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Disable streaming reasoning messages (prints by default).
+    #[clap(long = "no-reasoning")]
+    pub no_reasoning: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -241,7 +250,7 @@ impl crate::cmd::Command for CmdTextToCadSnapshot {
         }
 
         let model = ctx
-            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf)
+            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf, !self.no_reasoning)
             .await?;
 
         // Get the gltf bytes.
@@ -295,6 +304,10 @@ pub struct CmdTextToCadView {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Disable streaming reasoning messages (prints by default).
+    #[clap(long = "no-reasoning")]
+    pub no_reasoning: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -307,7 +320,7 @@ impl crate::cmd::Command for CmdTextToCadView {
         }
 
         let model = ctx
-            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf)
+            .get_model_for_prompt("", &prompt, false, kittycad::types::FileExportFormat::Gltf, !self.no_reasoning)
             .await?;
 
         // Get the gltf bytes.

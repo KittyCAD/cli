@@ -173,6 +173,8 @@ mod test {
 
         assert!(stdout.contains("<dt><code>-H/--host</code></dt>"), "");
         assert!(stdout.contains("### About"), "");
+        // New flags appear in generated markdown.
+        assert!(stdout.contains("--no-reasoning"), "docs should include --no-reasoning flag");
 
         assert_eq!(stderr, "");
 
