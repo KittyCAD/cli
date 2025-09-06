@@ -37,6 +37,7 @@ pub enum SlashCommand {
     Quit,
     Exit,
     System(kittycad::types::MlCopilotSystemCommand),
+    Render,
 }
 
 pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
@@ -46,6 +47,7 @@ pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
         "/reject" => return Some(SlashCommand::Reject),
         "/quit" => return Some(SlashCommand::Quit),
         "/exit" => return Some(SlashCommand::Exit),
+        "/render" => return Some(SlashCommand::Render),
         _ => {}
     }
 
@@ -216,6 +218,7 @@ fn slash_commands() -> Vec<String> {
         "/reject".to_string(),
         "/quit".to_string(),
         "/exit".to_string(),
+        "/render".to_string(),
     ];
 
     // Append all SDK system commands as slash commands, eg: /new, /bye, ...

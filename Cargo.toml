@@ -47,6 +47,7 @@ kittycad-modeling-cmds = { version = "=0.2.131", features = [
   "convert_client_crate",
   "tabled",
 ] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
 log = "0.4.27"
 miette = { version = "7.5.0", features = ["fancy"] }
 nu-ansi-term = "0.50.1"
@@ -86,6 +87,7 @@ url = "2.5.4"
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
 version-compare = "0.2.0"
 viuer = { version = "0.9.1", features = ["print-file"] }
+tempfile = "3.19.1"
 
 [build-dependencies]
 built = "0.7"

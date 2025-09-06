@@ -7,6 +7,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use futures::{SinkExt, StreamExt};
+use kcl_lib::TypedPath;
 use log::LevelFilter;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use similar::TextDiff;
@@ -379,6 +380,22 @@ pub async fn run_copilot_tui(
                                             app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
                                         }
                                     }
+                                    state::SlashCommand::Render => {
+                                        if app.pending_edits.is_none() {
+                                            app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes to render".to_string() }));
+                                        } else {
+                                            app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "Rendering snapshots for old vs new…".to_string() }));
+                                            let edits = app.pending_edits.clone().unwrap();
+                                            match render_side_by_side(ctx, &host, &edits).await {
+                                                Ok(path) => {
+                                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("Rendered comparison saved to: {}", path.display()) }));
+                                                }
+                                                Err(e) => {
+                                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail: format!("render failed: {e}") }));
+                                                }
+                                            }
+                                        }
+                                    }
                                     state::SlashCommand::System(command) => {
                                         let _ = tx_out.send(WsSend::Client { msg: kittycad::types::MlCopilotClientMessage::System { command } });
                                     }
@@ -521,6 +538,131 @@ fn apply_pending_edits(edits: &[state::PendingFileEdit]) -> anyhow::Result<usize
         n += 1;
     }
     Ok(n)
+}
+
+async fn render_side_by_side(
+    ctx: &mut crate::context::Context<'_>,
+    host: &str,
+    edits: &[state::PendingFileEdit],
+) -> anyhow::Result<std::path::PathBuf> {
+    use kittycad_modeling_cmds::{ImageFormat, ModelingCmd, TakeSnapshot};
+
+    // Determine old code and path from current directory
+    let (old_code, old_main_path) = ctx.get_code_and_file_path(&std::path::PathBuf::from(".")).await?;
+
+    // Compute executor settings from old project (project.toml etc.)
+    let old_settings = get_modeling_settings_from_project_toml(&old_main_path)?;
+
+    // Snapshot OLD
+    let (old_resp, _sd_old) = ctx
+        .send_kcl_modeling_cmd(
+            host,
+            &old_main_path.display().to_string(),
+            &old_code,
+            ModelingCmd::TakeSnapshot(TakeSnapshot {
+                format: ImageFormat::Png,
+            }),
+            old_settings.clone(),
+        )
+        .await?;
+    let old_png = match old_resp {
+        kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+        } => data.contents.0,
+        other => anyhow::bail!("unexpected modeling response for old snapshot: {other:?}"),
+    };
+
+    // Prepare NEW tree in a temp dir by copying relevant files and overlaying edits
+    let tmp = tempfile::tempdir()?;
+    let new_root = tmp.path().to_path_buf();
+    let cwd = std::env::current_dir()?;
+    let files = scan_relevant_files(&cwd);
+    for (rel, bytes) in files {
+        let dest = new_root.join(&rel);
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&dest, &bytes)?;
+    }
+    // Overlay edits new versions
+    for e in edits {
+        let dest = new_root.join(&e.path);
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&dest, e.new.as_bytes())?;
+    }
+
+    // Find new main and snapshot NEW
+    let (new_code, new_main_path) = ctx.get_code_and_file_path(&new_root).await?;
+    let mut new_settings = old_settings.clone();
+    // Update current file path in settings to point at the new main
+    let typed = TypedPath::from(new_main_path.display().to_string().as_str());
+    new_settings.with_current_file(typed);
+
+    let (new_resp, _sd_new) = ctx
+        .send_kcl_modeling_cmd(
+            host,
+            &new_main_path.display().to_string(),
+            &new_code,
+            ModelingCmd::TakeSnapshot(TakeSnapshot {
+                format: ImageFormat::Png,
+            }),
+            new_settings,
+        )
+        .await?;
+    let new_png = match new_resp {
+        kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+        } => data.contents.0,
+        other => anyhow::bail!("unexpected modeling response for new snapshot: {other:?}"),
+    };
+
+    // Compose side-by-side PNG and write to a temp file
+    let left = image::load_from_memory(&old_png)?.to_rgba8();
+    let right = image::load_from_memory(&new_png)?.to_rgba8();
+    let (lw, lh) = left.dimensions();
+    let (rw, rh) = right.dimensions();
+    let out_w = lw + rw;
+    let out_h = std::cmp::max(lh, rh);
+    let mut out = image::RgbaImage::new(out_w, out_h);
+    image::imageops::overlay(&mut out, &left, 0, (out_h - lh) as i64 / 2);
+    image::imageops::overlay(&mut out, &right, lw as i64, (out_h - rh) as i64 / 2);
+
+    let mut outfile = std::env::temp_dir();
+    outfile.push(format!("zoo-copilot-render-{}.png", uuid::Uuid::new_v4()));
+    out.save(&outfile)?;
+
+    Ok(outfile)
+}
+
+fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::Result<kcl_lib::ExecutorSettings> {
+    // Start with default settings, set current file
+    let mut settings: kcl_lib::ExecutorSettings = Default::default();
+    let typed = TypedPath::from(input.display().to_string().as_str());
+    settings.with_current_file(typed);
+
+    if input.to_str() == Some("-") {
+        return Ok(settings);
+    }
+    if !input.exists() {
+        anyhow::bail!("file `{}` does not exist", input.display());
+    }
+    let dir = if input.is_dir() {
+        input.to_path_buf()
+    } else {
+        input.parent().unwrap().to_path_buf()
+    };
+    if let Some(p) = crate::cmd_kcl::find_project_toml(&dir)? {
+        let s = std::fs::read_to_string(&p)?;
+        let project: kcl_lib::ProjectConfiguration = toml::from_str(&s)?;
+        let mut derived: kcl_lib::ExecutorSettings = project.into();
+        let typed = TypedPath::from(input.display().to_string().as_str());
+        derived.with_current_file(typed);
+        Ok(derived)
+    } else {
+        Ok(settings)
+    }
 }
 
 /// Walk the `root` directory and collect only files with extensions present in
