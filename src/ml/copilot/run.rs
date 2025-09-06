@@ -35,19 +35,60 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
 
     // Channels
     let (tx_server, mut rx_server) = mpsc::unbounded_channel::<kittycad::types::MlCopilotServerMessage>();
+    let debug = ctx.debug;
     tokio::spawn(async move {
+        fn truncate(s: &str, n: usize) -> String {
+            if s.len() <= n {
+                s.to_string()
+            } else {
+                format!("{}… ({} chars)", &s[..n], s.len())
+            }
+        }
+
+        let dbg = |text: String, debug: bool, tx: &mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>| {
+            if debug {
+                let _ = tx.send(kittycad::types::MlCopilotServerMessage::Info { text });
+            }
+        };
+
         while let Some(msg) = read.next().await {
             let Ok(msg) = msg else { break };
             if msg.is_text() {
-                if let Ok(parsed) = serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(
-                    &msg.into_text().unwrap_or_default(),
-                ) {
-                    let _ = tx_server.send(parsed);
+                match msg.into_text() {
+                    Ok(t) => {
+                        dbg(
+                            format!("[copilot/ws<-] text {} bytes: {}", t.len(), truncate(&t, 200)),
+                            debug,
+                            &tx_server,
+                        );
+                        match serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&t) {
+                            Ok(parsed) => {
+                                let _ = tx_server.send(parsed);
+                            }
+                            Err(err) => {
+                                dbg(format!("[copilot/ws<-] parse error: {err}"), debug, &tx_server);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        dbg(format!("[copilot/ws<-] to_text error: {e}"), debug, &tx_server);
+                    }
                 }
+            } else if msg.is_binary() {
+                let b = msg.into_data();
+                dbg(format!("[copilot/ws<-] binary {} bytes", b.len()), debug, &tx_server);
+            } else if msg.is_ping() {
+                dbg("[copilot/ws<-] ping".to_string(), debug, &tx_server);
+            } else if msg.is_pong() {
+                dbg("[copilot/ws<-] pong".to_string(), debug, &tx_server);
             } else if msg.is_close() {
+                dbg("[copilot/ws<-] close frame".to_string(), debug, &tx_server);
                 break;
+            } else if debug {
+                dbg("[copilot/ws<-] other frame".to_string(), debug, &tx_server);
             }
         }
+        dbg("[copilot/ws<-] reader task end".to_string(), debug, &tx_server);
     });
 
     // Start scanning files in the background with progress.
@@ -79,7 +120,7 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
         tokio::select! {
             maybe_ev = events.next() => {
                 if let Some(Ok(Event::Key(key))) = maybe_ev {
-                    if ctx.debug { eprintln!("[copilot] key: {key:?}"); }
+                    if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] key: {key:?}") })); }
                     match app.handle_key_action(key) {
                         KeyAction::Exit => { exit = true; }
                         KeyAction::Submit(submit) => {
@@ -87,25 +128,29 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                             let files_ready = files_opt.is_some();
                             if let Some(to_send) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
+                                    if ctx.debug {
+                                        let disp = if to_send.len() > 200 { format!("{}… ({} chars)", &to_send[..200], to_send.len()) } else { to_send.clone() };
+                                        app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot/ws->] user: {disp}") }));
+                                    }
                                     let msg = kittycad::types::MlCopilotClientMessage::User { content: to_send, current_files: Some(files.clone()), project_name: project_name.clone(), source_ranges: None };
                                     let body = serde_json::to_string(&msg)?;
-                                    if ctx.debug { eprintln!("[copilot] send user ({} files)", files.len()); }
+                                    if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] send user ({} files)", files.len()) })); }
                                     write.send(Message::Text(body)).await?;
                                 }
-                            } else if ctx.debug { eprintln!("[copilot] queued user"); }
+                            } else if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "[copilot] queued user".to_string() })); }
                         }
                         KeyAction::Inserted | KeyAction::None => {}
                     }
                 } else if maybe_ev.is_none() { exit = true; }
             }
             Some(server_msg) = rx_server.recv() => {
-                if ctx.debug { eprintln!("[copilot] server: {:?}", &server_msg); }
+                if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] server: {:?}", &server_msg) })); }
                 if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg {
                     if let Some(files) = &files_opt {
                         if let Some(next) = app.on_end_of_stream(true) {
                             let msg = kittycad::types::MlCopilotClientMessage::User { content: next, current_files: Some(files.clone()), project_name: project_name.clone(), source_ranges: None };
                             let body = serde_json::to_string(&msg)?;
-                            if ctx.debug { eprintln!("[copilot] send queued user after EOS ({} files)", files.len()); }
+                            if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] send queued user after EOS ({} files)", files.len()) })); }
                             write.send(Message::Text(body)).await?;
                         }
                     } else {
@@ -122,9 +167,13 @@ pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name
                         app.scanning = false;
                         if let Some(files) = &files_opt {
                             if let Some(next) = app.on_scan_done() {
+                                if ctx.debug {
+                                    let disp = if next.len() > 200 { format!("{}… ({} chars)", &next[..200], next.len()) } else { next.clone() };
+                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot/ws->] user(after-scan): {disp}") }));
+                                }
                                 let msg = kittycad::types::MlCopilotClientMessage::User { content: next, current_files: Some(files.clone()), project_name: project_name.clone(), source_ranges: None };
                                 let body = serde_json::to_string(&msg)?;
-                                if ctx.debug { eprintln!("[copilot] send first queued user after scan ({} files)", files.len()); }
+                                if ctx.debug { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("[copilot] send first queued user after scan ({} files)", files.len()) })); }
                                 write.send(Message::Text(body)).await?;
                             }
                         }
