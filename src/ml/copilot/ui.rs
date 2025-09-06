@@ -134,20 +134,18 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::Error { detail } => {
-                    for (i, part) in detail.split('\n').enumerate() {
-                        let label = if i == 0 { "ML-ephant> " } else { "ML-ephant> " };
+                    for part in detail.split('\n') {
                         lines.push(Line::from(vec![
-                            Span::styled(label, Style::default().fg(Color::Green)),
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                             Span::styled(part.to_string(), Style::default().fg(Color::Red)),
                         ]));
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::ToolOutput { result } => {
                     let raw = format!("{result:#?}");
-                    for (i, part) in raw.split('\n').enumerate() {
-                        let label = if i == 0 { "ML-ephant> " } else { "ML-ephant> " };
+                    for part in raw.split('\n') {
                         lines.push(Line::from(vec![
-                            Span::styled(label, Style::default().fg(Color::Green)),
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                             Span::styled("tool output → ", Style::default().fg(Color::Yellow)),
                             Span::raw(part.to_string()),
                         ]));
