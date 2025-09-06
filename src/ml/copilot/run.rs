@@ -503,25 +503,6 @@ pub async fn run_copilot_tui(
                                 }
                                 continue;
                             }
-                            if submit == "/accept" {
-                                if let Some(edits) = app.pending_edits.take() {
-                                    match apply_pending_edits(&edits) {
-                                        Ok(n) => app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("Applied {n} file(s)") })),
-                                        Err(e) => app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail: format!("apply failed: {e}") })),
-                                    }
-                                } else {
-                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
-                                }
-                                continue;
-                            }
-                            if submit == "/reject" {
-                                if app.pending_edits.take().is_some() {
-                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "Discarded pending changes".to_string() }));
-                                } else {
-                                    app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: "No pending changes".to_string() }));
-                                }
-                                continue;
-                            }
                             let files_ready = files_opt.is_some();
                             if let Some(to_send) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
