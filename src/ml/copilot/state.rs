@@ -1,10 +1,15 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use std::collections::VecDeque;
 
 #[derive(Debug, Default, Clone)]
 pub struct App {
     pub input: String,
     pub events: Vec<ChatEvent>,
     pub show_reasoning: bool,
+    pub scanning: bool,
+    pub scanned_files: usize,
+    pub awaiting_response: bool,
+    pub queue: VecDeque<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -19,6 +24,10 @@ impl App {
             input: String::new(),
             events: Vec::new(),
             show_reasoning: true,
+            scanning: true,
+            scanned_files: 0,
+            awaiting_response: false,
+            queue: VecDeque::new(),
         }
     }
 
@@ -100,6 +109,40 @@ impl App {
             _ => KeyAction::None,
         }
     }
+
+    /// Decide whether to send now or queue, based on files readiness and awaiting state.
+    pub fn try_submit(&mut self, content: String, files_ready: bool) -> Option<String> {
+        if files_ready && !self.awaiting_response {
+            self.awaiting_response = true;
+            Some(content)
+        } else {
+            self.queue.push_back(content);
+            None
+        }
+    }
+
+    /// On EndOfStream, mark not awaiting, and if files are ready and a queue exists, return next to send.
+    pub fn on_end_of_stream(&mut self, files_ready: bool) -> Option<String> {
+        self.awaiting_response = false;
+        if files_ready {
+            if let Some(next) = self.queue.pop_front() {
+                self.awaiting_response = true;
+                return Some(next);
+            }
+        }
+        None
+    }
+
+    /// On scanning done, if not awaiting, return next queued to send.
+    pub fn on_scan_done(&mut self) -> Option<String> {
+        if !self.awaiting_response {
+            if let Some(next) = self.queue.pop_front() {
+                self.awaiting_response = true;
+                return Some(next);
+            }
+        }
+        None
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -152,5 +195,25 @@ mod tests {
         let out = app.handle_key_action(key(KeyCode::Char('c'), KeyModifiers::CONTROL));
         assert_eq!(out, KeyAction::Exit);
         assert!(app.events.is_empty());
+    }
+
+    #[test]
+    fn single_flight_queue_and_eos_release() {
+        let mut app = App::new();
+        app.scanning = false;
+        // First submit with files ready -> send now
+        assert_eq!(app.try_submit("one".into(), true).as_deref(), Some("one"));
+        assert!(app.awaiting_response);
+        assert!(app.queue.is_empty());
+        // Second submit while awaiting -> queued
+        assert!(app.try_submit("two".into(), true).is_none());
+        assert_eq!(app.queue.len(), 1);
+        // EndOfStream -> next queued is released
+        assert_eq!(app.on_end_of_stream(true).as_deref(), Some("two"));
+        assert!(app.awaiting_response);
+        assert!(app.queue.is_empty());
+        // Another EOS with no queue -> nothing, awaiting false
+        assert!(app.on_end_of_stream(true).is_none());
+        assert!(!app.awaiting_response);
     }
 }

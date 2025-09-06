@@ -85,8 +85,15 @@ pub fn draw(frame: &mut Frame, app: &App) {
     frame.render_widget(messages, chunks[0]);
 
     // Input view
+    let title = if app.scanning {
+        format!("You> (Scanning files… {} read)", app.scanned_files)
+    } else if app.awaiting_response {
+        "You> (Waiting for response…)".to_string()
+    } else {
+        "You> ".to_string()
+    };
     let input = Paragraph::new(app.input.as_str())
-        .block(Block::default().borders(Borders::ALL).title("You> "))
+        .block(Block::default().borders(Borders::ALL).title(title))
         .wrap(Wrap { trim: false });
     frame.render_widget(input, chunks[1]);
 }
@@ -139,5 +146,32 @@ mod tests {
         assert!(content.contains("make it blue"));
         assert!(content.contains("ML:"));
         assert!(content.contains("hello world"));
+    }
+
+    #[test]
+    fn render_waiting_and_scanning_titles() {
+        let backend = TestBackend::new(40, 6);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        // waiting
+        app.scanning = false;
+        app.awaiting_response = true;
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut content = String::new();
+        for y in 0..area.height { for x in 0..area.width { content.push(buf.get(x,y).symbol().chars().next().unwrap_or(' ')); } content.push('\n'); }
+        assert!(content.contains("Waiting for response"));
+
+        // scanning
+        app.awaiting_response = false;
+        app.scanning = true;
+        app.scanned_files = 123;
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut content2 = String::new();
+        for y in 0..area.height { for x in 0..area.width { content2.push(buf.get(x,y).symbol().chars().next().unwrap_or(' ')); } content2.push('\n'); }
+        assert!(content2.contains("Scanning files"));
     }
 }
