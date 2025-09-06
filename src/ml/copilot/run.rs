@@ -152,9 +152,13 @@ fn push_payload_lines(app: &mut App, body: &str) {
     }
 }
 
-pub async fn run_copilot_tui(ctx: &mut crate::context::Context<'_>, project_name: Option<String>) -> Result<()> {
+pub async fn run_copilot_tui(
+    ctx: &mut crate::context::Context<'_>,
+    project_name: Option<String>,
+    host: String,
+) -> Result<()> {
     // Preflight: ensure we are authenticated before starting the TUI.
-    let client = ctx.api_client("")?;
+    let client = ctx.api_client(&host)?;
     if let Err(err) = client.users().get_self().await {
         anyhow::bail!("Authentication failed or missing. Try `zoo auth login` (details: {err})");
     }
