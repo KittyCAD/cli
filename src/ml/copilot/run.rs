@@ -574,8 +574,6 @@ mod tests {
         assert_eq!(files.get("main.kcl").unwrap(), b"cube(1)");
     }
 
-    // duplicate removed by refactor
-
     #[test]
     fn scan_includes_obj_and_kcl_without_extra_list() {
         let tmp = tempfile::tempdir().expect("create tempdir");
