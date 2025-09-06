@@ -11,6 +11,7 @@ pub struct App {
     pub scanned_files: usize,
     pub awaiting_response: bool,
     pub queue: VecDeque<String>,
+    pub sent_files_once: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +30,7 @@ impl App {
             scanned_files: 0,
             awaiting_response: false,
             queue: VecDeque::new(),
+            sent_files_once: false,
         }
     }
 
