@@ -104,6 +104,8 @@ impl crate::cmd::Command for CmdKclEdit {
 
 /// Start an interactive Copilot chat for KCL in the current project directory.
 ///
+/// Requires the current directory to contain a `main.kcl` file.
+///
 ///     $ zoo ml kcl copilot
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
