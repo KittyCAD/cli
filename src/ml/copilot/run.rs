@@ -787,6 +787,14 @@ pub(crate) fn scan_relevant_files(root: &std::path::Path) -> std::collections::H
                 Ok(ft) => ft,
                 Err(_) => continue,
             };
+            // Avoid following symlinks to prevent cycles
+            #[cfg(unix)]
+            if std::fs::symlink_metadata(&path)
+                .map(|m| m.file_type().is_symlink())
+                .unwrap_or(false)
+            {
+                continue;
+            }
             if ft.is_dir() {
                 if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') {
                     continue;
@@ -888,6 +896,22 @@ mod tests {
         assert_eq!(v, b"cube(1)\n");
         // Ensure we didn't recurse-stack-overflow (test would crash) and completed quickly
         assert!(k.matches('/').count() >= 120 - 1);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn scan_skips_symlink_loops_unix() {
+        use std::os::unix::fs::symlink;
+        let tmp = tempfile::tempdir().expect("create tempdir");
+        let root = tmp.path();
+        std::fs::create_dir(root.join("dir")).unwrap();
+        // symlink from dir/link -> root to create a potential cycle
+        symlink(root, root.join("dir/link")).unwrap();
+        // add a normal file
+        std::fs::write(root.join("main.kcl"), b"cube(1)\n").unwrap();
+        // ensure we don't hang
+        let files = scan_relevant_files(root);
+        assert!(files.keys().any(|k| k == "main.kcl"));
     }
 
     #[test]
@@ -1023,6 +1047,48 @@ mod tests {
         // Ensure outside file not created
         let outside = tmp.path().parent().unwrap().join("evil.txt");
         assert!(!outside.exists());
+
+        std::env::set_current_dir(cwd).unwrap();
+    }
+
+    #[test]
+    fn join_secure_rejects_absolute_and_escape() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        // absolute
+        let abs = if cfg!(windows) {
+            std::path::Path::new("C:/windows/system32")
+        } else {
+            std::path::Path::new("/etc/passwd")
+        };
+        assert!(join_secure(root, abs).is_err());
+        // escape via ..
+        assert!(join_secure(root, std::path::Path::new("../../evil.txt")).is_err());
+    }
+
+    #[test]
+    fn tool_output_rejects_path_traversal_and_aborts() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(tmp.path()).unwrap();
+
+        let mut app = App::new();
+        let val = serde_json::json!({
+            "type": "edit_kcl_code",
+            "status_code": 200,
+            "outputs": {"../../evil.txt": "cube(2)\n"}
+        });
+        let tool: kittycad::types::MlToolResult = serde_json::from_value(val).unwrap();
+        handle_tool_output(&mut app, &tool);
+        assert!(app.pending_edits.is_none());
+        // Expect an error mentioning invalid path
+        let has_invalid = app.events.iter().any(|e| match e {
+            ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error { detail }) => {
+                detail.contains("Invalid path")
+            }
+            _ => false,
+        });
+        assert!(has_invalid);
 
         std::env::set_current_dir(cwd).unwrap();
     }

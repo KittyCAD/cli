@@ -110,6 +110,18 @@ impl Context<'_> {
         self.override_host.as_deref()
     }
 
+    // Test-only helper for verifying host resolution semantics without creating a client.
+    #[cfg(test)]
+    pub(crate) fn resolve_host_for_tests(&self, hostname: &str) -> Result<String> {
+        if !hostname.is_empty() {
+            Ok(hostname.to_string())
+        } else if let Some(h) = &self.override_host {
+            Ok(h.clone())
+        } else {
+            self.config.default_host()
+        }
+    }
+
     #[allow(dead_code)]
     pub async fn send_single_modeling_cmd(
         &self,
@@ -1004,6 +1016,32 @@ mod test {
                 );
             }
         }
+    }
+
+    #[test]
+    fn resolve_host_prefers_explicit_then_global() {
+        let mut config = crate::config::new_blank_config().unwrap();
+        let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
+        let (io, _stdout_path, _stderr_path) = crate::iostreams::IoStreams::test();
+        let mut ctx = Context {
+            config: &mut c,
+            io,
+            debug: false,
+            override_host: None,
+        };
+
+        // No override: falls back to default host in config (which will be DEFAULT_HOST initially)
+        let h = ctx.resolve_host_for_tests("").unwrap();
+        assert!(!h.is_empty());
+
+        // Set global override
+        ctx.override_host = Some("http://localhost:7777".to_string());
+        let h2 = ctx.resolve_host_for_tests("").unwrap();
+        assert_eq!(h2, "http://localhost:7777");
+
+        // Explicit arg overrides global
+        let h3 = ctx.resolve_host_for_tests("http://foo:1234").unwrap();
+        assert_eq!(h3, "http://foo:1234");
     }
 
     #[test]

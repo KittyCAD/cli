@@ -354,6 +354,7 @@ mod tests {
         assert_eq!(parse_slash_command("/reject"), Some(SlashCommand::Reject));
         assert_eq!(parse_slash_command("/quit"), Some(SlashCommand::Quit));
         assert_eq!(parse_slash_command("/exit"), Some(SlashCommand::Exit));
+        assert_eq!(parse_slash_command("/render"), Some(SlashCommand::Render));
         assert_eq!(parse_slash_command("/nope"), None);
         assert_eq!(parse_slash_command("   /accept   "), Some(SlashCommand::Accept));
     }
