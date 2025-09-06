@@ -20,13 +20,13 @@ pub fn draw(frame: &mut Frame, app: &App) {
             ChatEvent::User(s) => {
                 if !assistant_buf.is_empty() {
                     lines.push(Line::from(vec![
-                        Span::styled("ML: ", Style::default().fg(Color::Green)),
+                        Span::styled("ML-ephant: ", Style::default().fg(Color::Green)),
                         Span::raw(assistant_buf.clone()),
                     ]));
                     assistant_buf.clear();
                 }
                 lines.push(Line::from(vec![
-                    Span::styled("You: ", Style::default().fg(Color::Cyan)),
+                    Span::styled("You> ", Style::default().fg(Color::Cyan)),
                     Span::raw(s.clone()),
                 ]));
             }
@@ -37,7 +37,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
                     if !assistant_buf.is_empty() {
                         lines.push(Line::from(vec![
-                            Span::styled("ML: ", Style::default().fg(Color::Green)),
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                             Span::raw(assistant_buf.clone()),
                         ]));
                         assistant_buf.clear();
@@ -45,30 +45,56 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 }
                 kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
                     if app.show_reasoning {
-                        lines.push(Line::from(Span::styled(
-                            "reasoning:",
-                            Style::default().fg(Color::Magenta),
-                        )));
-                        for l in crate::context::format_reasoning(reason.clone(), true) {
-                            lines.push(Line::from(l));
+                        // Dimmed reasoning output from the bot
+                        lines.push(Line::from(vec![Span::styled(
+                            "ML-ephant (reasoning)> ",
+                            Style::default().add_modifier(Modifier::DIM),
+                        )]));
+                        for l in crate::context::format_reasoning(reason.clone(), false) {
+                            lines.push(Line::from(Span::styled(
+                                l,
+                                Style::default().add_modifier(Modifier::DIM),
+                            )));
                         }
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::Info { text } => {
+                    if !assistant_buf.is_empty() {
+                        lines.push(Line::from(vec![
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(assistant_buf.clone()),
+                        ]));
+                        assistant_buf.clear();
+                    }
                     lines.push(Line::from(vec![
-                        Span::styled("info: ", Style::default().fg(Color::Yellow)),
+                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
                         Span::raw(text.clone()),
                     ]));
                 }
                 kittycad::types::MlCopilotServerMessage::Error { detail } => {
+                    if !assistant_buf.is_empty() {
+                        lines.push(Line::from(vec![
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(assistant_buf.clone()),
+                        ]));
+                        assistant_buf.clear();
+                    }
                     lines.push(Line::from(vec![
-                        Span::styled("error: ", Style::default().fg(Color::Red)),
-                        Span::raw(detail.clone()),
+                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                        Span::styled(detail.clone(), Style::default().fg(Color::Red)),
                     ]));
                 }
                 kittycad::types::MlCopilotServerMessage::ToolOutput { result } => {
+                    if !assistant_buf.is_empty() {
+                        lines.push(Line::from(vec![
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(assistant_buf.clone()),
+                        ]));
+                        assistant_buf.clear();
+                    }
                     lines.push(Line::from(vec![
-                        Span::styled("tool: ", Style::default().fg(Color::Yellow)),
+                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                        Span::styled("tool output → ", Style::default().fg(Color::Yellow)),
                         Span::raw(format!("{result:#?}")),
                     ]));
                 }
@@ -77,7 +103,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
     }
     if !assistant_buf.is_empty() {
         lines.push(Line::from(vec![
-            Span::styled("ML: ", Style::default().fg(Color::Green)),
+            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
             Span::raw(assistant_buf),
         ]));
     }
@@ -130,7 +156,7 @@ mod tests {
         // Act
         terminal.draw(|f| draw(f, &app)).unwrap();
 
-        // Assert buffer contains "ML: hello world" and "You: make it blue"
+        // Assert buffer contains "ML-ephant> hello world" and "You> make it blue"
         let buf = terminal.backend().buffer();
         let screen = buf.area; // just ensure we can scan rows
         let mut content = String::new();
@@ -142,9 +168,9 @@ mod tests {
             content.push_str(&line);
             content.push('\n');
         }
-        assert!(content.contains("You:"));
+        assert!(content.contains("You>"));
         assert!(content.contains("make it blue"));
-        assert!(content.contains("ML:"));
+        assert!(content.contains("ML-ephant>"));
         assert!(content.contains("hello world"));
     }
 
