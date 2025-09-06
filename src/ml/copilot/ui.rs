@@ -2,6 +2,79 @@ use ratatui::{prelude::*, widgets::*};
 
 use super::state::{App, ChatEvent};
 
+fn render_markdown_to_lines(md: &str) -> Vec<String> {
+    use pulldown_cmark::{Event, Options, Parser, Tag};
+    let mut lines: Vec<String> = Vec::new();
+    let mut cur = String::new();
+    let mut list_prefix = String::new();
+    let _in_code = false;
+    let parser = Parser::new_ext(md, Options::all());
+    for ev in parser {
+        match ev {
+            Event::Start(Tag::List(_)) => {
+                list_prefix = "- ".to_string();
+            }
+            Event::End(Tag::List(_)) => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+                list_prefix.clear();
+            }
+            Event::Start(Tag::Item) => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+                cur.push_str(&list_prefix);
+            }
+            Event::End(Tag::Item) => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+            }
+            Event::Start(Tag::Paragraph) => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+            }
+            Event::End(Tag::Paragraph) => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+            }
+            Event::Start(Tag::Heading(_level, _, _)) => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+            }
+            Event::End(Tag::Heading(_, _, _)) => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+            }
+            Event::Text(t) => cur.push_str(&t),
+            Event::Code(t) => {
+                cur.push_str(&t);
+            }
+            Event::SoftBreak | Event::HardBreak => {
+                lines.push(std::mem::take(&mut cur));
+            }
+            Event::Rule => {
+                if !cur.is_empty() {
+                    lines.push(std::mem::take(&mut cur));
+                }
+            }
+            _ => {}
+        }
+    }
+    if !cur.is_empty() {
+        lines.push(cur);
+    }
+    if lines.is_empty() {
+        lines.push(md.to_string());
+    }
+    lines
+}
+
 pub fn draw(frame: &mut Frame, app: &App) {
     let size = frame.size();
     let chunks = Layout::default()
@@ -44,32 +117,41 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     }
                 }
                 kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
-                    // One line per message: join formatted reasoning into a single line.
-                    let joined = crate::context::format_reasoning(reason.clone(), false).join(" ");
-                    lines.push(Line::from(vec![
-                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                        Span::raw(joined),
-                    ]));
+                    for l in crate::context::format_reasoning(reason.clone(), false) {
+                        lines.push(Line::from(vec![
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(l),
+                        ]));
+                    }
                 }
                 kittycad::types::MlCopilotServerMessage::Info { text } => {
-                    // Each info message on its own line. Do not merge or normalize.
-                    lines.push(Line::from(vec![
-                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                        Span::raw(text.clone()),
-                    ]));
+                    // Render info text as markdown, split into lines; print each on its own row.
+                    for part in render_markdown_to_lines(text) {
+                        lines.push(Line::from(vec![
+                            Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
+                            Span::raw(part),
+                        ]));
+                    }
                 }
                 kittycad::types::MlCopilotServerMessage::Error { detail } => {
-                    lines.push(Line::from(vec![
-                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                        Span::styled(detail.clone(), Style::default().fg(Color::Red)),
-                    ]));
+                    for (i, part) in detail.split('\n').enumerate() {
+                        let label = if i == 0 { "ML-ephant> " } else { "ML-ephant> " };
+                        lines.push(Line::from(vec![
+                            Span::styled(label, Style::default().fg(Color::Green)),
+                            Span::styled(part.to_string(), Style::default().fg(Color::Red)),
+                        ]));
+                    }
                 }
                 kittycad::types::MlCopilotServerMessage::ToolOutput { result } => {
-                    lines.push(Line::from(vec![
-                        Span::styled("ML-ephant> ", Style::default().fg(Color::Green)),
-                        Span::styled("tool output → ", Style::default().fg(Color::Yellow)),
-                        Span::raw(format!("{result:#?}")),
-                    ]));
+                    let raw = format!("{result:#?}");
+                    for (i, part) in raw.split('\n').enumerate() {
+                        let label = if i == 0 { "ML-ephant> " } else { "ML-ephant> " };
+                        lines.push(Line::from(vec![
+                            Span::styled(label, Style::default().fg(Color::Green)),
+                            Span::styled("tool output → ", Style::default().fg(Color::Yellow)),
+                            Span::raw(part.to_string()),
+                        ]));
+                    }
                 }
             },
         }
@@ -318,6 +400,32 @@ mod tests {
             row0b.push(buf2.get(x, 0).symbol().chars().next().unwrap_or(' '));
         }
         assert!(!row0b.contains("Proposed Changes"));
+    }
+
+    #[test]
+    fn info_markdown_renders_and_splits() {
+        let backend = TestBackend::new(60, 12);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App::new();
+        let md = "# Title\n\n- item1\n- item2\n\nA `code` span.";
+        app.events
+            .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                text: md.into(),
+            }));
+        terminal.draw(|f| draw(f, &app)).unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut content = String::new();
+        for y in 0..area.height {
+            for x in 0..area.width {
+                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+            }
+            content.push('\n');
+        }
+        assert!(content.contains("ML-ephant> Title"));
+        assert!(content.contains("ML-ephant> - item1"));
+        assert!(content.contains("ML-ephant> - item2"));
+        assert!(content.contains("ML-ephant> A code span."));
     }
 
     #[test]
