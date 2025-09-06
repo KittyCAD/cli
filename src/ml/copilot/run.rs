@@ -22,96 +22,36 @@ use crate::ml::copilot::{
     ui::draw,
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-enum AttachMode {
-    All,
-    MainOnly,
-    None,
-}
-
-const MAX_JSON_LEN: usize = 50_000;
 const PAYLOAD_LOG_LIMIT: usize = 10_000;
 
 // Strongly-typed outbound messages permitted for the WebSocket writer.
 enum WsSend {
     Client {
         msg: kittycad::types::MlCopilotClientMessage,
-        mode: AttachMode,
-        shrunk: bool,
     },
     Ping,
     Close,
 }
 
-fn select_files_for_mode(
-    mut files: std::collections::HashMap<String, Vec<u8>>,
-    mode: AttachMode,
-) -> std::collections::HashMap<String, Vec<u8>> {
-    match mode {
-        AttachMode::All => files,
-        AttachMode::None => std::collections::HashMap::new(),
-        AttachMode::MainOnly => {
-            let mut out = std::collections::HashMap::new();
-            // Prefer root main.kcl; otherwise first *.kcl
-            if let Some(v) = files.remove("main.kcl") {
-                out.insert("main.kcl".to_string(), v);
-                return out;
-            }
-            if let Some((k, v)) = files
-                .into_iter()
-                .find(|(k, _)| k.to_ascii_lowercase().ends_with(".kcl"))
-            {
-                out.insert(k, v);
-            }
-            out
-        }
-    }
+fn all_files(files: &std::collections::HashMap<String, Vec<u8>>) -> std::collections::HashMap<String, Vec<u8>> {
+    files.clone()
 }
 
-fn build_user_message_with_fallback(
+fn build_user_message(
     content: String,
     files_map: &std::collections::HashMap<String, Vec<u8>>,
     project_name: &Option<String>,
-    shrink_after_first_send: bool,
-) -> (kittycad::types::MlCopilotClientMessage, AttachMode, bool, usize) {
-    // Default to attaching all files on first message, then shrink as needed.
-    let mut mode = if shrink_after_first_send {
-        AttachMode::None
-    } else {
-        AttachMode::All
+    _send_every_time: bool,
+) -> (kittycad::types::MlCopilotClientMessage, usize) {
+    let files = all_files(files_map);
+    let msg = kittycad::types::MlCopilotClientMessage::User {
+        content,
+        current_files: Some(files),
+        project_name: project_name.clone(),
+        source_ranges: None,
     };
-    let max_len = MAX_JSON_LEN;
-    let mut shrunk = false;
-    loop {
-        let files = match mode {
-            AttachMode::All => files_map.clone(),
-            AttachMode::MainOnly => select_files_for_mode(files_map.clone(), AttachMode::MainOnly),
-            AttachMode::None => std::collections::HashMap::new(),
-        };
-        let msg = kittycad::types::MlCopilotClientMessage::User {
-            content: content.clone(),
-            current_files: Some(files),
-            project_name: project_name.clone(),
-            source_ranges: None,
-        };
-        if let Ok(body) = serde_json::to_string(&msg) {
-            if body.len() <= max_len || mode == AttachMode::None {
-                return (msg, mode, shrunk, body.len());
-            }
-            // shrink
-            shrunk = true;
-            mode = match mode {
-                AttachMode::All => AttachMode::MainOnly,
-                AttachMode::MainOnly | AttachMode::None => AttachMode::None,
-            };
-            continue;
-        } else {
-            // if serialization fails, fallback to no files
-            mode = AttachMode::None;
-            shrunk = true;
-            continue;
-        }
-    }
+    let len = serde_json::to_string(&msg).map(|s| s.len()).unwrap_or(0);
+    (msg, len)
 }
 
 fn emit_payload_lines(tx: &mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>, body: &str) {
@@ -182,90 +122,14 @@ pub async fn run_copilot_tui(
             }
         }
 
-        struct ServerMsgBatcher {
-            tx: mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>,
-            info: Option<String>,
-            reasoning_text: Option<String>,
-        }
-        impl ServerMsgBatcher {
-            fn new(tx: mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>) -> Self {
-                Self {
-                    tx,
-                    info: None,
-                    reasoning_text: None,
-                }
-            }
-            fn flush_info(&mut self) {
-                if let Some(mut s) = self.info.take() {
-                    if s.ends_with('\n') {
-                        s.pop();
-                    }
-                    let _ = self.tx.send(kittycad::types::MlCopilotServerMessage::Info { text: s });
-                }
-            }
-            fn flush_reasoning(&mut self) {
-                if let Some(mut s) = self.reasoning_text.take() {
-                    if s.ends_with('\n') {
-                        s.pop();
-                    }
-                    let _ = self.tx.send(kittycad::types::MlCopilotServerMessage::Reasoning(
-                        kittycad::types::ReasoningMessage::Text { content: s },
-                    ));
-                }
-            }
-            fn push(&mut self, msg: kittycad::types::MlCopilotServerMessage) {
-                match msg {
-                    kittycad::types::MlCopilotServerMessage::Info { text } => {
-                        // Accumulate consecutive info lines
-                        if let Some(buf) = &mut self.info {
-                            buf.push_str(&text);
-                            buf.push('\n');
-                        } else {
-                            self.info = Some({
-                                let mut t = text;
-                                t.push('\n');
-                                t
-                            });
-                        }
-                    }
-                    kittycad::types::MlCopilotServerMessage::Reasoning(kittycad::types::ReasoningMessage::Text {
-                        content,
-                    }) => {
-                        // Accumulate consecutive plain reasoning text
-                        if let Some(buf) = &mut self.reasoning_text {
-                            buf.push_str(&content);
-                            buf.push('\n');
-                        } else {
-                            self.reasoning_text = Some({
-                                let mut t = content;
-                                t.push('\n');
-                                t
-                            });
-                        }
-                    }
-                    other => {
-                        // Flush accumulators before forwarding structured or non-text messages
-                        self.flush_info();
-                        self.flush_reasoning();
-                        let _ = self.tx.send(other);
-                    }
-                }
-            }
-            fn flush_all(&mut self) {
-                self.flush_info();
-                self.flush_reasoning();
-            }
-        }
-
-        let mut batch = ServerMsgBatcher::new(tx_server_reader.clone());
-
+        // Forward events 1:1 (no batching) so server messages are visible immediately on connect.
         let mut end_reason: Option<String> = None;
         while let Some(msg_res) = read.next().await {
             let msg = match msg_res {
                 Ok(m) => m,
                 Err(e) => {
                     if debug {
-                        batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                        let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                             text: format!("[copilot/ws<-] reader error: {e}"),
                         });
                     }
@@ -277,17 +141,17 @@ pub async fn run_copilot_tui(
                 match msg.into_text() {
                     Ok(t) => {
                         if debug {
-                            batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                            let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                                 text: format!("[copilot/ws<-] text {} bytes: {}", t.len(), truncate(&t, 200)),
                             });
                         }
                         match serde_json::from_str::<kittycad::types::MlCopilotServerMessage>(&t) {
                             Ok(parsed) => {
-                                batch.push(parsed);
+                                let _ = tx_server_reader.send(parsed);
                             }
                             Err(err) => {
                                 if debug {
-                                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                                    let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                                         text: format!("[copilot/ws<-] parse error: {err}"),
                                     });
                                 }
@@ -296,7 +160,7 @@ pub async fn run_copilot_tui(
                     }
                     Err(e) => {
                         if debug {
-                            batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                            let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                                 text: format!("[copilot/ws<-] to_text error: {e}"),
                             });
                         }
@@ -305,33 +169,33 @@ pub async fn run_copilot_tui(
             } else if msg.is_binary() {
                 let b = msg.into_data();
                 if debug {
-                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                    let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                         text: format!("[copilot/ws<-] binary {} bytes", b.len()),
                     });
                 }
             } else if msg.is_ping() {
                 if debug {
-                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                    let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                         text: "[copilot/ws<-] ping".to_string(),
                     });
                 }
             } else if msg.is_pong() {
                 if debug {
-                    batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                    let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                         text: "[copilot/ws<-] pong".to_string(),
                     });
                 }
             } else if let Message::Close(cf) = msg {
                 if let Some(cf) = cf {
                     if debug {
-                        batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                        let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                             text: format!("[copilot/ws<-] close frame code={} reason='{}'", cf.code, cf.reason),
                         });
                     }
                     end_reason = Some(format!("close code {}", cf.code));
                 } else {
                     if debug {
-                        batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                        let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                             text: "[copilot/ws<-] close frame".to_string(),
                         });
                     }
@@ -339,19 +203,17 @@ pub async fn run_copilot_tui(
                 }
                 break;
             } else if debug {
-                batch.push(kittycad::types::MlCopilotServerMessage::Info {
+                let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                     text: "[copilot/ws<-] other frame".to_string(),
                 });
             }
         }
         let reason = end_reason.unwrap_or_else(|| "eof".to_string());
-        batch.flush_all();
         if debug {
-            batch.push(kittycad::types::MlCopilotServerMessage::Info {
+            let _ = tx_server_reader.send(kittycad::types::MlCopilotServerMessage::Info {
                 text: format!("[copilot/ws<-] reader task end ({reason})"),
             });
         }
-        batch.flush_all();
     });
 
     // Start scanning files in the background with progress.
@@ -403,18 +265,12 @@ pub async fn run_copilot_tui(
                     let _ = write.flush().await;
                     break;
                 }
-                WsSend::Client { msg, mode, shrunk } => match serde_json::to_string(&msg) {
+                WsSend::Client { msg } => match serde_json::to_string(&msg) {
                     Ok(body) => {
                         if writer_debug {
-                            let mut note = format!(
-                                "[copilot/ws->] sending client message: {} bytes (mode={:?})",
-                                body.len(),
-                                mode
-                            );
-                            if shrunk {
-                                note.push_str(" [payload shrunk]");
-                            }
-                            let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info { text: note });
+                            let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
+                                text: format!("[copilot/ws->] sending client message: {} bytes", body.len()),
+                            });
                             let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
                                 text: format!("payload ({} bytes):", body.len()),
                             });
@@ -506,8 +362,8 @@ pub async fn run_copilot_tui(
                             let files_ready = files_opt.is_some();
                             if let Some(to_send) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
-                                    let (msg, mode, shrunk, _len) = build_user_message_with_fallback(to_send, files, &project_name, app.sent_files_once);
-                                    let _ = tx_out.send(WsSend::Client { msg, mode, shrunk });
+                                    let (msg, _len) = build_user_message(to_send, files, &project_name, true);
+                                    let _ = tx_out.send(WsSend::Client { msg });
                                     app.sent_files_once = true;
                                 }
                             }
@@ -520,8 +376,8 @@ pub async fn run_copilot_tui(
                 if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg {
                     if let Some(files) = &files_opt {
                         if let Some(next) = app.on_end_of_stream(true) {
-                            let (msg, mode, shrunk, _len) = build_user_message_with_fallback(next, files, &project_name, app.sent_files_once);
-                            let _ = tx_out.send(WsSend::Client { msg, mode, shrunk });
+                            let (msg, _len) = build_user_message(next, files, &project_name, true);
+                            let _ = tx_out.send(WsSend::Client { msg });
                             app.sent_files_once = true;
                         }
                     } else {
@@ -541,8 +397,8 @@ pub async fn run_copilot_tui(
                         app.scanning = false;
                         if let Some(files) = &files_opt {
                             if let Some(next) = app.on_scan_done() {
-                                let (msg, mode, shrunk, _len) = build_user_message_with_fallback(next, files, &project_name, app.sent_files_once);
-                                let _ = tx_out.send(WsSend::Client { msg, mode, shrunk });
+                                let (msg, _len) = build_user_message(next, files, &project_name, true);
+                                let _ = tx_out.send(WsSend::Client { msg });
                                 app.sent_files_once = true;
                             }
                         }
@@ -720,6 +576,44 @@ mod tests {
 
         // Ensure contents match something small and non-empty
         assert_eq!(files.get("main.kcl").unwrap(), b"cube(1)");
+    }
+
+    // duplicate removed by refactor
+
+    #[test]
+    fn scan_includes_obj_and_kcl_without_extra_list() {
+        let tmp = tempfile::tempdir().expect("create tempdir");
+        let root = tmp.path();
+        std::fs::write(root.join("main.kcl"), b"cube(1)\n").unwrap();
+        std::fs::write(root.join("thing.kcl"), b"sphere(2)\n").unwrap();
+        std::fs::write(root.join("blah.obj"), b"o cube\n").unwrap();
+        let files = scan_relevant_files(root);
+        let mut keys: Vec<_> = files.keys().cloned().collect();
+        keys.sort();
+        assert!(keys.contains(&"main.kcl".to_string()));
+        assert!(keys.contains(&"thing.kcl".to_string()));
+        assert!(keys.contains(&"blah.obj".to_string()));
+    }
+
+    #[test]
+    fn build_user_message_attaches_all() {
+        let mut map = std::collections::HashMap::new();
+        map.insert("main.kcl".to_string(), b"a".to_vec());
+        map.insert("thing.kcl".to_string(), b"b".to_vec());
+        map.insert("blah.obj".to_string(), b"c".to_vec());
+        let project_name = None;
+        let (msg, _len) = build_user_message("hi".into(), &map, &project_name, true);
+        match msg {
+            kittycad::types::MlCopilotClientMessage::User {
+                current_files: Some(files),
+                ..
+            } => {
+                let mut keys: Vec<_> = files.keys().cloned().collect();
+                keys.sort();
+                assert_eq!(keys, vec!["blah.obj", "main.kcl", "thing.kcl"]);
+            }
+            _ => panic!("unexpected client message variant"),
+        }
     }
 
     #[test]
