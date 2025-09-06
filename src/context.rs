@@ -1,5 +1,4 @@
-use std::str::FromStr;
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 use anyhow::{anyhow, Result};
 use futures::StreamExt;
@@ -670,12 +669,14 @@ impl Drop for ReasoningGuard {
         if let Some(handle) = self.0.take() {
             handle.abort();
             // Ensure the task is polled to completion in the background.
-            tokio::spawn(async move { let _ = handle.await; });
+            tokio::spawn(async move {
+                let _ = handle.await;
+            });
         }
     }
 }
 
-fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) -> Vec<String> {
+pub(crate) fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) -> Vec<String> {
     use nu_ansi_term::Color;
     let lbl = |plain: &str, color: Color| -> String {
         if use_color {
