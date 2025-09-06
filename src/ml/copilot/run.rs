@@ -25,24 +25,8 @@ enum AttachMode {
     None,
 }
 
-fn attach_mode_from_env() -> AttachMode {
-    match std::env::var("ZOO_COPILOT_ATTACH")
-        .unwrap_or_else(|_| "all".to_string())
-        .to_ascii_lowercase()
-        .as_str()
-    {
-        "none" => AttachMode::None,
-        "main" | "main-only" => AttachMode::MainOnly,
-        _ => AttachMode::All,
-    }
-}
-
-fn max_json_len_from_env() -> usize {
-    std::env::var("ZOO_COPILOT_MAX_JSON")
-        .ok()
-        .and_then(|s| s.parse::<usize>().ok())
-        .unwrap_or(50_000)
-}
+const MAX_JSON_LEN: usize = 50_000;
+const PAYLOAD_LOG_LIMIT: usize = 10_000;
 
 fn select_files_for_mode(
     mut files: std::collections::HashMap<String, Vec<u8>>,
@@ -75,12 +59,13 @@ fn build_user_body_with_fallback(
     project_name: &Option<String>,
     shrink_after_first_send: bool,
 ) -> (String, AttachMode, bool) {
+    // Default to attaching all files on first message, then shrink as needed.
     let mut mode = if shrink_after_first_send {
         AttachMode::None
     } else {
-        attach_mode_from_env()
+        AttachMode::All
     };
-    let max_len = max_json_len_from_env();
+    let max_len = MAX_JSON_LEN;
     let mut shrunk = false;
     loop {
         let files = match mode {
@@ -114,25 +99,8 @@ fn build_user_body_with_fallback(
     }
 }
 
-fn should_log_payload() -> bool {
-    match std::env::var("ZOO_COPILOT_LOG_PAYLOAD") {
-        Ok(v) => {
-            let v = v.to_ascii_lowercase();
-            !(v == "0" || v == "false" || v == "no")
-        }
-        Err(_) => true,
-    }
-}
-
-fn payload_log_limit() -> usize {
-    std::env::var("ZOO_COPILOT_LOG_LIMIT")
-        .ok()
-        .and_then(|s| s.parse::<usize>().ok())
-        .unwrap_or(10_000)
-}
-
 fn push_payload_lines(app: &mut App, body: &str) {
-    let limit = payload_log_limit();
+    let limit = PAYLOAD_LOG_LIMIT;
     let body = if body.len() > limit {
         format!("{}… (truncated to {limit} of {} bytes)", &body[..limit], body.len())
     } else {
@@ -361,7 +329,7 @@ pub async fn run_copilot_tui(
                                         if shrunk { note.push_str(" [payload shrunk]"); }
                                         app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
                                     }
-                                    if ctx.debug && should_log_payload() {
+                                    if ctx.debug {
                                         app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes):", body.len()) }));
                                         push_payload_lines(&mut app, &body);
                                     }
@@ -385,7 +353,7 @@ pub async fn run_copilot_tui(
                                 if shrunk { note.push_str(" [payload shrunk]"); }
                                 app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
                             }
-                            if ctx.debug && should_log_payload() {
+                            if ctx.debug {
                                 app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes) [after EOS]:", body.len()) }));
                                 push_payload_lines(&mut app, &body);
                             }
@@ -413,7 +381,7 @@ pub async fn run_copilot_tui(
                                     if shrunk { note.push_str(" [payload shrunk]"); }
                                     app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: note }));
                                 }
-                                if ctx.debug && should_log_payload() {
+                                if ctx.debug {
                                     app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text: format!("payload ({} bytes) [after scan]:", body.len()) }));
                                     push_payload_lines(&mut app, &body);
                                 }
