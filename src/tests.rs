@@ -90,8 +90,8 @@ async fn test_main(ctx: &mut MainContext) {
             ],
             // Just assert completion appears in stdout table.
             want_out: "Completed".to_string(),
-            // Any reasoning line has a ':' label; assert stderr is non-empty and contains a ':'
-            want_err: ":".to_string(),
+            // Look for explicit reasoning output label in stderr.
+            want_err: "reasoning:".to_string(),
             want_code: 0,
             ..Default::default()
         },
@@ -849,8 +849,10 @@ async fn test_main(ctx: &mut MainContext) {
             "it".to_string(),
             "blue".to_string(),
         ],
-        want_out: "Wrote to".to_string(),
-        want_err: ":".to_string(),
+        // Do not match on the "Wrote to" phrase; match on filename presence.
+        want_out: "gear.kcl".to_string(),
+        // Look for explicit reasoning output label in stderr.
+        want_err: "reasoning:".to_string(),
         want_code: 0,
         current_directory: Some(tmp_path.clone()),
         ..Default::default()
@@ -869,7 +871,8 @@ async fn test_main(ctx: &mut MainContext) {
             "it".to_string(),
             "blue".to_string(),
         ],
-        want_out: "Wrote to".to_string(),
+        // Do not match on the "Wrote to" phrase; match on filename presence.
+        want_out: "gear.kcl".to_string(),
         want_err: "".to_string(),
         want_code: 0,
         current_directory: Some(tmp_path.clone()),
