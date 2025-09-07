@@ -49,7 +49,7 @@ impl AsyncTestContext for MainContext {
 async fn test_main(ctx: &mut MainContext) {
     let version = clap::crate_version!();
 
-    let tests: Vec<TestItem> = vec![
+    let mut tests: Vec<TestItem> = vec![
         TestItem {
             name: "existing command".to_string(),
             args: vec!["zoo".to_string(), "completion".to_string()],
@@ -69,6 +69,68 @@ async fn test_main(ctx: &mut MainContext) {
             want_out: "_zoo \"$@\"\n".to_string(),
             want_err: "".to_string(),
             want_code: 0,
+            ..Default::default()
+        },
+        // ML: text-to-cad export streams reasoning to stderr by default.
+        TestItem {
+            name: "ml text-to-cad export reasoning on".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "export".to_string(),
+                "-t".to_string(),
+                "obj".to_string(),
+                "--output-dir".to_string(),
+                "/tmp".to_string(),
+                "A".to_string(),
+                "2x4".to_string(),
+                "lego".to_string(),
+                "brick".to_string(),
+            ],
+            // Just assert completion appears in stdout table.
+            want_out: "Completed".to_string(),
+            // Look for explicit reasoning output label in stderr.
+            want_err: "reasoning:".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        // ML: text-to-cad export does not stream when disabled.
+        TestItem {
+            name: "ml text-to-cad export no reasoning".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "text-to-cad".to_string(),
+                "export".to_string(),
+                "-t".to_string(),
+                "obj".to_string(),
+                "--output-dir".to_string(),
+                "/tmp".to_string(),
+                "--no-reasoning".to_string(),
+                "A".to_string(),
+                "2x4".to_string(),
+                "lego".to_string(),
+                "brick".to_string(),
+            ],
+            want_out: "Completed".to_string(),
+            want_err: "".to_string(),
+            want_code: 0,
+            ..Default::default()
+        },
+        // ML: kcl copilot should only start within a project directory containing main.kcl.
+        TestItem {
+            name: "ml kcl copilot requires main.kcl".to_string(),
+            args: vec![
+                "zoo".to_string(),
+                "ml".to_string(),
+                "kcl".to_string(),
+                "copilot".to_string(),
+            ],
+            // No stdout expected; assert error message substring.
+            want_out: "".to_string(),
+            want_err: "does not contain a main.kcl file".to_string(),
+            want_code: 1,
             ..Default::default()
         },
         TestItem {
@@ -149,10 +211,10 @@ async fn test_main(ctx: &mut MainContext) {
             name: "login".to_string(),
             args: vec![
                 "zoo".to_string(),
-                "auth".to_string(),
-                "login".to_string(),
                 "--host".to_string(),
                 ctx.test_host.clone(),
+                "auth".to_string(),
+                "login".to_string(),
                 "--with-token".to_string(),
             ],
             stdin: Some(ctx.test_token.clone()),
@@ -782,6 +844,56 @@ async fn test_main(ctx: &mut MainContext) {
         //      },
     ];
 
+    // Add e2e tests for `ml kcl edit` using a temp project to avoid modifying repo files.
+    let mut temp_projects: Vec<tempfile::TempDir> = Vec::new();
+    let tmp = tempfile::tempdir().expect("failed to create temp dir");
+    let tmp_path = tmp.path().to_path_buf();
+    std::fs::copy("tests/gear.kcl", tmp_path.join("gear.kcl")).expect("copy gear.kcl");
+    // Hold the dir open for the duration of the test run.
+    temp_projects.push(tmp);
+
+    tests.push(TestItem {
+        name: "ml kcl edit reasoning on".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "ml".to_string(),
+            "kcl".to_string(),
+            "edit".to_string(),
+            "gear.kcl".to_string(),
+            "Make".to_string(),
+            "it".to_string(),
+            "blue".to_string(),
+        ],
+        // Do not match on the "Wrote to" phrase; match on filename presence.
+        want_out: "gear.kcl".to_string(),
+        // Look for explicit reasoning output label in stderr.
+        want_err: "reasoning:".to_string(),
+        want_code: 0,
+        current_directory: Some(tmp_path.clone()),
+        ..Default::default()
+    });
+
+    tests.push(TestItem {
+        name: "ml kcl edit no reasoning".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "ml".to_string(),
+            "kcl".to_string(),
+            "edit".to_string(),
+            "--no-reasoning".to_string(),
+            "gear.kcl".to_string(),
+            "Make".to_string(),
+            "it".to_string(),
+            "blue".to_string(),
+        ],
+        // Do not match on the "Wrote to" phrase; match on filename presence.
+        want_out: "gear.kcl".to_string(),
+        want_err: "".to_string(),
+        want_code: 0,
+        current_directory: Some(tmp_path.clone()),
+        ..Default::default()
+    });
+
     let mut config = crate::config::new_blank_config().unwrap();
     let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
 
@@ -811,6 +923,7 @@ async fn test_main(ctx: &mut MainContext) {
             config: &mut c,
             io,
             debug: false,
+            override_host: None,
         };
 
         let old_current_directory = std::env::current_dir().unwrap();

@@ -6,8 +6,8 @@ authors = ["Jess Frazelle <jess@zoo.dev>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1"
 Inflector = "^0.11.4"
+anyhow = "1"
 openapitor = { git = "https://github.com/KittyCAD/kittycad.rs", branch = "main" }
 openapiv3 = "2"
 proc-macro2 = "1"

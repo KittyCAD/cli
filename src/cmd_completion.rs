@@ -138,6 +138,7 @@ mod test {
                 config: &mut c,
                 io,
                 debug: false,
+                override_host: None,
             };
 
             cmd.run(&mut ctx).await.unwrap();

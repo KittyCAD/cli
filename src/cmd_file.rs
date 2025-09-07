@@ -843,6 +843,7 @@ mod test {
                 config: &mut c,
                 io,
                 debug: false,
+                override_host: None,
             };
 
             let cmd_file = crate::cmd_file::CmdFile { subcmd: t.cmd };

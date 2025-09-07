@@ -12,6 +12,7 @@ pub struct CmdKcl {
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
     Edit(CmdKclEdit),
+    Copilot(CmdKclCopilot),
 }
 
 #[async_trait::async_trait(?Send)]
@@ -19,6 +20,7 @@ impl crate::cmd::Command for CmdKcl {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
             SubCommand::Edit(cmd) => cmd.run(ctx).await,
+            SubCommand::Copilot(cmd) => cmd.run(ctx).await,
         }
     }
 }
@@ -47,6 +49,10 @@ pub struct CmdKclEdit {
     /// If you don't pass this, the entire file will be edited.
     #[clap(name = "source_range", long, short = 'r')]
     pub source_range: Option<String>,
+
+    /// Disable streaming reasoning messages (prints by default).
+    #[clap(long = "no-reasoning")]
+    pub no_reasoning: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -76,9 +82,10 @@ impl crate::cmd::Command for CmdKclEdit {
             source_ranges,
             project_name: None,
             kcl_version: Some(kcl_lib::version().to_owned()),
+            conversation_id: None,
         };
 
-        let model = ctx.get_edit_for_prompt("", &body, files).await?;
+        let model = ctx.get_edit_for_prompt("", &body, files, !self.no_reasoning).await?;
 
         let Some(outputs) = model.outputs else {
             anyhow::bail!("model did not return any outputs");
@@ -92,6 +99,31 @@ impl crate::cmd::Command for CmdKclEdit {
         }
 
         Ok(())
+    }
+}
+
+/// Start an interactive Copilot chat for KCL in the current project directory.
+///
+/// Requires the current directory to contain a `main.kcl` file.
+///
+///     $ zoo ml kcl copilot
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdKclCopilot {
+    /// Optional project name to associate with messages.
+    #[clap(long = "project-name")]
+    pub project_name: Option<String>,
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdKclCopilot {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Only allow starting the copilot in a directory containing a main.kcl.
+        // Reuse existing project discovery logic to keep error messages consistent.
+        let _ = ctx.get_code_and_file_path(&std::path::PathBuf::from(".")).await?;
+
+        let host = ctx.global_host().unwrap_or("").to_string();
+        crate::ml::copilot::run::run_copilot_tui(ctx, self.project_name.clone(), host).await
     }
 }
 

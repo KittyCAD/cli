@@ -430,6 +430,7 @@ mod test {
                 config: &mut c,
                 io,
                 debug: false,
+                override_host: None,
             };
 
             let cmd_alias = crate::cmd_alias::CmdAlias { subcmd: t.cmd };

@@ -115,6 +115,7 @@ mod test {
                 config: &mut c,
                 io,
                 debug: false,
+                override_host: None,
             };
 
             let cmd_say = crate::cmd_say::CmdSay { input: t.cmd.input };
