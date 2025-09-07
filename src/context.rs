@@ -1017,6 +1017,14 @@ mod test {
     }
 
     #[test]
+    fn reasoning_to_markdown_text_has_no_header() {
+        let md = super::reasoning_to_markdown(&kittycad::types::ReasoningMessage::Text {
+            content: "Hello world".into(),
+        });
+        assert_eq!(md, "Hello world");
+    }
+
+    #[test]
     fn resolve_host_prefers_explicit_then_global() {
         let mut config = crate::config::new_blank_config().unwrap();
         let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);

@@ -1,6 +1,6 @@
 use std::{
     io::Write as _,
-    path::{Component, Path, PathBuf},
+    path::{Path, PathBuf},
 };
 
 use anyhow::Result;
@@ -25,6 +25,7 @@ use crate::ml::copilot::{
     state,
     state::{App, ChatEvent, KeyAction},
     ui::draw,
+    util::{join_secure, scan_relevant_files},
 };
 
 const PAYLOAD_LOG_LIMIT: usize = 10_000;
@@ -594,147 +595,6 @@ fn apply_pending_edits(edits: &[state::PendingFileEdit]) -> anyhow::Result<usize
     Ok(n)
 }
 
-/// Join `base` with `candidate` and ensure the resulting path stays under `base`.
-fn join_secure(base: &Path, candidate: &Path) -> anyhow::Result<PathBuf> {
-    // Base must canonicalize; otherwise we cannot reason safely about ancestry.
-    let base_canon = std::fs::canonicalize(base)
-        .map_err(|e| anyhow::anyhow!("failed to canonicalize base '{}': {e}", base.display()))?;
-
-    // Build a lexically normalized path under base (reject absolute and prefix comps).
-    let mut out_lex = base_canon.clone();
-    for comp in candidate.components() {
-        match comp {
-            Component::Prefix(_) | Component::RootDir => anyhow::bail!("absolute paths are not allowed"),
-            Component::ParentDir => {
-                if !out_lex.pop() || !out_lex.starts_with(&base_canon) {
-                    anyhow::bail!("path escapes project root")
-                }
-            }
-            Component::CurDir => {}
-            Component::Normal(seg) => {
-                out_lex.push(seg);
-                if !out_lex.starts_with(&base_canon) {
-                    anyhow::bail!("path escapes project root")
-                }
-            }
-        }
-    }
-
-    // Resolve the nearest existing ancestor to catch symlink escapes. If any existing
-    // ancestor resolves outside of the canonical base, reject.
-    let mut probe = out_lex.clone();
-    while !probe.exists() {
-        if !probe.pop() {
-            break;
-        }
-    }
-    if probe.exists() {
-        let probe_canon = std::fs::canonicalize(&probe)
-            .map_err(|e| anyhow::anyhow!("failed to canonicalize ancestor '{}': {e}", probe.display()))?;
-        if !probe_canon.starts_with(&base_canon) {
-            anyhow::bail!("path escapes project root via symlink")
-        }
-    }
-
-    Ok(out_lex)
-}
-
-async fn render_side_by_side(
-    ctx: &mut crate::context::Context<'_>,
-    host: &str,
-    edits: &[state::PendingFileEdit],
-) -> anyhow::Result<std::path::PathBuf> {
-    use kittycad_modeling_cmds::{ImageFormat, ModelingCmd, TakeSnapshot};
-
-    // Determine old code and path from current directory
-    let (old_code, old_main_path) = ctx.get_code_and_file_path(&std::path::PathBuf::from(".")).await?;
-
-    // Compute executor settings from old project (project.toml etc.)
-    let old_settings = get_modeling_settings_from_project_toml(&old_main_path)?;
-
-    // Snapshot OLD
-    let (old_resp, _sd_old) = ctx
-        .send_kcl_modeling_cmd(
-            host,
-            &old_main_path.display().to_string(),
-            &old_code,
-            ModelingCmd::TakeSnapshot(TakeSnapshot {
-                format: ImageFormat::Png,
-            }),
-            old_settings.clone(),
-        )
-        .await?;
-    let old_png = match old_resp {
-        kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
-        } => data.contents.0,
-        other => anyhow::bail!("unexpected modeling response for old snapshot: {other:?}"),
-    };
-
-    // Prepare NEW tree in a temp dir by copying relevant files and overlaying edits
-    let tmp = tempfile::tempdir()?;
-    let new_root = tmp.path().to_path_buf();
-    let cwd = std::env::current_dir()?;
-    let files = scan_relevant_files(&cwd);
-    for (rel, bytes) in files {
-        let dest = join_secure(&new_root, Path::new(&rel))?;
-        if let Some(parent) = dest.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-        std::fs::write(&dest, &bytes)?;
-    }
-    // Overlay edits new versions
-    for e in edits {
-        let dest = join_secure(&new_root, Path::new(&e.path))?;
-        if let Some(parent) = dest.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-        std::fs::write(&dest, e.new.as_bytes())?;
-    }
-
-    // Find new main and snapshot NEW
-    let (new_code, new_main_path) = ctx.get_code_and_file_path(&new_root).await?;
-    let mut new_settings = old_settings.clone();
-    // Update current file path in settings to point at the new main
-    let typed = TypedPath::from(new_main_path.display().to_string().as_str());
-    new_settings.with_current_file(typed);
-
-    let (new_resp, _sd_new) = ctx
-        .send_kcl_modeling_cmd(
-            host,
-            &new_main_path.display().to_string(),
-            &new_code,
-            ModelingCmd::TakeSnapshot(TakeSnapshot {
-                format: ImageFormat::Png,
-            }),
-            new_settings,
-        )
-        .await?;
-    let new_png = match new_resp {
-        kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
-        } => data.contents.0,
-        other => anyhow::bail!("unexpected modeling response for new snapshot: {other:?}"),
-    };
-
-    // Compose side-by-side PNG and write to a temp file
-    let left = image::load_from_memory(&old_png)?.to_rgba8();
-    let right = image::load_from_memory(&new_png)?.to_rgba8();
-    let (lw, lh) = left.dimensions();
-    let (rw, rh) = right.dimensions();
-    let out_w = lw + rw;
-    let out_h = std::cmp::max(lh, rh);
-    let mut out = image::RgbaImage::new(out_w, out_h);
-    image::imageops::overlay(&mut out, &left, 0, (out_h - lh) as i64 / 2);
-    image::imageops::overlay(&mut out, &right, lw as i64, (out_h - rh) as i64 / 2);
-
-    let mut outfile = std::env::temp_dir();
-    outfile.push(format!("zoo-copilot-render-{}.png", uuid::Uuid::new_v4()));
-    out.save(&outfile)?;
-
-    Ok(outfile)
-}
-
 fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::Result<kcl_lib::ExecutorSettings> {
     // Start with default settings, set current file
     let mut settings: kcl_lib::ExecutorSettings = Default::default();
@@ -792,195 +652,95 @@ fn preview_image_terminal(ctx: &mut crate::context::Context<'_>, path: &std::pat
     Ok(())
 }
 
-/// Walk the `root` directory and collect only files with extensions present in
-/// `kcl_lib::RELEVANT_FILE_EXTENSIONS`. Returns a map of relative path -> file bytes.
-const SCAN_MAX_DEPTH: usize = 256;
+// scan_relevant_files lives in crate::ml::copilot::util
 
-pub(crate) fn scan_relevant_files(root: &std::path::Path) -> std::collections::HashMap<String, Vec<u8>> {
-    let mut out = std::collections::HashMap::new();
-    let mut stack: Vec<(std::path::PathBuf, usize)> = vec![(root.to_path_buf(), 0)];
+async fn render_side_by_side(
+    ctx: &mut crate::context::Context<'_>,
+    host: &str,
+    edits: &[state::PendingFileEdit],
+) -> anyhow::Result<std::path::PathBuf> {
+    use kittycad_modeling_cmds::{ImageFormat, ModelingCmd, TakeSnapshot};
+    // Determine old code and path from current directory
+    let (old_code, old_main_path) = ctx.get_code_and_file_path(&std::path::PathBuf::from(".")).await?;
+    let old_settings = get_modeling_settings_from_project_toml(&old_main_path)?;
+    let (old_resp, _sd_old) = ctx
+        .send_kcl_modeling_cmd(
+            host,
+            &old_main_path.display().to_string(),
+            &old_code,
+            ModelingCmd::TakeSnapshot(TakeSnapshot {
+                format: ImageFormat::Png,
+            }),
+            old_settings.clone(),
+        )
+        .await?;
+    let old_png = match old_resp {
+        kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+        } => data.contents.0,
+        other => anyhow::bail!("unexpected modeling response for old snapshot: {other:?}"),
+    };
 
-    while let Some((dir, depth)) = stack.pop() {
-        if depth >= SCAN_MAX_DEPTH {
-            continue;
+    // Prepare NEW tree
+    let tmp = tempfile::tempdir()?;
+    let new_root = tmp.path().to_path_buf();
+    let cwd = std::env::current_dir()?;
+    for (rel, bytes) in scan_relevant_files(&cwd) {
+        let dest = join_secure(&new_root, Path::new(&rel))?;
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)?;
         }
-        // Re-check the popped path to avoid TOCTOU with symlinks turning into dirs
-        if let Ok(md) = std::fs::symlink_metadata(&dir) {
-            let ft = md.file_type();
-            if !ft.is_dir() || ft.is_symlink() {
-                continue;
-            }
-        } else {
-            continue;
-        }
-
-        let rd = match std::fs::read_dir(&dir) {
-            Ok(rd) => rd,
-            Err(_) => continue,
-        };
-        for ent in rd.flatten() {
-            let path = ent.path();
-            let name = ent.file_name().to_string_lossy().to_string();
-            let ft = match ent.file_type() {
-                Ok(ft) => ft,
-                Err(_) => continue,
-            };
-            // Avoid following symlinks to prevent cycles (cross-platform)
-            if ft.is_symlink() {
-                continue;
-            }
-            if ft.is_dir() {
-                if name == ".git" || name == "target" || name == "node_modules" || name.starts_with('.') {
-                    continue;
-                }
-                stack.push((path, depth + 1));
-            } else if ft.is_file() {
-                let is_relevant = path
-                    .extension()
-                    .and_then(|e| e.to_str())
-                    .map(|e| e.to_ascii_lowercase())
-                    .map(|e| kcl_lib::RELEVANT_FILE_EXTENSIONS.contains(&e))
-                    .unwrap_or(false);
-                if is_relevant {
-                    let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().to_string();
-                    if let Ok(bytes) = std::fs::read(&path) {
-                        out.insert(rel, bytes);
-                    }
-                }
-            }
-        }
+        std::fs::write(&dest, &bytes)?;
     }
-    out
+    for e in edits {
+        let dest = join_secure(&new_root, Path::new(&e.path))?;
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&dest, e.new.as_bytes())?;
+    }
+
+    let (new_code, new_main_path) = ctx.get_code_and_file_path(&new_root).await?;
+    let mut new_settings = old_settings.clone();
+    let typed = TypedPath::from(new_main_path.display().to_string().as_str());
+    new_settings.with_current_file(typed);
+    let (new_resp, _sd_new) = ctx
+        .send_kcl_modeling_cmd(
+            host,
+            &new_main_path.display().to_string(),
+            &new_code,
+            ModelingCmd::TakeSnapshot(TakeSnapshot {
+                format: ImageFormat::Png,
+            }),
+            new_settings,
+        )
+        .await?;
+    let new_png = match new_resp {
+        kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+        } => data.contents.0,
+        other => anyhow::bail!("unexpected modeling response for new snapshot: {other:?}"),
+    };
+
+    let left = image::load_from_memory(&old_png)?.to_rgba8();
+    let right = image::load_from_memory(&new_png)?.to_rgba8();
+    let (lw, lh) = left.dimensions();
+    let (rw, rh) = right.dimensions();
+    let out_w = lw + rw;
+    let out_h = std::cmp::max(lh, rh);
+    let mut out = image::RgbaImage::new(out_w, out_h);
+    image::imageops::overlay(&mut out, &left, 0, (out_h - lh) as i64 / 2);
+    image::imageops::overlay(&mut out, &right, lw as i64, (out_h - rh) as i64 / 2);
+    let mut outfile = std::env::temp_dir();
+    outfile.push(format!("zoo-copilot-render-{}.png", uuid::Uuid::new_v4()));
+    out.save(&outfile)?;
+    Ok(outfile)
 }
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
-
+    // Copilot run.rs tests trimmed; helpers and scanning tests live in util.rs.
     use super::*;
-
-    #[test]
-    fn scan_only_relevant_file_extensions() {
-        let tmp = tempfile::tempdir().expect("create tempdir");
-        let root = tmp.path();
-
-        // Relevant files
-        std::fs::write(root.join("main.kcl"), b"cube(1)").unwrap();
-        std::fs::write(root.join("foo.KCL"), b"sphere(2)").unwrap(); // case-insensitive
-        std::fs::create_dir(root.join("sub")).unwrap();
-        std::fs::write(root.join("sub/bar.kcl"), b"cylinder(3)").unwrap();
-
-        // Irrelevant files
-        std::fs::write(root.join("README.md"), b"docs").unwrap();
-        std::fs::write(root.join("notes.txt"), b"hello").unwrap();
-        std::fs::create_dir(root.join("target")).unwrap();
-        std::fs::write(root.join("target/skip.kcl"), b"should not be read").unwrap();
-        std::fs::create_dir(root.join("node_modules")).unwrap();
-        std::fs::write(root.join("node_modules/also_skip.kcl"), b"nope").unwrap();
-        std::fs::create_dir(root.join(".git")).unwrap();
-        std::fs::write(root.join(".git/also_skip.kcl"), b"nope").unwrap();
-        std::fs::create_dir(root.join(".hidden")).unwrap();
-        std::fs::write(root.join(".hidden/also_skip.kcl"), b"nope").unwrap();
-
-        let files = scan_relevant_files(root);
-        let mut keys: Vec<_> = files.keys().cloned().collect();
-        keys.sort();
-        assert_eq!(
-            keys,
-            vec!["foo.KCL".to_string(), "main.kcl".to_string(), "sub/bar.kcl".to_string(),]
-        );
-
-        // Ensure contents match something small and non-empty
-        assert_eq!(files.get("main.kcl").unwrap(), b"cube(1)");
-    }
-
-    #[test]
-    fn scan_includes_obj_and_kcl_without_extra_list() {
-        let tmp = tempfile::tempdir().expect("create tempdir");
-        let root = tmp.path();
-        std::fs::write(root.join("main.kcl"), b"cube(1)\n").unwrap();
-        std::fs::write(root.join("thing.kcl"), b"sphere(2)\n").unwrap();
-        std::fs::write(root.join("blah.obj"), b"o cube\n").unwrap();
-        let files = scan_relevant_files(root);
-        let mut keys: Vec<_> = files.keys().cloned().collect();
-        keys.sort();
-        assert!(keys.contains(&"main.kcl".to_string()));
-        assert!(keys.contains(&"thing.kcl".to_string()));
-        assert!(keys.contains(&"blah.obj".to_string()));
-    }
-
-    #[test]
-    fn scan_handles_deep_nesting_iterative() {
-        let tmp = tempfile::tempdir().expect("create tempdir");
-        let mut cur = tmp.path().to_path_buf();
-        // Create a deeply nested directory tree with short names to avoid path length issues
-        for _ in 0..120 {
-            cur.push("d");
-            std::fs::create_dir(&cur).unwrap();
-        }
-        let deep_file = cur.join("main.kcl");
-        std::fs::write(&deep_file, b"cube(1)\n").unwrap();
-
-        let files = scan_relevant_files(tmp.path());
-        // Must contain the deeply nested main.kcl
-        let has_main = files.keys().any(|k| k.ends_with("main.kcl"));
-        assert!(has_main, "expected to find deeply nested main.kcl");
-        // And the contents should be correct
-        let (k, v) = files.iter().find(|(k, _)| k.ends_with("main.kcl")).unwrap();
-        assert_eq!(v, b"cube(1)\n");
-        // Ensure we didn't recurse-stack-overflow (test would crash) and completed quickly
-        assert!(k.matches('/').count() >= 120 - 1);
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn scan_skips_symlink_loops_unix() {
-        use std::os::unix::fs::symlink;
-        let tmp = tempfile::tempdir().expect("create tempdir");
-        let root = tmp.path();
-        std::fs::create_dir(root.join("dir")).unwrap();
-        // symlink from dir/link -> root to create a potential cycle
-        symlink(root, root.join("dir/link")).unwrap();
-        // add a normal file
-        std::fs::write(root.join("main.kcl"), b"cube(1)\n").unwrap();
-        // ensure we don't hang
-        let files = scan_relevant_files(root);
-        assert!(files.keys().any(|k| k == "main.kcl"));
-    }
-
-    #[test]
-    fn scan_depth_limit_skips_beyond() {
-        // Build a tree deeper than the enforced limit and ensure files beyond are skipped
-        let tmp = tempfile::tempdir().expect("create tempdir");
-        let mut cur = tmp.path().to_path_buf();
-        for _ in 0..(super::SCAN_MAX_DEPTH + 10) {
-            cur.push("d");
-            std::fs::create_dir(&cur).unwrap();
-        }
-        let deep_file = cur.join("main.kcl");
-        std::fs::write(&deep_file, b"cube(9)\n").unwrap();
-
-        let files = scan_relevant_files(tmp.path());
-        assert!(
-            files.keys().all(|k| !k.ends_with("main.kcl")),
-            "expected deepest file to be skipped by depth limit"
-        );
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn scan_root_symlink_is_skipped_unix() {
-        use std::os::unix::fs::symlink;
-        let real = tempfile::tempdir().expect("create tempdir");
-        let linkdir = tempfile::tempdir().expect("link container");
-        let link = linkdir.path().join("rootlink");
-        symlink(real.path(), &link).unwrap();
-        // Place a relevant file in the real dir
-        std::fs::write(real.path().join("main.kcl"), b"cube(1)\n").unwrap();
-        // Scanning the symlink as root should skip it entirely
-        let files = scan_relevant_files(&link);
-        assert!(files.is_empty());
-    }
 
     #[test]
     fn build_user_message_attaches_all() {
