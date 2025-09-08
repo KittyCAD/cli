@@ -2,10 +2,10 @@ use std::{net::SocketAddr, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
-use kcl_lib::TypedPath;
+use kcl_lib::{ToLspRange, TypedPath};
 use kcmc::format::OutputFormat3d as OutputFormat;
 use kittycad::types as kt;
-use kittycad_modeling_cmds as kcmc;
+use kittycad_modeling_cmds::{self as kcmc, units::UnitLength};
 use url::Url;
 
 use crate::{iostreams::IoStreams, kcl_error_fmt};
@@ -115,7 +115,7 @@ impl crate::cmd::Command for CmdKclExport {
         let program = kcl_lib::Program::parse_no_errs(&code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
         let meta_settings = program.meta_settings()?.unwrap_or_default();
-        let units: kcl_lib::UnitLength = meta_settings.default_length_units.into();
+        let units: UnitLength = meta_settings.default_length_units.into();
 
         let client = ctx.api_client("")?;
         let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
@@ -127,7 +127,7 @@ impl crate::cmd::Command for CmdKclExport {
             .1;
 
         let files = ectx
-            .export(get_output_format(&self.output_format, units.into(), self.deterministic))
+            .export(get_output_format(&self.output_format, units, self.deterministic))
             .await?;
 
         // Save the files to our export directory.
