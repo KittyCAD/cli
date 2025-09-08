@@ -127,7 +127,7 @@ impl crate::cmd::Command for CmdKclExport {
             .1;
 
         let files = ectx
-            .export(get_output_format(&self.output_format, units.into(), self.deterministic))
+            .export(get_output_format(&self.output_format, units, self.deterministic))
             .await?;
 
         // Save the files to our export directory.
