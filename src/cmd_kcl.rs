@@ -2,7 +2,7 @@ use std::{net::SocketAddr, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
-use kcl_lib::TypedPath;
+use kcl_lib::{ToLspRange, TypedPath};
 use kcmc::format::OutputFormat3d as OutputFormat;
 use kittycad::types as kt;
 use kittycad_modeling_cmds::{self as kcmc, units::UnitLength};
