@@ -710,6 +710,9 @@ pub(crate) fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_co
         kittycad::types::ReasoningMessage::Text { content } => {
             vec![format!("{} {}", lbl("reasoning:", Color::Cyan), content.trim())]
         }
+        kittycad::types::ReasoningMessage::Markdown { content } => {
+            vec![format!("{} {}", lbl("reasoning:", Color::Cyan), content.trim())]
+        }
         kittycad::types::ReasoningMessage::KclDocs { content } => {
             vec![format!("{} {}", lbl("kcl docs:", Color::Purple), content.trim())]
         }
@@ -769,6 +772,7 @@ pub(crate) fn reasoning_to_markdown(reason: &kittycad::types::ReasoningMessage) 
 
     match reason {
         kittycad::types::ReasoningMessage::Text { content } => content.trim().to_string(),
+        kittycad::types::ReasoningMessage::Markdown { content } => content.trim().to_string(),
         kittycad::types::ReasoningMessage::KclDocs { content } => {
             format!("**KCL Docs**\n\n{}", content.trim())
         }

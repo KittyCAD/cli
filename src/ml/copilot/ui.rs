@@ -175,6 +175,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 kittycad::types::MlCopilotServerMessage::Delta { delta } => {
                     assistant_buf.push_str(delta);
                 }
+                kittycad::types::MlCopilotServerMessage::ConversationId { .. } => {
+                    // Ignore conversation ID we don't care.
+                }
                 kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
                     if !assistant_buf.is_empty() {
                         let rows = render_preserving_newlines(&assistant_buf);
