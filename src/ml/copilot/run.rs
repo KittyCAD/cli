@@ -54,6 +54,7 @@ fn build_user_message(
         current_files: Some(files),
         project_name: project_name.clone(),
         source_ranges: None,
+        forced_tools: Default::default(),
     };
     let len = serde_json::to_string(&msg).map(|s| s.len()).unwrap_or(0);
     (msg, len)
