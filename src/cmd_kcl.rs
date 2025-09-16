@@ -115,7 +115,7 @@ impl crate::cmd::Command for CmdKclExport {
         let program = kcl_lib::Program::parse_no_errs(&code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
         let meta_settings = program.meta_settings()?.unwrap_or_default();
-        let units: UnitLength = meta_settings.default_length_units.into();
+        let units: UnitLength = meta_settings.default_length_units;
 
         let client = ctx.api_client("")?;
         let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
