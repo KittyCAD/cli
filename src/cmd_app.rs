@@ -5,13 +5,13 @@ use anyhow::Result;
 use clap::Parser;
 
 #[cfg(not(target_os = "linux"))]
-const NOT_INSTALLED_ERROR: &str = r#"The Zoo Modeling App is not installed. 
+const NOT_INSTALLED_ERROR: &str = r#"The Zoo Design Studio is not installed. 
 Please download it from https://zoo.dev/modeling-app/download
 If you do have the Modeling App installed already, we were 
 unable to find it in the standard locations. Please open 
 an issue at https://github.com/KittyCAD/cli/issues/new"#;
 
-/// Open a directory or file in the Zoo Modeling App on your desktop.
+/// Open a directory or file in the Zoo Design Studio on your desktop.
 ///
 /// If you do not have the app installed, you will be prompted to download it.
 ///
@@ -32,7 +32,7 @@ impl crate::cmd::Command for CmdApp {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let app_path = get_app_path()?;
 
-        writeln!(ctx.io.out, "Opening the Zoo Modeling App at {}", app_path.display())?;
+        writeln!(ctx.io.out, "Opening the Zoo Design Studio at {}", app_path.display())?;
 
         std::process::Command::new(app_path).arg(&self.path).spawn()?;
 
@@ -50,10 +50,10 @@ fn get_app_path() -> Result<std::path::PathBuf> {
 /// Get the path to the application on macOS.
 fn get_app_path() -> Result<std::path::PathBuf> {
     let paths_to_try = [
-        PathBuf::from("/Applications/Zoo Modeling App.app/Contents/MacOS/Zoo Modeling App"),
-        PathBuf::from("/Applications/Zoo Modeling.app/Contents/MacOS/Zoo Modeling App"),
-        PathBuf::from("/Applications/Zoo.app/Contents/MacOS/Zoo Modeling App"),
-        PathBuf::from("/Applications/KittyCAD Modeling.app/Contents/MacOS/Zoo Modeling App"),
+        PathBuf::from("/Applications/Zoo Design Studio.app/Contents/MacOS/Zoo Design Studio"),
+        PathBuf::from("/Applications/Zoo Modeling.app/Contents/MacOS/Zoo Design Studio"),
+        PathBuf::from("/Applications/Zoo.app/Contents/MacOS/Zoo Design Studio"),
+        PathBuf::from("/Applications/KittyCAD Modeling.app/Contents/MacOS/Zoo Design Studio"),
     ];
 
     for path in paths_to_try.iter() {
@@ -69,10 +69,10 @@ fn get_app_path() -> Result<std::path::PathBuf> {
 /// Get the path to the application on windows.
 fn get_app_path() -> Result<std::path::PathBuf> {
     let paths_to_try = [
-        PathBuf::from(r#"C:\Program Files\Zoo Modeling App\Zoo Modeling App.exe"#),
-        PathBuf::from(r#"C:\Program Files\KittyCAD Modeling\Zoo Modeling App.exe"#),
-        PathBuf::from(r#"C:\Program Files\Zoo Modeling\Zoo Modeling App.exe"#),
-        PathBuf::from(r#"C:\Program Files\Zoo\Zoo Modeling App.exe"#),
+        PathBuf::from(r#"C:\Program Files\Zoo Design Studio\Zoo Design Studio.exe"#),
+        PathBuf::from(r#"C:\Program Files\KittyCAD Modeling\Zoo Design Studio.exe"#),
+        PathBuf::from(r#"C:\Program Files\Zoo Modeling\Zoo Design Studio.exe"#),
+        PathBuf::from(r#"C:\Program Files\Zoo\Zoo Design Studio.exe"#),
     ];
 
     for path in paths_to_try.iter() {
