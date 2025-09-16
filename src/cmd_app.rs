@@ -6,8 +6,8 @@ use clap::Parser;
 
 #[cfg(not(target_os = "linux"))]
 const NOT_INSTALLED_ERROR: &str = r#"The Zoo Design Studio is not installed. 
-Please download it from https://zoo.dev/modeling-app/download
-If you do have the Modeling App installed already, we were 
+Please download it from https://zoo.dev/design-studio/download
+If you do have the Design Studio installed already, we were 
 unable to find it in the standard locations. Please open 
 an issue at https://github.com/KittyCAD/cli/issues/new"#;
 
