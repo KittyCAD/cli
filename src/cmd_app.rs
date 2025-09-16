@@ -51,9 +51,6 @@ fn get_app_path() -> Result<std::path::PathBuf> {
 fn get_app_path() -> Result<std::path::PathBuf> {
     let paths_to_try = [
         PathBuf::from("/Applications/Zoo Design Studio.app/Contents/MacOS/Zoo Design Studio"),
-        PathBuf::from("/Applications/Zoo Modeling.app/Contents/MacOS/Zoo Design Studio"),
-        PathBuf::from("/Applications/Zoo.app/Contents/MacOS/Zoo Design Studio"),
-        PathBuf::from("/Applications/KittyCAD Modeling.app/Contents/MacOS/Zoo Design Studio"),
     ];
 
     for path in paths_to_try.iter() {
@@ -70,9 +67,6 @@ fn get_app_path() -> Result<std::path::PathBuf> {
 fn get_app_path() -> Result<std::path::PathBuf> {
     let paths_to_try = [
         PathBuf::from(r#"C:\Program Files\Zoo Design Studio\Zoo Design Studio.exe"#),
-        PathBuf::from(r#"C:\Program Files\KittyCAD Modeling\Zoo Design Studio.exe"#),
-        PathBuf::from(r#"C:\Program Files\Zoo Modeling\Zoo Design Studio.exe"#),
-        PathBuf::from(r#"C:\Program Files\Zoo\Zoo Design Studio.exe"#),
     ];
 
     for path in paths_to_try.iter() {
