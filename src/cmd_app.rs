@@ -49,9 +49,9 @@ fn get_app_path() -> Result<std::path::PathBuf> {
 #[cfg(target_os = "macos")]
 /// Get the path to the application on macOS.
 fn get_app_path() -> Result<std::path::PathBuf> {
-    let paths_to_try = [
-        PathBuf::from("/Applications/Zoo Design Studio.app/Contents/MacOS/Zoo Design Studio"),
-    ];
+    let paths_to_try = [PathBuf::from(
+        "/Applications/Zoo Design Studio.app/Contents/MacOS/Zoo Design Studio",
+    )];
 
     for path in paths_to_try.iter() {
         if path.exists() {
@@ -65,9 +65,9 @@ fn get_app_path() -> Result<std::path::PathBuf> {
 #[cfg(target_os = "windows")]
 /// Get the path to the application on windows.
 fn get_app_path() -> Result<std::path::PathBuf> {
-    let paths_to_try = [
-        PathBuf::from(r#"C:\Program Files\Zoo Design Studio\Zoo Design Studio.exe"#),
-    ];
+    let paths_to_try = [PathBuf::from(
+        r#"C:\Program Files\Zoo Design Studio\Zoo Design Studio.exe"#,
+    )];
 
     for path in paths_to_try.iter() {
         if path.exists() {
