@@ -852,6 +852,18 @@ async fn test_main(ctx: &mut MainContext) {
     // Hold the dir open for the duration of the test run.
     temp_projects.push(tmp);
 
+    // Temp project for multi-file edit: root main.kcl and subdir/main.kcl.
+    let tmp_multi = tempfile::tempdir().expect("failed to create temp dir");
+    let tmp_multi_path = tmp_multi.path().to_path_buf();
+    std::fs::create_dir_all(tmp_multi_path.join("subdir")).expect("create subdir");
+    std::fs::write(tmp_multi_path.join("main.kcl"), "// Glorious cube\n\nsideLength = 10\n").expect("write main.kcl");
+    std::fs::write(
+        tmp_multi_path.join("subdir/main.kcl"),
+        "// Glorious cylinder\n\nheight = 20\n",
+    )
+    .expect("write subdir/main.kcl");
+    temp_projects.push(tmp_multi);
+
     tests.push(TestItem {
         name: "ml kcl edit reasoning on".to_string(),
         args: vec![
@@ -891,6 +903,64 @@ async fn test_main(ctx: &mut MainContext) {
         want_err: "".to_string(),
         want_code: 0,
         current_directory: Some(tmp_path.clone()),
+        ..Default::default()
+    });
+
+    // Multi-file project: ensure both root and subdir files are edited.
+    tests.push(TestItem {
+        name: "ml kcl edit multi-file (root)".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "ml".to_string(),
+            "kcl".to_string(),
+            "edit".to_string(),
+            "--no-reasoning".to_string(),
+            ".".to_string(),
+            "Add".to_string(),
+            "a".to_string(),
+            "simple".to_string(),
+            "cube".to_string(),
+            "to".to_string(),
+            "main.kcl".to_string(),
+            "and".to_string(),
+            "a".to_string(),
+            "cylinder".to_string(),
+            "to".to_string(),
+            "subdir/main.kcl".to_string(),
+        ],
+        // Only assert presence of the root file path in stdout.
+        want_out: "main.kcl".to_string(),
+        want_err: "".to_string(),
+        want_code: 0,
+        current_directory: Some(tmp_multi_path.clone()),
+        ..Default::default()
+    });
+    tests.push(TestItem {
+        name: "ml kcl edit multi-file (subdir)".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "ml".to_string(),
+            "kcl".to_string(),
+            "edit".to_string(),
+            "--no-reasoning".to_string(),
+            ".".to_string(),
+            "Add".to_string(),
+            "a".to_string(),
+            "simple".to_string(),
+            "cube".to_string(),
+            "to".to_string(),
+            "main.kcl".to_string(),
+            "and".to_string(),
+            "a".to_string(),
+            "cylinder".to_string(),
+            "to".to_string(),
+            "subdir/main.kcl".to_string(),
+        ],
+        // Only assert presence of the subdir file path in stdout.
+        want_out: "subdir/main.kcl".to_string(),
+        want_err: "".to_string(),
+        want_code: 0,
+        current_directory: Some(tmp_multi_path.clone()),
         ..Default::default()
     });
 
