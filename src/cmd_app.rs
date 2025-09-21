@@ -1,10 +1,11 @@
+#[cfg(target_os = "linux")]
+use glob::glob;
 #[cfg(not(target_os = "linux"))]
 use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
 
-#[cfg(not(target_os = "linux"))]
 const NOT_INSTALLED_ERROR: &str = r#"The Zoo Design Studio is not installed. 
 Please download it from https://zoo.dev/design-studio/download
 If you do have the Design Studio installed already, we were 
@@ -31,19 +32,48 @@ pub struct CmdApp {
 impl crate::cmd::Command for CmdApp {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let app_path = get_app_path()?;
+        let extra_args = get_extra_args()?;
 
         writeln!(ctx.io.out, "Opening the Zoo Design Studio at {}", app_path.display())?;
 
-        std::process::Command::new(app_path).arg(&self.path).spawn()?;
+        std::process::Command::new(app_path)
+            .arg(&self.path)
+            .args(&extra_args)
+            .spawn()?;
 
         Ok(())
     }
 }
 
 #[cfg(target_os = "linux")]
-/// Get the path to the application on linux.
+/// Get the path to the application on linux, assuming .AppImage installation as
+/// suggested at https://github.com/KittyCAD/modeling-app/blob/ac23d40e0bc756028d3933060c0c4377e7f6b6a3/INSTALL.md#linux.
+// TODO: consider other install locations
 fn get_app_path() -> Result<std::path::PathBuf> {
-    anyhow::bail!("We don't yet support Linux, but we are working on it!");
+    match dirs::home_dir() {
+        Some(home) => {
+            let path = home
+                .join("Applications")
+                .join("Zoo Design Studio-*-arm64-linux.AppImage");
+            for entry in glob(&path.to_string_lossy()).expect("Failed to read glob pattern") {
+                match entry {
+                    Ok(path) => return Ok(path),
+                    Err(e) => println!("{:?}", e),
+                }
+            }
+            anyhow::bail!(NOT_INSTALLED_ERROR);
+        }
+        None => {
+            anyhow::bail!("Could not determine home directory");
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+/// Get the extra args for the application on linux.
+fn get_extra_args() -> Result<Vec<String>> {
+    let args = vec!["--no-sandbox".into()];
+    Ok(args)
 }
 
 #[cfg(target_os = "macos")]
@@ -62,6 +92,13 @@ fn get_app_path() -> Result<std::path::PathBuf> {
     anyhow::bail!(NOT_INSTALLED_ERROR);
 }
 
+#[cfg(target_os = "macos")]
+/// Get the extra args for the application on macos.
+fn get_extra_args() -> Result<Vec<String>> {
+    let args = vec![];
+    Ok(args)
+}
+
 #[cfg(target_os = "windows")]
 /// Get the path to the application on windows.
 fn get_app_path() -> Result<std::path::PathBuf> {
@@ -76,4 +113,11 @@ fn get_app_path() -> Result<std::path::PathBuf> {
     }
 
     anyhow::bail!(NOT_INSTALLED_ERROR);
+}
+
+#[cfg(target_os = "macos")]
+/// Get the extra args for the application on windows.
+fn get_extra_args() -> Result<Vec<String>> {
+    let args = vec![];
+    Ok(args)
 }
