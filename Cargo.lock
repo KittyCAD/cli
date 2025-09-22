@@ -429,6 +429,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56ed6191a7e78c36abdb16ab65341eefd73d64d303fffccdbb00d51e4205967b"
 
 [[package]]
+name = "built"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4ad8f11f288f48ca24471bbd51ac257aaeaaa07adae295591266b792902ae64"
+
+[[package]]
 name = "bumpalo"
 version = "3.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3539,7 +3545,7 @@ dependencies = [
  "arrayvec",
  "av1-grain",
  "bitstream-io",
- "built",
+ "built 0.7.7",
  "cfg-if",
  "interpolate_name",
  "itertools 0.12.1",
@@ -6333,7 +6339,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "base64 0.22.1",
- "built",
+ "built 0.8.0",
  "chrono",
  "clap",
  "clap_complete",

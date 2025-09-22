@@ -95,7 +95,7 @@ viuer = { version = "0.9.1", features = ["print-file"] }
 tempfile = "3.19.1"
 
 [build-dependencies]
-built = "0.7"
+built = "0.8"
 
 [dev-dependencies]
 expectorate = "1.1.0"
