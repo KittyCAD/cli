@@ -1,6 +1,6 @@
-use std::{str::FromStr, time::Duration};
+use std::{env, fs, str::FromStr, time::Duration};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context as AnyhowContext, Result};
 use futures::StreamExt;
 use kcl_lib::{native_engine::EngineConnection, EngineManager};
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
@@ -9,6 +9,56 @@ use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::
 use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
+
+fn add_extra_root_certs(mut builder: reqwest::ClientBuilder) -> Result<reqwest::ClientBuilder> {
+    let Some(paths_os) = env::var_os("ZOO_EXTRA_CA_CERTS") else {
+        return Ok(builder);
+    };
+
+    for path in env::split_paths(&paths_os) {
+        if path.as_os_str().is_empty() {
+            continue;
+        }
+
+        let data = fs::read(&path).with_context(|| {
+            format!("failed to read certificate file {}", path.display())
+        })?;
+
+        for cert in certs_from_pem(&data)? {
+            builder = builder.add_root_certificate(cert);
+        }
+    }
+
+    Ok(builder)
+}
+
+fn certs_from_pem(data: &[u8]) -> Result<Vec<reqwest::Certificate>> {
+    let pem = std::str::from_utf8(data)?.to_string();
+    let mut certs = Vec::new();
+    let mut current = String::new();
+
+    for line in pem.lines() {
+        if line.contains("-----BEGIN CERTIFICATE-----") {
+            current.clear();
+        }
+
+        if !current.is_empty() || line.contains("-----BEGIN CERTIFICATE-----") {
+            current.push_str(line);
+            current.push('\n');
+
+            if line.contains("-----END CERTIFICATE-----") {
+                certs.push(reqwest::Certificate::from_pem(current.as_bytes())?);
+                current.clear();
+            }
+        }
+    }
+
+    if certs.is_empty() {
+        certs.push(reqwest::Certificate::from_pem(data)?);
+    }
+
+    Ok(certs)
+}
 
 pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
@@ -79,18 +129,18 @@ impl Context<'_> {
         }
 
         let user_agent = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"),);
-        let http_client = reqwest::Client::builder()
+        let http_client = add_extra_root_certs(reqwest::Client::builder()
             .user_agent(user_agent)
             // For file conversions we need this to be long.
             .timeout(std::time::Duration::from_secs(600))
-            .connect_timeout(std::time::Duration::from_secs(60));
-        let ws_client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(60)))?;
+        let ws_client = add_extra_root_certs(reqwest::Client::builder()
             .user_agent(user_agent)
             // For file conversions we need this to be long.
             .timeout(std::time::Duration::from_secs(600))
             .connect_timeout(std::time::Duration::from_secs(60))
             .tcp_keepalive(std::time::Duration::from_secs(600))
-            .http1_only();
+            .http1_only())?;
 
         // Get the token for that host.
         let token = self.config.get(&host, "token")?;
