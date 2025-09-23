@@ -254,7 +254,7 @@ mod test {
         let tmp = tempfile::tempdir().expect("create temp dir");
         std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main");
 
-        for idx in 0..=(COPILOT_PROJECT_ENTRY_LIMIT) {
+        for idx in 0..COPILOT_PROJECT_ENTRY_LIMIT {
             std::fs::write(tmp.path().join(format!("extra-{idx}.kcl")), "cube(2)\n").expect("write extra");
         }
 
