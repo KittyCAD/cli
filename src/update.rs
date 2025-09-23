@@ -108,7 +108,7 @@ pub async fn get_latest_release_info() -> Result<ReleaseInfo> {
         Err(err) => {
             return Err(anyhow!(
                 "Failed to parse response from GitHub: {}\ntext:\n{}",
-                err.to_string(),
+                err,
                 text
             ));
         }
