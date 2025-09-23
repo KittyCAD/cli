@@ -119,14 +119,12 @@ impl crate::cmd::Command for CmdAliasSet {
 
                 // Check if already exists.
                 if valid_command(&self.alias) {
-                    bail!("could not create alias: {} is already a zoo command", self.alias);
+                    let alias = &self.alias;
+                    bail!("could not create alias: {alias} is already a zoo command");
                 }
 
                 if !is_shell && !valid_command(&expansion) {
-                    bail!(
-                        "could not create alias: {} does not correspond to a zoo command",
-                        expansion
-                    );
+                    bail!("could not create alias: {expansion} does not correspond to a zoo command");
                 }
 
                 writeln!(
@@ -153,12 +151,13 @@ impl crate::cmd::Command for CmdAliasSet {
                         writeln!(ctx.io.out, "{success_msg}")?;
                     }
                     Err(e) => {
-                        bail!("could not create alias: {}", e);
+                        bail!("could not create alias: {e}");
                     }
                 }
             }
             Err(e) => {
-                bail!("failed to parse expansion {}: {}", self.expansion, e);
+                let expansion = &self.expansion;
+                bail!("failed to parse expansion {expansion}: {e}");
             }
         }
 

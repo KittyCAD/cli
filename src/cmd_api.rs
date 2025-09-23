@@ -261,7 +261,7 @@ impl CmdApi {
 
             // See if value parses as a float.
             if let Ok(f) = value.parse::<f64>() {
-                let num = serde_json::Number::from_f64(f).ok_or_else(|| anyhow!("invalid float {}", f))?;
+                let num = serde_json::Number::from_f64(f).ok_or_else(|| anyhow!("invalid float {f}"))?;
                 params.insert(key.to_string(), serde_json::Value::Number(num));
                 continue;
             }

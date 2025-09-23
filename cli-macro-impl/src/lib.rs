@@ -254,7 +254,7 @@ impl Operation {
                 if e.to_string().contains("reference") {
                     schema.get_schema_from_reference(&self.spec, false)?
                 } else {
-                    anyhow::bail!("could not get schema from request body: {}", e);
+                    anyhow::bail!("could not get schema from request body: {e}");
                 }
             }
         };
@@ -273,7 +273,7 @@ impl Operation {
                     if e.to_string().contains("reference") {
                         prop.get_schema_from_reference(&self.spec, false)?
                     } else {
-                        anyhow::bail!("could not get schema from prop `{}`: {}", key, e);
+                        anyhow::bail!("could not get schema from prop `{key}`: {e}");
                     }
                 }
             };
@@ -1265,7 +1265,7 @@ impl Operation {
 
         let fix = t.rendered()?.replace("crate::types::", "kittycad::types::");
 
-        fix.parse().map_err(|err| anyhow::anyhow!("{}", err))
+        fix.parse().map_err(|err| anyhow::anyhow!("{err}"))
     }
 
     fn get_is_check_fn(

@@ -864,6 +864,15 @@ async fn test_main(ctx: &mut MainContext) {
     .expect("write subdir/main.kcl");
     temp_projects.push(tmp_multi);
 
+    // Temp project exceeding the Copilot size limit (> 25 entries).
+    let tmp_large = tempfile::tempdir().expect("failed to create temp dir");
+    let tmp_large_path = tmp_large.path().to_path_buf();
+    std::fs::write(tmp_large_path.join("main.kcl"), "cube(1)\n").expect("write main.kcl");
+    for idx in 0..26 {
+        std::fs::write(tmp_large_path.join(format!("extra-{idx}.kcl")), "cube(1)\n").expect("write extra file");
+    }
+    temp_projects.push(tmp_large);
+
     tests.push(TestItem {
         name: "ml kcl edit reasoning on".to_string(),
         args: vec![
@@ -961,6 +970,21 @@ async fn test_main(ctx: &mut MainContext) {
         want_err: "".to_string(),
         want_code: 0,
         current_directory: Some(tmp_multi_path.clone()),
+        ..Default::default()
+    });
+
+    tests.push(TestItem {
+        name: "ml kcl copilot rejects large project".to_string(),
+        args: vec![
+            "zoo".to_string(),
+            "ml".to_string(),
+            "kcl".to_string(),
+            "copilot".to_string(),
+        ],
+        want_out: "".to_string(),
+        want_err: "Copilot needs a smaller project".to_string(),
+        want_code: 1,
+        current_directory: Some(tmp_large_path.clone()),
         ..Default::default()
     });
 
