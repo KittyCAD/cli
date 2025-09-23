@@ -20,9 +20,7 @@ fn add_extra_root_certs(mut builder: reqwest::ClientBuilder) -> Result<reqwest::
             continue;
         }
 
-        let data = fs::read(&path).with_context(|| {
-            format!("failed to read certificate file {}", path.display())
-        })?;
+        let data = fs::read(&path).with_context(|| format!("failed to read certificate file {}", path.display()))?;
 
         for cert in certs_from_pem(&data)? {
             builder = builder.add_root_certificate(cert);
@@ -129,18 +127,22 @@ impl Context<'_> {
         }
 
         let user_agent = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"),);
-        let http_client = add_extra_root_certs(reqwest::Client::builder()
-            .user_agent(user_agent)
-            // For file conversions we need this to be long.
-            .timeout(std::time::Duration::from_secs(600))
-            .connect_timeout(std::time::Duration::from_secs(60)))?;
-        let ws_client = add_extra_root_certs(reqwest::Client::builder()
-            .user_agent(user_agent)
-            // For file conversions we need this to be long.
-            .timeout(std::time::Duration::from_secs(600))
-            .connect_timeout(std::time::Duration::from_secs(60))
-            .tcp_keepalive(std::time::Duration::from_secs(600))
-            .http1_only())?;
+        let http_client = add_extra_root_certs(
+            reqwest::Client::builder()
+                .user_agent(user_agent)
+                // For file conversions we need this to be long.
+                .timeout(std::time::Duration::from_secs(600))
+                .connect_timeout(std::time::Duration::from_secs(60)),
+        )?;
+        let ws_client = add_extra_root_certs(
+            reqwest::Client::builder()
+                .user_agent(user_agent)
+                // For file conversions we need this to be long.
+                .timeout(std::time::Duration::from_secs(600))
+                .connect_timeout(std::time::Duration::from_secs(60))
+                .tcp_keepalive(std::time::Duration::from_secs(600))
+                .http1_only(),
+        )?;
 
         // Get the token for that host.
         let token = self.config.get(&host, "token")?;
