@@ -48,7 +48,8 @@ impl crate::cmd::Command for CmdAliasDelete {
 
         let (expansion, ok) = alias_config.get(&self.alias);
         if !ok {
-            bail!("no such alias {}", self.alias);
+            let alias = &self.alias;
+            bail!("no such alias {alias}");
         }
 
         match alias_config.delete(&self.alias) {
@@ -63,7 +64,8 @@ impl crate::cmd::Command for CmdAliasDelete {
                 )?;
             }
             Err(e) => {
-                bail!("failed to delete alias {}: {}", self.alias, e);
+                let alias = &self.alias;
+                bail!("failed to delete alias {alias}: {e}");
             }
         }
 

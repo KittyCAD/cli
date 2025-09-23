@@ -606,7 +606,8 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::R
         return Ok(settings);
     }
     if !input.exists() {
-        anyhow::bail!("file `{}` does not exist", input.display());
+        let input_display = input.display().to_string();
+        anyhow::bail!("file `{input_display}` does not exist");
     }
     let dir = if input.is_dir() {
         input.to_path_buf()

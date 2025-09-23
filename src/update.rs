@@ -94,7 +94,8 @@ pub async fn get_latest_release_info() -> Result<ReleaseInfo> {
     let mut req = reqwest::Client::new().get(url);
 
     // Set the user agent.
-    req = req.header("User-Agent", format!("zoo/{}", clap::crate_version!()));
+    let crate_version = clap::crate_version!();
+    req = req.header("User-Agent", format!("zoo/{crate_version}"));
 
     if !github_token.is_empty() {
         req = req.bearer_auth(github_token);
@@ -106,11 +107,7 @@ pub async fn get_latest_release_info() -> Result<ReleaseInfo> {
     let latest_release: ReleaseInfo = match serde_json::from_str(&text) {
         Ok(release_info) => release_info,
         Err(err) => {
-            return Err(anyhow!(
-                "Failed to parse response from GitHub: {}\ntext:\n{}",
-                err,
-                text
-            ));
+            return Err(anyhow!("Failed to parse response from GitHub: {err}\ntext:\n{text}"));
         }
     };
 
@@ -137,7 +134,10 @@ fn set_state_entry(filename: &str, t: chrono::DateTime<chrono::Utc>, r: ReleaseI
     // Make sure we have a parent directory.
     let path = std::path::Path::new(&filename);
     let parent = path.parent().unwrap();
-    fs::create_dir_all(parent).with_context(|| format!("failed to create directory {}", parent.display()))?;
+    fs::create_dir_all(parent).with_context(|| {
+        let parent_display = parent.display().to_string();
+        format!("failed to create directory {parent_display}")
+    })?;
 
     // Write the file.
     fs::write(filename, content).with_context(|| format!("failed to write file {filename}"))?;
@@ -149,7 +149,7 @@ fn set_state_entry(filename: &str, t: chrono::DateTime<chrono::Utc>, r: ReleaseI
 pub fn version_greater_then(v: &str, w: &str) -> Result<bool> {
     match version_compare::compare(v, w) {
         Ok(cmp) => Ok(cmp == version_compare::Cmp::Gt),
-        Err(_) => Err(anyhow!("failed to compare versions: {} {}", v, w)),
+        Err(_) => Err(anyhow!("failed to compare versions: {v} {w}")),
     }
 }
 
@@ -191,11 +191,8 @@ fn get_exe_download_url(version: &str) -> String {
         version.to_string()
     };
 
-    format!(
-        "https://github.com/KittyCAD/cli/releases/download/{}/zoo-{}",
-        version,
-        crate::built_info::TARGET
-    )
+    let target = crate::built_info::TARGET;
+    format!("https://github.com/KittyCAD/cli/releases/download/{version}/zoo-{target}")
 }
 
 /// Takes a version string and downloads the latest binary to a temp file.
@@ -219,11 +216,7 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     // Verify the sha256 hash of the binary.
     let bin_hash = sha256_digest(bin_body.as_ref())?;
     if bin_hash != sha256_hash {
-        anyhow::bail!(
-            "SHA256 hash mismatch: local ({}) != remote ({:?})",
-            bin_hash,
-            sha256_hash
-        );
+        anyhow::bail!("SHA256 hash mismatch: local ({bin_hash}) != remote ({sha256_hash:?})");
     }
 
     // Write the body to the file.
@@ -277,30 +270,23 @@ mod test {
 
         let file = super::download_binary_to_temp_file("v0.2.42").await.unwrap();
 
-        assert_eq!(
-            file,
-            format!("{}/zoo", std::env::temp_dir().to_str().unwrap().trim_end_matches('/'))
-        );
+        let temp_base = std::env::temp_dir().to_str().unwrap().trim_end_matches('/').to_string();
+        assert_eq!(file, format!("{temp_base}/zoo"));
     }
 
     #[test]
     fn test_get_exe_download_url() {
         let url = super::get_exe_download_url("0.1.0");
+        let target = crate::built_info::TARGET;
         assert_eq!(
             url,
-            format!(
-                "https://github.com/KittyCAD/cli/releases/download/v0.1.0/zoo-{}",
-                crate::built_info::TARGET
-            )
+            format!("https://github.com/KittyCAD/cli/releases/download/v0.1.0/zoo-{target}")
         );
 
         let url = super::get_exe_download_url("v0.2.0");
         assert_eq!(
             url,
-            format!(
-                "https://github.com/KittyCAD/cli/releases/download/v0.2.0/zoo-{}",
-                crate::built_info::TARGET
-            )
+            format!("https://github.com/KittyCAD/cli/releases/download/v0.2.0/zoo-{target}")
         );
     }
 
@@ -385,8 +371,9 @@ mod test {
 
         for t in tests {
             let result = crate::update::version_greater_then(&t.latest_version, &t.current_version).unwrap();
+            let test_name = &t.name;
 
-            assert_eq!(result, t.want_result, "test {} failed", t.name);
+            assert_eq!(result, t.want_result, "test {test_name} failed");
         }
     }
 }

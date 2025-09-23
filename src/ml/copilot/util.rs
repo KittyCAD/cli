@@ -15,8 +15,10 @@ pub(crate) const SKIP_DIRS: &[&str] = &[".git", "target", "node_modules"];
 /// - We lexically build the joined path and verify it never escapes `base` while processing.
 /// - Finally, we canonicalize the nearest existing ancestor to prevent symlink escapes.
 pub(crate) fn join_secure(base: &Path, candidate: &Path) -> anyhow::Result<PathBuf> {
-    let base_canon = std::fs::canonicalize(base)
-        .map_err(|e| anyhow::anyhow!("failed to canonicalize base '{}': {e}", base.display()))?;
+    let base_canon = std::fs::canonicalize(base).map_err(|e| {
+        let base_display = base.display().to_string();
+        anyhow::anyhow!("failed to canonicalize base '{base_display}': {e}")
+    })?;
 
     let mut out_lex = base_canon.clone();
     for comp in candidate.components() {
@@ -45,8 +47,10 @@ pub(crate) fn join_secure(base: &Path, candidate: &Path) -> anyhow::Result<PathB
         }
     }
     if probe.exists() {
-        let probe_canon = std::fs::canonicalize(&probe)
-            .map_err(|e| anyhow::anyhow!("failed to canonicalize ancestor '{}': {e}", probe.display()))?;
+        let probe_canon = std::fs::canonicalize(&probe).map_err(|e| {
+            let probe_display = probe.display().to_string();
+            anyhow::anyhow!("failed to canonicalize ancestor '{probe_display}': {e}")
+        })?;
         if !probe_canon.starts_with(&base_canon) {
             anyhow::bail!("path escapes project root via symlink")
         }

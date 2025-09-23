@@ -352,7 +352,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                 {
                     (data.contents.0.clone(), session_data)
                 } else {
-                    anyhow::bail!("Unexpected response from engine: {:?}", resp);
+                    anyhow::bail!("Unexpected response from engine: {resp:?}");
                 }
             }
         };
@@ -428,7 +428,7 @@ impl crate::cmd::Command for CmdKclView {
             // Save the snapshot locally.
             std::fs::write(&tmp_file, &data.contents.0)?;
         } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
 
         let (width, height) = (ctx.io.tty_size)()?;
@@ -462,8 +462,7 @@ pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad_modeling_cm
         Ok(format) => Ok(format),
         Err(_) => {
             anyhow::bail!(
-                    "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",
-                    ext
+                    "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
                 )
         }
     }
@@ -597,7 +596,7 @@ impl crate::cmd::Command for CmdKclVolume {
             let format = ctx.format(&self.format)?;
             ctx.io.write_output(&format, &data)?;
         } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
 
         if self.show_trace {
@@ -684,7 +683,7 @@ impl crate::cmd::Command for CmdKclMass {
             let format = ctx.format(&self.format)?;
             ctx.io.write_output(&format, &data)?;
         } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
 
         if self.show_trace {
@@ -757,7 +756,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
             let format = ctx.format(&self.format)?;
             ctx.io.write_output(&format, &data)?;
         } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
 
         if self.show_trace {
@@ -844,7 +843,7 @@ impl crate::cmd::Command for CmdKclDensity {
             let format = ctx.format(&self.format)?;
             ctx.io.write_output(&format, &data)?;
         } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
 
         if self.show_trace {
@@ -917,7 +916,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
             let format = ctx.format(&self.format)?;
             ctx.io.write_output(&format, &data)?;
         } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
 
         if self.show_trace {
@@ -1053,7 +1052,8 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
     let input = std::path::Path::new(input);
     // Ensure the path exists.
     if !input.exists() {
-        anyhow::bail!("file `{}` does not exist", input.display());
+        let input_display = input.display().to_string();
+        anyhow::bail!("file `{input_display}` does not exist");
     }
     // Get the directory if we don't already have one.
     let dir = if input.is_dir() {
@@ -1061,7 +1061,10 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
     } else {
         input
             .parent()
-            .ok_or_else(|| anyhow::anyhow!("could not get parent directory of `{}`", input.display()))?
+            .ok_or_else(|| {
+                let input_display = input.display().to_string();
+                anyhow::anyhow!("could not get parent directory of `{input_display}`")
+            })?
             .to_path_buf()
     };
 

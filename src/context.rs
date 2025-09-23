@@ -308,7 +308,7 @@ impl Context<'_> {
                     conversation_id,
                 };
             } else {
-                anyhow::bail!("Unexpected response type: {:?}", result);
+                anyhow::bail!("Unexpected response type: {result:?}");
             }
 
             status = gen_model.status.clone();
@@ -320,7 +320,7 @@ impl Context<'_> {
         // If the model failed we will want to tell the user.
         if gen_model.status == ApiCallStatus::Failed {
             if let Some(error) = gen_model.error {
-                anyhow::bail!("Your prompt returned an error: ```\n{}\n```", error);
+                anyhow::bail!("Your prompt returned an error: ```\n{error}\n```");
             } else {
                 anyhow::bail!("Your prompt returned an error, but no error message. :(");
             }
@@ -407,7 +407,7 @@ impl Context<'_> {
                     conversation_id,
                 };
             } else {
-                anyhow::bail!("Unexpected response type: {:?}", result);
+                anyhow::bail!("Unexpected response type: {result:?}");
             }
 
             status = gen_model.status.clone();
@@ -419,7 +419,7 @@ impl Context<'_> {
         // If the model failed we will want to tell the user.
         if gen_model.status == ApiCallStatus::Failed {
             if let Some(error) = gen_model.error {
-                anyhow::bail!("Your prompt returned an error: ```\n{}\n```", error);
+                anyhow::bail!("Your prompt returned an error: ```\n{error}\n```");
             } else {
                 anyhow::bail!("Your prompt returned an error, but no error message. :(");
             }
@@ -456,15 +456,11 @@ impl Context<'_> {
 
         if browser.is_empty() {
             if let Err(err) = open::that(url) {
-                return Err(anyhow!("An error occurred when opening '{}': {}", url, err));
+                return Err(anyhow!("An error occurred when opening '{url}': {err}"));
             }
         } else if let Err(err) = open::with(url, &browser) {
             return Err(anyhow!(
-                "An error occurred when opening '{}' with browser '{}' configured from '{}': {}",
-                url,
-                browser,
-                source,
-                err
+                "An error occurred when opening '{url}' with browser '{browser}' configured from '{source}': {err}"
             ));
         }
 
@@ -499,7 +495,7 @@ impl Context<'_> {
         }
 
         if !std::path::Path::new(filename).exists() {
-            anyhow::bail!("File '{}' does not exist.", filename);
+            anyhow::bail!("File '{filename}' does not exist.");
         }
 
         std::fs::read(filename).map_err(Into::into)
@@ -556,9 +552,10 @@ impl Context<'_> {
         });
 
         // Walk the directory and collect all the kcl files.
-        let parent = filepath
-            .parent()
-            .ok_or_else(|| anyhow!("Could not get parent directory to: `{}`", filepath.display()))?;
+        let parent = filepath.parent().ok_or_else(|| {
+            let filepath_display = filepath.display().to_string();
+            anyhow!("Could not get parent directory to: `{filepath_display}`")
+        })?;
         let walked_kcl = kcl_lib::walk_dir(&parent.to_path_buf()).await?;
 
         // Get all the attachements async.
@@ -567,9 +564,10 @@ impl Context<'_> {
             .filter(|file| *file != filepath)
             .map(|file| {
                 tokio::spawn(async move {
+                    let path_display = file.display().to_string();
                     let contents = tokio::fs::read(&file)
                         .await
-                        .map_err(|err| anyhow::anyhow!("Failed to read file `{}`: {:?}", file.display(), err))?;
+                        .map_err(|err| anyhow::anyhow!("Failed to read file `{path_display}`: {err:?}"))?;
 
                     Ok::<kittycad::types::multipart::Attachment, anyhow::Error>(
                         kittycad::types::multipart::Attachment {
@@ -597,13 +595,13 @@ impl Context<'_> {
                     errors.push(err);
                 }
                 Err(err) => {
-                    errors.push(anyhow::anyhow!("Failed to join future: {:?}", err));
+                    errors.push(anyhow::anyhow!("Failed to join future: {err:?}"));
                 }
             }
         }
 
         if !errors.is_empty() {
-            anyhow::bail!("Failed to walk some kcl files: {:?}", errors);
+            anyhow::bail!("Failed to walk some kcl files: {errors:?}");
         }
 
         Ok((files, filepath))

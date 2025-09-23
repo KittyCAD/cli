@@ -16,15 +16,15 @@ impl ConfigMap {
     pub fn get_string_value(&self, key: &str) -> Result<String> {
         match self.root.get(key) {
             Some(toml_edit::Item::Value(toml_edit::Value::String(s))) => Ok(s.value().to_string()),
-            Some(v) => Err(anyhow!("Expected string value for key '{}', found '{:?}'", key, v)),
-            None => Err(anyhow!("Key '{}' not found", key)),
+            Some(v) => Err(anyhow!("Expected string value for key '{key}', found '{v:?}'")),
+            None => Err(anyhow!("Key '{key}' not found")),
         }
     }
 
     pub fn get_bool_value(&self, key: &str) -> Result<bool> {
         match self.root.get(key) {
             Some(toml_edit::Item::Value(toml_edit::Value::Boolean(s))) => Ok(*s.value()),
-            Some(v) => Err(anyhow!("Expected bool value for key '{}', found '{:?}'", key, v)),
+            Some(v) => Err(anyhow!("Expected bool value for key '{key}', found '{v:?}'")),
             None => Ok(false),
         }
     }
@@ -47,7 +47,7 @@ impl ConfigMap {
     pub fn find_entry(&self, key: &str) -> Result<toml_edit::Item> {
         match self.root.get(key) {
             Some(v) => Ok(v.clone()),
-            None => Err(anyhow!("Key '{}' not found", key)),
+            None => Err(anyhow!("Key '{key}' not found")),
         }
     }
 

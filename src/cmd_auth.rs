@@ -166,7 +166,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                         return Ok(());
                     }
                     Err(err) => {
-                        return Err(anyhow!("prompt failed: {}", err));
+                        return Err(anyhow!("prompt failed: {err}"));
                     }
                 }
             }
@@ -189,7 +189,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                         }
                     }
                     Err(err) => {
-                        return Err(anyhow!("prompt failed: {}", err));
+                        return Err(anyhow!("prompt failed: {err}"));
                     }
                 }
             }
@@ -251,7 +251,7 @@ impl crate::cmd::Command for CmdAuthLogin {
                 {
                     Ok(input) => input,
                     Err(err) => {
-                        return Err(anyhow!("prompt failed: {}", err));
+                        return Err(anyhow!("prompt failed: {err}"));
                     }
                 }
             };
@@ -274,7 +274,9 @@ impl crate::cmd::Command for CmdAuthLogin {
         // Save the config.
         ctx.config.write()?;
 
-        writeln!(ctx.io.out, "{} Logged in as {}", cs.success_icon(), cs.bold(&email))?;
+        let success_icon = cs.success_icon();
+        let bold_email = cs.bold(&email);
+        writeln!(ctx.io.out, "{success_icon} Logged in as {bold_email}")?;
 
         Ok(())
     }
@@ -319,7 +321,7 @@ impl crate::cmd::Command for CmdAuthLogout {
                 match index {
                     Ok(i) => candidates[i].to_string(),
                     Err(err) => {
-                        return Err(anyhow!("prompt failed: {}", err));
+                        return Err(anyhow!("prompt failed: {err}"));
                     }
                 }
             }
@@ -334,7 +336,7 @@ impl crate::cmd::Command for CmdAuthLogout {
             }
 
             if !found {
-                return Err(anyhow!("not logged into {}", hostname));
+                return Err(anyhow!("not logged into {hostname}"));
             }
 
             hostname
@@ -368,11 +370,10 @@ impl crate::cmd::Command for CmdAuthLogout {
         let cs = ctx.io.color_scheme();
 
         if ctx.io.can_prompt() {
+            let bold_email = cs.bold(&email);
             match dialoguer::Confirm::new()
                 .with_prompt(format!(
-                    "Are you sure you want to log out of {} as {}?",
-                    hostname,
-                    cs.bold(&email)
+                    "Are you sure you want to log out of {hostname} as {bold_email}?"
                 ))
                 .interact()
             {
@@ -381,7 +382,7 @@ impl crate::cmd::Command for CmdAuthLogout {
                     return Ok(());
                 }
                 Err(err) => {
-                    return Err(anyhow!("prompt failed: {}", err));
+                    return Err(anyhow!("prompt failed: {err}"));
                 }
             }
         }
@@ -393,13 +394,9 @@ impl crate::cmd::Command for CmdAuthLogout {
         ctx.config.write()?;
 
         let cs = ctx.io.color_scheme();
-        writeln!(
-            ctx.io.out,
-            "{} Logged out of {} as {}",
-            cs.success_icon(),
-            hostname,
-            cs.bold(&email)
-        )?;
+        let success_icon = cs.success_icon();
+        let bold_email = cs.bold(&email);
+        writeln!(ctx.io.out, "{success_icon} Logged out of {hostname} as {bold_email}")?;
 
         Ok(())
     }
@@ -427,10 +424,10 @@ impl crate::cmd::Command for CmdAuthStatus {
         let hostnames = ctx.config.hosts()?;
 
         if hostnames.is_empty() {
+            let bold_login = cs.bold("zoo auth login");
             writeln!(
                 ctx.io.out,
-                "You are not logged into any Zoo hosts. Run `{}` to authenticate.",
-                cs.bold("zoo auth login")
+                "You are not logged into any Zoo hosts. Run `{bold_login}` to authenticate."
             )?;
             return Ok(());
         }
@@ -460,21 +457,21 @@ impl crate::cmd::Command for CmdAuthStatus {
                         .email
                         .ok_or_else(|| anyhow::anyhow!("user does not have an email"))?;
 
+                    let success_icon = cs.success_icon();
+                    let bold_email = cs.bold(&email);
                     host_status.push(format!(
-                        "{} Logged in to {} as {} ({})",
-                        cs.success_icon(),
-                        hostname,
-                        cs.bold(&email),
-                        token_source
+                        "{success_icon} Logged in to {hostname} as {bold_email} ({token_source})"
                     ));
                     let mut token_display = "*******************".to_string();
                     if self.show_token {
                         token_display = token.to_string();
                     }
-                    host_status.push(format!("{} Token: {}", cs.success_icon(), token_display));
+                    let success_icon = cs.success_icon();
+                    host_status.push(format!("{success_icon} Token: {token_display}"));
                 }
                 Err(err) => {
-                    host_status.push(format!("{} {}: api call failed: {}", cs.failure_icon(), hostname, err));
+                    let failure_icon = cs.failure_icon();
+                    host_status.push(format!("{failure_icon} {hostname}: api call failed: {err}"));
                     failed = true;
                     continue;
                 }
@@ -484,18 +481,22 @@ impl crate::cmd::Command for CmdAuthStatus {
         }
 
         if !hostname_found {
-            writeln!(
-                ctx.io.err_out,
-                "Hostname {} not found among authenticated Zoo hosts",
-                only_host.as_deref().unwrap_or("")
-            )?;
+            if let Some(only_host) = only_host {
+                writeln!(
+                    ctx.io.err_out,
+                    "Hostname {only_host} not found among authenticated Zoo hosts"
+                )?;
+            } else {
+                writeln!(ctx.io.err_out, "Requested host not found among authenticated Zoo hosts")?;
+            }
             return Err(anyhow!(""));
         }
 
         for hostname in hostnames {
             match status_info.get(&hostname) {
                 Some(status) => {
-                    writeln!(ctx.io.out, "{}", cs.bold(&hostname))?;
+                    let bold_hostname = cs.bold(&hostname);
+                    writeln!(ctx.io.out, "{bold_hostname}")?;
                     for line in status {
                         writeln!(ctx.io.out, "{line}")?;
                     }
@@ -598,6 +599,7 @@ mod test {
         let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
 
         for t in tests {
+            let test_name = &t.name;
             let (mut io, stdout_path, stderr_path) = crate::iostreams::IoStreams::test();
             if !t.stdin.is_empty() {
                 io.stdin = Box::new(std::io::Cursor::new(t.stdin));
@@ -622,19 +624,19 @@ mod test {
                 Ok(()) => {
                     let stdout = std::fs::read_to_string(stdout_path).unwrap();
                     let stderr = std::fs::read_to_string(stderr_path).unwrap();
-                    assert!(stderr.is_empty(), "test {}: {}", t.name, stderr);
+                    assert!(stderr.is_empty(), "test {test_name}: {stderr}");
                     if !stdout.contains(&t.want_out) {
-                        assert_eq!(stdout, t.want_out, "test {}: stdout mismatch", t.name);
+                        assert_eq!(stdout, t.want_out, "test {test_name}: stdout mismatch");
                     }
                 }
                 Err(err) => {
                     let stdout = std::fs::read_to_string(stdout_path).unwrap();
                     let stderr = std::fs::read_to_string(stderr_path).unwrap();
-                    assert_eq!(stdout, t.want_out, "test {}", t.name);
+                    assert_eq!(stdout, t.want_out, "test {test_name}");
                     if !err.to_string().contains(&t.want_err) {
-                        assert_eq!(err.to_string(), t.want_err, "test {}: err mismatch", t.name);
+                        assert_eq!(err.to_string(), t.want_err, "test {test_name}: err mismatch");
                     }
-                    assert!(stderr.is_empty(), "test {}: {}", t.name, stderr);
+                    assert!(stderr.is_empty(), "test {test_name}: {stderr}");
                 }
             }
         }

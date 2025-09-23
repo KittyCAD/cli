@@ -21,10 +21,7 @@ impl crate::cmd::Command for CmdUpdate {
         let current_version = clap::crate_version!();
 
         if !crate::update::version_greater_then(&latest_release.version, current_version)? {
-            anyhow::bail!(
-                "You are already running the latest version ({}) of `zoo`.",
-                current_version
-            );
+            anyhow::bail!("You are already running the latest version ({current_version}) of `zoo`.");
         }
 
         let current_binary_path = std::env::current_exe()?;

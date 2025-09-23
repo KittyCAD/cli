@@ -56,7 +56,7 @@ impl crate::cmd::Command for CmdConfigGet {
         match ctx.config.get(&self.host, &self.key) {
             Ok(value) => writeln!(ctx.io.out, "{value}")?,
             Err(err) => {
-                bail!("{}", err);
+                bail!("{err}");
             }
         }
 
@@ -89,7 +89,7 @@ impl crate::cmd::Command for CmdConfigSet {
 
         // Set the value. If self.host is empty it will be top-level set.
         if let Err(err) = ctx.config.set(&self.host, &self.key, Some(&self.value)) {
-            bail!("{}", err);
+            bail!("{err}");
         }
 
         // Unset the option in all other hosts if it's a mutually exclusive option.
@@ -111,7 +111,7 @@ impl crate::cmd::Command for CmdConfigSet {
                             continue;
                         }
                         if let Err(err) = ctx.config.set(&host, &self.key, None) {
-                            bail!("{}", err);
+                            bail!("{err}");
                         }
                     }
                 }
@@ -120,7 +120,7 @@ impl crate::cmd::Command for CmdConfigSet {
 
         // Write the config file.
         if let Err(err) = ctx.config.write() {
-            bail!("{}", err);
+            bail!("{err}");
         }
 
         Ok(())
