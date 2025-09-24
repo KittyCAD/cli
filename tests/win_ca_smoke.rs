@@ -60,9 +60,18 @@ async fn win_ca_cli_smoke() -> Result<()> {
 
         match cmd.output().await {
             Ok(output) if output.status.success() => {
-                let stdout = String::from_utf8(output.stdout).context("stdout was not valid UTF-8")?;
-                let json: serde_json::Value =
-                    serde_json::from_str(&stdout).context("CLI response was not valid JSON")?;
+                let stdout = String::from_utf8(output.stdout.clone()).context("stdout was not valid UTF-8")?;
+                let json: serde_json::Value = match serde_json::from_str(&stdout) {
+                    Ok(value) => value,
+                    Err(parse_err) => {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        last_error = Some(format!(
+                            "CLI response was not valid JSON: {parse_err}; stdout: {stdout}; stderr: {stderr}"
+                        ));
+                        break;
+                    }
+                };
+                println!("win-ca smoke response: {json}");
                 let actual = json.get(&expected_key).and_then(|val| val.as_str()).unwrap_or_default();
                 if actual == expected_value {
                     return Ok(());
