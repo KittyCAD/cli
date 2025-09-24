@@ -1,5 +1,9 @@
 name: win-ca-smoke
 
+permissions:
+  contents: read
+  # Add more granular permissions if later required
+
 on:
   pull_request:
   push:
