@@ -67,6 +67,9 @@ reqwest = { version = "0.12", default-features = false, features = [
   "json",
   "rustls-tls",
   "rustls-tls-native-roots",
+  "gzip",
+  "brotli",
+  "deflate",
 ] }
 ring = "0.17.14"
 serde = { version = "1", features = ["derive"] }
