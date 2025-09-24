@@ -37,7 +37,6 @@ pub struct QueuedPrompt {
     pub forced_tools: Vec<kittycad::types::MlCopilotTool>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum SlashCommandKind {
     Accept,
@@ -123,13 +122,16 @@ pub enum SlashCommand {
 
 pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
     let s = input.trim();
-    match s {
-        "/accept" => return Some(SlashCommand::Accept),
-        "/reject" => return Some(SlashCommand::Reject),
-        "/quit" => return Some(SlashCommand::Quit),
-        "/exit" => return Some(SlashCommand::Exit),
-        "/render" => return Some(SlashCommand::Render),
-        _ => {}
+    if let Some(entry) = BASE_SLASH_COMMANDS.iter().find(|entry| entry.command == s) {
+        return Some(match entry.kind {
+            SlashCommandKind::Accept => SlashCommand::Accept,
+            SlashCommandKind::Reject => SlashCommand::Reject,
+            SlashCommandKind::Quit => SlashCommand::Quit,
+            SlashCommandKind::Exit => SlashCommand::Exit,
+            SlashCommandKind::Render => SlashCommand::Render,
+            SlashCommandKind::ShowTools => SlashCommand::ShowForcedTools,
+            SlashCommandKind::ClearTools => SlashCommand::ClearForcedTools,
+        });
     }
 
     if let Some(rest) = s.strip_prefix("/tool") {
@@ -365,27 +367,10 @@ fn slash_commands() -> Vec<String> {
 pub fn slash_command_documentation() -> Vec<SlashCommandDoc> {
     use clap::ValueEnum;
 
-    let mut docs = vec![
-        SlashCommandDoc::new(
-            "/accept",
-            "Apply all pending edits to the checked-out files and clear the diff queue.",
-        ),
-        SlashCommandDoc::new(
-            "/reject",
-            "Discard the current set of pending edits without applying them.",
-        ),
-        SlashCommandDoc::new(
-            "/render",
-            "Render a side-by-side snapshot preview for the current edits.",
-        ),
-        SlashCommandDoc::new("/quit", "Exit the Copilot session immediately (alias of /exit)."),
-        SlashCommandDoc::new("/exit", "Exit the Copilot session immediately (alias of /quit)."),
-        SlashCommandDoc::new("/tool", "Show which tools are currently required for the next prompt."),
-        SlashCommandDoc::new(
-            "/tool clear",
-            "Clear all tool requirements before the next prompt is sent.",
-        ),
-    ];
+    let mut docs: Vec<SlashCommandDoc> = BASE_SLASH_COMMANDS
+        .iter()
+        .map(|entry| SlashCommandDoc::new(entry.command, entry.description))
+        .collect();
 
     for tool in kittycad::types::MlCopilotTool::value_variants() {
         let name = tool.to_string();
@@ -625,8 +610,16 @@ mod tests {
 
     #[test]
     fn slash_command_docs_align() {
-        let doc_cmds: Vec<String> = slash_command_documentation().into_iter().map(|d| d.command).collect();
+        let docs = slash_command_documentation();
+        let doc_cmds: Vec<String> = docs.iter().map(|d| d.command.clone()).collect();
         assert_eq!(slash_commands(), doc_cmds);
+        for doc in docs {
+            assert!(
+                parse_slash_command(&doc.command).is_some(),
+                "documented command {} did not parse",
+                doc.command
+            );
+        }
     }
 
     #[test]
