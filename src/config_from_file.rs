@@ -26,7 +26,7 @@ impl FileConfig {
                     return Ok(toml_edit::Table::new());
                 }
 
-                Err(anyhow!("Error reading hosts table: {}", e))
+                Err(anyhow!("Error reading hosts table: {e}"))
             }
         }
     }
@@ -42,7 +42,7 @@ impl FileConfig {
                     return Ok(toml_edit::Table::new());
                 }
 
-                Err(anyhow!("Error reading aliases table: {}", e))
+                Err(anyhow!("Error reading aliases table: {e}"))
             }
         }
     }
@@ -86,7 +86,9 @@ impl FileConfig {
                 "Try authenticating with `zoo auth login` or be sure you are using the env var: `ZOO_TOKEN`."
             ))
         } else {
-            Err(anyhow!("host `{}` not found. Try authenticating with `zoo auth login` or be sure you are using the env var: `ZOO_TOKEN`.", hostname))
+            Err(anyhow!(
+                "host `{hostname}` not found. Try authenticating with `zoo auth login` or be sure you are using the env var: `ZOO_TOKEN`."
+            ))
         }
     }
 
@@ -213,8 +215,9 @@ impl crate::config::Config for FileConfig {
             }
         }
 
+        let options = hosts.join(", ");
         Err(anyhow!(
-            "Multiple hosts in config file but none has been set as a default. Try setting a default with `zoo config set -H <host> default true`. Options for hosts are: {}", hosts.join(", ")
+            "Multiple hosts in config file but none has been set as a default. Try setting a default with `zoo config set -H <host> default true`. Options for hosts are: {options}"
         ))
     }
 
@@ -295,7 +298,7 @@ impl crate::config::Config for FileConfig {
 
         let lingering = regex::Regex::new(r"\$\d")?;
         if lingering.is_match(&expansion) {
-            return Err(anyhow!("not enough arguments for alias: {}", expansion));
+            return Err(anyhow!("not enough arguments for alias: {expansion}"));
         }
 
         let mut new_args = vec![first];

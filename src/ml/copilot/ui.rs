@@ -172,8 +172,14 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 ]));
             }
             ChatEvent::Server(msg) => match msg {
+                kittycad::types::MlCopilotServerMessage::SessionData { .. } => {
+                    // Session metadata is not surfaced in the chat pane.
+                }
                 kittycad::types::MlCopilotServerMessage::Delta { delta } => {
                     assistant_buf.push_str(delta);
+                }
+                kittycad::types::MlCopilotServerMessage::Replay { .. } => {
+                    // Replay payloads are binary blobs we do not render today.
                 }
                 kittycad::types::MlCopilotServerMessage::ConversationId { .. } => {
                     // Ignore conversation ID we don't care.
@@ -285,6 +291,16 @@ mod tests {
 
     use super::*;
 
+    fn empty_end_of_stream() -> kittycad::types::MlCopilotServerMessage {
+        kittycad::types::MlCopilotServerMessage::EndOfStream {
+            completed_at: None,
+            conversation_id: None,
+            id: None,
+            started_at: None,
+            whole_response: None,
+        }
+    }
+
     #[test]
     fn render_merges_deltas_and_labels_ml() {
         // Arrange
@@ -304,9 +320,7 @@ mod tests {
             .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
                 delta: " world".into(),
             }));
-        app.events.push(ChatEvent::Server(
-            kittycad::types::MlCopilotServerMessage::EndOfStream { whole_response: None },
-        ));
+        app.events.push(ChatEvent::Server(empty_end_of_stream()));
 
         // Act
         terminal.draw(|f| draw(f, &app)).unwrap();
@@ -500,9 +514,7 @@ mod tests {
             .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
                 delta: "Hello".into(),
             }));
-        app.events.push(ChatEvent::Server(
-            kittycad::types::MlCopilotServerMessage::EndOfStream { whole_response: None },
-        ));
+        app.events.push(ChatEvent::Server(empty_end_of_stream()));
         // A diff to show
         let mut lines = Vec::new();
         lines.push("Proposed Changes:".to_string());
@@ -605,18 +617,14 @@ mod tests {
             .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
                 delta: ", Jess".into(),
             }));
-        app.events.push(ChatEvent::Server(
-            kittycad::types::MlCopilotServerMessage::EndOfStream { whole_response: None },
-        ));
+        app.events.push(ChatEvent::Server(empty_end_of_stream()));
         // Turn 2
         app.events.push(ChatEvent::User("second".into()));
         app.events
             .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Delta {
                 delta: "Hi again".into(),
             }));
-        app.events.push(ChatEvent::Server(
-            kittycad::types::MlCopilotServerMessage::EndOfStream { whole_response: None },
-        ));
+        app.events.push(ChatEvent::Server(empty_end_of_stream()));
 
         terminal.draw(|f| draw(f, &app)).unwrap();
         let buf = terminal.backend().buffer();

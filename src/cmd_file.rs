@@ -295,7 +295,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::ImportFiles(data),
         } = &resp
         else {
-            anyhow::bail!("Unexpected response from engine import: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine import: {resp:?}");
         };
 
         let object_id = data.object_id;
@@ -330,7 +330,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             // Save the snapshot locally.
             std::fs::write(&self.output_file, &data.contents.0)?;
         } else {
-            anyhow::bail!("Unexpected response from engine: {:?}", resp);
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
 
         writeln!(
@@ -705,8 +705,7 @@ fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileIm
                 Ok(kittycad::types::FileImportFormat::Gltf)
             } else {
                 anyhow::bail!(
-                    "unknown source format for file extension: {}. Try setting the `--src-format` flag explicitly or use a valid format.",
-                    ext
+                    "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
                 )
             }
         }

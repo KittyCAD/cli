@@ -1,0 +1,23 @@
+name: win-ca-smoke
+permissions:
+  contents: read
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    uses: kittycad/gh-action-win-ca/.github/workflows/win-ca-smoke.yml@main
+    with:
+      node-version: ${{ matrix.node }}
+      setup-rust: true
+      pre-test-command: cargo test --test win_ca_smoke -- --nocapture
+      post-test-command: cargo test --test win_ca_smoke -- --nocapture
+      pre-step-extra-env: '{"RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
+      post-step-extra-env: '{"RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
+    secrets:
+      ZOO_TOKEN: ${{ secrets.KITTYCAD_TOKEN }}

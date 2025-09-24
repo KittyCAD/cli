@@ -47,17 +47,36 @@ fn build_user_message(
     content: String,
     files_map: &std::collections::HashMap<String, Vec<u8>>,
     project_name: &Option<String>,
+    forced_tools: Vec<kittycad::types::MlCopilotTool>,
 ) -> (kittycad::types::MlCopilotClientMessage, usize) {
     let files = all_files(files_map);
+    let forced_tools = if forced_tools.is_empty() {
+        None
+    } else {
+        Some(forced_tools)
+    };
     let msg = kittycad::types::MlCopilotClientMessage::User {
         content,
         current_files: Some(files),
+        forced_tools,
         project_name: project_name.clone(),
         source_ranges: None,
-        forced_tools: Default::default(),
     };
     let len = serde_json::to_string(&msg).map(|s| s.len()).unwrap_or(0);
     (msg, len)
+}
+
+fn push_forced_tool_summary(app: &mut App) {
+    let summary = if app.forced_tools.is_empty() {
+        "Required tools: (none)".to_string()
+    } else {
+        let joined = app.forced_tool_names().join(", ");
+        format!("Required tools: {joined}")
+    };
+    app.events
+        .push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+            text: summary,
+        }));
 }
 
 fn emit_payload_lines(tx: &mpsc::UnboundedSender<kittycad::types::MlCopilotServerMessage>, body: &str) {
@@ -105,7 +124,7 @@ pub async fn run_copilot_tui(
     let _use_color = ctx.io.color_enabled() && ctx.io.is_stderr_tty();
 
     // Connect websocket
-    let (upgraded, _headers) = client.ml().copilot_ws().await?;
+    let (upgraded, _headers) = client.ml().copilot_ws(None, None).await?;
     let ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
     let (mut write, mut read) = ws.split();
 
@@ -409,13 +428,45 @@ pub async fn run_copilot_tui(
                                     state::SlashCommand::System(command) => {
                                         let _ = tx_out.send(WsSend::Client { msg: kittycad::types::MlCopilotClientMessage::System { command } });
                                     }
+                                    state::SlashCommand::ForceTool(tool) => {
+                                        match app.toggle_forced_tool(tool.clone()) {
+                                            state::ForcedToolChange::Added(_) => {
+                                                app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                                    text: format!("Requiring tool `{tool}` for future prompts."),
+                                                }));
+                                            }
+                                            state::ForcedToolChange::Removed(_) => {
+                                                app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                                    text: format!("No longer requiring tool `{tool}`."),
+                                                }));
+                                            }
+                                        }
+                                        push_forced_tool_summary(&mut app);
+                                    }
+                                    state::SlashCommand::ClearForcedTools => {
+                                        if app.clear_forced_tools() {
+                                            app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                                text: "Cleared all required tools.".to_string(),
+                                            }));
+                                        } else {
+                                            app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info {
+                                                text: "No tools were required.".to_string(),
+                                            }));
+                                        }
+                                        push_forced_tool_summary(&mut app);
+                                    }
+                                    state::SlashCommand::ShowForcedTools => {
+                                        push_forced_tool_summary(&mut app);
+                                    }
                                 }
                                 continue;
                             }
                             let files_ready = files_opt.is_some();
-                            if let Some(to_send) = app.try_submit(submit, files_ready) {
+                            if let Some(prompt) = app.try_submit(submit, files_ready) {
                                 if let Some(files) = &files_opt {
-                                    let (msg, _len) = build_user_message(to_send, files, &project_name);
+                                    let state::QueuedPrompt { content, forced_tools } = prompt;
+                                    let (msg, _len) =
+                                        build_user_message(content, files, &project_name, forced_tools);
                                     let _ = tx_out.send(WsSend::Client { msg });
                                 }
                             }
@@ -428,7 +479,9 @@ pub async fn run_copilot_tui(
                 if let kittycad::types::MlCopilotServerMessage::EndOfStream{..} = server_msg {
                     if let Some(files) = &files_opt {
                         if let Some(next) = app.on_end_of_stream(true) {
-                            let (msg, _len) = build_user_message(next, files, &project_name);
+                            let state::QueuedPrompt { content, forced_tools } = next;
+                            let (msg, _len) =
+                                build_user_message(content, files, &project_name, forced_tools);
                             let _ = tx_out.send(WsSend::Client { msg });
                         }
                     } else {
@@ -448,7 +501,9 @@ pub async fn run_copilot_tui(
                         app.scanning = false;
                         if let Some(files) = &files_opt {
                             if let Some(next) = app.on_scan_done() {
-                                let (msg, _len) = build_user_message(next, files, &project_name);
+                                let state::QueuedPrompt { content, forced_tools } = next;
+                                let (msg, _len) =
+                                    build_user_message(content, files, &project_name, forced_tools);
                                 let _ = tx_out.send(WsSend::Client { msg });
                             }
                         }
@@ -606,7 +661,8 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::R
         return Ok(settings);
     }
     if !input.exists() {
-        anyhow::bail!("file `{}` does not exist", input.display());
+        let input_display = input.display().to_string();
+        anyhow::bail!("file `{input_display}` does not exist");
     }
     let dir = if input.is_dir() {
         input.to_path_buf()
@@ -750,7 +806,7 @@ mod tests {
         map.insert("thing.kcl".to_string(), b"b".to_vec());
         map.insert("blah.obj".to_string(), b"c".to_vec());
         let project_name = None;
-        let (msg, _len) = build_user_message("hi".into(), &map, &project_name);
+        let (msg, _len) = build_user_message("hi".into(), &map, &project_name, Vec::new());
         match msg {
             kittycad::types::MlCopilotClientMessage::User {
                 current_files: Some(files),
@@ -770,13 +826,30 @@ mod tests {
         files.insert("main.kcl".to_string(), b"cube(1)".to_vec());
         let project_name = Some("proj".to_string());
 
-        let (m1, _) = build_user_message("first".into(), &files, &project_name);
+        let (m1, _) = build_user_message("first".into(), &files, &project_name, Vec::new());
         let v1 = serde_json::to_value(&m1).unwrap();
         assert_eq!(v1.get("content").unwrap().as_str().unwrap(), "first");
 
-        let (m2, _) = build_user_message("second".into(), &files, &project_name);
+        let (m2, _) = build_user_message("second".into(), &files, &project_name, Vec::new());
         let v2 = serde_json::to_value(&m2).unwrap();
         assert_eq!(v2.get("content").unwrap().as_str().unwrap(), "second");
+        assert_ne!(v1, v2);
+    }
+
+    #[test]
+    fn build_user_message_includes_forced_tools() {
+        let mut files = std::collections::HashMap::new();
+        files.insert("main.kcl".to_string(), b"cube(1)".to_vec());
+        let project_name = None;
+        let tools = vec![kittycad::types::MlCopilotTool::EditKclCode];
+
+        let (msg, _) = build_user_message("with tools".into(), &files, &project_name, tools.clone());
+        match msg {
+            kittycad::types::MlCopilotClientMessage::User { forced_tools, .. } => {
+                assert_eq!(forced_tools, Some(tools));
+            }
+            other => panic!("unexpected client message variant: {other:?}"),
+        }
     }
 
     #[test]
@@ -790,7 +863,11 @@ mod tests {
         let s1 = app
             .try_submit("hi im jess".into(), true)
             .expect("first should send now");
-        let (m1, _len1) = build_user_message(s1, &files, &project_name);
+        let state::QueuedPrompt {
+            content: content1,
+            forced_tools: tools1,
+        } = s1;
+        let (m1, _len1) = build_user_message(content1, &files, &project_name, tools1);
         let v1 = serde_json::to_value(&m1).unwrap();
         assert_eq!(v1.get("content").unwrap().as_str().unwrap(), "hi im jess");
         let files1 = v1.get("current_files").unwrap().as_object().unwrap();
@@ -803,7 +880,11 @@ mod tests {
         let s2 = app
             .try_submit("can you edit the kcl code to make the button blue".into(), true)
             .expect("second should send now");
-        let (m2, _len2) = build_user_message(s2, &files, &project_name);
+        let state::QueuedPrompt {
+            content: content2,
+            forced_tools: tools2,
+        } = s2;
+        let (m2, _len2) = build_user_message(content2, &files, &project_name, tools2);
         let v2 = serde_json::to_value(&m2).unwrap();
         assert_eq!(
             v2.get("content").unwrap().as_str().unwrap(),

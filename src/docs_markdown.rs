@@ -4,6 +4,8 @@ use anyhow::Result;
 use clap::Command;
 use pulldown_cmark_to_cmark::cmark_with_options;
 
+use crate::ml::copilot::state::slash_command_documentation;
+
 struct MarkdownDocument<'a>(Vec<pulldown_cmark::Event<'a>>);
 
 impl MarkdownDocument<'_> {
@@ -167,6 +169,20 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
         cmark_with_options(parser, &mut result, get_cmark_options())?;
 
         doc.paragraph(result);
+    }
+
+    if app.get_name() == "copilot" && title.contains("ml kcl") {
+        doc.header("Slash Commands".to_string(), pulldown_cmark::HeadingLevel::H3);
+        doc.0
+            .push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::List(None)));
+        for entry in slash_command_documentation() {
+            doc.0.push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::Item));
+            doc.0.push(pulldown_cmark::Event::Code(entry.command.clone().into()));
+            doc.0
+                .push(pulldown_cmark::Event::Text(format!(" {}", entry.description).into()));
+            doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::Item));
+        }
+        doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::List(None)));
     }
 
     // Check if the command has a parent.

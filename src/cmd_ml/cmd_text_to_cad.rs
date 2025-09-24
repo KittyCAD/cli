@@ -374,7 +374,7 @@ async fn get_image_bytes(
         modeling_response: OkModelingCmdResponse::ImportFiles(data),
     } = &resp
     else {
-        anyhow::bail!("Unexpected response from engine import: {:?}", resp);
+        anyhow::bail!("Unexpected response from engine import: {resp:?}");
     };
 
     let object_id = data.object_id;
@@ -405,6 +405,6 @@ async fn get_image_bytes(
         // Save the snapshot locally.
         Ok(data.contents.0.clone())
     } else {
-        anyhow::bail!("Unexpected response from engine: {:?}", resp);
+        anyhow::bail!("Unexpected response from engine: {resp:?}");
     }
 }

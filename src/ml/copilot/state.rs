@@ -10,10 +10,11 @@ pub struct App {
     pub scanning: bool,
     pub scanned_files: usize,
     pub awaiting_response: bool,
-    pub queue: VecDeque<String>,
+    pub queue: VecDeque<QueuedPrompt>,
     pub pending_edits: Option<Vec<PendingFileEdit>>, // prepared diffs to accept/reject
     pub msg_scroll: u16,
     pub diff_scroll: u16,
+    pub forced_tools: Vec<kittycad::types::MlCopilotTool>,
 }
 
 #[derive(Debug, Clone)]
@@ -31,6 +32,82 @@ pub struct PendingFileEdit {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct QueuedPrompt {
+    pub content: String,
+    pub forced_tools: Vec<kittycad::types::MlCopilotTool>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SlashCommandKind {
+    Accept,
+    Reject,
+    Quit,
+    Exit,
+    Render,
+    ShowTools,
+    ClearTools,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct SlashCommandEntry {
+    command: &'static str,
+    description: &'static str,
+    kind: SlashCommandKind,
+}
+
+const BASE_SLASH_COMMANDS: &[SlashCommandEntry] = &[
+    SlashCommandEntry {
+        command: "/accept",
+        description: "Apply all pending edits to the checked-out files and clear the diff queue.",
+        kind: SlashCommandKind::Accept,
+    },
+    SlashCommandEntry {
+        command: "/reject",
+        description: "Discard the current set of pending edits without applying them.",
+        kind: SlashCommandKind::Reject,
+    },
+    SlashCommandEntry {
+        command: "/render",
+        description: "Render a side-by-side snapshot preview for the current edits.",
+        kind: SlashCommandKind::Render,
+    },
+    SlashCommandEntry {
+        command: "/quit",
+        description: "Exit the Copilot session immediately (alias of /exit).",
+        kind: SlashCommandKind::Quit,
+    },
+    SlashCommandEntry {
+        command: "/exit",
+        description: "Exit the Copilot session immediately (alias of /quit).",
+        kind: SlashCommandKind::Exit,
+    },
+    SlashCommandEntry {
+        command: "/tool",
+        description: "Show which tools are currently required for the next prompt.",
+        kind: SlashCommandKind::ShowTools,
+    },
+    SlashCommandEntry {
+        command: "/tool clear",
+        description: "Clear all tool requirements before the next prompt is sent.",
+        kind: SlashCommandKind::ClearTools,
+    },
+];
+
+pub struct SlashCommandDoc {
+    pub command: String,
+    pub description: String,
+}
+
+impl SlashCommandDoc {
+    fn new(command: impl Into<String>, description: impl Into<String>) -> Self {
+        SlashCommandDoc {
+            command: command.into(),
+            description: description.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum SlashCommand {
     Accept,
     Reject,
@@ -38,17 +115,43 @@ pub enum SlashCommand {
     Exit,
     System(kittycad::types::MlCopilotSystemCommand),
     Render,
+    ForceTool(kittycad::types::MlCopilotTool),
+    ClearForcedTools,
+    ShowForcedTools,
 }
 
 pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
     let s = input.trim();
-    match s {
-        "/accept" => return Some(SlashCommand::Accept),
-        "/reject" => return Some(SlashCommand::Reject),
-        "/quit" => return Some(SlashCommand::Quit),
-        "/exit" => return Some(SlashCommand::Exit),
-        "/render" => return Some(SlashCommand::Render),
-        _ => {}
+    if let Some(entry) = BASE_SLASH_COMMANDS.iter().find(|entry| entry.command == s) {
+        return Some(match entry.kind {
+            SlashCommandKind::Accept => SlashCommand::Accept,
+            SlashCommandKind::Reject => SlashCommand::Reject,
+            SlashCommandKind::Quit => SlashCommand::Quit,
+            SlashCommandKind::Exit => SlashCommand::Exit,
+            SlashCommandKind::Render => SlashCommand::Render,
+            SlashCommandKind::ShowTools => SlashCommand::ShowForcedTools,
+            SlashCommandKind::ClearTools => SlashCommand::ClearForcedTools,
+        });
+    }
+
+    if let Some(rest) = s.strip_prefix("/tool") {
+        let name = rest.trim();
+        if name.is_empty() {
+            return Some(SlashCommand::ShowForcedTools);
+        }
+        if name.eq_ignore_ascii_case("clear") {
+            return Some(SlashCommand::ClearForcedTools);
+        }
+        if let Ok(tool) = name.parse::<kittycad::types::MlCopilotTool>() {
+            return Some(SlashCommand::ForceTool(tool));
+        }
+        let normalized = name.replace('-', "_");
+        if normalized != name {
+            if let Ok(tool) = normalized.parse::<kittycad::types::MlCopilotTool>() {
+                return Some(SlashCommand::ForceTool(tool));
+            }
+        }
+        return None;
     }
 
     // System commands from the SDK, auto-updating as the enum evolves.
@@ -76,6 +179,7 @@ impl App {
             pending_edits: None,
             msg_scroll: 0,
             diff_scroll: 0,
+            forced_tools: Vec::new(),
         }
     }
 
@@ -170,18 +274,22 @@ impl App {
     }
 
     /// Decide whether to send now or queue, based on files readiness and awaiting state.
-    pub fn try_submit(&mut self, content: String, files_ready: bool) -> Option<String> {
+    pub fn try_submit(&mut self, content: String, files_ready: bool) -> Option<QueuedPrompt> {
+        let prompt = QueuedPrompt {
+            content,
+            forced_tools: self.snapshot_forced_tools(),
+        };
         if files_ready && !self.awaiting_response {
             self.awaiting_response = true;
-            Some(content)
+            Some(prompt)
         } else {
-            self.queue.push_back(content);
+            self.queue.push_back(prompt);
             None
         }
     }
 
     /// On EndOfStream, mark not awaiting, and if files are ready and a queue exists, return next to send.
-    pub fn on_end_of_stream(&mut self, files_ready: bool) -> Option<String> {
+    pub fn on_end_of_stream(&mut self, files_ready: bool) -> Option<QueuedPrompt> {
         self.awaiting_response = false;
         if files_ready {
             if let Some(next) = self.queue.pop_front() {
@@ -193,7 +301,7 @@ impl App {
     }
 
     /// On scanning done, if not awaiting, return next queued to send.
-    pub fn on_scan_done(&mut self) -> Option<String> {
+    pub fn on_scan_done(&mut self) -> Option<QueuedPrompt> {
         if !self.awaiting_response {
             if let Some(next) = self.queue.pop_front() {
                 self.awaiting_response = true;
@@ -201,6 +309,33 @@ impl App {
             }
         }
         None
+    }
+
+    fn snapshot_forced_tools(&self) -> Vec<kittycad::types::MlCopilotTool> {
+        self.forced_tools.clone()
+    }
+
+    pub fn toggle_forced_tool(&mut self, tool: kittycad::types::MlCopilotTool) -> ForcedToolChange {
+        if let Some(pos) = self.forced_tools.iter().position(|t| t == &tool) {
+            self.forced_tools.remove(pos);
+            ForcedToolChange::Removed(tool)
+        } else {
+            self.forced_tools.push(tool.clone());
+            ForcedToolChange::Added(tool)
+        }
+    }
+
+    pub fn clear_forced_tools(&mut self) -> bool {
+        if self.forced_tools.is_empty() {
+            false
+        } else {
+            self.forced_tools.clear();
+            true
+        }
+    }
+
+    pub fn forced_tool_names(&self) -> Vec<String> {
+        self.forced_tools.iter().map(|tool| tool.to_string()).collect()
     }
 }
 
@@ -212,30 +347,53 @@ pub enum KeyAction {
     None,
 }
 
-fn slash_commands() -> Vec<String> {
-    let mut cmds = vec![
-        "/accept".to_string(),
-        "/reject".to_string(),
-        "/quit".to_string(),
-        "/exit".to_string(),
-        "/render".to_string(),
-    ];
+#[derive(Debug, PartialEq)]
+pub enum ForcedToolChange {
+    Added(kittycad::types::MlCopilotTool),
+    Removed(kittycad::types::MlCopilotTool),
+}
 
-    // Append all SDK system commands as slash commands, eg: /new, /bye, ...
-    #[allow(unused_imports)]
-    use clap::ValueEnum;
-    for v in kittycad::types::MlCopilotSystemCommand::value_variants() {
-        if let Some(pv) = v.to_possible_value() {
-            cmds.push(format!("/{}", pv.get_name()));
-        } else {
-            // Fallback to Display as a best-effort
-            cmds.push(format!("/{v}"));
-        }
-    }
-    // Dedup in case of overlap (shouldn't happen, but safe)
+fn slash_commands() -> Vec<String> {
+    let mut cmds: Vec<String> = slash_command_documentation()
+        .into_iter()
+        .map(|doc| doc.command)
+        .collect();
     cmds.sort();
     cmds.dedup();
     cmds
+}
+
+#[allow(unused_imports)]
+pub fn slash_command_documentation() -> Vec<SlashCommandDoc> {
+    use clap::ValueEnum;
+
+    let mut docs: Vec<SlashCommandDoc> = BASE_SLASH_COMMANDS
+        .iter()
+        .map(|entry| SlashCommandDoc::new(entry.command, entry.description))
+        .collect();
+
+    for tool in kittycad::types::MlCopilotTool::value_variants() {
+        let name = tool.to_string();
+        docs.push(SlashCommandDoc::new(
+            format!("/tool {name}"),
+            format!("Toggle the `{name}` tool requirement for upcoming prompts."),
+        ));
+    }
+
+    for system_cmd in kittycad::types::MlCopilotSystemCommand::value_variants() {
+        let display = system_cmd
+            .to_possible_value()
+            .map(|pv| pv.get_name().to_string())
+            .unwrap_or_else(|| system_cmd.to_string());
+        docs.push(SlashCommandDoc::new(
+            format!("/{display}"),
+            format!("Send the `{display}` system directive to the Copilot service."),
+        ));
+    }
+
+    docs.sort_by(|a, b| a.command.cmp(&b.command));
+    docs.dedup_by(|a, b| a.command == b.command);
+    docs
 }
 
 fn common_prefix(strings: &[&str]) -> String {
@@ -333,14 +491,18 @@ mod tests {
         let mut app = App::new();
         app.scanning = false;
         // First submit with files ready -> send now
-        assert_eq!(app.try_submit("one".into(), true).as_deref(), Some("one"));
+        let first = app.try_submit("one".into(), true).expect("first prompt");
+        assert_eq!(first.content, "one");
+        assert!(first.forced_tools.is_empty());
         assert!(app.awaiting_response);
         assert!(app.queue.is_empty());
         // Second submit while awaiting -> queued
         assert!(app.try_submit("two".into(), true).is_none());
         assert_eq!(app.queue.len(), 1);
         // EndOfStream -> next queued is released
-        assert_eq!(app.on_end_of_stream(true).as_deref(), Some("two"));
+        let second = app.on_end_of_stream(true).expect("second prompt");
+        assert_eq!(second.content, "two");
+        assert!(second.forced_tools.is_empty());
         assert!(app.awaiting_response);
         assert!(app.queue.is_empty());
         // Another EOS with no queue -> nothing, awaiting false
@@ -374,6 +536,36 @@ mod tests {
     }
 
     #[test]
+    fn parse_slash_tool_commands() {
+        #[allow(unused_imports)]
+        use clap::ValueEnum;
+
+        for tool in kittycad::types::MlCopilotTool::value_variants() {
+            let underscore = tool.to_string();
+            let cmd = format!("/tool {underscore}");
+            assert_eq!(
+                parse_slash_command(&cmd),
+                Some(SlashCommand::ForceTool(tool.clone())),
+                "expected {cmd} to map to ForceTool"
+            );
+
+            let hyphen = underscore.replace('_', "-");
+            if hyphen != underscore {
+                let hyphen_cmd = format!("/tool {hyphen}");
+                assert_eq!(
+                    parse_slash_command(&hyphen_cmd),
+                    Some(SlashCommand::ForceTool(tool.clone())),
+                    "expected {hyphen_cmd} to map to ForceTool"
+                );
+            }
+        }
+
+        assert_eq!(parse_slash_command("/tool clear"), Some(SlashCommand::ClearForcedTools));
+        assert_eq!(parse_slash_command("/tool"), Some(SlashCommand::ShowForcedTools));
+        assert_eq!(parse_slash_command("/tool nope"), None);
+    }
+
+    #[test]
     fn tab_autocomplete_unique() {
         let mut app = App::new();
         app.input = "/a".into();
@@ -394,6 +586,7 @@ mod tests {
                 assert!(text.contains("/accept"));
                 assert!(text.contains("/reject"));
                 assert!(text.contains("/render"));
+                assert!(text.contains("/tool"));
             }
             other => panic!("expected Info, got {other:?}"),
         }
@@ -416,6 +609,20 @@ mod tests {
     }
 
     #[test]
+    fn slash_command_docs_align() {
+        let docs = slash_command_documentation();
+        let doc_cmds: Vec<String> = docs.iter().map(|d| d.command.clone()).collect();
+        assert_eq!(slash_commands(), doc_cmds);
+        for doc in docs {
+            assert!(
+                parse_slash_command(&doc.command).is_some(),
+                "documented command {} did not parse",
+                doc.command
+            );
+        }
+    }
+
+    #[test]
     fn tab_autocomplete_suggestions_include_system() {
         let mut app = App::new();
         app.input = "/".into();
@@ -425,9 +632,57 @@ mod tests {
             ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Info { text }) => {
                 assert!(text.contains("/new"));
                 assert!(text.contains("/bye"));
+                assert!(text.contains("/tool"));
             }
             other => panic!("expected Info, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn toggle_forced_tool_and_snapshot() {
+        #[allow(unused_imports)]
+        use clap::ValueEnum;
+
+        let mut app = App::new();
+        let tool = kittycad::types::MlCopilotTool::value_variants()[0].clone();
+
+        match app.toggle_forced_tool(tool.clone()) {
+            ForcedToolChange::Added(t) => assert_eq!(t, tool),
+            other => panic!("expected Added, got {other:?}"),
+        }
+        assert!(app.forced_tools.iter().any(|t| t == &tool));
+
+        let prompt = app.try_submit("hi".into(), true).expect("prompt ready");
+        assert_eq!(prompt.content, "hi");
+        assert_eq!(prompt.forced_tools, vec![tool.clone()]);
+
+        match app.toggle_forced_tool(tool.clone()) {
+            ForcedToolChange::Removed(t) => assert_eq!(t, tool),
+            other => panic!("expected Removed, got {other:?}"),
+        }
+        assert!(app.forced_tools.is_empty());
+    }
+
+    #[test]
+    fn queued_prompt_retains_forced_tools_across_delay() {
+        #[allow(unused_imports)]
+        use clap::ValueEnum;
+
+        let mut app = App::new();
+        let tool = kittycad::types::MlCopilotTool::value_variants()[0].clone();
+        let _ = app.toggle_forced_tool(tool.clone());
+
+        // Files not ready -> queue prompt capturing forced tools snapshot
+        assert!(app.try_submit("queued".into(), false).is_none());
+        assert_eq!(app.queue.len(), 1);
+
+        // Mutate forced tools before it sends; snapshot should remain unchanged
+        let _ = app.toggle_forced_tool(tool.clone()); // remove
+        assert!(app.forced_tools.is_empty());
+
+        let queued = app.on_scan_done().expect("queued prompt");
+        assert_eq!(queued.content, "queued");
+        assert_eq!(queued.forced_tools, vec![tool.clone()]);
     }
 
     #[test]
@@ -463,7 +718,7 @@ mod tests {
         assert_eq!(app.queue.len(), 1);
         // Scan done → send first
         let s1 = app.on_scan_done();
-        assert_eq!(s1.as_deref(), Some("first"));
+        assert_eq!(s1.as_ref().map(|p| p.content.as_str()), Some("first"));
         assert!(app.awaiting_response);
 
         // EOS → allow next
@@ -473,7 +728,7 @@ mod tests {
 
         // Second submit should return exactly "second"
         let s2 = app.try_submit("second".into(), true);
-        assert_eq!(s2.as_deref(), Some("second"));
+        assert_eq!(s2.as_ref().map(|p| p.content.as_str()), Some("second"));
         assert!(app.queue.is_empty());
     }
 }

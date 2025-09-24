@@ -116,7 +116,7 @@ pub fn validate_key(target_key: &str) -> Result<()> {
         }
     }
 
-    Err(anyhow!("invalid key: {}", target_key))
+    Err(anyhow!("invalid key: {target_key}"))
 }
 
 #[derive(Error, Debug)]

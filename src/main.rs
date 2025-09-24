@@ -68,7 +68,10 @@ mod tests;
 
 mod update;
 
-use std::io::{Read, Write};
+use std::{
+    error::Error as StdError,
+    io::{Read, Write},
+};
 
 use anyhow::Result;
 use clap::Parser;
@@ -312,10 +315,20 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
                     writeln!(ctx.io.err_out, "zoo.dev api error: {body}")?;
                 } else {
                     writeln!(ctx.io.err_out, "{err}")?;
+                    if let kittycad::types::error::Error::RequestError(inner) = &err {
+                        if let Some(source) = inner.source() {
+                            writeln!(ctx.io.err_out, "  caused by: {source}")?;
+                        }
+                    }
                 }
             }
             Err(err) => {
                 writeln!(ctx.io.err_out, "{err}")?;
+                let mut current = err.source();
+                while let Some(src) = current {
+                    writeln!(ctx.io.err_out, "  caused by: {src}")?;
+                    current = src.source();
+                }
             }
         }
         return Ok(1);
