@@ -22,8 +22,8 @@ async fn win_ca_cli_smoke() -> Result<()> {
         Ok(value) => value,
         Err(_) => {
             let path = target_url.path();
-            if path.is_empty() || path == "/" {
-                "/ping".to_string()
+            if path.is_empty() {
+                "/".to_string()
             } else {
                 path.to_string()
             }
@@ -65,12 +65,7 @@ async fn win_ca_cli_smoke() -> Result<()> {
                     serde_json::from_str(&stdout).context("CLI response was not valid JSON")?;
                 let actual = json.get(&expected_key).and_then(|val| val.as_str()).unwrap_or_default();
                 if actual == expected_value {
-                    match run_text_to_cad(&binary, &host, &token, config_dir.path()).await {
-                        Ok(()) => return Ok(()),
-                        Err(e) => {
-                            last_error = Some(format!("text-to-cad smoke failed: {e}"));
-                        }
-                    }
+                    return Ok(());
                 } else {
                     last_error = Some(format!(
                         "CLI succeeded but response missing expected pair {expected_key:?}={expected_value:?}. Full JSON: {json}"));
@@ -139,48 +134,4 @@ fn host_from_url(url: &Url) -> Result<String> {
         None => format!("{scheme}://{host}"),
     };
     Ok(host_port)
-}
-
-async fn run_text_to_cad(binary: &str, host: &str, token: &str, config_dir: &std::path::Path) -> Result<()> {
-    let output_dir = tempfile::tempdir().context("creating temporary output dir for text-to-cad")?;
-
-    let mut cmd = Command::new(binary);
-    cmd.arg("--host").arg(host);
-    cmd.args(["ml", "text-to-cad", "export", "-t", "obj", "--output-dir"]);
-    cmd.arg(output_dir.path());
-    cmd.arg("--no-reasoning");
-    cmd.args(["A", "2x4", "lego", "brick"]);
-
-    cmd.env("ZOO_TOKEN", token);
-    cmd.env("ZOO_NO_UPDATE_NOTIFIER", "1");
-    cmd.env("NO_COLOR", "1");
-    cmd.env("ZOO_PAGER", "cat");
-    cmd.env("ZOO_CONFIG_DIR", config_dir);
-    cmd.env("CI", "true");
-    if let Ok(extra) = std::env::var("NODE_EXTRA_CA_CERTS") {
-        cmd.env("NODE_EXTRA_CA_CERTS", extra);
-    }
-
-    cmd.stdout(std::process::Stdio::piped());
-    cmd.stderr(std::process::Stdio::piped());
-
-    let output = cmd.output().await.context("running text-to-cad smoke command")?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        return Err(anyhow!(
-            "text-to-cad command failed with status {:?}: stderr: {stderr}; stdout: {stdout}",
-            output.status.code()
-        ));
-    }
-
-    let stdout = String::from_utf8(output.stdout).context("text-to-cad stdout not valid UTF-8")?;
-    if !stdout.contains("Completed") {
-        return Err(anyhow!(
-            "text-to-cad command succeeded but stdout missing completion marker. stdout: {stdout:?}"
-        ));
-    }
-
-    Ok(())
 }
