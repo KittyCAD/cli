@@ -1,9 +1,5 @@
 name: win-ca-smoke
 
-permissions:
-  contents: read
-  # Add more granular permissions if later required
-
 on:
   pull_request:
   push:
@@ -21,6 +17,5 @@ jobs:
       setup-rust: true
       pre-test-command: cargo test --test win_ca_smoke -- --nocapture
       post-test-command: cargo test --test win_ca_smoke -- --nocapture
-    env:
-      RUST_BACKTRACE: '1'
-      SMOKE_URL: 'https://127.0.0.1:4443/' # only needed for the CLI binary
+      pre-step-extra-env: '{"WIN_CA_EXPECT_SUCCESS":"0","RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
+      post-step-extra-env: '{"WIN_CA_EXPECT_SUCCESS":"1","RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
