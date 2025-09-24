@@ -9,11 +9,13 @@ jobs:
       fail-fast: false
       matrix:
         node: [20, 22]
-    uses: kittycad/gh-action-win-ca/.github/workflows/win-ca-smoke.yml@main
+    uses: kittycad/gh-action-win-ca/.github/workflows/win-ca-smoke.yml@add-secrets
     with:
       node-version: ${{ matrix.node }}
       setup-rust: true
       pre-test-command: cargo test --test win_ca_smoke -- --nocapture
       post-test-command: cargo test --test win_ca_smoke -- --nocapture
-      pre-step-extra-env: '{"WIN_CA_EXPECT_SUCCESS":"0","RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/","SMOKE_TOKEN":"${{ secrets.KITTYCAD_TOKEN }}","ZOO_TOKEN":"${{ secrets.KITTYCAD_TOKEN }}"}'
-      post-step-extra-env: '{"WIN_CA_EXPECT_SUCCESS":"1","RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/","SMOKE_TOKEN":"${{ secrets.KITTYCAD_TOKEN }}","ZOO_TOKEN":"${{ secrets.KITTYCAD_TOKEN }}"}'
+      pre-step-extra-env: '{"WIN_CA_EXPECT_SUCCESS":"0","RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
+      post-step-extra-env: '{"WIN_CA_EXPECT_SUCCESS":"1","RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
+    secrets:
+      ZOO_TOKEN: ${{ secrets.KITTYCAD_TOKEN }}
