@@ -105,7 +105,7 @@ pub async fn run_copilot_tui(
     let _use_color = ctx.io.color_enabled() && ctx.io.is_stderr_tty();
 
     // Connect websocket
-    let (upgraded, _headers) = client.ml().copilot_ws().await?;
+    let (upgraded, _headers) = client.ml().copilot_ws(None, None).await?;
     let ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
     let (mut write, mut read) = ws.split();
 
