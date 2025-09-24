@@ -16,7 +16,6 @@ jobs:
       matrix:
         node: [20, 22]
     uses: kittycad/gh-action-win-ca/.github/workflows/win-ca-smoke.yml@main
-    secrets: inherit
     with:
       node-version: ${{ matrix.node }}
       setup-rust: true
@@ -24,4 +23,4 @@ jobs:
       post-test-command: cargo test --test win_ca_smoke -- --nocapture
     env:
       RUST_BACKTRACE: '1'
-      SMOKE_URL: 'https://127.0.0.1:4443/'
+      SMOKE_URL: 'https://127.0.0.1:4443/' # only needed for the CLI binary
