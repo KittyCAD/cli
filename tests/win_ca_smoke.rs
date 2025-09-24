@@ -23,7 +23,7 @@ async fn win_ca_cli_smoke() -> Result<()> {
         Err(_) => {
             let path = target_url.path();
             if path.is_empty() || path == "/" {
-                "/".to_string()
+                "/ping".to_string()
             } else {
                 path.to_string()
             }
