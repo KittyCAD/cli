@@ -6,6 +6,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
 /// Makes an authenticated HTTP request to the Zoo API and prints the response.
@@ -148,7 +149,8 @@ impl crate::cmd::Command for CmdApi {
 
         // Make the request.
         let mut has_next_page = true;
-        let mut result = serde_json::Value::Null;
+        let mut json_result: Option<serde_json::Value> = None;
+        let mut text_result: Option<String> = None;
         let mut page_results: Vec<serde_json::Value> = Vec::new();
         while has_next_page {
             let body = if bytes.is_empty() {
@@ -168,6 +170,13 @@ impl crate::cmd::Command for CmdApi {
             }
 
             let resp = req.0.send().await?;
+            let status = resp.status();
+            let content_type = resp
+                .headers()
+                .get(CONTENT_TYPE)
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("")
+                .to_ascii_lowercase();
 
             // Print the response headers if requested.
             if self.include {
@@ -175,16 +184,12 @@ impl crate::cmd::Command for CmdApi {
                 print_headers(ctx, resp.headers())?;
             }
 
-            if resp.status() == 204 {
+            if status == 204 {
                 return Ok(());
             }
 
-            if !resp.status().is_success() {
-                return Err(anyhow!(
-                    "{} {}",
-                    resp.status(),
-                    resp.status().canonical_reason().unwrap_or("")
-                ));
+            if !status.is_success() {
+                return Err(anyhow!("{} {}", status, status.canonical_reason().unwrap_or("")));
             }
 
             if self.paginate {
@@ -203,17 +208,33 @@ impl crate::cmd::Command for CmdApi {
                     }
                 }
             } else {
-                // Read the response body.
-                result = resp.json().await?;
+                let body_bytes = resp.bytes().await?;
+                match serde_json::from_slice::<serde_json::Value>(&body_bytes) {
+                    Ok(value) => {
+                        json_result = Some(value);
+                    }
+                    Err(parse_err) => {
+                        if content_type.contains("json") && !body_bytes.is_empty() {
+                            return Err(parse_err.into());
+                        }
+
+                        let text = String::from_utf8_lossy(&body_bytes).to_string();
+                        text_result = Some(text);
+                    }
+                }
                 has_next_page = false;
             }
         }
 
         if self.paginate {
-            result = serde_json::Value::Array(page_results);
+            json_result = Some(serde_json::Value::Array(page_results));
         }
 
-        ctx.io.write_output_json(&result)?;
+        if let Some(json) = json_result {
+            ctx.io.write_output_json(&json)?;
+        } else if let Some(text) = text_result {
+            writeln!(ctx.io.out, "{text}")?;
+        }
 
         Ok(())
     }
