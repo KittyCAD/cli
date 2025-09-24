@@ -73,7 +73,6 @@ jobs:
         shell: pwsh
         env:
           NODE_EXTRA_CA_CERTS: ${{ github.workspace }}\root.pem
-          ZOO_EXTRA_CA_CERTS: ${{ github.workspace }}\root.pem
           WIN_CA_SMOKE: '1'
           RUST_BACKTRACE: '1'
           SMOKE_URL: 'https://127.0.0.1:4443/'
