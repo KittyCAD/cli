@@ -2240,9 +2240,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.100"
+version = "0.2.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e2856c048045f901a80681fc289874cb375495daf904119bad53f989e882d29"
+checksum = "415e3e421657170481a0b4a61aa73875d88810192cde0e05533a91b33e63c90a"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2289,7 +2289,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.17",
  "tokio",
- "tokio-tungstenite 0.27.0",
+ "tokio-tungstenite 0.28.0",
  "toml 0.9.7",
  "tower-lsp",
  "ts-rs",
@@ -2310,9 +2310,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.100"
+version = "0.1.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b927ec271b77a369919903f8c9124aba9e7c0a59d56431edba6d925cd6a30672"
+checksum = "c6f3200775d0f1f81b4b71068e8734a37c583e619c81a06ca3eedd145f378873"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -4837,9 +4837,9 @@ checksum = "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1"
 
 [[package]]
 name = "tempfile"
-version = "3.21.0"
+version = "3.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15b61f8f20e3a6f7e0649d825294eaf317edce30f82cf6026e7e4cb9222a7d1e"
+checksum = "2d31c77bdf42a745371d260a26ca7163f1e0924b64afa0b688e61b5a9fa02f16"
 dependencies = [
  "fastrand",
  "getrandom 0.3.2",
@@ -5090,9 +5090,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-tungstenite"
-version = "0.27.0"
+version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "489a59b6730eda1b0171fcfda8b121f4bee2b35cba8645ca35c5f7ba3eb736c1"
+checksum = "d25a406cddcc431a75d3d9afc6a7c0f7428d4891dd973e4d54c56b46127bf857"
 dependencies = [
  "futures-util",
  "log",
@@ -5101,7 +5101,7 @@ dependencies = [
  "rustls-pki-types",
  "tokio",
  "tokio-rustls 0.26.2",
- "tungstenite 0.27.0",
+ "tungstenite 0.28.0",
 ]
 
 [[package]]
@@ -5429,9 +5429,9 @@ dependencies = [
 
 [[package]]
 name = "tungstenite"
-version = "0.27.0"
+version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eadc29d668c91fcc564941132e17b28a7ceb2f3ebf0b9dae3e03fd7a6748eb0d"
+checksum = "8628dcc84e5a09eb3d8423d6cb682965dea9133204e8fb3efee74c2a0c259442"
 dependencies = [
  "bytes",
  "data-encoding",
@@ -6384,7 +6384,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.123"
+version = "0.2.124"
 dependencies = [
  "anyhow",
  "async-trait",
