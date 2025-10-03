@@ -2240,9 +2240,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.101"
+version = "0.2.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "415e3e421657170481a0b4a61aa73875d88810192cde0e05533a91b33e63c90a"
+checksum = "23fb97689fed1c6a3eac7fc6887386e9276220ea5a52c9295c78e6c8b2b8d661"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2310,9 +2310,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.101"
+version = "0.1.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6f3200775d0f1f81b4b71068e8734a37c583e619c81a06ca3eedd145f378873"
+checksum = "8852179773094e575f90816f119bef3f31d482079320444ea8d68d31207c8a45"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -6384,7 +6384,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.124"
+version = "0.2.125"
 dependencies = [
  "anyhow",
  "async-trait",
