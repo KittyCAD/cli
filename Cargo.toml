@@ -23,7 +23,7 @@ clap = { version = "4.5.35", features = [
 ] }
 clap_complete = { version = "4.5.58" }
 cli-macro = { path = "cli-macro" }
-colored_json = "4.1"
+colored_json = "5.0"
 crossterm = { version = "0.27", features = ["event-stream"] }
 data-encoding = "2.6.0"
 dialoguer = "0.11.0"
@@ -54,11 +54,11 @@ log = "0.4.28"
 miette = { version = "7.5.0", features = ["fancy"] }
 nu-ansi-term = "0.50.1"
 num-traits = "0.2.19"
-oauth2 = "4.4.2"
+oauth2 = "5.0.0"
 open = "5.3.2"
 parse-display = "0.10.0"
 pulldown-cmark = "0.9.2"
-pulldown-cmark-to-cmark = "11.0.2"
+pulldown-cmark-to-cmark = "21.0.0"
 ratatui = { version = "0.26", default-features = false, features = [
   "crossterm",
 ] }
