@@ -711,7 +711,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -2551,9 +2551,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.99"
+version = "0.1.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f95d56fab093dc025091e0ba850589f1c609a6f45b08e78d7f083a10519c7c1"
+checksum = "7d40540b4f7ac5288504fbc5fc6b50a07ce611d63692b31c90eb93ee32cbe7ef"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6457,7 +6457,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
