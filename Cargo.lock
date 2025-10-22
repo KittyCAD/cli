@@ -2538,9 +2538,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.1.1"
+version = "0.1.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18093ea66947a5afa31ae80cea530b20098bdd921f14d05123741dcf4f9d7fc9"
+checksum = "7f013310e90b7cc36fdc16514e8301eed553624f2bb8dfa80279d78159d1beb5"
 dependencies = [
  "indexmap 2.11.4",
  "kcl-error",
@@ -2562,9 +2562,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.1"
+version = "0.1.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93ac4b6380c5d81e2dd7aa36216012f1ceb091bd2ed0488a1b82bbdbe127d35b"
+checksum = "78272cc4e2a9a79104da717a982d12109c9daaf881bee88f05e6844f6b6453d0"
 dependencies = [
  "miette",
  "serde",
