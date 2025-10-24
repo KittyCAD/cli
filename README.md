@@ -37,10 +37,15 @@ The tests use the `ZOO_TEST_TOKEN`  variables for knowing how to authenticate.
 ### Releasing a new version
 
 1. Make sure the `Cargo.toml` has the new version you want to release.
-2. Run `make tag` this is just an easy command for making a tag formatted
+2. When upgrading Zoo crates, make sure to update them _all_, even transitive dependencies.
+    ```
+    cargo update -p kittycad-modeling-cmds -p kcl-derive-docs -p kcl-error -p kcl-api -p kcl-lib -p kcl-test-server
+    cargo check
+    ```
+3. Run `make tag` this is just an easy command for making a tag formatted
    correctly with the version.
-3. Push the tag (the result of `make tag` gives instructions for this)
-4. Everything else is triggered from the tag push. Just make sure all the tests
+4. Push the tag (the result of `make tag` gives instructions for this)
+5. Everything else is triggered from the tag push. Just make sure all the tests
    and cross compilation pass on the `main` branch before making and pushing
    a new tag.
 

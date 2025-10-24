@@ -12,15 +12,6 @@ on:
       - 'Makefile'
       - 'spec.json'
   pull_request:
-    paths:
-      - '**.rs'
-      - '**.rs.gen'
-      - Cargo.toml
-      - Cargo.lock
-      - .github/workflows/cargo-test.yml
-      - 'rust-toolchain.toml'
-      - 'Makefile'
-      - 'spec.json'
   workflow_dispatch:
 permissions: read-all
 concurrency:
