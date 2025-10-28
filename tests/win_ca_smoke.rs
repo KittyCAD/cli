@@ -33,9 +33,10 @@ async fn win_ca_cli_smoke() -> Result<()> {
     let expected_key = std::env::var("SMOKE_EXPECTED_KEY").unwrap_or_else(|_| "status".to_string());
     let expected_value = std::env::var("SMOKE_EXPECTED_VALUE").unwrap_or_else(|_| "ok".to_string());
     let token = std::env::var("SMOKE_TOKEN")
-        .or_else(|_| std::env::var("ZOO_TOKEN"))
-        .or_else(|_| std::env::var("KITTYCAD_TOKEN"))
-        .expect("SMOKE_TOKEN, ZOO_TOKEN, or KITTYCAD_TOKEN must be set for smoke test");
+        .or_else(|_| std::env::var("ZOO_API_TOKEN"))
+        .or_else(|_| std::env::var("ZOO_TOKEN")) // legacy name
+        .or_else(|_| std::env::var("KITTYCAD_TOKEN")) // legacy name
+        .expect("SMOKE_TOKEN or ZOO_API_TOKEN must be set for smoke test");
 
     let attempts = env_u32("SMOKE_ATTEMPTS").unwrap_or(60);
     let delay = Duration::from_millis(env_u64("SMOKE_DELAY_MS").unwrap_or(500));
@@ -46,7 +47,7 @@ async fn win_ca_cli_smoke() -> Result<()> {
         let mut cmd = Command::new(&binary);
         cmd.arg("--host").arg(&host);
         cmd.arg("api").arg(&endpoint);
-        cmd.env("ZOO_TOKEN", &token);
+        cmd.env("ZOO_API_TOKEN", &token);
         cmd.env("ZOO_NO_UPDATE_NOTIFIER", "1");
         cmd.env("NO_COLOR", "1");
         cmd.env("ZOO_PAGER", "cat");

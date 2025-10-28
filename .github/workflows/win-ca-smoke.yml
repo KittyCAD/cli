@@ -20,4 +20,4 @@ jobs:
       pre-step-extra-env: '{"RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
       post-step-extra-env: '{"RUST_BACKTRACE":"1","SMOKE_URL":"https://127.0.0.1:4443/"}'
     secrets:
-      ZOO_TOKEN: ${{ secrets.KITTYCAD_TOKEN }}
+      ZOO_API_TOKEN: ${{ secrets.KITTYCAD_TOKEN }}

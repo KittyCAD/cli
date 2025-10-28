@@ -5,9 +5,6 @@ use thiserror::Error;
 
 use crate::config_file::get_env_var;
 
-const ZOO_HOST: &str = "ZOO_HOST";
-const ZOO_TOKEN: &str = "ZOO_TOKEN";
-
 pub struct EnvConfig<'a> {
     pub config: &'a mut (dyn crate::config::Config + 'a),
 }
@@ -33,9 +30,14 @@ impl crate::config::Config for EnvConfig<'_> {
     fn get_with_source(&self, hostname: &str, key: &str) -> Result<(String, String)> {
         // If they are asking specifically for the token, return the value.
         if key == "token" {
-            let token = get_env_var(ZOO_TOKEN);
+            let token = get_env_var("ZOO_API_TOKEN");
+            let token = if token.is_empty() {
+                get_env_var("ZOO_TOKEN") // legacy name
+            } else {
+                token
+            };
             if !token.is_empty() {
-                return Ok((token, ZOO_TOKEN.to_string()));
+                return Ok((token, "ZOO_API_TOKEN".to_string()));
             }
         } else {
             let var = format!("ZOO_{}", heck::AsShoutySnakeCase(key));
@@ -66,8 +68,8 @@ impl crate::config::Config for EnvConfig<'_> {
     }
 
     fn default_host_with_source(&self) -> Result<(String, String)> {
-        if let Ok(host) = env::var(ZOO_HOST) {
-            Ok((host, ZOO_HOST.to_string()))
+        if let Ok(host) = env::var("ZOO_HOST") {
+            Ok((host, "ZOO_HOST".to_string()))
         } else {
             self.config.default_host_with_source()
         }
@@ -88,9 +90,14 @@ impl crate::config::Config for EnvConfig<'_> {
     fn check_writable(&self, hostname: &str, key: &str) -> Result<()> {
         // If they are asking specifically for the token, return the value.
         if key == "token" {
-            let token = get_env_var(ZOO_TOKEN);
+            let token = get_env_var("ZOO_API_TOKEN");
+            let token = if token.is_empty() {
+                get_env_var("ZOO_TOKEN") // legacy name
+            } else {
+                token
+            };
             if !token.is_empty() {
-                return Err(ReadOnlyEnvVarError::Variable(ZOO_TOKEN.to_string()).into());
+                return Err(ReadOnlyEnvVarError::Variable("ZOO_API_TOKEN".to_string()).into());
             }
         }
 
