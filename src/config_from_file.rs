@@ -83,11 +83,11 @@ impl FileConfig {
         let default_host = crate::cmd_auth::parse_host(crate::DEFAULT_HOST)?.to_string();
         if hostname == default_host {
             Err(anyhow!(
-                "Try authenticating with `zoo auth login` or be sure you are using the env var: `ZOO_TOKEN`."
+                "Try authenticating with `zoo auth login` or be sure you are using the env var: `ZOO_API_TOKEN`."
             ))
         } else {
             Err(anyhow!(
-                "host `{hostname}` not found. Try authenticating with `zoo auth login` or be sure you are using the env var: `ZOO_TOKEN`."
+                "host `{hostname}` not found. Try authenticating with `zoo auth login` or be sure you are using the env var: `ZOO_API_TOKEN`."
             ))
         }
     }

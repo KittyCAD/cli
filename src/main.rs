@@ -86,7 +86,7 @@ pub const DEFAULT_HOST: &str = "https://api.zoo.dev";
 ///
 /// Environment variables that can be used with `zoo`.
 ///
-/// ZOO_TOKEN: an authentication token for Zoo API requests. Setting this
+/// ZOO_API_TOKEN: an authentication token for Zoo API requests. Setting this
 /// avoids being prompted to authenticate and takes precedence over previously
 /// stored credentials.
 ///

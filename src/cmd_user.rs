@@ -54,7 +54,7 @@ mod test {
         async fn setup() -> TContext {
             let orig = TContext {
                 orig_zoo_host: std::env::var("ZOO_HOST"),
-                orig_zoo_token: std::env::var("ZOO_TOKEN"),
+                orig_zoo_token: std::env::var("ZOO_API_TOKEN"),
             };
 
             // Set our test values.
@@ -62,7 +62,7 @@ mod test {
 
             let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
             std::env::set_var("ZOO_HOST", test_host);
-            std::env::set_var("ZOO_TOKEN", test_token);
+            std::env::set_var("ZOO_API_TOKEN", test_token);
 
             orig
         }
@@ -76,9 +76,9 @@ mod test {
             }
 
             if let Ok(ref val) = self.orig_zoo_token {
-                std::env::set_var("ZOO_TOKEN", val);
+                std::env::set_var("ZOO_API_TOKEN", val);
             } else {
-                std::env::remove_var("ZOO_TOKEN");
+                std::env::remove_var("ZOO_API_TOKEN");
             }
         }
     }
