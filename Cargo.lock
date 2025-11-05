@@ -2654,9 +2654,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.4.2"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87ad248df3976689e9bd17b93157d7413884c56a59c5c53cdc8aba66d42ea144"
+checksum = "5b9cb704f63de8e6852d9f0984a1ee3cde9823ab934aab968f3abeea79a99bb3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2686,7 +2686,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "serde_urlencoded",
- "tabled 0.18.0",
+ "tabled",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -2717,7 +2717,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "tabled 0.20.0",
+ "tabled",
  "ts-rs",
  "uuid",
 ]
@@ -3452,23 +3452,12 @@ checksum = "1036865bb9422d3300cf723f657c2851d0e9ab12567854b1f4eba3d77decf564"
 
 [[package]]
 name = "papergrid"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b915f831b85d984193fdc3d3611505871dc139b2534530fa01c1a6a6707b6723"
-dependencies = [
- "ansi-str",
- "ansitok",
- "bytecount",
- "fnv",
- "unicode-width 0.2.0",
-]
-
-[[package]]
-name = "papergrid"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6978128c8b51d8f4080631ceb2302ab51e32cc6e8615f735ee2f83fd269ae3f1"
 dependencies = [
+ "ansi-str",
+ "ansitok",
  "bytecount",
  "fnv",
  "unicode-width 0.2.0",
@@ -5296,38 +5285,15 @@ dependencies = [
 
 [[package]]
 name = "tabled"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "121d8171ee5687a4978d1b244f7d99c43e7385a272185a2f1e1fa4dc0979d444"
-dependencies = [
- "ansi-str",
- "ansitok",
- "papergrid 0.14.0",
- "tabled_derive 0.10.0",
-]
-
-[[package]]
-name = "tabled"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e39a2ee1fbcd360805a771e1b300f78cc88fec7b8d3e2f71cd37bbf23e725c7d"
 dependencies = [
- "papergrid 0.17.0",
- "tabled_derive 0.11.0",
+ "ansi-str",
+ "ansitok",
+ "papergrid",
+ "tabled_derive",
  "testing_table",
-]
-
-[[package]]
-name = "tabled_derive"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52d9946811baad81710ec921809e2af67ad77719418673b2a3794932d57b7538"
-dependencies = [
- "heck",
- "proc-macro-error2",
- "proc-macro2",
- "quote",
- "syn 2.0.108",
 ]
 
 [[package]]
@@ -5438,6 +5404,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0f8daae29995a24f65619e19d8d31dea5b389f3d853d8bf297bbf607cd0014cc"
 dependencies = [
+ "ansitok",
  "unicode-width 0.2.0",
 ]
 
@@ -6986,7 +6953,7 @@ dependencies = [
  "slog-scope",
  "slog-stdlog",
  "slog-term",
- "tabled 0.18.0",
+ "tabled",
  "tabwriter",
  "tempfile",
  "terminal_size",
