@@ -61,6 +61,9 @@ fn build_user_message(
         forced_tools,
         project_name: project_name.clone(),
         source_ranges: None,
+        mode: None,
+        model: None,
+        reasoning_effort: None,
     };
     let len = serde_json::to_string(&msg).map(|s| s.len()).unwrap_or(0);
     (msg, len)

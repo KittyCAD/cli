@@ -2516,9 +2516,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.1.106"
+version = "0.1.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e253b521ff94d7f238b4bab5b794950b8f21388807b7ebc75eb00cc4697e4279"
+checksum = "71f3d799bd5ae37111fbf7f04d7d4fee0b7f3a49394071687ca083ffcc59969b"
 dependencies = [
  "indexmap 2.12.0",
  "kcl-error",
@@ -2529,9 +2529,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.106"
+version = "0.1.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d5c01200eb3a084c92e022949ebba0a624c7b4ad4b30713743d94703d5a16d2"
+checksum = "fc88d0199b109e6a640363f5309b64b0c0804798ddc97ca944840d650226222f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2540,9 +2540,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.106"
+version = "0.1.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61529786d4f6f4579f3ec3024abffc0e9559051a69892f7a1880dca634ff2a04"
+checksum = "2b1c6861de5b3871929543f86f66ab6a7f8d30d79e31337a2192062c66216e85"
 dependencies = [
  "miette",
  "serde",
@@ -2567,9 +2567,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.106"
+version = "0.2.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76bb23fcebb67056e9c42216f58de98f96f01ca639d88d14b21c50170a3ab0a0"
+checksum = "9feedbd96a5f6392f38fd17ff3d876b51da53c3716a0d9f857b47ab987ed3137"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2639,9 +2639,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.106"
+version = "0.1.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b163bfb31f46de7f34764d9ea02610dc13ee3f0a6b311e1e84d7b99df74c09c8"
+checksum = "b607c2e7881c35c11df4ae7fddd9ffc0069d844ad14205502b898415f5f6e3db"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
