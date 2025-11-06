@@ -245,6 +245,7 @@ impl Context<'_> {
                     prompt: prompt.to_string(),
                     kcl_version: Some(kcl_lib::version().to_owned()),
                     project_name: None,
+                    model_version: None,
                 },
             )
             .await?;
