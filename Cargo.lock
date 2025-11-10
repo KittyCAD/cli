@@ -617,9 +617,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.50"
+version = "4.5.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c2cfd7bf8a6017ddaa4e32ffe7403d547790db06bd171c1c53926faab501623"
+checksum = "4c26d721170e0295f191a69bd9a1f93efcdb0aff38684b61ab5750468972e5f5"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -627,9 +627,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.50"
+version = "4.5.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a4c05b9e80c5ccd3a7ef080ad7b6ba7d6fc00a985b8b157197075677c82c7a0"
+checksum = "75835f0c7bf681bfd05abe44e965760fea999a5286c6eb2d59883634fd02011a"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2516,9 +2516,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.1.107"
+version = "0.1.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71f3d799bd5ae37111fbf7f04d7d4fee0b7f3a49394071687ca083ffcc59969b"
+checksum = "064205e5f85c657e155d816b96234ed31fd0c3f1a61671d194d5d0aaae00497c"
 dependencies = [
  "indexmap 2.12.0",
  "kcl-error",
@@ -2540,9 +2540,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.107"
+version = "0.1.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b1c6861de5b3871929543f86f66ab6a7f8d30d79e31337a2192062c66216e85"
+checksum = "eebaa084b273e99bd34a3a7c9b4eb8d06f7dfafb6dc8a853d30f42b116d7f887"
 dependencies = [
  "miette",
  "serde",
@@ -2552,9 +2552,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-ezpz"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "887e058c75acbcb8077dd319693dbd1f5b5e1ca31d05a5e315c68458f1a30584"
+checksum = "ae79e38dd74d57483135a0c29e9be71cd445e6381a2fb99ea683b637cc0934d8"
 dependencies = [
  "faer",
  "getrandom 0.2.16",
@@ -2567,9 +2567,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.107"
+version = "0.2.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9feedbd96a5f6392f38fd17ff3d876b51da53c3716a0d9f857b47ab987ed3137"
+checksum = "ad715d5b5e8fa5e853b7b5402df3222dec433dc7a4259b97aec1d46398516c4a"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2639,9 +2639,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.107"
+version = "0.1.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b607c2e7881c35c11df4ae7fddd9ffc0069d844ad14205502b898415f5f6e3db"
+checksum = "1596a98d888a2771db390bdae6a313d87ab73f9922de38e61276d6eabeca11a8"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -6902,7 +6902,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.129"
+version = "0.2.130"
 dependencies = [
  "anyhow",
  "async-trait",
