@@ -712,7 +712,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2516,9 +2516,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.1.109"
+version = "0.1.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "228df2b5514311a057d7554b874d53ef76f7c8ea33099021eb35875959494baa"
+checksum = "3adc332914b38279bb5c0c5973ec118353661cb045425354d06b19dfed7417bc"
 dependencies = [
  "indexmap 2.12.0",
  "kcl-error",
@@ -2540,9 +2540,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.109"
+version = "0.1.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "850312758bc07d7d0f0591e03cb2e7ec4797b39e97fc71d4a38aa2215803bf6b"
+checksum = "885607d38093b90dfe5f5dc1d908c78fae040cb1bc91b3e8479509cdb21193e7"
 dependencies = [
  "miette",
  "serde",
@@ -2567,9 +2567,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.109"
+version = "0.2.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c83f50acf0665e6107f92f11942097739b6a310fda0adac05523142728c24f6"
+checksum = "95ea7544029249373becb040eec87f32ec102e0f1c32604fa999d7bd661a0fa2"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2639,9 +2639,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.109"
+version = "0.1.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "210447b33ec1cd5f9be5749ac7d198ab9cc7fecbcaa960df7f1d277cc0d33f87"
+checksum = "6f5963553129a4d4d305937b9d471ee0b05b2b09acf5f7789cb362337a274aa0"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -6385,7 +6385,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
