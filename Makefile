@@ -73,6 +73,11 @@ tag: ## Create a new git tag to prepare to build a release.
 	git tag -sa v$(VERSION) -m "v$(VERSION)"
 	@echo "Run git push origin v$(VERSION) to push your new tag to GitHub and trigger a release."
 
+.PHONY: tag-no-sign
+tag-no-sign: ## Create a new git tag to prepare to build a release.
+	git tag -a v$(VERSION) -m "v$(VERSION)"
+	@echo "Run git push origin v$(VERSION) to push your new tag to GitHub and trigger a release."
+
 .PHONY: AUTHORS
 AUTHORS:
 	@$(file >$@,# This file lists all individuals having contributed content to the repository.)
