@@ -709,7 +709,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2512,9 +2512,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.1.114"
+version = "0.1.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f75a6b4afef0447c697a4fe060351d0aa1d3c51f34f424f0db0f05890befec0"
+checksum = "4a5d6c26c0fec91cfc2c1da2f39e2aedcf990284a8325d75dea2684d633c81b9"
 dependencies = [
  "indexmap 2.12.1",
  "kcl-error",
@@ -2536,9 +2536,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.114"
+version = "0.1.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e7622554f7e27c4358a523cf4d3c120738091a2b0d0741fd6f5ee6de91175cb"
+checksum = "b827613db96bf372a4b0b58126c5fe35fb4d097aac84fee60808cf773717f8c7"
 dependencies = [
  "miette",
  "serde",
@@ -2563,9 +2563,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.114"
+version = "0.2.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88dd7ffc379db805ea9122e9b8500ee0608b347cc961b8d927455f772df385b0"
+checksum = "c052bdfd1e891e6cde6d203695539a6166790db02e41e87b9adf2d2edb4660e2"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2635,9 +2635,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.114"
+version = "0.1.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68315468b4c41054e6d15204de39cd0c6af183f83e0ea4ff50d4970ceec68e1d"
+checksum = "edbd3725d1e2ea7b2f3852211cab75a8346faac651bc82a5a05eb9ee3e611b7e"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -6383,7 +6383,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6877,7 +6877,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.135"
+version = "0.2.136"
 dependencies = [
  "anyhow",
  "async-trait",
