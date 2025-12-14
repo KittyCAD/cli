@@ -15,7 +15,7 @@ jobs:
     name: make-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install latest rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cache cargo registry
@@ -49,7 +49,7 @@ jobs:
           private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
       # Checkout the docs repo since we will want to update the files there.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: 'kittycad/documentation'
           path: 'docs'
