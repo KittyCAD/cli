@@ -39,7 +39,7 @@ The tests use the `ZOO_TEST_TOKEN`  variables for knowing how to authenticate.
 1. Make sure the `Cargo.toml` has the new version you want to release.
 2. When upgrading Zoo crates, make sure to update them _all_, even transitive dependencies.
     ```
-    cargo update -p kittycad-modeling-cmds -p kcl-derive-docs -p kcl-error -p kcl-api -p kcl-lib -p kcl-test-server
+    cargo update -p kittycad-modeling-cmds -p kcl-derive-docs -p kcl-error -p kcl-lib -p kcl-test-server
     cargo check
     ```
 3. Run `make tag` this is just an easy command for making a tag formatted
