@@ -46413,13 +46413,24 @@
           "payment_methods_summary"
         ]
       },
+      "UserFeature": {
+        "type": "string",
+        "enum": [
+          "proprietary_to_kcl_conversion_beta",
+          "new_sketch_mode"
+        ]
+      },
       "UserFeatureEntry": {
         "description": "Enabled features surfaced to end users.",
         "type": "object",
         "properties": {
           "id": {
             "description": "Stable identifier for the feature flag (snake_case).",
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserFeature"
+              }
+            ]
           }
         },
         "required": [
