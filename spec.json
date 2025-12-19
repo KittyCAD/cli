@@ -23316,6 +23316,17 @@
               "nullable": true,
               "type": "boolean"
             }
+          },
+          {
+            "in": "query",
+            "name": "pr",
+            "description": "Optional Pull Request number to route traffic.",
+            "schema": {
+              "nullable": true,
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            }
           }
         ],
         "requestBody": {
@@ -23498,7 +23509,7 @@
           {
             "in": "query",
             "name": "pr",
-            "description": "Optional PR number for preview pools. If provided, takes precedence over pool=pr-{id}.",
+            "description": "Optional Pull Request number to route traffic.",
             "schema": {
               "nullable": true,
               "type": "integer",
