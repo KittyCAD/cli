@@ -13,13 +13,13 @@ jobs:
     name: make release
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v2.1.11'
+        uses: 'google-github-actions/auth@v3.0.0'
         with:
           credentials_json: '${{ secrets.GOOGLE_CLOUD_DL_SA }}'
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2.1.5
+        uses: google-github-actions/setup-gcloud@v3.0.1
         with:
           project_id: kittycadapi
       - name: Install latest nightly
@@ -39,17 +39,17 @@ jobs:
 
           cargo install toml-cli
       - name: Cache cargo registry
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo index
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
@@ -68,19 +68,19 @@ jobs:
           cp cross/README.md cross/${{matrix.os}}-${{github.ref_name}}-README.md
       - name: 'upload binary files'
         id: upload-files
-        uses: google-github-actions/upload-cloud-storage@v2.2.3
+        uses: google-github-actions/upload-cloud-storage@v3.0.0
         with:
           path: releases
           destination: dl.kittycad.io
       # Store the binary artifacts for retrival later.
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: release-${{ matrix.os }}-${{github.ref_name}}
           path: ./cross
       # Store the readme as an artifact so we can combine the two.
       - name: Archive the README.md data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{matrix.os}}-${{github.ref_name}}-README.md
           path: ${{github.workspace}}/cross/${{matrix.os}}-${{github.ref_name}}-README.md
@@ -89,21 +89,21 @@ jobs:
     needs: [makerelease]
     name: createrelease
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install latest nightly
         uses: dtolnay/rust-toolchain@stable
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name:  release-macos-latest-${{github.ref_name}}
           path: build
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name:  release-ubuntu-latest-${{github.ref_name}}
           path: build
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name:  ubuntu-latest-${{github.ref_name}}-README.md
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name:  macos-latest-${{github.ref_name}}-README.md
       - name: combine readmes
@@ -145,11 +145,11 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v2.1.11'
+        uses: 'google-github-actions/auth@v3.0.0'
         with:
           credentials_json: '${{ secrets.GOOGLE_CLOUD_DL_SA }}'
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2.1.5
+        uses: google-github-actions/setup-gcloud@v3.0.1
         with:
           project_id: kittycadapi
       - name: Install deps
@@ -217,7 +217,7 @@ jobs:
           cp -r homebrew releases/$(basename $(pwd))/${VERSION}
       - name: 'upload binary files'
         id: upload-files
-        uses: google-github-actions/upload-cloud-storage@v2.2.3
+        uses: google-github-actions/upload-cloud-storage@v3.0.0
         with:
           path: releases
           destination: dl.kittycad.io
@@ -228,7 +228,7 @@ jobs:
           app-id: ${{ secrets.GH_ORG_APP_ID }}
           private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: 'kittycad/homebrew-kittycad'
           path: 'homebrew-kittycad'
