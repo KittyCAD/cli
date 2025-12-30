@@ -722,7 +722,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2526,9 +2526,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.117"
+version = "0.1.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f5691e931828f272a6f70f0ef07acf245875a82730d944aa2894a8ae7d6efec"
+checksum = "080a18ab952a1e28d11e0dc2ed05e28e1737831786c2e73e9c2878a521aeca0a"
 dependencies = [
  "miette",
  "serde",
@@ -2538,22 +2538,23 @@ dependencies = [
 
 [[package]]
 name = "kcl-ezpz"
-version = "0.2.5"
+version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f1a144da20a292630a7877b3ea62539d7645f107b650331b1feb5d18a0c9868"
+checksum = "cbc4eba420518d1662344e749d282bca19b49087815ae2c0431d7cf1218a02d5"
 dependencies = [
  "faer",
  "indexmap 2.12.1",
  "libm",
+ "mutants",
  "thiserror 2.0.17",
  "winnow",
 ]
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.117"
+version = "0.2.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84939dd0e5a710a0590e95f10b63c02116016210a8e4e170110ba052c9551a8a"
+checksum = "0d9be913e39b43feef31cd60f9a3527d996799ce4eb0f5ae5662f962677f0ddb"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2603,7 +2604,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tokio-tungstenite 0.28.0",
- "toml 0.9.8",
+ "toml 0.9.10+spec-1.1.0",
  "tower-lsp",
  "ts-rs",
  "tynm",
@@ -2623,9 +2624,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.117"
+version = "0.1.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "465a16a102e85ca291fd1101d622018107449ecb59335826f6594125829320e9"
+checksum = "cd5a688bf9a7b5bcfc357ea6bb995333067154bfcb281558d473af1943a27e81"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -3008,6 +3009,12 @@ dependencies = [
  "num-traits 0.2.19",
  "pxfm",
 ]
+
+[[package]]
+name = "mutants"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc0287524726960e07b119cebd01678f852f147742ae0d925e6a520dca956126"
 
 [[package]]
 name = "nalgebra"
@@ -4752,9 +4759,9 @@ dependencies = [
 
 [[package]]
 name = "serde_spanned"
-version = "1.0.3"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e24345aa0fe688594e73770a5f6d1b216508b4f93484c0026d521acd30134392"
+checksum = "f8bbf91e5a4d6315eee45e704372590b30e260ee83af6639d64557f51b067776"
 dependencies = [
  "serde_core",
 ]
@@ -5594,14 +5601,14 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.9.8"
+version = "0.9.10+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0dc8b1fb61449e27716ec0e1bdf0f6b8f3e8f6b05391e8497b8b6d7804ea6d8"
+checksum = "0825052159284a1a8b4d6c0c86cbc801f2da5afd2b225fa548c72f2e74002f48"
 dependencies = [
  "indexmap 2.12.1",
  "serde_core",
- "serde_spanned 1.0.3",
- "toml_datetime 0.7.3",
+ "serde_spanned 1.0.4",
+ "toml_datetime 0.7.5+spec-1.1.0",
  "toml_parser",
  "toml_writer",
  "winnow",
@@ -5618,9 +5625,9 @@ dependencies = [
 
 [[package]]
 name = "toml_datetime"
-version = "0.7.3"
+version = "0.7.5+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2cdb639ebbc97961c51720f858597f7f24c4fc295327923af55b74c3c724533"
+checksum = "92e1cfed4a3038bc5a127e35a2d360f145e1f4b971b551a2ba5fd7aedf7e1347"
 dependencies = [
  "serde_core",
 ]
@@ -5641,9 +5648,9 @@ dependencies = [
 
 [[package]]
 name = "toml_parser"
-version = "1.0.4"
+version = "1.0.6+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0cbe268d35bdb4bb5a56a2de88d0ad0eb70af5384a99d648cd4b3d04039800e"
+checksum = "a3198b4b0a8e11f09dd03e133c0280504d0801269e9afa46362ffde1cbeebf44"
 dependencies = [
  "winnow",
 ]
@@ -5656,9 +5663,9 @@ checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "toml_writer"
-version = "1.0.4"
+version = "1.0.6+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df8b2b54733674ad286d16267dcfc7a71ed5c776e4ac7aa3c3e2561f7c637bf2"
+checksum = "ab16f14aed21ee8bfd8ec22513f7287cd4a91aa92e44edfe2c17ddd004e92607"
 
 [[package]]
 name = "toolchain_find"
@@ -6347,7 +6354,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6829,9 +6836,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "6.0.0"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb2a05c7c36fde6c09b08576c9f7fb4cda705990f73b58fe011abf7dfb24168b"
+checksum = "bdd8a47718a4ee5fe78e07667cd36f3de80e7c2bfe727c7074245ffc7303c037"
 dependencies = [
  "arbitrary",
  "crc32fast",
@@ -6841,7 +6848,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.138"
+version = "0.2.139"
 dependencies = [
  "anyhow",
  "async-trait",
