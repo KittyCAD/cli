@@ -23,10 +23,10 @@ clap = { version = "4.5.50", features = [
 ] }
 clap_complete = { version = "4.5.59" }
 cli-macro = { path = "cli-macro" }
-colored_json = "4.1"
-crossterm = { version = "0.27", features = ["event-stream"] }
+colored_json = "5.0"
+crossterm = { version = "0.28", features = ["event-stream"] }
 data-encoding = "2.6.0"
-dialoguer = "0.11.0"
+dialoguer = "0.12.0"
 dirs = "6"
 futures = "0.3"
 git_rev = "0.1.0"
@@ -36,7 +36,7 @@ image = { version = "0.25", default-features = false, features = [
   "png",
   "jpeg",
 ] }
-itertools = "0.12.1"
+itertools = "0.14.0"
 kcl-lib = { version = "=0.2.118", features = ["disable-println"] }
 kcl-test-server = "=0.1.118"
 kittycad = { version = "0.4.5", features = [
@@ -54,12 +54,12 @@ log = "0.4.28"
 miette = { version = "7.5.0", features = ["fancy"] }
 nu-ansi-term = "0.50.3"
 num-traits = "0.2.19"
-oauth2 = "4.4.2"
+oauth2 = "5.0.0"
 open = "5.3.2"
 parse-display = "0.10.0"
-pulldown-cmark = "0.9.2"
-pulldown-cmark-to-cmark = "11.0.2"
-ratatui = { version = "0.26", default-features = false, features = [
+pulldown-cmark = "0.13.0"
+pulldown-cmark-to-cmark = "22.0.0"
+ratatui = { version = "0.29", default-features = false, features = [
   "crossterm",
 ] }
 regex = "1"
@@ -88,17 +88,17 @@ tempfile = "3.19.1"
 terminal_size = "0.4.3"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
-tokio-tungstenite = "0.24"
-toml = "0.8.20"
-toml_edit = "0.22.23"
+tokio-tungstenite = "0.28"
+toml = "0.9.10"
+toml_edit = "0.24.0"
 unicode-segmentation = "1.12.0"
 url = "2.5.4"
 uuid = { version = "1.18.1", features = ["serde", "v4"] }
 version-compare = "0.2.0"
-viuer = { version = "0.9.2", features = ["print-file"] }
+viuer = { version = "0.11.0", features = ["print-file"] }
 
 [build-dependencies]
-built = "0.7"
+built = "0.8"
 
 [dev-dependencies]
 expectorate = "1.2.0"
@@ -106,7 +106,7 @@ futures = "0.3"
 pretty_assertions = "1"
 serial_test = "3.2.0"
 tempfile = "3.19.1"
-test-context = "0.1.4"
+test-context = "0.5.4"
 
 [profile.dev]
 # Disabling debug info speeds up builds a bunch,
