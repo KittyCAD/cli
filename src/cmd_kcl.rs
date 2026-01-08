@@ -1284,17 +1284,34 @@ fn combine_quadrants(
 
     // Sanity checks
     for img in [top_right, bottom_left, bottom_right] {
-        assert_eq!(img.dimensions(), (w, h));
+        if img.dimensions() != (w, h) {
+            anyhow::bail!(
+                "All images must have the same dimensions. Expected {}x{}, got {}x{}",
+                w,
+                h,
+                img.width(),
+                img.height()
+            );
+        }
     }
 
     // Create output image (2w × 2h)
     let mut out: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(w * 2, h * 2);
 
     // Copy pixels into each quadrant
-    out.copy_from(top_left, 0, 0).unwrap();
-    out.copy_from(top_right, w, 0).unwrap();
-    out.copy_from(bottom_left, 0, h).unwrap();
-    out.copy_from(bottom_right, w, h).unwrap();
+    // This error should never occur,
+    // because the `copy_from` only returns an error if the
+    // destination image is too small to fit the image being pasted,
+    // and we specifically calculated the dimensions to fit all 4 images.
+    use anyhow::Context;
+    out.copy_from(top_left, 0, 0)
+        .context("not enough room to paste image")?;
+    out.copy_from(top_right, w, 0)
+        .context("not enough room to paste image")?;
+    out.copy_from(bottom_left, 0, h)
+        .context("not enough room to paste image")?;
+    out.copy_from(bottom_right, w, h)
+        .context("not enough room to paste image")?;
 
     out.save(output_path)?;
     Ok(())
