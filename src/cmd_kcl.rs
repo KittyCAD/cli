@@ -1244,7 +1244,25 @@ fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
 
     let iso = kcmc::ModelingCmd::ViewIsometric(kcmc::ViewIsometric { padding: 0.0 });
 
-    vec![front, snap.clone(), side, snap.clone(), top, snap.clone(), iso, snap]
+    let zoom = kcmc::ModelingCmd::ZoomToFit(kcmc::ZoomToFit {
+        animated: false,
+        object_ids: Default::default(),
+        padding: 0.1,
+    });
+    vec![
+        front,
+        zoom.clone(),
+        snap.clone(),
+        side,
+        zoom.clone(),
+        snap.clone(),
+        top,
+        zoom.clone(),
+        snap.clone(),
+        iso,
+        zoom.clone(),
+        snap,
+    ]
 }
 
 fn combine_quadrants(
