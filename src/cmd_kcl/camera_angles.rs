@@ -11,7 +11,7 @@ pub(crate) const FRONT: kcmc::ModelingCmd = kcmc::ModelingCmd::DefaultCameraLook
     sequence: None,
 });
 
-pub(crate) const SIDE: kcmc::ModelingCmd = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+pub(crate) const RIGHT_SIDE: kcmc::ModelingCmd = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
     up: kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 1.0 },
     vantage: kcmc::shared::Point3d { x: 1.0, y: 0.0, z: 0.0 },
     center: kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 0.0 },

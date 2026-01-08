@@ -375,6 +375,46 @@ impl crate::cmd::Command for CmdKclSnapshot {
                         session_data,
                     )
                 }
+                CameraView::Top => {
+                    let (responses, session_data) = ctx
+                        .run_kcl_then_snapshots(
+                            "",
+                            &filepath.display().to_string(),
+                            &code,
+                            one_sided_view(
+                                camera_angles::TOP,
+                                self.camera_style,
+                                self.camera_padding,
+                                output_format,
+                            ),
+                            executor_settings,
+                        )
+                        .await?;
+                    (
+                        responses.into_iter().map(|resp| resp.contents.0).collect(),
+                        session_data,
+                    )
+                }
+                CameraView::RightSide => {
+                    let (responses, session_data) = ctx
+                        .run_kcl_then_snapshots(
+                            "",
+                            &filepath.display().to_string(),
+                            &code,
+                            one_sided_view(
+                                camera_angles::RIGHT_SIDE,
+                                self.camera_style,
+                                self.camera_padding,
+                                output_format,
+                            ),
+                            executor_settings,
+                        )
+                        .await?;
+                    (
+                        responses.into_iter().map(|resp| resp.contents.0).collect(),
+                        session_data,
+                    )
+                }
                 CameraView::FourWays => {
                     let (responses, session_data) = ctx
                         .run_kcl_then_snapshots(
@@ -505,29 +545,40 @@ impl crate::cmd::Command for CmdKclView {
         let output_format = kcmc::ImageFormat::Png;
         match self.angle.unwrap_or_default() {
             CameraView::Front => {
-                let (responses, _session_data) = ctx
-                    .run_kcl_then_snapshots(
-                        "",
-                        &filepath.display().to_string(),
-                        &code,
-                        one_sided_view(
-                            camera_angles::FRONT,
-                            self.camera_style,
-                            self.camera_padding,
-                            output_format,
-                        ),
-                        executor_settings,
-                    )
-                    .await?;
-                let num_responses = responses.len();
-                use kcmc::output as mout;
-                let Ok([response]) = <Vec<mout::TakeSnapshot> as TryInto<[mout::TakeSnapshot; 1]>>::try_into(responses)
-                else {
-                    anyhow::bail!("Expected 1 response but got {}", num_responses);
-                };
-                let png_bytes = response.contents.0;
-                // Save the snapshot locally.
-                std::fs::write(&tmp_file, &png_bytes)?;
+                self.write_single_image(
+                    camera_angles::FRONT,
+                    ctx,
+                    code,
+                    &filepath,
+                    output_format,
+                    &tmp_file,
+                    executor_settings,
+                )
+                .await?;
+            }
+            CameraView::Top => {
+                self.write_single_image(
+                    camera_angles::TOP,
+                    ctx,
+                    code,
+                    &filepath,
+                    output_format,
+                    &tmp_file,
+                    executor_settings,
+                )
+                .await?;
+            }
+            CameraView::RightSide => {
+                self.write_single_image(
+                    camera_angles::RIGHT_SIDE,
+                    ctx,
+                    code,
+                    &filepath,
+                    output_format,
+                    &tmp_file,
+                    executor_settings,
+                )
+                .await?;
             }
             CameraView::FourWays => {
                 let (responses, _session_data) = ctx
@@ -580,6 +631,39 @@ impl crate::cmd::Command for CmdKclView {
         // Remove the temporary file.
         std::fs::remove_file(&tmp_file)?;
 
+        Ok(())
+    }
+}
+
+impl CmdKclView {
+    #[allow(clippy::too_many_arguments)]
+    async fn write_single_image(
+        &self,
+        angle: kcmc::ModelingCmd,
+        ctx: &mut crate::context::Context<'_>,
+        code: String,
+        filepath: &Path,
+        output_format: kcmc::ImageFormat,
+        tmp_file: &Path,
+        executor_settings: kcl_lib::ExecutorSettings,
+    ) -> Result<()> {
+        let (responses, _session_data) = ctx
+            .run_kcl_then_snapshots(
+                "",
+                &filepath.display().to_string(),
+                &code,
+                one_sided_view(angle, self.camera_style, self.camera_padding, output_format),
+                executor_settings,
+            )
+            .await?;
+        let num_responses = responses.len();
+        use kcmc::output as mout;
+        let Ok([response]) = <Vec<mout::TakeSnapshot> as TryInto<[mout::TakeSnapshot; 1]>>::try_into(responses) else {
+            anyhow::bail!("Expected 1 response but got {}", num_responses);
+        };
+        let png_bytes = response.contents.0;
+        // Save the snapshot locally.
+        std::fs::write(tmp_file, &png_bytes)?;
         Ok(())
     }
 }
@@ -1267,7 +1351,7 @@ fn four_sides_view(camera_style: CameraStyle, padding: f32, format: kcmc::ImageF
         camera_angles::FRONT,
         zoom.clone(),
         snap.clone(),
-        camera_angles::SIDE,
+        camera_angles::RIGHT_SIDE,
         zoom.clone(),
         snap.clone(),
         camera_angles::TOP,
