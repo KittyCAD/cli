@@ -1217,34 +1217,34 @@ fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
         format: kittycad_modeling_cmds::ImageFormat::Png,
     });
 
-    let top = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+    let front = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
         vantage: Point3d {
             x: 0.0,
             y: -1.0,
             z: 0.0,
         },
         center,
-        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
-        sequence: None,
-    });
-
-    let front = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
-        vantage: Point3d { x: 1.0, y: 0.0, z: 0.0 },
-        center,
-        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
         sequence: None,
     });
 
     let side = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
+        vantage: Point3d { x: 1.0, y: 0.0, z: 0.0 },
+        center,
+        sequence: None,
+    });
+
+    let top = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+        up: Point3d { x: 0.0, y: 1.0, z: 0.0 },
         vantage: Point3d { x: 0.0, y: 0.0, z: 1.0 },
         center,
-        up: Point3d { x: 0.0, y: 1.0, z: 0.0 },
         sequence: None,
     });
 
     let iso = kcmc::ModelingCmd::ViewIsometric(kcmc::ViewIsometric { padding: 0.0 });
 
-    vec![top, snap.clone(), front, snap.clone(), side, snap.clone(), iso, snap]
+    vec![front, snap.clone(), side, snap.clone(), top, snap.clone(), iso, snap]
 }
 
 fn combine_quadrants(
