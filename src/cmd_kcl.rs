@@ -292,8 +292,8 @@ pub struct CmdKclSnapshot {
     pub angle: Option<CameraView>,
 
     /// Which style of camera to use for snapshots.
-    #[clap(long, value_enum)]
-    pub camera_style: Option<CameraStyle>,
+    #[clap(long, value_enum, default_value_t)]
+    pub camera_style: CameraStyle,
 
     /// How much padding to use when zooming before the screenshot.
     /// Positive padding will zoom out, negative padding will zoom in (and therefore crop).
@@ -387,7 +387,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                                 "",
                                 &filepath.display().to_string(),
                                 &code,
-                                four_sides_view(self.camera_style.unwrap_or_default(), self.camera_padding),
+                                four_sides_view(self.camera_style, self.camera_padding),
                                 executor_settings,
                             )
                             .await?;
@@ -475,8 +475,8 @@ pub struct CmdKclView {
     pub angle: Option<CameraView>,
 
     /// Which style of camera to use for snapshots.
-    #[clap(long, value_enum)]
-    pub camera_style: Option<CameraStyle>,
+    #[clap(long, value_enum, default_value_t)]
+    pub camera_style: CameraStyle,
 
     /// How much padding to use when zooming before the screenshot.
     /// Positive padding will zoom out, negative padding will zoom in (and therefore crop).
@@ -533,7 +533,7 @@ impl crate::cmd::Command for CmdKclView {
                         "",
                         &filepath.display().to_string(),
                         &code,
-                        four_sides_view(self.camera_style.unwrap_or_default(), self.camera_padding),
+                        four_sides_view(self.camera_style, self.camera_padding),
                         executor_settings,
                     )
                     .await?;

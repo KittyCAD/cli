@@ -40,7 +40,7 @@ pub struct GltfStandardJsonLite {
 #[display(style = "kebab-case")]
 #[derive(Default)]
 pub enum CameraStyle {
-    Ortho,
     #[default]
+    Ortho,
     Perspective,
 }
