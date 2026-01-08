@@ -319,8 +319,8 @@ impl crate::cmd::Command for CmdKclSnapshot {
         // Parse the image format.
         let output_format = if let Some(output_format) = &self.output_format {
             match output_format {
-                kittycad::types::ImageFormat::Png => kittycad_modeling_cmds::ImageFormat::Png,
-                kittycad::types::ImageFormat::Jpeg => kittycad_modeling_cmds::ImageFormat::Jpeg,
+                kittycad::types::ImageFormat::Png => kcmc::ImageFormat::Png,
+                kittycad::types::ImageFormat::Jpeg => kcmc::ImageFormat::Jpeg,
             }
         } else {
             get_image_format_from_extension(&crate::cmd_file::get_extension(self.output_file.clone()))?
@@ -354,50 +354,43 @@ impl crate::cmd::Command for CmdKclSnapshot {
                     anyhow::bail!("{status}: {err_msg}")
                 }
             }
-            None => {
-                match self.angle.unwrap_or_default() {
-                    CameraView::Front => {
-                        // Spin up websockets and do the conversion.
-                        // This will not return until there are files.
-                        let (resp, session_data) = ctx
-                            .send_kcl_modeling_cmd(
-                                "",
-                                &filepath.display().to_string(),
-                                &code,
-                                kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(
-                                    kittycad_modeling_cmds::TakeSnapshot { format: output_format },
-                                ),
-                                executor_settings,
-                            )
-                            .await?;
-
-                        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-                            modeling_response:
-                                kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
-                        } = &resp
-                        {
-                            (vec![data.contents.0.clone()], session_data)
-                        } else {
-                            anyhow::bail!("Unexpected response from engine: {resp:?}");
-                        }
-                    }
-                    CameraView::FourWays => {
-                        let (responses, session_data) = ctx
-                            .run_kcl_then_snapshots(
-                                "",
-                                &filepath.display().to_string(),
-                                &code,
-                                four_sides_view(self.camera_style, self.camera_padding),
-                                executor_settings,
-                            )
-                            .await?;
-                        (
-                            responses.into_iter().map(|resp| resp.contents.0).collect(),
-                            session_data,
+            None => match self.angle.unwrap_or_default() {
+                CameraView::Front => {
+                    let (responses, session_data) = ctx
+                        .run_kcl_then_snapshots(
+                            "",
+                            &filepath.display().to_string(),
+                            &code,
+                            one_sided_view(
+                                camera_angles::FRONT,
+                                self.camera_style,
+                                self.camera_padding,
+                                output_format,
+                            ),
+                            executor_settings,
                         )
-                    }
+                        .await?;
+                    (
+                        responses.into_iter().map(|resp| resp.contents.0).collect(),
+                        session_data,
+                    )
                 }
-            }
+                CameraView::FourWays => {
+                    let (responses, session_data) = ctx
+                        .run_kcl_then_snapshots(
+                            "",
+                            &filepath.display().to_string(),
+                            &code,
+                            four_sides_view(self.camera_style, self.camera_padding, output_format),
+                            executor_settings,
+                        )
+                        .await?;
+                    (
+                        responses.into_iter().map(|resp| resp.contents.0).collect(),
+                        session_data,
+                    )
+                }
+            },
         };
         let output_file_display = self.output_file.display().to_string();
 
@@ -410,13 +403,17 @@ impl crate::cmd::Command for CmdKclSnapshot {
             // If not, maybe there's 4 PNGs?
             Err(output_file_contents) => match <[_; 4]>::try_from(output_file_contents) {
                 Ok([a, b, c, d]) => {
-                    let [a, b, c, d] = four_png_readers(a, b, c, d);
+                    let [a, b, c, d] = match output_format {
+                        kcmc::ImageFormat::Png => four_readers(a, b, c, d, image::ImageFormat::Png),
+                        kcmc::ImageFormat::Jpeg => four_readers(a, b, c, d, image::ImageFormat::Jpeg),
+                    };
                     combine_quadrants(
                         &a.decode()?,
                         &b.decode()?,
                         &c.decode()?,
                         &d.decode()?,
                         &self.output_file,
+                        output_format,
                     )?;
                     writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
                 }
@@ -435,16 +432,22 @@ impl crate::cmd::Command for CmdKclSnapshot {
     }
 }
 
-fn four_png_readers(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>, d: Vec<u8>) -> [ImageReader<std::io::Cursor<Vec<u8>>>; 4] {
+fn four_readers(
+    a: Vec<u8>,
+    b: Vec<u8>,
+    c: Vec<u8>,
+    d: Vec<u8>,
+    fmt: image::ImageFormat,
+) -> [ImageReader<std::io::Cursor<Vec<u8>>>; 4] {
     use std::io::Cursor;
     let mut a = ImageReader::new(Cursor::new(a));
-    a.set_format(image::ImageFormat::Png);
+    a.set_format(fmt);
     let mut b = ImageReader::new(Cursor::new(b));
-    b.set_format(image::ImageFormat::Png);
+    b.set_format(fmt);
     let mut c = ImageReader::new(Cursor::new(c));
-    c.set_format(image::ImageFormat::Png);
+    c.set_format(fmt);
     let mut d = ImageReader::new(Cursor::new(d));
-    d.set_format(image::ImageFormat::Png);
+    d.set_format(fmt);
     [a, b, c, d]
 }
 
@@ -499,31 +502,30 @@ impl crate::cmd::Command for CmdKclView {
         let mut tmp_file = std::env::temp_dir();
         tmp_file.push(format!("zoo-kcl-view-{}.png", uuid::Uuid::new_v4()));
 
+        let output_format = kcmc::ImageFormat::Png;
         match self.angle.unwrap_or_default() {
             CameraView::Front => {
-                // Spin up websockets and do the conversion.
-                // This will not return until there are files.
-                let (resp, _session_data) = ctx
-                    .send_kcl_modeling_cmd(
+                let (responses, _session_data) = ctx
+                    .run_kcl_then_snapshots(
                         "",
                         &filepath.display().to_string(),
                         &code,
-                        kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
-                            format: kittycad_modeling_cmds::ImageFormat::Png,
-                        }),
+                        one_sided_view(
+                            camera_angles::FRONT,
+                            self.camera_style,
+                            self.camera_padding,
+                            output_format,
+                        ),
                         executor_settings,
                     )
                     .await?;
-
-                // Get the PNG out.
-                let png_bytes = if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-                    modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
-                } = resp
-                {
-                    data.contents.0
-                } else {
-                    anyhow::bail!("Unexpected response from engine: {resp:?}");
+                let num_responses = responses.len();
+                use kcmc::output as mout;
+                let Ok([response]) = <Vec<mout::TakeSnapshot> as TryInto<[mout::TakeSnapshot; 1]>>::try_into(responses)
+                else {
+                    anyhow::bail!("Expected 1 response but got {}", num_responses);
                 };
+                let png_bytes = response.contents.0;
                 // Save the snapshot locally.
                 std::fs::write(&tmp_file, &png_bytes)?;
             }
@@ -533,7 +535,7 @@ impl crate::cmd::Command for CmdKclView {
                         "",
                         &filepath.display().to_string(),
                         &code,
-                        four_sides_view(self.camera_style, self.camera_padding),
+                        four_sides_view(self.camera_style, self.camera_padding, output_format),
                         executor_settings,
                     )
                     .await?;
@@ -545,8 +547,15 @@ impl crate::cmd::Command for CmdKclView {
                     .map_err(|snaps: Vec<_>| {
                         anyhow::anyhow!("Expected 4 images from the 4-way view, but only found {}", snaps.len())
                     })?;
-                let [a, b, c, d] = four_png_readers(a, b, c, d);
-                combine_quadrants(&a.decode()?, &b.decode()?, &c.decode()?, &d.decode()?, &tmp_file)?;
+                let [a, b, c, d] = four_readers(a, b, c, d, image::ImageFormat::Png);
+                combine_quadrants(
+                    &a.decode()?,
+                    &b.decode()?,
+                    &c.decode()?,
+                    &d.decode()?,
+                    &tmp_file,
+                    output_format,
+                )?;
             }
         };
 
@@ -1237,10 +1246,8 @@ pub fn write_deterministic_export(file_path: &std::path::Path, file_contents: &[
 }
 
 /// Generate snapshots from 4 perspectives: front/side/top/isometric.
-fn four_sides_view(camera_style: CameraStyle, padding: f32) -> Vec<kcmc::ModelingCmd> {
-    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot {
-        format: kittycad_modeling_cmds::ImageFormat::Png,
-    });
+fn four_sides_view(camera_style: CameraStyle, padding: f32, format: kcmc::ImageFormat) -> Vec<kcmc::ModelingCmd> {
+    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot { format });
 
     let zoom = kcmc::ModelingCmd::ZoomToFit(kcmc::ZoomToFit {
         animated: false,
@@ -1272,12 +1279,38 @@ fn four_sides_view(camera_style: CameraStyle, padding: f32) -> Vec<kcmc::Modelin
     ]
 }
 
+/// Generate snapshots from given perspective.
+fn one_sided_view(
+    angle: kcmc::ModelingCmd,
+    camera_style: CameraStyle,
+    padding: f32,
+    format: kcmc::ImageFormat,
+) -> Vec<kcmc::ModelingCmd> {
+    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot { format });
+
+    let zoom = kcmc::ModelingCmd::ZoomToFit(kcmc::ZoomToFit {
+        animated: false,
+        object_ids: Default::default(),
+        padding,
+    });
+
+    let camera_style = match camera_style {
+        CameraStyle::Perspective => {
+            kcmc::ModelingCmd::DefaultCameraSetPerspective(kcmc::DefaultCameraSetPerspective { parameters: None })
+        }
+        CameraStyle::Ortho => kcmc::ModelingCmd::DefaultCameraSetOrthographic(kcmc::DefaultCameraSetOrthographic {}),
+    };
+
+    vec![camera_style, angle, zoom.clone(), snap.clone()]
+}
+
 fn combine_quadrants(
     top_left: &DynamicImage,
     top_right: &DynamicImage,
     bottom_left: &DynamicImage,
     bottom_right: &DynamicImage,
     output_path: &Path,
+    output_format: kcmc::ImageFormat,
 ) -> Result<()> {
     use image::{GenericImage, GenericImageView, ImageBuffer, Rgba};
     let (w, h) = top_left.dimensions();
@@ -1313,6 +1346,14 @@ fn combine_quadrants(
     out.copy_from(bottom_right, w, h)
         .context("not enough room to paste image")?;
 
-    out.save(output_path)?;
+    match output_format {
+        kcmc::ImageFormat::Png => {
+            out.save(output_path)?;
+        }
+        kcmc::ImageFormat::Jpeg => {
+            let rgb = image::DynamicImage::ImageRgba8(out).to_rgb8();
+            rgb.save(output_path)?;
+        }
+    }
     Ok(())
 }
