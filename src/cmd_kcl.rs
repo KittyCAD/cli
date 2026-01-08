@@ -1118,3 +1118,50 @@ pub fn write_deterministic_export(file_path: &std::path::Path, file_contents: &[
 
     Ok(())
 }
+
+/// Generate snapshots from 4 perspectives: front/side/top/isometric.
+fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
+    use kcmc::shared::Point3d;
+    let padding = 0.1;
+    let zoom = kcmc::ModelingCmd::ZoomToFit(kittycad_modeling_cmds::ZoomToFit {
+        object_ids: Default::default(),
+        padding,
+        animated: false,
+    });
+    let center = Point3d::default();
+
+    //     kcl.CameraLookAt(up=kcl.Point3d(x=0, y=0, z=1), vantage=kcl.Point3d(x=0, y=-1, z=0),
+    //                  center=kcl.Point3d(x=0, y=0, z=0)),
+    let a = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+        vantage: Point3d {
+            x: 0.0,
+            y: -1.0,
+            z: 0.0,
+        },
+        center,
+        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
+        sequence: None,
+    });
+
+    // kcl.CameraLookAt(up=kcl.Point3d(x=0, y=0, z=1), vantage=kcl.Point3d(x=1, y=0, z=0),
+    //                  center=kcl.Point3d(x=0, y=0, z=0)),
+    let b = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+        vantage: Point3d { x: 1.0, y: 0.0, z: 0.0 },
+        center,
+        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
+        sequence: None,
+    });
+
+    // kcl.CameraLookAt(up=kcl.Point3d(x=0, y=1, z=0), vantage=kcl.Point3d(x=0, y=0, z=1),
+    //                  center=kcl.Point3d(x=0, y=0, z=0)),
+    let c = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+        vantage: Point3d { x: 0.0, y: 0.0, z: 1.0 },
+        center,
+        up: Point3d { x: 0.0, y: 1.0, z: 0.0 },
+        sequence: None,
+    });
+
+    let d = kcmc::ModelingCmd::ViewIsometric(kcmc::ViewIsometric { padding: 0.0 });
+
+    vec![zoom, a, b, c, d]
+}
