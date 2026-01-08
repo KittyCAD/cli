@@ -242,6 +242,17 @@ impl Context<'_> {
 
         let mut snapshot_resps = Vec::new();
         for snapshot_cmd in snapshot_cmds {
+            ctx.engine
+                .send_modeling_cmd(
+                    uuid::Uuid::new_v4(),
+                    kcl_lib::SourceRange::default(),
+                    &ModelingCmd::from(mcmd::ZoomToFit {
+                        animated: false,
+                        object_ids: Default::default(),
+                        padding: 0.1,
+                    }),
+                )
+                .await?;
             let resp = ctx
                 .engine
                 .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &snapshot_cmd)

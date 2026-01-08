@@ -1,14 +1,15 @@
-use std::{net::SocketAddr, str::FromStr};
+use std::{net::SocketAddr, path::Path, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
+use image::{DynamicImage, ImageReader};
 use kcl_lib::{ToLspRange, TypedPath};
 use kcmc::format::OutputFormat3d as OutputFormat;
 use kittycad::types as kt;
 use kittycad_modeling_cmds::{self as kcmc, units::UnitLength};
 use url::Url;
 
-use crate::{iostreams::IoStreams, kcl_error_fmt};
+use crate::{iostreams::IoStreams, kcl_error_fmt, types::CameraView};
 
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
@@ -278,6 +279,11 @@ pub struct CmdKclSnapshot {
     /// If true, tell engine to store a replay.
     #[clap(long, default_value = "false")]
     pub replay: bool,
+
+    /// Which angle to take the snapshot from.
+    /// Defaults to "front".
+    #[clap(long, value_enum)]
+    pub angle: Option<CameraView>,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -310,7 +316,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
         let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
         executor_settings.replay = self.replay.then_some(filepath.to_string_lossy().to_string());
 
-        let (output_file_contents, session_data) = match self.session {
+        let (mut output_file_contents, session_data) = match self.session {
             Some(addr) => {
                 // TODO
                 let client = reqwest::ClientBuilder::new().build()?;
@@ -325,51 +331,99 @@ impl crate::cmd::Command for CmdKclSnapshot {
                     .await?;
                 let status = resp.status();
                 if status.is_success() {
-                    (resp.bytes().await?.to_vec(), Default::default())
+                    (vec![resp.bytes().await?.to_vec()], Default::default())
                 } else {
                     let err_msg = resp.text().await?;
                     anyhow::bail!("{status}: {err_msg}")
                 }
             }
             None => {
-                // Spin up websockets and do the conversion.
-                // This will not return until there are files.
-                let (resp, session_data) = ctx
-                    .send_kcl_modeling_cmd(
-                        "",
-                        &filepath.display().to_string(),
-                        &code,
-                        kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
-                            format: output_format,
-                        }),
-                        executor_settings,
-                    )
-                    .await?;
+                match self.angle.unwrap_or_default() {
+                    CameraView::Front => {
+                        // Spin up websockets and do the conversion.
+                        // This will not return until there are files.
+                        let (resp, session_data) = ctx
+                            .send_kcl_modeling_cmd(
+                                "",
+                                &filepath.display().to_string(),
+                                &code,
+                                kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(
+                                    kittycad_modeling_cmds::TakeSnapshot { format: output_format },
+                                ),
+                                executor_settings,
+                            )
+                            .await?;
 
-                if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-                    modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
-                } = &resp
-                {
-                    (data.contents.0.clone(), session_data)
-                } else {
-                    anyhow::bail!("Unexpected response from engine: {resp:?}");
+                        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+                            modeling_response:
+                                kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+                        } = &resp
+                        {
+                            (vec![data.contents.0.clone()], session_data)
+                        } else {
+                            anyhow::bail!("Unexpected response from engine: {resp:?}");
+                        }
+                    }
+                    CameraView::FourWays => {
+                        let (responses, session_data) = ctx
+                            .run_kcl_then_snapshots(
+                                "",
+                                &filepath.display().to_string(),
+                                &code,
+                                four_sides_view(),
+                                executor_settings,
+                            )
+                            .await?;
+                        (
+                            responses.into_iter().map(|resp| resp.contents.0).collect(),
+                            session_data,
+                        )
+                    }
                 }
             }
         };
-        // Save the snapshot locally.
-        std::fs::write(&self.output_file, output_file_contents)?;
+        let output_file_display = self.output_file.display().to_string();
 
-        writeln!(
-            ctx.io.out,
-            "Snapshot saved to `{}`",
-            self.output_file.to_str().unwrap_or("")
-        )?;
+        if output_file_contents.len() == 1 {
+            let final_png_bytes = output_file_contents.pop().unwrap();
+            // Save the snapshot locally.
+            std::fs::write(&self.output_file, final_png_bytes)?;
+            writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+        } else if output_file_contents.len() == 4 {
+            // Unwrap safe because we checked the len == 4 above.
+            let [a, b, c, d] = output_file_contents.try_into().unwrap();
+            let [a, b, c, d] = four_png_readers(a, b, c, d);
+            combine_quadrants(
+                &a.decode()?,
+                &b.decode()?,
+                &c.decode()?,
+                &d.decode()?,
+                &self.output_file,
+            )?;
+            writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+        } else {
+            anyhow::bail!("Can only handle 1 or 4 images");
+        };
+
         if self.show_trace {
             print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
         }
 
         Ok(())
     }
+}
+
+fn four_png_readers(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>, d: Vec<u8>) -> [ImageReader<std::io::Cursor<Vec<u8>>>; 4] {
+    use std::io::Cursor;
+    let mut a = ImageReader::new(Cursor::new(a));
+    a.set_format(image::ImageFormat::Png);
+    let mut b = ImageReader::new(Cursor::new(b));
+    b.set_format(image::ImageFormat::Png);
+    let mut c = ImageReader::new(Cursor::new(c));
+    c.set_format(image::ImageFormat::Png);
+    let mut d = ImageReader::new(Cursor::new(d));
+    d.set_format(image::ImageFormat::Png);
+    [a, b, c, d]
 }
 
 /// View a render of a `kcl` file in your terminal.
@@ -392,6 +446,11 @@ pub struct CmdKclView {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
+
+    /// Which angle to take the snapshot from.
+    /// Defaults to "front".
+    #[clap(long, value_enum)]
+    pub angle: Option<CameraView>,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -407,31 +466,54 @@ impl crate::cmd::Command for CmdKclView {
         let mut tmp_file = std::env::temp_dir();
         tmp_file.push(format!("zoo-kcl-view-{}.png", uuid::Uuid::new_v4()));
 
-        // Spin up websockets and do the conversion.
-        // This will not return until there are files.
-        let (resp, _session_data) = ctx
-            .send_kcl_modeling_cmd(
-                "",
-                &filepath.display().to_string(),
-                &code,
-                kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
-                    format: kittycad_modeling_cmds::ImageFormat::Png,
-                }),
-                executor_settings,
-            )
-            .await?;
+        match self.angle.unwrap_or_default() {
+            CameraView::Front => {
+                // Spin up websockets and do the conversion.
+                // This will not return until there are files.
+                let (resp, _session_data) = ctx
+                    .send_kcl_modeling_cmd(
+                        "",
+                        &filepath.display().to_string(),
+                        &code,
+                        kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
+                            format: kittycad_modeling_cmds::ImageFormat::Png,
+                        }),
+                        executor_settings,
+                    )
+                    .await?;
 
-        let png_bytes = if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
-        } = resp
-        {
-            data.contents.0
-        } else {
-            anyhow::bail!("Unexpected response from engine: {resp:?}");
+                // Get the PNG out.
+                let png_bytes = if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+                    modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+                } = resp
+                {
+                    data.contents.0
+                } else {
+                    anyhow::bail!("Unexpected response from engine: {resp:?}");
+                };
+                // Save the snapshot locally.
+                std::fs::write(&tmp_file, &png_bytes)?;
+            }
+            CameraView::FourWays => {
+                let (responses, _session_data) = ctx
+                    .run_kcl_then_snapshots(
+                        "",
+                        &filepath.display().to_string(),
+                        &code,
+                        four_sides_view(),
+                        executor_settings,
+                    )
+                    .await?;
+                let [a, b, c, d] = responses
+                    .into_iter()
+                    .map(|resp| resp.contents.0)
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap();
+                let [a, b, c, d] = four_png_readers(a, b, c, d);
+                combine_quadrants(&a.decode()?, &b.decode()?, &c.decode()?, &d.decode()?, &tmp_file)?;
+            }
         };
-
-        // Save the snapshot locally.
-        std::fs::write(&tmp_file, &png_bytes)?;
 
         let (width, height) = (ctx.io.tty_size)()?;
 
@@ -1122,13 +1204,11 @@ pub fn write_deterministic_export(file_path: &std::path::Path, file_contents: &[
 /// Generate snapshots from 4 perspectives: front/side/top/isometric.
 fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
     use kcmc::shared::Point3d;
-    let padding = 0.1;
-    let zoom = kcmc::ModelingCmd::ZoomToFit(kittycad_modeling_cmds::ZoomToFit {
-        object_ids: Default::default(),
-        padding,
-        animated: false,
-    });
     let center = Point3d::default();
+
+    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot {
+        format: kittycad_modeling_cmds::ImageFormat::Png,
+    });
 
     //     kcl.CameraLookAt(up=kcl.Point3d(x=0, y=0, z=1), vantage=kcl.Point3d(x=0, y=-1, z=0),
     //                  center=kcl.Point3d(x=0, y=0, z=0)),
@@ -1163,5 +1243,46 @@ fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
 
     let d = kcmc::ModelingCmd::ViewIsometric(kcmc::ViewIsometric { padding: 0.0 });
 
-    vec![zoom, a, b, c, d]
+    vec![
+        // first
+        a,
+        snap.clone(),
+        // second
+        b,
+        snap.clone(),
+        // third
+        c,
+        snap.clone(),
+        // fourth
+        d,
+        snap,
+    ]
+}
+
+fn combine_quadrants(
+    top_left: &DynamicImage,
+    top_right: &DynamicImage,
+    bottom_left: &DynamicImage,
+    bottom_right: &DynamicImage,
+    output_path: &Path,
+) -> Result<()> {
+    use image::{GenericImage, GenericImageView, ImageBuffer, Rgba};
+    let (w, h) = top_left.dimensions();
+
+    // Sanity checks
+    for img in [top_right, bottom_left, bottom_right] {
+        assert_eq!(img.dimensions(), (w, h));
+    }
+
+    // Create output image (2w × 2h)
+    let mut out: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(w * 2, h * 2);
+
+    // Copy pixels into each quadrant
+    out.copy_from(top_left, 0, 0).unwrap();
+    out.copy_from(top_right, w, 0).unwrap();
+    out.copy_from(bottom_left, 0, h).unwrap();
+    out.copy_from(bottom_right, w, h).unwrap();
+
+    out.save(output_path)?;
+    Ok(())
 }
