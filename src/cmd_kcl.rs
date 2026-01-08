@@ -316,7 +316,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
         let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
         executor_settings.replay = self.replay.then_some(filepath.to_string_lossy().to_string());
 
-        let (mut output_file_contents, session_data) = match self.session {
+        let (many_pngs, session_data) = match self.session {
             Some(addr) => {
                 // TODO
                 let client = reqwest::ClientBuilder::new().build()?;
@@ -384,25 +384,30 @@ impl crate::cmd::Command for CmdKclSnapshot {
         };
         let output_file_display = self.output_file.display().to_string();
 
-        if output_file_contents.len() == 1 {
-            let final_png_bytes = output_file_contents.pop().unwrap();
-            // Save the snapshot locally.
-            std::fs::write(&self.output_file, final_png_bytes)?;
-            writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
-        } else if output_file_contents.len() == 4 {
-            // Unwrap safe because we checked the len == 4 above.
-            let [a, b, c, d] = output_file_contents.try_into().unwrap();
-            let [a, b, c, d] = four_png_readers(a, b, c, d);
-            combine_quadrants(
-                &a.decode()?,
-                &b.decode()?,
-                &c.decode()?,
-                &d.decode()?,
-                &self.output_file,
-            )?;
-            writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
-        } else {
-            anyhow::bail!("Can only handle 1 or 4 images");
+        // Is there just 1 PNG?
+        match <[_; 1]>::try_from(many_pngs) {
+            Ok([single]) => {
+                std::fs::write(&self.output_file, single)?;
+                writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+            }
+            // If not, maybe there's 4 PNGs?
+            Err(output_file_contents) => match <[_; 4]>::try_from(output_file_contents) {
+                Ok([a, b, c, d]) => {
+                    let [a, b, c, d] = four_png_readers(a, b, c, d);
+                    combine_quadrants(
+                        &a.decode()?,
+                        &b.decode()?,
+                        &c.decode()?,
+                        &d.decode()?,
+                        &self.output_file,
+                    )?;
+                    writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+                }
+                // If not 4, error.
+                Err(vec) => {
+                    anyhow::bail!("Can only handle 1 or 4 images but received {}", vec.len());
+                }
+            },
         };
 
         if self.show_trace {
@@ -509,7 +514,9 @@ impl crate::cmd::Command for CmdKclView {
                     .map(|resp| resp.contents.0)
                     .collect::<Vec<_>>()
                     .try_into()
-                    .unwrap();
+                    .map_err(|snaps: Vec<_>| {
+                        anyhow::anyhow!("Expected 4 images from the 4-way view, but only found {}", snaps.len())
+                    })?;
                 let [a, b, c, d] = four_png_readers(a, b, c, d);
                 combine_quadrants(&a.decode()?, &b.decode()?, &c.decode()?, &d.decode()?, &tmp_file)?;
             }
@@ -1210,9 +1217,7 @@ fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
         format: kittycad_modeling_cmds::ImageFormat::Png,
     });
 
-    //     kcl.CameraLookAt(up=kcl.Point3d(x=0, y=0, z=1), vantage=kcl.Point3d(x=0, y=-1, z=0),
-    //                  center=kcl.Point3d(x=0, y=0, z=0)),
-    let a = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+    let top = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
         vantage: Point3d {
             x: 0.0,
             y: -1.0,
@@ -1223,40 +1228,23 @@ fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
         sequence: None,
     });
 
-    // kcl.CameraLookAt(up=kcl.Point3d(x=0, y=0, z=1), vantage=kcl.Point3d(x=1, y=0, z=0),
-    //                  center=kcl.Point3d(x=0, y=0, z=0)),
-    let b = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+    let front = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
         vantage: Point3d { x: 1.0, y: 0.0, z: 0.0 },
         center,
         up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
         sequence: None,
     });
 
-    // kcl.CameraLookAt(up=kcl.Point3d(x=0, y=1, z=0), vantage=kcl.Point3d(x=0, y=0, z=1),
-    //                  center=kcl.Point3d(x=0, y=0, z=0)),
-    let c = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
+    let side = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
         vantage: Point3d { x: 0.0, y: 0.0, z: 1.0 },
         center,
         up: Point3d { x: 0.0, y: 1.0, z: 0.0 },
         sequence: None,
     });
 
-    let d = kcmc::ModelingCmd::ViewIsometric(kcmc::ViewIsometric { padding: 0.0 });
+    let iso = kcmc::ModelingCmd::ViewIsometric(kcmc::ViewIsometric { padding: 0.0 });
 
-    vec![
-        // first
-        a,
-        snap.clone(),
-        // second
-        b,
-        snap.clone(),
-        // third
-        c,
-        snap.clone(),
-        // fourth
-        d,
-        snap,
-    ]
+    vec![top, snap.clone(), front, snap.clone(), side, snap.clone(), iso, snap]
 }
 
 fn combine_quadrants(
