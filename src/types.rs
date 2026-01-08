@@ -35,3 +35,12 @@ pub struct GltfStandardBuffer {
 pub struct GltfStandardJsonLite {
     pub buffers: Vec<GltfStandardBuffer>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, FromStr, Display, clap::ValueEnum, Copy)]
+#[display(style = "kebab-case")]
+#[derive(Default)]
+pub enum CameraStyle {
+    Ortho,
+    #[default]
+    Perspective,
+}

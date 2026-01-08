@@ -9,7 +9,13 @@ use kittycad::types as kt;
 use kittycad_modeling_cmds::{self as kcmc, units::UnitLength};
 use url::Url;
 
-use crate::{iostreams::IoStreams, kcl_error_fmt, types::CameraView};
+use crate::{
+    iostreams::IoStreams,
+    kcl_error_fmt,
+    types::{CameraStyle, CameraView},
+};
+
+mod camera_angles;
 
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
@@ -284,6 +290,17 @@ pub struct CmdKclSnapshot {
     /// Defaults to "front".
     #[clap(long, value_enum)]
     pub angle: Option<CameraView>,
+
+    /// Which style of camera to use for snapshots.
+    #[clap(long, value_enum)]
+    pub camera_style: Option<CameraStyle>,
+
+    /// How much padding to use when zooming before the screenshot.
+    /// Positive padding will zoom out, negative padding will zoom in (and therefore crop).
+    /// e.g. padding = 0.2 means the view will span 120% of the object(s) bounding box,
+    /// and padding = -0.2 means the view will span 80% of the object(s) bounding box.
+    #[clap(long, default_value = "0.1", allow_negative_numbers = true)]
+    pub camera_padding: f32,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -370,7 +387,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                                 "",
                                 &filepath.display().to_string(),
                                 &code,
-                                four_sides_view(),
+                                four_sides_view(self.camera_style.unwrap_or_default(), self.camera_padding),
                                 executor_settings,
                             )
                             .await?;
@@ -456,6 +473,17 @@ pub struct CmdKclView {
     /// Defaults to "front".
     #[clap(long, value_enum)]
     pub angle: Option<CameraView>,
+
+    /// Which style of camera to use for snapshots.
+    #[clap(long, value_enum)]
+    pub camera_style: Option<CameraStyle>,
+
+    /// How much padding to use when zooming before the screenshot.
+    /// Positive padding will zoom out, negative padding will zoom in (and therefore crop).
+    /// e.g. padding = 0.2 means the view will span 120% of the object(s) bounding box,
+    /// and padding = -0.2 means the view will span 80% of the object(s) bounding box.
+    #[clap(long, default_value = "0.1", allow_negative_numbers = true)]
+    pub camera_padding: f32,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -505,7 +533,7 @@ impl crate::cmd::Command for CmdKclView {
                         "",
                         &filepath.display().to_string(),
                         &code,
-                        four_sides_view(),
+                        four_sides_view(self.camera_style.unwrap_or_default(), self.camera_padding),
                         executor_settings,
                     )
                     .await?;
@@ -1209,57 +1237,36 @@ pub fn write_deterministic_export(file_path: &std::path::Path, file_contents: &[
 }
 
 /// Generate snapshots from 4 perspectives: front/side/top/isometric.
-fn four_sides_view() -> Vec<kcmc::ModelingCmd> {
-    use kcmc::shared::Point3d;
-    let center = Point3d::default();
-
+fn four_sides_view(camera_style: CameraStyle, padding: f32) -> Vec<kcmc::ModelingCmd> {
     let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot {
         format: kittycad_modeling_cmds::ImageFormat::Png,
     });
 
-    let front = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
-        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
-        vantage: Point3d {
-            x: 0.0,
-            y: -1.0,
-            z: 0.0,
-        },
-        center,
-        sequence: None,
-    });
-
-    let side = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
-        up: Point3d { x: 0.0, y: 0.0, z: 1.0 },
-        vantage: Point3d { x: 1.0, y: 0.0, z: 0.0 },
-        center,
-        sequence: None,
-    });
-
-    let top = kcmc::ModelingCmd::DefaultCameraLookAt(kcmc::DefaultCameraLookAt {
-        up: Point3d { x: 0.0, y: 1.0, z: 0.0 },
-        vantage: Point3d { x: 0.0, y: 0.0, z: 1.0 },
-        center,
-        sequence: None,
-    });
-
-    let iso = kcmc::ModelingCmd::ViewIsometric(kcmc::ViewIsometric { padding: 0.0 });
-
     let zoom = kcmc::ModelingCmd::ZoomToFit(kcmc::ZoomToFit {
         animated: false,
         object_ids: Default::default(),
-        padding: 0.1,
+        padding,
     });
+
+    let camera_style = match camera_style {
+        CameraStyle::Perspective => {
+            kcmc::ModelingCmd::DefaultCameraSetPerspective(kcmc::DefaultCameraSetPerspective { parameters: None })
+        }
+        CameraStyle::Ortho => kcmc::ModelingCmd::DefaultCameraSetOrthographic(kcmc::DefaultCameraSetOrthographic {}),
+    };
+
     vec![
-        front,
+        camera_style,
+        camera_angles::FRONT,
         zoom.clone(),
         snap.clone(),
-        side,
+        camera_angles::SIDE,
         zoom.clone(),
         snap.clone(),
-        top,
+        camera_angles::TOP,
         zoom.clone(),
         snap.clone(),
-        iso,
+        camera_angles::ISO,
         zoom.clone(),
         snap,
     ]
