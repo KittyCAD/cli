@@ -17,6 +17,8 @@ pub enum FormatOutput {
 pub enum CameraView {
     #[default]
     Front,
+    Top,
+    RightSide,
     FourWays,
 }
 
