@@ -5,7 +5,9 @@ use futures::StreamExt;
 use kcl_lib::{native_engine::EngineConnection, EngineManager};
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
-use kittycad_modeling_cmds::{self as kcmc, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd};
+use kittycad_modeling_cmds::{
+    self as kcmc, output::TakeSnapshot, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd,
+};
 use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
@@ -213,6 +215,47 @@ impl Context<'_> {
             .await
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
         Ok((resp, session_data))
+    }
+
+    /// Run the given KCL program, then after, run the given extra modeling commands.
+    /// If any of those extra modeling commands were TakeSnapshot, return the snapshots.
+    pub async fn run_kcl_then_snapshots(
+        &self,
+        hostname: &str,
+        filename: &str,
+        code: &str,
+        snapshot_cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
+        settings: kcl_lib::ExecutorSettings,
+    ) -> Result<(Vec<TakeSnapshot>, Option<ModelingSessionData>)> {
+        let client = self.api_client(hostname)?;
+
+        let program = kcl_lib::Program::parse_no_errs(code)
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
+
+        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let mut state = kcl_lib::ExecState::new(&ctx);
+        let session_data = ctx
+            .run(&program, &mut state)
+            .await
+            .map_err(|err| kcl_error_fmt::into_miette(err, code))?
+            .1;
+
+        let mut snapshot_resps = Vec::new();
+        for snapshot_cmd in snapshot_cmds {
+            let resp = ctx
+                .engine
+                .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &snapshot_cmd)
+                .await
+                .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
+            if let OkWebSocketResponseData::Modeling {
+                modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(snap),
+            } = resp
+            {
+                snapshot_resps.push(snap);
+            }
+        }
+
+        Ok((snapshot_resps, session_data))
     }
 
     pub async fn get_model_for_prompt(

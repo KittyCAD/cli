@@ -421,15 +421,17 @@ impl crate::cmd::Command for CmdKclView {
             )
             .await?;
 
-        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+        let png_bytes = if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
             modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
-        } = &resp
+        } = resp
         {
-            // Save the snapshot locally.
-            std::fs::write(&tmp_file, &data.contents.0)?;
+            data.contents.0
         } else {
             anyhow::bail!("Unexpected response from engine: {resp:?}");
-        }
+        };
+
+        // Save the snapshot locally.
+        std::fs::write(&tmp_file, &png_bytes)?;
 
         let (width, height) = (ctx.io.tty_size)()?;
 
