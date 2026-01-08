@@ -11,6 +11,15 @@ pub enum FormatOutput {
     Table,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, FromStr, Display, clap::ValueEnum, Copy)]
+#[display(style = "kebab-case")]
+#[derive(Default)]
+pub enum CameraView {
+    #[default]
+    Front,
+    FourWays,
+}
+
 impl FormatOutput {
     pub const fn variants() -> &'static [&'static str] {
         &["table", "json", "yaml"]
@@ -25,4 +34,13 @@ pub struct GltfStandardBuffer {
 #[derive(Deserialize)]
 pub struct GltfStandardJsonLite {
     pub buffers: Vec<GltfStandardBuffer>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, FromStr, Display, clap::ValueEnum, Copy)]
+#[display(style = "kebab-case")]
+#[derive(Default)]
+pub enum CameraStyle {
+    #[default]
+    Ortho,
+    Perspective,
 }
