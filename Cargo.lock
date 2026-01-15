@@ -476,6 +476,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "bon"
+version = "3.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "234655ec178edd82b891e262ea7cf71f6584bcd09eff94db786be23f1821825c"
+dependencies = [
+ "bon-macros",
+ "rustversion",
+]
+
+[[package]]
+name = "bon-macros"
+version = "3.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89ec27229c38ed0eb3c0feee3d2c1d6a4379ae44f418a29a658890e062d8f365"
+dependencies = [
+ "darling",
+ "ident_case",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 2.0.108",
+]
+
+[[package]]
 name = "brotli"
 version = "8.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -627,9 +652,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.53"
+version = "4.5.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9e340e012a1bf4935f5282ed1436d1489548e8f72308207ea5df0e23d2d03f8"
+checksum = "c6e6ff9dcd79cff5cd969a17a545d79e84ab086e444102a591e288a8aa3ce394"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -637,9 +662,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.53"
+version = "4.5.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d76b5d13eaa18c901fd2f7fca939fefe3a0727a953561fefdf3b2922b8569d00"
+checksum = "fa42cf4d2b7a41bc8f663a7cab4031ebafa1bf3875705bfaf8466dc60ab52c00"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2526,9 +2551,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.119"
+version = "0.1.120"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f79dc9f454a7419f4a2e0e89392460f6f464fef213a03af8336d43bf612c9d72"
+checksum = "0611f9ef297c46334886ca5480aabfae92206ddd943058369c3352f95427ce39"
 dependencies = [
  "miette",
  "serde",
@@ -2552,9 +2577,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.119"
+version = "0.2.120"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "896fdf631033c01392cf7ea30cb86ca18d085ec78ef3259160d69275047a75e1"
+checksum = "536fbc793d749cd1c4c8fafc8f6145fe5e094a20d117f27a603e4cc7469f6a98"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2624,9 +2649,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.119"
+version = "0.1.120"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e8d41fe8c114bcecf590ff98507e37ed488f996e4d024ede4c510f2d3e3b149"
+checksum = "d5d49b74e42dd12a1a37235382b40d0244a92ab73365c4ba55f09e75f2dbef89"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2681,11 +2706,12 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.151"
+version = "0.2.159"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c8615ec7c02a236c833b330243fed8efa89718dcd1fb03917bde0b0c270a58e"
+checksum = "95a8b8c1ea38802697e407bd9128e1671efc3425242b1466aa967457e9aeb1f0"
 dependencies = [
  "anyhow",
+ "bon",
  "chrono",
  "data-encoding",
  "enum-iterator",
@@ -3681,6 +3707,16 @@ checksum = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
 dependencies = [
  "diff",
  "yansi 1.0.1",
+]
+
+[[package]]
+name = "prettyplease"
+version = "0.2.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b"
+dependencies = [
+ "proc-macro2",
+ "syn 2.0.108",
 ]
 
 [[package]]
@@ -6006,14 +6042,15 @@ checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
 name = "url"
-version = "2.5.7"
+version = "2.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08bc136a29a3d1758e07a9cca267be308aeebf5cfd5a10f3f67ab2097683ef5b"
+checksum = "ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed"
 dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
  "serde",
+ "serde_derive",
 ]
 
 [[package]]
@@ -6847,7 +6884,7 @@ dependencies = [
 
 [[package]]
 name = "zoo"
-version = "0.2.141"
+version = "0.2.142"
 dependencies = [
  "anyhow",
  "async-trait",
