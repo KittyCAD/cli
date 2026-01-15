@@ -360,13 +360,15 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
-            &ModelingCmd::from(mcmd::ImportFiles {
-                files: vec![ImportFile {
-                    path: "model.gltf".to_string(),
-                    data: gltf_bytes.to_vec(),
-                }],
-                format: InputFormat3d::Gltf(Default::default()),
-            }),
+            &ModelingCmd::from(
+                mcmd::ImportFiles::builder()
+                    .files(vec![ImportFile {
+                        path: "model.gltf".to_string(),
+                        data: gltf_bytes.to_vec(),
+                    }])
+                    .format(InputFormat3d::Gltf(Default::default()))
+                    .build(),
+            ),
         )
         .await?;
 
@@ -384,7 +386,7 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
-            &ModelingCmd::from(mcmd::DefaultCameraFocusOn { uuid: object_id }),
+            &ModelingCmd::from(mcmd::DefaultCameraFocusOn::builder().uuid(object_id).build()),
         )
         .await?;
 
@@ -394,7 +396,7 @@ async fn get_image_bytes(
         .send_modeling_cmd(
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
-            &ModelingCmd::from(mcmd::TakeSnapshot { format: output_format }),
+            &ModelingCmd::from(mcmd::TakeSnapshot::builder().format(output_format).build()),
         )
         .await?;
 

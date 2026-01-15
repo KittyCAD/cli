@@ -284,10 +284,12 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                &kcmc::ModelingCmd::ImportFiles(kcmc::ImportFiles {
-                    files: files.into_iter().map(|f| f.into()).collect(),
-                    format: src_format.into(),
-                }),
+                &kcmc::ModelingCmd::ImportFiles(
+                    kcmc::ImportFiles::builder()
+                        .files(files.into_iter().map(|f| f.into()).collect())
+                        .format(src_format.into())
+                        .build(),
+                ),
             )
             .await?;
 
@@ -306,7 +308,9 @@ impl crate::cmd::Command for CmdFileSnapshot {
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
                 &kittycad_modeling_cmds::ModelingCmd::DefaultCameraFocusOn(
-                    kittycad_modeling_cmds::DefaultCameraFocusOn { uuid: object_id },
+                    kittycad_modeling_cmds::DefaultCameraFocusOn::builder()
+                        .uuid(object_id)
+                        .build(),
                 ),
             )
             .await?;
@@ -317,9 +321,11 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                &kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(kittycad_modeling_cmds::TakeSnapshot {
-                    format: output_format,
-                }),
+                &kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(
+                    kittycad_modeling_cmds::TakeSnapshot::builder()
+                        .format(output_format)
+                        .build(),
+                ),
             )
             .await?;
 

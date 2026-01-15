@@ -201,11 +201,13 @@ impl Context<'_> {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                &ModelingCmd::from(mcmd::ZoomToFit {
-                    animated: false,
-                    object_ids: Default::default(),
-                    padding: 0.1,
-                }),
+                &ModelingCmd::from(
+                    mcmd::ZoomToFit::builder()
+                        .animated(false)
+                        .object_ids(Default::default())
+                        .padding(0.1)
+                        .build(),
+                ),
             )
             .await?;
 

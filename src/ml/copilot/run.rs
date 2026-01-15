@@ -728,9 +728,7 @@ async fn render_side_by_side(
             host,
             &old_main_path.display().to_string(),
             &old_code,
-            ModelingCmd::TakeSnapshot(TakeSnapshot {
-                format: ImageFormat::Png,
-            }),
+            ModelingCmd::TakeSnapshot(TakeSnapshot::builder().format(ImageFormat::Png).build()),
             old_settings.clone(),
         )
         .await?;
@@ -769,9 +767,7 @@ async fn render_side_by_side(
             host,
             &new_main_path.display().to_string(),
             &new_code,
-            ModelingCmd::TakeSnapshot(TakeSnapshot {
-                format: ImageFormat::Png,
-            }),
+            ModelingCmd::TakeSnapshot(TakeSnapshot::builder().format(ImageFormat::Png).build()),
             new_settings,
         )
         .await?;

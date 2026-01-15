@@ -362,7 +362,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                             &filepath.display().to_string(),
                             &code,
                             one_sided_view(
-                                camera_angles::FRONT,
+                                camera_angles::front(),
                                 self.camera_style,
                                 self.camera_padding,
                                 output_format,
@@ -382,7 +382,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                             &filepath.display().to_string(),
                             &code,
                             one_sided_view(
-                                camera_angles::TOP,
+                                camera_angles::top(),
                                 self.camera_style,
                                 self.camera_padding,
                                 output_format,
@@ -402,7 +402,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                             &filepath.display().to_string(),
                             &code,
                             one_sided_view(
-                                camera_angles::RIGHT_SIDE,
+                                camera_angles::right_side(),
                                 self.camera_style,
                                 self.camera_padding,
                                 output_format,
@@ -546,7 +546,7 @@ impl crate::cmd::Command for CmdKclView {
         match self.angle.unwrap_or_default() {
             CameraView::Front => {
                 self.write_single_image(
-                    camera_angles::FRONT,
+                    camera_angles::front(),
                     ctx,
                     code,
                     &filepath,
@@ -558,7 +558,7 @@ impl crate::cmd::Command for CmdKclView {
             }
             CameraView::Top => {
                 self.write_single_image(
-                    camera_angles::TOP,
+                    camera_angles::top(),
                     ctx,
                     code,
                     &filepath,
@@ -570,7 +570,7 @@ impl crate::cmd::Command for CmdKclView {
             }
             CameraView::RightSide => {
                 self.write_single_image(
-                    camera_angles::RIGHT_SIDE,
+                    camera_angles::right_side(),
                     ctx,
                     code,
                     &filepath,
@@ -792,10 +792,12 @@ impl crate::cmd::Command for CmdKclVolume {
                 "",
                 &filepath.display().to_string(),
                 &code,
-                kittycad_modeling_cmds::ModelingCmd::Volume(kittycad_modeling_cmds::Volume {
-                    entity_ids: vec![], // get whole model
-                    output_unit: self.output_unit.clone().into(),
-                }),
+                kittycad_modeling_cmds::ModelingCmd::Volume(
+                    kittycad_modeling_cmds::Volume::builder()
+                        .entity_ids(vec![]) // get whole model
+                        .output_unit(self.output_unit.clone().into())
+                        .build(),
+                ),
                 executor_settings,
             )
             .await?;
@@ -877,12 +879,14 @@ impl crate::cmd::Command for CmdKclMass {
                 "",
                 &filepath.display().to_string(),
                 &code,
-                kittycad_modeling_cmds::ModelingCmd::Mass(kittycad_modeling_cmds::Mass {
-                    entity_ids: vec![], // get whole model
-                    material_density: self.material_density.into(),
-                    material_density_unit: self.material_density_unit.clone().into(),
-                    output_unit: self.output_unit.clone().into(),
-                }),
+                kittycad_modeling_cmds::ModelingCmd::Mass(
+                    kittycad_modeling_cmds::Mass::builder()
+                        .entity_ids(vec![]) // get whole model
+                        .material_density(self.material_density.into())
+                        .material_density_unit(self.material_density_unit.clone().into())
+                        .output_unit(self.output_unit.clone().into())
+                        .build(),
+                ),
                 executor_settings,
             )
             .await?;
@@ -952,10 +956,12 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
                 "",
                 &filepath.display().to_string(),
                 &code,
-                kittycad_modeling_cmds::ModelingCmd::CenterOfMass(kittycad_modeling_cmds::CenterOfMass {
-                    entity_ids: vec![], // get whole model
-                    output_unit: self.output_unit.clone().into(),
-                }),
+                kittycad_modeling_cmds::ModelingCmd::CenterOfMass(
+                    kittycad_modeling_cmds::CenterOfMass::builder()
+                        .entity_ids(vec![]) // get whole model
+                        .output_unit(self.output_unit.clone().into())
+                        .build(),
+                ),
                 executor_settings,
             )
             .await?;
@@ -1037,12 +1043,14 @@ impl crate::cmd::Command for CmdKclDensity {
                 "",
                 &filepath.display().to_string(),
                 &code,
-                kittycad_modeling_cmds::ModelingCmd::Density(kittycad_modeling_cmds::Density {
-                    entity_ids: vec![], // get whole model
-                    material_mass: self.material_mass.into(),
-                    material_mass_unit: self.material_mass_unit.clone().into(),
-                    output_unit: self.output_unit.clone().into(),
-                }),
+                kittycad_modeling_cmds::ModelingCmd::Density(
+                    kittycad_modeling_cmds::Density::builder()
+                        .entity_ids(vec![]) // get whole model
+                        .material_mass(self.material_mass.into())
+                        .material_mass_unit(self.material_mass_unit.clone().into())
+                        .output_unit(self.output_unit.clone().into())
+                        .build(),
+                ),
                 executor_settings,
             )
             .await?;
@@ -1112,10 +1120,12 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
                 "",
                 &filepath.display().to_string(),
                 &code,
-                kittycad_modeling_cmds::ModelingCmd::SurfaceArea(kittycad_modeling_cmds::SurfaceArea {
-                    entity_ids: vec![], // get whole model
-                    output_unit: self.output_unit.clone().into(),
-                }),
+                kittycad_modeling_cmds::ModelingCmd::SurfaceArea(
+                    kittycad_modeling_cmds::SurfaceArea::builder()
+                        .entity_ids(vec![]) // get whole model
+                        .output_unit(self.output_unit.clone().into())
+                        .build(),
+                ),
                 executor_settings,
             )
             .await?;
@@ -1331,33 +1341,39 @@ pub fn write_deterministic_export(file_path: &std::path::Path, file_contents: &[
 
 /// Generate snapshots from 4 perspectives: front/side/top/isometric.
 fn four_sides_view(camera_style: CameraStyle, padding: f32, format: kcmc::ImageFormat) -> Vec<kcmc::ModelingCmd> {
-    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot { format });
+    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot::builder().format(format).build());
 
-    let zoom = kcmc::ModelingCmd::ZoomToFit(kcmc::ZoomToFit {
-        animated: false,
-        object_ids: Default::default(),
-        padding,
-    });
+    let zoom = kcmc::ModelingCmd::ZoomToFit(
+        kcmc::ZoomToFit::builder()
+            .animated(false)
+            .object_ids(Default::default())
+            .padding(padding)
+            .build(),
+    );
 
     let camera_style = match camera_style {
-        CameraStyle::Perspective => {
-            kcmc::ModelingCmd::DefaultCameraSetPerspective(kcmc::DefaultCameraSetPerspective { parameters: None })
+        CameraStyle::Perspective => kcmc::ModelingCmd::DefaultCameraSetPerspective(
+            kcmc::DefaultCameraSetPerspective::builder()
+                .maybe_parameters(None)
+                .build(),
+        ),
+        CameraStyle::Ortho => {
+            kcmc::ModelingCmd::DefaultCameraSetOrthographic(kcmc::DefaultCameraSetOrthographic::builder().build())
         }
-        CameraStyle::Ortho => kcmc::ModelingCmd::DefaultCameraSetOrthographic(kcmc::DefaultCameraSetOrthographic {}),
     };
 
     vec![
         camera_style,
-        camera_angles::FRONT,
+        camera_angles::front(),
         zoom.clone(),
         snap.clone(),
-        camera_angles::RIGHT_SIDE,
+        camera_angles::right_side(),
         zoom.clone(),
         snap.clone(),
-        camera_angles::TOP,
+        camera_angles::top(),
         zoom.clone(),
         snap.clone(),
-        camera_angles::ISO,
+        camera_angles::iso(),
         zoom.clone(),
         snap,
     ]
@@ -1370,19 +1386,25 @@ fn one_sided_view(
     padding: f32,
     format: kcmc::ImageFormat,
 ) -> Vec<kcmc::ModelingCmd> {
-    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot { format });
+    let snap = kcmc::ModelingCmd::TakeSnapshot(kcmc::TakeSnapshot::builder().format(format).build());
 
-    let zoom = kcmc::ModelingCmd::ZoomToFit(kcmc::ZoomToFit {
-        animated: false,
-        object_ids: Default::default(),
-        padding,
-    });
+    let zoom = kcmc::ModelingCmd::ZoomToFit(
+        kcmc::ZoomToFit::builder()
+            .animated(false)
+            .object_ids(Default::default())
+            .padding(padding)
+            .build(),
+    );
 
     let camera_style = match camera_style {
-        CameraStyle::Perspective => {
-            kcmc::ModelingCmd::DefaultCameraSetPerspective(kcmc::DefaultCameraSetPerspective { parameters: None })
+        CameraStyle::Perspective => kcmc::ModelingCmd::DefaultCameraSetPerspective(
+            kcmc::DefaultCameraSetPerspective::builder()
+                .maybe_parameters(None)
+                .build(),
+        ),
+        CameraStyle::Ortho => {
+            kcmc::ModelingCmd::DefaultCameraSetOrthographic(kcmc::DefaultCameraSetOrthographic::builder().build())
         }
-        CameraStyle::Ortho => kcmc::ModelingCmd::DefaultCameraSetOrthographic(kcmc::DefaultCameraSetOrthographic {}),
     };
 
     vec![camera_style, angle, zoom.clone(), snap.clone()]
