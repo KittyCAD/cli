@@ -26,7 +26,7 @@ cli-macro = { path = "cli-macro" }
 colored_json = "4.1"
 crossterm = { version = "0.27", features = ["event-stream"] }
 data-encoding = "2.6.0"
-dialoguer = "0.11.0"
+dialoguer = "0.12.0"
 dirs = "6"
 futures = "0.3"
 git_rev = "0.1.0"
