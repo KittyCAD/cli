@@ -74,13 +74,13 @@ jobs:
           destination: dl.kittycad.io
       # Store the binary artifacts for retrival later.
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: release-${{ matrix.os }}-${{github.ref_name}}
           path: ./cross
       # Store the readme as an artifact so we can combine the two.
       - name: Archive the README.md data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{matrix.os}}-${{github.ref_name}}-README.md
           path: ${{github.workspace}}/cross/${{matrix.os}}-${{github.ref_name}}-README.md
