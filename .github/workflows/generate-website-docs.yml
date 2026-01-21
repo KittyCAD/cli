@@ -12,6 +12,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   generate-website-docs:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     name: make-release
     runs-on: ubuntu-latest
     steps:
