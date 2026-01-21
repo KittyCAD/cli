@@ -13,7 +13,7 @@ jobs:
     name: make release
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v3.0.0'
         with:
@@ -89,7 +89,7 @@ jobs:
     needs: [makerelease]
     name: createrelease
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install latest nightly
         uses: dtolnay/rust-toolchain@stable
       - uses: actions/download-artifact@v7
@@ -228,7 +228,7 @@ jobs:
           app-id: ${{ secrets.GH_ORG_APP_ID }}
           private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: 'kittycad/homebrew-kittycad'
           path: 'homebrew-kittycad'
