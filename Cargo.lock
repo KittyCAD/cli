@@ -1888,7 +1888,7 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "http 0.2.12",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "slab",
  "tokio",
  "tokio-util",
@@ -1907,7 +1907,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "http 1.4.0",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "slab",
  "tokio",
  "tokio-util",
@@ -2365,9 +2365,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.12.1"
+version = "2.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ad4bb2b565bca0645f4d68c5c9af97fba094e9791da685bf83cb5f3ce74acf2"
+checksum = "7714e70437a7dc3ac8eb7e6f8df75fd8eb422675fc7678aff7364301092b1017"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.1",
@@ -2551,9 +2551,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.107"
+version = "0.1.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc88d0199b109e6a640363f5309b64b0c0804798ddc97ca944840d650226222f"
+checksum = "9490c2fd2ccc86c31aca7cd135f55d747de63453b9114c57177d99d3e9dd5dc8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2562,9 +2562,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.120"
+version = "0.1.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0611f9ef297c46334886ca5480aabfae92206ddd943058369c3352f95427ce39"
+checksum = "9f0abf66e20d672148821f55ede81dbd2ca766b76439eb02e74d02f346e455ca"
 dependencies = [
  "miette",
  "serde",
@@ -2579,7 +2579,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e0178d7ae21f7941388b9e3b0ef6dd928f1151e3fd527a578ba8130ef277421"
 dependencies = [
  "faer",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "libm",
  "mutants",
  "thiserror 2.0.17",
@@ -2588,9 +2588,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.121"
+version = "0.2.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "551bfa9204f8042e9aa873ddd6a49e39d9b9041c1696c002b780037d08c7410f"
+checksum = "6f0021f69e6a53a76f2b2e247ca971bb9051ba46569f33c3fdf0b23763b58a57"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2611,7 +2611,7 @@ dependencies = [
  "gltf-json",
  "http 1.4.0",
  "image",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "itertools 0.14.0",
  "js-sys",
  "kcl-derive-docs",
@@ -2640,7 +2640,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tokio-tungstenite 0.28.0",
- "toml 0.9.10+spec-1.1.0",
+ "toml 0.9.11+spec-1.1.0",
  "tower-lsp",
  "ts-rs",
  "tynm",
@@ -2660,9 +2660,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.121"
+version = "0.1.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c20ae808d72a4eb24233b174b2fe3354cac1cdfc9110424583d6d9f13aeb6664"
+checksum = "754d092a8516f1e1493c9e6600f9621e09dd14876910c66f447f83f39f096487"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2717,9 +2717,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.159"
+version = "0.2.162"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95a8b8c1ea38802697e407bd9128e1671efc3425242b1466aa967457e9aeb1f0"
+checksum = "d5675d45eaf9e6e2d63ad0dc588822c49cfc8126f26f27c0c62775daeb62a5fc"
 dependencies = [
  "anyhow",
  "bon",
@@ -3372,7 +3372,7 @@ dependencies = [
  "format_serde_error",
  "futures-util",
  "http 1.4.0",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "json-patch",
  "log",
  "mime_guess",
@@ -3408,7 +3408,7 @@ version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c8d427828b22ae1fff2833a03d8486c2c881367f1c336349f307f321e7f4d05"
 dependencies = [
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "serde",
  "serde_json",
 ]
@@ -4632,7 +4632,7 @@ dependencies = [
  "chrono",
  "dyn-clone",
  "indexmap 1.9.3",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "schemars_derive",
  "serde",
  "serde_json",
@@ -4854,7 +4854,7 @@ version = "0.9.34+deprecated"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
 dependencies = [
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "itoa",
  "ryu",
  "serde",
@@ -5648,11 +5648,11 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.9.10+spec-1.1.0"
+version = "0.9.11+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0825052159284a1a8b4d6c0c86cbc801f2da5afd2b225fa548c72f2e74002f48"
+checksum = "f3afc9a848309fe1aaffaed6e1546a7a14de1f935dc9d89d32afd9a44bab7c46"
 dependencies = [
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "serde_core",
  "serde_spanned 1.0.4",
  "toml_datetime 0.7.5+spec-1.1.0",
@@ -5685,7 +5685,7 @@ version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
 dependencies = [
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "serde",
  "serde_spanned 0.6.9",
  "toml_datetime 0.6.11",
@@ -5906,7 +5906,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4994acea2522cd2b3b85c1d9529a55991e3ad5e25cdcd3de9d505972c4379424"
 dependencies = [
  "chrono",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "serde_json",
  "thiserror 2.0.17",
  "ts-rs-macros",
@@ -6890,7 +6890,7 @@ checksum = "bdd8a47718a4ee5fe78e07667cd36f3de80e7c2bfe727c7074245ffc7303c037"
 dependencies = [
  "arbitrary",
  "crc32fast",
- "indexmap 2.12.1",
+ "indexmap 2.13.0",
  "memchr",
 ]
 
@@ -6902,7 +6902,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.142"
+version = "0.2.143"
 dependencies = [
  "anyhow",
  "async-trait",
