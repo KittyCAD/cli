@@ -151,18 +151,20 @@ impl Context<'_> {
         let video_res_width = None;
         let (ws, _headers) = client
             .modeling()
-            .commands_ws(
+            .commands_ws(kittycad::modeling::CommandsWsParams {
                 api_call_id,
                 fps,
+                order_independent_transparency: Some(false),
                 pool,
                 post_effect,
+                pr: None,
                 replay,
                 show_grid,
                 unlocked_framerate,
                 video_res_height,
                 video_res_width,
-                Some(false),
-            )
+                webrtc: Some(false),
+            })
             .await?;
         Ok(ws)
     }

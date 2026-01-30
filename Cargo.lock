@@ -210,9 +210,6 @@ name = "arbitrary"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dde20b3d026af13f561bdd0f15edf01fc734f0dafcedbaf42bba506a9517f223"
-dependencies = [
- "derive_arbitrary",
-]
 
 [[package]]
 name = "arc-swap"
@@ -638,9 +635,9 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.42"
+version = "0.4.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "145052bdd345b87320e369255277e3fb5152762ad123a901ef5c262dd38fe8d2"
+checksum = "fac4744fb15ae8337dc853fee7fb3f4e48c0fbaa23d0afe49c447b4fab126118"
 dependencies = [
  "iana-time-zone",
  "js-sys",
@@ -747,7 +744,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -883,9 +880,9 @@ dependencies = [
 
 [[package]]
 name = "crc32fast"
-version = "1.4.2"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a97769d94ddab943e4510d138150169a2758b5ef3eb191a9ee688de3e23ef7b3"
+checksum = "9481c1c90cbf2ac953f07c8d4a58aa3945c425b7185c9154d67a65e4230da511"
 dependencies = [
  "cfg-if",
 ]
@@ -1072,17 +1069,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c9e6a11ca8224451684bc0d7d5a7adbf8f2fd6887261a1cfc3c0432f9d4068e"
 dependencies = [
  "powerfmt",
-]
-
-[[package]]
-name = "derive_arbitrary"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30542c1ad912e0e3d22a1935c290e12e8a29d704a420177a31faad4a601a0800"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.114",
 ]
 
 [[package]]
@@ -1847,12 +1833,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2d1aab06663bdce00d6ca5e5ed586ec8d18033a771906c993a1e3755b368d85"
 
 [[package]]
-name = "glob"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
-
-[[package]]
 name = "gltf-derive"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2588,9 +2568,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.122"
+version = "0.2.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f0021f69e6a53a76f2b2e247ca971bb9051ba46569f33c3fdf0b23763b58a57"
+checksum = "6a474bce7cc608fcb95b06e1cf744a275f9dd3c50f4e68215bfa41840b75e24d"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2660,9 +2640,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.122"
+version = "0.1.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "754d092a8516f1e1493c9e6600f9621e09dd14876910c66f447f83f39f096487"
+checksum = "ac7322b2e923e07c10718320df5401adb518b2dc5690a3422e006b8338637df3"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2675,9 +2655,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b9cb704f63de8e6852d9f0984a1ee3cde9823ab934aab968f3abeea79a99bb3"
+checksum = "065ce8bfc1e08899d1247d3f4bcbcf566749394edf11b6ded9c04a1e0937d29b"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2691,7 +2671,7 @@ dependencies = [
  "futures",
  "getrandom 0.3.2",
  "http 1.4.0",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "log",
  "mime_guess",
  "parse-display",
@@ -2717,9 +2697,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.162"
+version = "0.2.164"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5675d45eaf9e6e2d63ad0dc588822c49cfc8126f26f27c0c62775daeb62a5fc"
+checksum = "a03c71b8eb8d7cb3be0d0f6ffb4cc558587f41db0ca6c22331f11c064c7e38a0"
 dependencies = [
  "anyhow",
  "bon",
@@ -3418,38 +3398,6 @@ name = "openssl-probe"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
-
-[[package]]
-name = "opentelemetry"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c365a63eec4f55b7efeceb724f1336f26a9cf3427b70e59e2cd2a5b947fba96"
-dependencies = [
- "futures-core",
- "futures-sink",
- "js-sys",
- "once_cell",
- "pin-project-lite",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "opentelemetry_sdk"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "692eac490ec80f24a17828d49b40b60f5aeaccdfe6a503f939713afd22bc28df"
-dependencies = [
- "async-trait",
- "futures-channel",
- "futures-executor",
- "futures-util",
- "glob",
- "once_cell",
- "opentelemetry",
- "percent-encoding",
- "rand 0.8.5",
- "thiserror 1.0.69",
-]
 
 [[package]]
 name = "option-ext"
@@ -4369,11 +4317,9 @@ dependencies = [
  "getrandom 0.2.16",
  "http 1.4.0",
  "matchit",
- "opentelemetry",
  "reqwest 0.12.24",
  "reqwest-middleware",
  "tracing",
- "tracing-opentelemetry",
 ]
 
 [[package]]
@@ -4913,15 +4859,6 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
-]
-
-[[package]]
-name = "sharded-slab"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
-dependencies = [
- "lazy_static",
 ]
 
 [[package]]
@@ -5850,47 +5787,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e672c95779cf947c5311f83787af4fa8fffd12fb27e4993211a84bdfd9610f9c"
 dependencies = [
  "once_cell",
- "valuable",
-]
-
-[[package]]
-name = "tracing-log"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee855f1f400bd0e5c02d150ae5de3840039a3f54b025156404e34c23c03f47c3"
-dependencies = [
- "log",
- "once_cell",
- "tracing-core",
-]
-
-[[package]]
-name = "tracing-opentelemetry"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9784ed4da7d921bc8df6963f8c80a0e4ce34ba6ba76668acadd3edbd985ff3b"
-dependencies = [
- "js-sys",
- "once_cell",
- "opentelemetry",
- "opentelemetry_sdk",
- "smallvec",
- "tracing",
- "tracing-core",
- "tracing-log",
- "tracing-subscriber",
- "web-time",
-]
-
-[[package]]
-name = "tracing-subscriber"
-version = "0.3.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2054a14f5307d601f88daf0553e1cbf472acc4f2c51afab632431cdcd72124d5"
-dependencies = [
- "sharded-slab",
- "thread_local",
- "tracing-core",
 ]
 
 [[package]]
@@ -6142,12 +6038,6 @@ dependencies = [
  "quote",
  "syn 2.0.114",
 ]
-
-[[package]]
-name = "valuable"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
 name = "version-compare"
@@ -6402,7 +6292,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -6884,14 +6774,14 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "7.0.0"
+version = "7.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdd8a47718a4ee5fe78e07667cd36f3de80e7c2bfe727c7074245ffc7303c037"
+checksum = "c42e33efc22a0650c311c2ef19115ce232583abbe80850bc8b66509ebef02de0"
 dependencies = [
- "arbitrary",
  "crc32fast",
  "indexmap 2.13.0",
  "memchr",
+ "typed-path",
 ]
 
 [[package]]
@@ -6902,7 +6792,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.143"
+version = "0.2.144"
 dependencies = [
  "anyhow",
  "async-trait",
