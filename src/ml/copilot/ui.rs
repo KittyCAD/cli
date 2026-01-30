@@ -216,6 +216,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     let prefix = Span::styled("tool output → ", Style::default().fg(Color::Yellow));
                     push_assistant_block(&mut lines, rows, None, Some(prefix));
                 }
+                kittycad::types::MlCopilotServerMessage::ProjectUpdated { files: _ } => {}
             },
         }
     }
