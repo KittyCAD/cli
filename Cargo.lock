@@ -744,7 +744,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -2531,9 +2531,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.122"
+version = "0.1.124"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9490c2fd2ccc86c31aca7cd135f55d747de63453b9114c57177d99d3e9dd5dc8"
+checksum = "6539d8301b8bfca2bb3839c833f610ce46fd80306044a3731bd8cf977e316f46"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2542,9 +2542,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.122"
+version = "0.1.124"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f0abf66e20d672148821f55ede81dbd2ca766b76439eb02e74d02f346e455ca"
+checksum = "2f885c09988c31135b3cbb0afe133a5696a8762e97d972d7491bf7601113581a"
 dependencies = [
  "miette",
  "serde",
@@ -2554,9 +2554,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-ezpz"
-version = "0.2.15"
+version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e0178d7ae21f7941388b9e3b0ef6dd928f1151e3fd527a578ba8130ef277421"
+checksum = "1bd213b7ccf9f01e2a697cb2aed8a27b81580f203c5baed9e450cbe5666d9c2c"
 dependencies = [
  "faer",
  "indexmap 2.13.0",
@@ -2568,9 +2568,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.123"
+version = "0.2.124"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a474bce7cc608fcb95b06e1cf744a275f9dd3c50f4e68215bfa41840b75e24d"
+checksum = "ba6b6e536648c7d6c42e238eaf7803d571087a91943680d72d4c77ce1c8f6ca2"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2640,9 +2640,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.123"
+version = "0.1.124"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac7322b2e923e07c10718320df5401adb518b2dc5690a3422e006b8338637df3"
+checksum = "88dfd7451257eb6bbfb3a5882073bafe9db8ec644b86a4e61935d4b8618f5eda"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2789,9 +2789,9 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.2.15"
+version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
+checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
 name = "libredox"
@@ -5870,9 +5870,9 @@ dependencies = [
 
 [[package]]
 name = "typed-path"
-version = "0.12.0"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7922f2cdc51280d47b491af9eafc41eb0cdab85eabcb390c854412fcbf26dbe8"
+checksum = "3015e6ce46d5ad8751e4a772543a30c7511468070e98e64e20165f8f81155b64"
 
 [[package]]
 name = "typenum"
@@ -6292,7 +6292,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -6792,7 +6792,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.144"
+version = "0.2.145"
 dependencies = [
  "anyhow",
  "async-trait",
