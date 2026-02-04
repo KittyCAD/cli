@@ -279,7 +279,7 @@ pub async fn run_copilot_tui(
         while let Some(out) = rx_out.recv().await {
             match out {
                 WsSend::Ping => {
-                    if let Err(e) = write.send(Message::Ping(Vec::new())).await {
+                    if let Err(e) = write.send(Message::Ping(Vec::new().into())).await {
                         if writer_debug {
                             let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
                                 text: format!("[copilot/ws->] writer error: {e}"),
@@ -334,7 +334,7 @@ pub async fn run_copilot_tui(
                             });
                             emit_payload_lines(&tx_dbg, &body);
                         }
-                        if let Err(e) = write.send(Message::Text(body)).await {
+                        if let Err(e) = write.send(Message::Text(body.into())).await {
                             if writer_debug {
                                 let _ = tx_dbg.send(kittycad::types::MlCopilotServerMessage::Info {
                                     text: format!("[copilot/ws->] writer error: {e}"),
