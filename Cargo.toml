@@ -118,5 +118,8 @@ incremental = true
 # Set this to 1 or 2 to get more useful backtraces in debugger.
 debug = 0
 
-# [patch.crates-io]
+[patch.crates-io]
+kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/more-builders" }
+kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "achalmers/integrate-builder" }
+kcl-test-server = { git = "https://github.com/KittyCAD/modeling-app", branch = "achalmers/integrate-builder" }
 # kcl-lib = { path = "../modeling-app/rust/kcl-lib" }

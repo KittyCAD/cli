@@ -2532,8 +2532,7 @@ dependencies = [
 [[package]]
 name = "kcl-derive-docs"
 version = "0.1.124"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6539d8301b8bfca2bb3839c833f610ce46fd80306044a3731bd8cf977e316f46"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=achalmers%2Fintegrate-builder#f35fda340e4959b3a958395b4a310e6c2ed0843b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2543,8 +2542,7 @@ dependencies = [
 [[package]]
 name = "kcl-error"
 version = "0.1.124"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f885c09988c31135b3cbb0afe133a5696a8762e97d972d7491bf7601113581a"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=achalmers%2Fintegrate-builder#f35fda340e4959b3a958395b4a310e6c2ed0843b"
 dependencies = [
  "miette",
  "serde",
@@ -2569,8 +2567,7 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.2.124"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba6b6e536648c7d6c42e238eaf7803d571087a91943680d72d4c77ce1c8f6ca2"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=achalmers%2Fintegrate-builder#f35fda340e4959b3a958395b4a310e6c2ed0843b"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2641,8 +2638,7 @@ dependencies = [
 [[package]]
 name = "kcl-test-server"
 version = "0.1.124"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88dfd7451257eb6bbfb3a5882073bafe9db8ec644b86a4e61935d4b8618f5eda"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=achalmers%2Fintegrate-builder#f35fda340e4959b3a958395b4a310e6c2ed0843b"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2698,8 +2694,7 @@ dependencies = [
 [[package]]
 name = "kittycad-modeling-cmds"
 version = "0.2.164"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a03c71b8eb8d7cb3be0d0f6ffb4cc558587f41db0ca6c22331f11c064c7e38a0"
+source = "git+https://github.com/KittyCAD/modeling-api?branch=achalmers%2Fmore-builders#37b8b4cad4e046bfc5f290e4da942bdd077cadc5"
 dependencies = [
  "anyhow",
  "bon",
@@ -2727,8 +2722,7 @@ dependencies = [
 [[package]]
 name = "kittycad-modeling-cmds-macros"
 version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb9bb1a594541b878adc1c8dcb821328774bf7aa09b65b104a206b1291a5235c"
+source = "git+https://github.com/KittyCAD/modeling-api?branch=achalmers%2Fmore-builders#37b8b4cad4e046bfc5f290e4da942bdd077cadc5"
 dependencies = [
  "kittycad-modeling-cmds-macros-impl",
  "proc-macro2",
@@ -2739,8 +2733,7 @@ dependencies = [
 [[package]]
 name = "kittycad-modeling-cmds-macros-impl"
 version = "0.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdb4ee23cc996aa2dca7584d410e8826e08161e1ac4335bb646d5ede33f37cb3"
+source = "git+https://github.com/KittyCAD/modeling-api?branch=achalmers%2Fmore-builders#37b8b4cad4e046bfc5f290e4da942bdd077cadc5"
 dependencies = [
  "proc-macro2",
  "quote",
