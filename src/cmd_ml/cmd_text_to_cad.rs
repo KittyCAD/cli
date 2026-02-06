@@ -362,10 +362,10 @@ async fn get_image_bytes(
             kcl_lib::SourceRange::default(),
             &ModelingCmd::from(
                 mcmd::ImportFiles::builder()
-                    .files(vec![ImportFile {
-                        path: "model.gltf".to_string(),
-                        data: gltf_bytes.to_vec(),
-                    }])
+                    .files(vec![ImportFile::builder()
+                        .path("model.gltf".to_string())
+                        .data(gltf_bytes.to_vec())
+                        .build()])
                     .format(InputFormat3d::Gltf(Default::default()))
                     .build(),
             ),

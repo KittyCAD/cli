@@ -1,16 +1,15 @@
+use kcmc::shared::Point3d;
 use kittycad_modeling_cmds as kcmc;
+
+const Z_UP: Point3d = Point3d { x: 0.0, y: 0.0, z: 1.0 };
+const ZERO: Point3d = Point3d { x: 0.0, y: 0.0, z: 0.0 };
 
 pub(crate) fn front() -> kcmc::ModelingCmd {
     kcmc::ModelingCmd::DefaultCameraLookAt(
         kcmc::DefaultCameraLookAt::builder()
-            .up(kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 1.0 })
-            .vantage(kcmc::shared::Point3d {
-                x: 0.0,
-                y: -1.0,
-                z: 0.0,
-            })
-            .center(kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 0.0 })
-            .maybe_sequence(None)
+            .up(Z_UP)
+            .vantage(Point3d::only_y(-1.0))
+            .center(ZERO)
             .build(),
     )
 }
@@ -18,10 +17,9 @@ pub(crate) fn front() -> kcmc::ModelingCmd {
 pub(crate) fn right_side() -> kcmc::ModelingCmd {
     kcmc::ModelingCmd::DefaultCameraLookAt(
         kcmc::DefaultCameraLookAt::builder()
-            .up(kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 1.0 })
-            .vantage(kcmc::shared::Point3d { x: 1.0, y: 0.0, z: 0.0 })
-            .center(kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 0.0 })
-            .maybe_sequence(None)
+            .up(Z_UP)
+            .vantage(Point3d::only_x(1.0))
+            .center(ZERO)
             .build(),
     )
 }
@@ -29,10 +27,9 @@ pub(crate) fn right_side() -> kcmc::ModelingCmd {
 pub(crate) fn top() -> kcmc::ModelingCmd {
     kcmc::ModelingCmd::DefaultCameraLookAt(
         kcmc::DefaultCameraLookAt::builder()
-            .up(kcmc::shared::Point3d { x: 0.0, y: 1.0, z: 0.0 })
-            .vantage(kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 1.0 })
-            .center(kcmc::shared::Point3d { x: 0.0, y: 0.0, z: 0.0 })
-            .maybe_sequence(None)
+            .up(Point3d::only_y(1.0))
+            .vantage(Z_UP)
+            .center(ZERO)
             .build(),
     )
 }
