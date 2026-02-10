@@ -37,15 +37,15 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.12.1"
-kcl-lib = { version = "=0.2.124", features = ["disable-println"] }
-kcl-test-server = "=0.1.124"
+kcl-lib = { version = "=0.2.125", features = ["disable-println"] }
+kcl-test-server = "=0.1.125"
 kittycad = { version = "0.4.6", features = [
   "clap",
   "tabled",
   "requests",
   "retry",
 ] }
-kittycad-modeling-cmds = { version = "=0.2.164", features = [
+kittycad-modeling-cmds = { version = "=0.2.166", features = [
   "websocket",
   "convert_client_crate",
   "tabled",
@@ -118,8 +118,5 @@ incremental = true
 # Set this to 1 or 2 to get more useful backtraces in debugger.
 debug = 0
 
-[patch.crates-io]
-kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/more-builders" }
-kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "achalmers/integrate-builder" }
-kcl-test-server = { git = "https://github.com/KittyCAD/modeling-app", branch = "achalmers/integrate-builder" }
+# [patch.crates-io]
 # kcl-lib = { path = "../modeling-app/rust/kcl-lib" }
