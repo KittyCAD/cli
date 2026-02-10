@@ -146,7 +146,7 @@ fn render_markdown_to_lines(md: &str) -> Vec<String> {
 }
 
 pub fn draw(frame: &mut Frame, app: &App) {
-    let size = frame.size();
+    let size = frame.area();
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -333,7 +333,7 @@ mod tests {
         for y in 0..screen.height {
             let mut line = String::new();
             for x in 0..screen.width {
-                line.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                line.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push_str(&line);
             content.push('\n');
@@ -357,7 +357,7 @@ mod tests {
         let mut content = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push('\n');
         }
@@ -373,7 +373,7 @@ mod tests {
         let mut content2 = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content2.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content2.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content2.push('\n');
         }
@@ -398,7 +398,7 @@ mod tests {
         let mut content = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push('\n');
         }
@@ -423,7 +423,7 @@ mod tests {
         let mut content = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push('\n');
         }
@@ -441,7 +441,7 @@ mod tests {
             let mut s = String::new();
             for y in 0..area.height {
                 for x in 0..area.width {
-                    s.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                    s.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
                 }
                 s.push('\n');
             }
@@ -454,7 +454,7 @@ mod tests {
             let mut s = String::new();
             for y in 0..area.height {
                 for x in 0..area.width {
-                    s.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                    s.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
                 }
                 s.push('\n');
             }
@@ -489,7 +489,7 @@ mod tests {
         let area = buf.area;
         let mut row0 = String::new();
         for x in 0..area.width {
-            row0.push(buf.get(x, 0).symbol().chars().next().unwrap_or(' '));
+            row0.push(buf[(x, 0)].symbol().chars().next().unwrap_or(' '));
         }
         // Debug note: this row should contain the header when scroll == 0
         assert!(row0.contains("Proposed Changes"));
@@ -499,7 +499,7 @@ mod tests {
         let buf2 = terminal.backend().buffer();
         let mut row0b = String::new();
         for x in 0..area.width {
-            row0b.push(buf2.get(x, 0).symbol().chars().next().unwrap_or(' '));
+            row0b.push(buf2[(x, 0)].symbol().chars().next().unwrap_or(' '));
         }
         assert!(!row0b.contains("Proposed Changes"));
     }
@@ -535,7 +535,7 @@ mod tests {
         let mut content = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push('\n');
         }
@@ -561,7 +561,7 @@ mod tests {
         let mut content = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push('\n');
         }
@@ -593,7 +593,7 @@ mod tests {
         let mut content = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push('\n');
         }
@@ -633,7 +633,7 @@ mod tests {
         let mut content = String::new();
         for y in 0..area.height {
             for x in 0..area.width {
-                content.push(buf.get(x, y).symbol().chars().next().unwrap_or(' '));
+                content.push(buf[(x, y)].symbol().chars().next().unwrap_or(' '));
             }
             content.push('\n');
         }
