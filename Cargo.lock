@@ -6935,7 +6935,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.145"
+version = "0.2.146"
 dependencies = [
  "anyhow",
  "async-trait",
