@@ -446,6 +446,9 @@ impl crate::cmd::Command for CmdKclSnapshot {
                     let [a, b, c, d] = match output_format {
                         kcmc::ImageFormat::Png => four_readers(a, b, c, d, image::ImageFormat::Png),
                         kcmc::ImageFormat::Jpeg => four_readers(a, b, c, d, image::ImageFormat::Jpeg),
+                        other => {
+                            anyhow::bail!("Unknown image response {other:?}");
+                        }
                     };
                     combine_quadrants(
                         &a.decode()?,
@@ -702,46 +705,60 @@ fn get_output_format(
     };
 
     match format {
-        kt::FileExportFormat::Fbx => OutputFormat::Fbx(kcmc::format::fbx::export::Options {
-            storage: kcmc::format::fbx::export::Storage::Binary,
-            created: if deterministic {
-                Some("1970-01-01T00:00:00Z".parse().unwrap())
-            } else {
-                None
-            },
-        }),
-        kt::FileExportFormat::Glb => OutputFormat::Gltf(kcmc::format::gltf::export::Options {
-            storage: kcmc::format::gltf::export::Storage::Binary,
-            presentation: kcmc::format::gltf::export::Presentation::Compact,
-        }),
-        kt::FileExportFormat::Gltf => OutputFormat::Gltf(kcmc::format::gltf::export::Options {
-            storage: kcmc::format::gltf::export::Storage::Embedded,
-            presentation: kcmc::format::gltf::export::Presentation::Pretty,
-        }),
-        kt::FileExportFormat::Obj => OutputFormat::Obj(kcmc::format::obj::export::Options {
-            coords,
-            units: src_unit,
-        }),
-        kt::FileExportFormat::Ply => OutputFormat::Ply(kcmc::format::ply::export::Options {
-            storage: kcmc::format::ply::export::Storage::Ascii,
-            coords,
-            selection: kcmc::format::Selection::DefaultScene,
-            units: src_unit,
-        }),
-        kt::FileExportFormat::Step => OutputFormat::Step(kcmc::format::step::export::Options {
-            coords,
-            created: if deterministic {
-                Some("1970-01-01T00:00:00Z".parse().unwrap())
-            } else {
-                None
-            },
-        }),
-        kt::FileExportFormat::Stl => OutputFormat::Stl(kcmc::format::stl::export::Options {
-            storage: kcmc::format::stl::export::Storage::Ascii,
-            coords,
-            units: src_unit,
-            selection: kcmc::format::Selection::DefaultScene,
-        }),
+        kt::FileExportFormat::Fbx => OutputFormat::Fbx(
+            kcmc::format::fbx::export::Options::builder()
+                .storage(kcmc::format::fbx::export::Storage::Binary)
+                .maybe_created(if deterministic {
+                    Some("1970-01-01T00:00:00Z".parse().unwrap())
+                } else {
+                    None
+                })
+                .build(),
+        ),
+        kt::FileExportFormat::Glb => OutputFormat::Gltf(
+            kcmc::format::gltf::export::Options::builder()
+                .storage(kcmc::format::gltf::export::Storage::Binary)
+                .presentation(kcmc::format::gltf::export::Presentation::Compact)
+                .build(),
+        ),
+        kt::FileExportFormat::Gltf => OutputFormat::Gltf(
+            kcmc::format::gltf::export::Options::builder()
+                .storage(kcmc::format::gltf::export::Storage::Embedded)
+                .presentation(kcmc::format::gltf::export::Presentation::Pretty)
+                .build(),
+        ),
+        kt::FileExportFormat::Obj => OutputFormat::Obj(
+            kcmc::format::obj::export::Options::builder()
+                .coords(coords)
+                .units(src_unit)
+                .build(),
+        ),
+        kt::FileExportFormat::Ply => OutputFormat::Ply(
+            kcmc::format::ply::export::Options::builder()
+                .storage(kcmc::format::ply::export::Storage::Ascii)
+                .coords(coords)
+                .selection(kcmc::format::Selection::DefaultScene)
+                .units(src_unit)
+                .build(),
+        ),
+        kt::FileExportFormat::Step => OutputFormat::Step(
+            kcmc::format::step::export::Options::builder()
+                .coords(coords)
+                .maybe_created(if deterministic {
+                    Some("1970-01-01T00:00:00Z".parse().unwrap())
+                } else {
+                    None
+                })
+                .build(),
+        ),
+        kt::FileExportFormat::Stl => OutputFormat::Stl(
+            kcmc::format::stl::export::Options::builder()
+                .storage(kcmc::format::stl::export::Storage::Ascii)
+                .coords(coords)
+                .units(src_unit)
+                .selection(kcmc::format::Selection::DefaultScene)
+                .build(),
+        ),
     }
 }
 
@@ -1459,6 +1476,9 @@ fn combine_quadrants(
         kcmc::ImageFormat::Jpeg => {
             let rgb = image::DynamicImage::ImageRgba8(out).to_rgb8();
             rgb.save(output_path)?;
+        }
+        other => {
+            anyhow::bail!("Unknown image format {other:?}")
         }
     }
     Ok(())
