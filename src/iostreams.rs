@@ -270,7 +270,6 @@ impl IoStreams {
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn write_output_table_for_vec<T: tabled::Tabled>(&mut self, value: impl IntoIterator<Item = T>) -> Result<()> {
         let table = tabled::Table::new(value)
             .with(tabled::settings::Style::psql())

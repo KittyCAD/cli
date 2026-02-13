@@ -221,6 +221,40 @@ impl Context<'_> {
         Ok((resp, session_data))
     }
 
+    pub(crate) async fn run_kcl_then_modeling_cmds(
+        &self,
+        hostname: &str,
+        filename: &str,
+        code: &str,
+        cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
+        settings: kcl_lib::ExecutorSettings,
+    ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
+        let client = self.api_client(hostname)?;
+
+        let program = kcl_lib::Program::parse_no_errs(code)
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
+
+        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let mut state = kcl_lib::ExecState::new(&ctx);
+        let session_data = ctx
+            .run(&program, &mut state)
+            .await
+            .map_err(|err| kcl_error_fmt::into_miette(err, code))?
+            .1;
+
+        let mut responses = Vec::with_capacity(cmds.len());
+        for cmd in cmds {
+            let resp = ctx
+                .engine
+                .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
+                .await
+                .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
+            responses.push(resp);
+        }
+
+        Ok((responses, session_data))
+    }
+
     /// Run the given KCL program, then after, run the given extra modeling commands.
     /// If any of those extra modeling commands were TakeSnapshot, return the snapshots.
     pub async fn run_kcl_then_snapshots(

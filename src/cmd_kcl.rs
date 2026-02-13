@@ -4,7 +4,7 @@ use anyhow::Result;
 use clap::Parser;
 use image::{DynamicImage, ImageReader};
 use kcl_lib::{ToLspRange, TypedPath};
-use kcmc::format::OutputFormat3d as OutputFormat;
+use kcmc::{format::OutputFormat3d as OutputFormat, ok_response::OkModelingCmdResponse};
 use kittycad::types as kt;
 use kittycad_modeling_cmds::{self as kcmc, units::UnitLength};
 use url::Url;
@@ -12,7 +12,7 @@ use url::Url;
 use crate::{
     iostreams::IoStreams,
     kcl_error_fmt,
-    types::{CameraStyle, CameraView},
+    types::{CameraStyle, CameraView, FormatOutput},
 };
 
 mod camera_angles;
@@ -32,6 +32,7 @@ enum SubCommand {
     Format(CmdKclFormat),
     Snapshot(CmdKclSnapshot),
     View(CmdKclView),
+    Analyze(CmdKclAnalyze),
     Volume(CmdKclVolume),
     Mass(CmdKclMass),
     CenterOfMass(CmdKclCenterOfMass),
@@ -48,6 +49,7 @@ impl crate::cmd::Command for CmdKcl {
             SubCommand::Format(cmd) => cmd.run(ctx).await,
             SubCommand::Snapshot(cmd) => cmd.run(ctx).await,
             SubCommand::View(cmd) => cmd.run(ctx).await,
+            SubCommand::Analyze(cmd) => cmd.run(ctx).await,
             SubCommand::Volume(cmd) => cmd.run(ctx).await,
             SubCommand::Mass(cmd) => cmd.run(ctx).await,
             SubCommand::CenterOfMass(cmd) => cmd.run(ctx).await,
@@ -89,7 +91,7 @@ pub struct CmdKclExport {
 
     /// Command output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -191,7 +193,7 @@ pub struct CmdKclFormat {
 
     /// Command output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -230,7 +232,7 @@ impl crate::cmd::Command for CmdKclFormat {
             // Write the formatted file back to the original file.
             std::fs::write(&self.input, formatted)?;
         } else if let Some(format) = &self.format {
-            if format == &crate::types::FormatOutput::Json {
+            if format == &FormatOutput::Json {
                 // Print the formatted file to stdout as json.
                 writeln!(ctx.io.out, "{}", serde_json::to_string_pretty(&program)?)?;
             }
@@ -271,7 +273,7 @@ pub struct CmdKclSnapshot {
 
     /// Command output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// If given, this command will reuse an existing KittyCAD modeling session.
     /// You can start the session via `zoo session-start --listen-on 0.0.0.0:3333` in this CLI.
@@ -513,7 +515,7 @@ pub struct CmdKclView {
 
     /// Command output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// Which angle to take the snapshot from.
     /// Defaults to "front".
@@ -762,6 +764,228 @@ fn get_output_format(
     }
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+struct KclAnalyzeOutput {
+    volume: kcmc::output::Volume,
+    mass: kcmc::output::Mass,
+    density: KclAnalyzeDensityOutput,
+    surface_area: kcmc::output::SurfaceArea,
+    center_of_mass: kcmc::output::CenterOfMass,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct KclAnalyzeDensityOutput {
+    density: f64,
+    output_unit: kcmc::units::UnitDensity,
+}
+
+#[derive(Debug, Clone, serde::Serialize, tabled::Tabled)]
+struct KclAnalyzeTableRow {
+    property: String,
+    value: String,
+    unit: String,
+}
+
+impl KclAnalyzeOutput {
+    fn table_rows(&self) -> Vec<KclAnalyzeTableRow> {
+        vec![
+            KclAnalyzeTableRow {
+                property: "volume".to_string(),
+                value: self.volume.volume.to_string(),
+                unit: self.volume.output_unit.to_string(),
+            },
+            KclAnalyzeTableRow {
+                property: "mass".to_string(),
+                value: self.mass.mass.to_string(),
+                unit: self.mass.output_unit.to_string(),
+            },
+            KclAnalyzeTableRow {
+                property: "density".to_string(),
+                value: self.density.density.to_string(),
+                unit: self.density.output_unit.to_string(),
+            },
+            KclAnalyzeTableRow {
+                property: "surface_area".to_string(),
+                value: self.surface_area.surface_area.to_string(),
+                unit: self.surface_area.output_unit.to_string(),
+            },
+            KclAnalyzeTableRow {
+                property: "center_of_mass".to_string(),
+                value: format!(
+                    "({}, {}, {})",
+                    self.center_of_mass.center_of_mass.x,
+                    self.center_of_mass.center_of_mass.y,
+                    self.center_of_mass.center_of_mass.z
+                ),
+                unit: self.center_of_mass.output_unit.to_string(),
+            },
+        ]
+    }
+}
+
+/// Analyze multiple physical properties of objects in a kcl file.
+///
+/// This runs KCL once and then returns all requested analyses from the same scene.
+///
+///     # analyze a file and print a table
+///     $ zoo kcl analyze my-file.kcl --material-density 1.0 --material-density-unit lb-ft3
+///
+///     # output for scripting
+///     $ zoo kcl analyze my-file.kcl --format json --material-density 1.0 --material-density-unit lb-ft3
+///
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdKclAnalyze {
+    /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
+    /// If you pass `-` as the path, the file will be read from stdin.
+    #[clap(name = "input", required = true)]
+    pub input: std::path::PathBuf,
+
+    /// How dense is the material?
+    #[clap(long = "material-density", default_value_t = 1.0)]
+    material_density: f32,
+
+    /// What units are `material-density` measured in?
+    #[clap(long = "material-density-unit", value_enum, default_value_t = kittycad::types::UnitDensity::KgM3)]
+    material_density_unit: kittycad::types::UnitDensity,
+
+    /// How to present the data to stdout. Machine-friendly and human-friendly options.
+    #[clap(long, value_enum)]
+    pub format: Option<FormatOutput>,
+
+    /// What units do you want volumes shown in?
+    #[clap(long = "volume-output-unit", value_enum, default_value_t = kittycad::types::UnitVolume::M3)]
+    pub volume_output_unit: kittycad::types::UnitVolume,
+
+    /// What units do you want masses shown in?
+    #[clap(long = "mass-output-unit", value_enum, default_value_t = kittycad::types::UnitMass::Kg)]
+    pub mass_output_unit: kittycad::types::UnitMass,
+
+    /// What units do you want densities shown in?
+    #[clap(long = "density-output-unit", value_enum, default_value_t = kittycad::types::UnitDensity::KgM3)]
+    pub density_output_unit: kittycad::types::UnitDensity,
+
+    /// What units do you want areas shown in?
+    #[clap(long = "surface-area-output-unit", value_enum, default_value_t = kittycad::types::UnitArea::M2)]
+    pub surface_area_output_unit: kittycad::types::UnitArea,
+
+    /// What units do you want lengths shown in?
+    #[clap(long = "center-of-mass-output-unit", value_enum, default_value_t = kittycad::types::UnitLength::M)]
+    pub center_of_mass_output_unit: kittycad::types::UnitLength,
+
+    /// If true, print a link to this request's tracing data.
+    #[clap(long, default_value = "false")]
+    pub show_trace: bool,
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdKclAnalyze {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        if self.material_density == 0.0 {
+            anyhow::bail!("`--material-density` must not be 0.0");
+        }
+
+        // Get the contents of the input file.
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
+
+        // Get the modeling settings from the project.toml if exists.
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+
+        let (responses, session_data) = ctx
+            .run_kcl_then_modeling_cmds(
+                "",
+                &filepath.display().to_string(),
+                &code,
+                vec![
+                    kcmc::ModelingCmd::Volume(
+                        kcmc::Volume::builder()
+                            .output_unit(self.volume_output_unit.clone().into())
+                            .build(),
+                    ),
+                    kcmc::ModelingCmd::Mass(
+                        kcmc::Mass::builder()
+                            .material_density(self.material_density.into())
+                            .material_density_unit(self.material_density_unit.clone().into())
+                            .output_unit(self.mass_output_unit.clone().into())
+                            .build(),
+                    ),
+                    kcmc::ModelingCmd::SurfaceArea(
+                        kcmc::SurfaceArea::builder()
+                            .output_unit(self.surface_area_output_unit.clone().into())
+                            .build(),
+                    ),
+                    kcmc::ModelingCmd::CenterOfMass(
+                        kcmc::CenterOfMass::builder()
+                            .output_unit(self.center_of_mass_output_unit.clone().into())
+                            .build(),
+                    ),
+                ],
+                executor_settings,
+            )
+            .await?;
+
+        let mut responses = responses.into_iter();
+        use kcmc::websocket::OkWebSocketResponseData::Modeling;
+        let volume = match responses.next() {
+            Some(Modeling {
+                modeling_response: OkModelingCmdResponse::Volume(data),
+            }) => data,
+            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
+            None => anyhow::bail!("Expected volume response from engine"),
+        };
+        let mass = match responses.next() {
+            Some(Modeling {
+                modeling_response: OkModelingCmdResponse::Mass(data),
+            }) => data,
+            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
+            None => anyhow::bail!("Expected mass response from engine"),
+        };
+        let surface_area = match responses.next() {
+            Some(Modeling {
+                modeling_response: OkModelingCmdResponse::SurfaceArea(data),
+            }) => data,
+            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
+            None => anyhow::bail!("Expected surface area response from engine"),
+        };
+        let center_of_mass = match responses.next() {
+            Some(Modeling {
+                modeling_response: OkModelingCmdResponse::CenterOfMass(data),
+            }) => data,
+            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
+            None => anyhow::bail!("Expected center of mass response from engine"),
+        };
+
+        let density_value = kcmc::units::UnitDensity::from(self.material_density_unit.clone())
+            .convert_to(self.density_output_unit.clone().into(), self.material_density.into());
+        let density = KclAnalyzeDensityOutput {
+            density: density_value,
+            output_unit: self.density_output_unit.clone().into(),
+        };
+
+        let output = KclAnalyzeOutput {
+            volume,
+            mass,
+            density,
+            surface_area,
+            center_of_mass,
+        };
+
+        let format = ctx.format(&self.format)?;
+        match format {
+            FormatOutput::Json => ctx.io.write_output_json(&serde_json::to_value(&output)?)?,
+            FormatOutput::Yaml => ctx.io.write_output_yaml(&output)?,
+            FormatOutput::Table => ctx.io.write_output_for_vec(&format, output.table_rows())?,
+        }
+
+        if self.show_trace {
+            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+        }
+        Ok(())
+    }
+}
+
 /// Get the volume of an object in a kcl file.
 ///
 ///     # get the volume of a file
@@ -782,7 +1006,7 @@ pub struct CmdKclVolume {
 
     /// Output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
@@ -865,7 +1089,7 @@ pub struct CmdKclMass {
 
     /// Output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
@@ -946,7 +1170,7 @@ pub struct CmdKclCenterOfMass {
 
     /// Output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
@@ -1029,7 +1253,7 @@ pub struct CmdKclDensity {
 
     /// Output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
@@ -1110,7 +1334,7 @@ pub struct CmdKclSurfaceArea {
 
     /// Output format.
     #[clap(long, short, value_enum)]
-    pub format: Option<crate::types::FormatOutput>,
+    pub format: Option<FormatOutput>,
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
