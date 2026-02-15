@@ -2543,15 +2543,6 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
@@ -2682,7 +2673,7 @@ dependencies = [
  "http 1.4.0",
  "image",
  "indexmap 2.13.0",
- "itertools 0.14.0",
+ "itertools",
  "js-sys",
  "kcl-derive-docs",
  "kcl-error",
@@ -2761,7 +2752,7 @@ dependencies = [
  "futures",
  "getrandom 0.3.2",
  "http 1.4.0",
- "itertools 0.14.0",
+ "itertools",
  "log",
  "mime_guess",
  "parse-display",
@@ -4107,7 +4098,7 @@ dependencies = [
  "compact_str",
  "hashbrown 0.16.1",
  "indoc",
- "itertools 0.14.0",
+ "itertools",
  "kasuari",
  "lru",
  "strum 0.27.2",
@@ -4139,7 +4130,7 @@ dependencies = [
  "hashbrown 0.16.1",
  "indoc",
  "instability",
- "itertools 0.14.0",
+ "itertools",
  "line-clipping",
  "ratatui-core",
  "strum 0.27.2",
@@ -4164,7 +4155,7 @@ dependencies = [
  "built 0.8.0",
  "cfg-if",
  "interpolate_name",
- "itertools 0.14.0",
+ "itertools",
  "libc",
  "libfuzzer-sys",
  "log",
@@ -6063,7 +6054,7 @@ version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16b380a1238663e5f8a691f9039c73e1cdae598a30e9855f541d29b08b53e9a5"
 dependencies = [
- "itertools 0.14.0",
+ "itertools",
  "unicode-segmentation",
  "unicode-width 0.2.0",
 ]
@@ -6956,7 +6947,7 @@ dependencies = [
  "heck",
  "http 1.4.0",
  "image",
- "itertools 0.12.1",
+ "itertools",
  "kcl-lib",
  "kcl-test-server",
  "kittycad",
