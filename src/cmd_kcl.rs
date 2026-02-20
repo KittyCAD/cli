@@ -148,7 +148,7 @@ impl crate::cmd::Command for CmdKclExport {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
 
         Ok(())
@@ -470,7 +470,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
         };
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
 
         Ok(())
@@ -901,24 +901,24 @@ impl crate::cmd::Command for CmdKclAnalyze {
                 vec![
                     kcmc::ModelingCmd::Volume(
                         kcmc::Volume::builder()
-                            .output_unit(self.volume_output_unit.clone().into())
+                            .output_unit(crate::reinterpret(&self.volume_output_unit)?)
                             .build(),
                     ),
                     kcmc::ModelingCmd::Mass(
                         kcmc::Mass::builder()
                             .material_density(self.material_density.into())
-                            .material_density_unit(self.material_density_unit.clone().into())
-                            .output_unit(self.mass_output_unit.clone().into())
+                            .material_density_unit(crate::reinterpret(&self.material_density_unit)?)
+                            .output_unit(crate::reinterpret(&self.mass_output_unit)?)
                             .build(),
                     ),
                     kcmc::ModelingCmd::SurfaceArea(
                         kcmc::SurfaceArea::builder()
-                            .output_unit(self.surface_area_output_unit.clone().into())
+                            .output_unit(crate::reinterpret(&self.surface_area_output_unit)?)
                             .build(),
                     ),
                     kcmc::ModelingCmd::CenterOfMass(
                         kcmc::CenterOfMass::builder()
-                            .output_unit(self.center_of_mass_output_unit.clone().into())
+                            .output_unit(crate::reinterpret(&self.center_of_mass_output_unit)?)
                             .build(),
                     ),
                 ],
@@ -957,11 +957,12 @@ impl crate::cmd::Command for CmdKclAnalyze {
             None => anyhow::bail!("Expected center of mass response from engine"),
         };
 
-        let density_value = kcmc::units::UnitDensity::from(self.material_density_unit.clone())
-            .convert_to(self.density_output_unit.clone().into(), self.material_density.into());
+        let input_unit = crate::reinterpret::<_, kcmc::units::UnitDensity>(&self.density_output_unit)?;
+        let output_unit = crate::reinterpret::<_, kcmc::units::UnitDensity>(&self.material_density_unit)?;
+        let density_value = input_unit.convert_to(output_unit, self.material_density as f64);
         let density = KclAnalyzeDensityOutput {
             density: density_value,
-            output_unit: self.density_output_unit.clone().into(),
+            output_unit,
         };
 
         let output = KclAnalyzeOutput {
@@ -980,7 +981,7 @@ impl crate::cmd::Command for CmdKclAnalyze {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
         Ok(())
     }
@@ -1036,7 +1037,7 @@ impl crate::cmd::Command for CmdKclVolume {
                 kittycad_modeling_cmds::ModelingCmd::Volume(
                     kittycad_modeling_cmds::Volume::builder()
                         .entity_ids(vec![]) // get whole model
-                        .output_unit(self.output_unit.clone().into())
+                        .output_unit(crate::reinterpret(&self.output_unit)?)
                         .build(),
                 ),
                 executor_settings,
@@ -1055,7 +1056,7 @@ impl crate::cmd::Command for CmdKclVolume {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
         Ok(())
     }
@@ -1123,9 +1124,9 @@ impl crate::cmd::Command for CmdKclMass {
                 kittycad_modeling_cmds::ModelingCmd::Mass(
                     kittycad_modeling_cmds::Mass::builder()
                         .entity_ids(vec![]) // get whole model
-                        .material_density(self.material_density.into())
-                        .material_density_unit(self.material_density_unit.clone().into())
-                        .output_unit(self.output_unit.clone().into())
+                        .material_density(self.material_density as f64)
+                        .material_density_unit(crate::reinterpret(&self.material_density_unit)?)
+                        .output_unit(crate::reinterpret(&self.output_unit)?)
                         .build(),
                 ),
                 executor_settings,
@@ -1144,7 +1145,7 @@ impl crate::cmd::Command for CmdKclMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
         Ok(())
     }
@@ -1200,7 +1201,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
                 kittycad_modeling_cmds::ModelingCmd::CenterOfMass(
                     kittycad_modeling_cmds::CenterOfMass::builder()
                         .entity_ids(vec![]) // get whole model
-                        .output_unit(self.output_unit.clone().into())
+                        .output_unit(crate::reinterpret(&self.output_unit)?)
                         .build(),
                 ),
                 executor_settings,
@@ -1219,7 +1220,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
         Ok(())
     }
@@ -1288,8 +1289,8 @@ impl crate::cmd::Command for CmdKclDensity {
                     kittycad_modeling_cmds::Density::builder()
                         .entity_ids(vec![]) // get whole model
                         .material_mass(self.material_mass.into())
-                        .material_mass_unit(self.material_mass_unit.clone().into())
-                        .output_unit(self.output_unit.clone().into())
+                        .material_mass_unit(crate::reinterpret(&self.material_mass_unit)?)
+                        .output_unit(crate::reinterpret(&self.output_unit)?)
                         .build(),
                 ),
                 executor_settings,
@@ -1308,7 +1309,7 @@ impl crate::cmd::Command for CmdKclDensity {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
         Ok(())
     }
@@ -1364,7 +1365,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
                 kittycad_modeling_cmds::ModelingCmd::SurfaceArea(
                     kittycad_modeling_cmds::SurfaceArea::builder()
                         .entity_ids(vec![]) // get whole model
-                        .output_unit(self.output_unit.clone().into())
+                        .output_unit(crate::reinterpret(&self.output_unit)?)
                         .build(),
                 ),
                 executor_settings,
@@ -1383,7 +1384,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data.map(crate::reinterpret).transpose()?)
         }
         Ok(())
     }

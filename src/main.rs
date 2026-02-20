@@ -369,3 +369,12 @@ fn handle_update(
 
     Ok(())
 }
+
+pub(crate) fn reinterpret<A, B>(item: A) -> serde_json::Result<B>
+where
+    A: serde::Serialize,
+    B: serde::de::DeserializeOwned,
+{
+    let value = serde_json::to_value(item)?;
+    serde_json::from_value(value)
+}

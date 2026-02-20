@@ -321,7 +321,7 @@ impl Context<'_> {
             .ml()
             .create_text_to_cad(
                 Some(kcl),
-                format.into(),
+                crate::reinterpret(format)?,
                 &TextToCadCreateBody {
                     prompt: prompt.to_string(),
                     kcl_version: Some(kcl_lib::version().to_owned()),

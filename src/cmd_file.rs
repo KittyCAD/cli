@@ -286,8 +286,13 @@ impl crate::cmd::Command for CmdFileSnapshot {
                 kcl_lib::SourceRange::default(),
                 &kcmc::ModelingCmd::ImportFiles(
                     kcmc::ImportFiles::builder()
-                        .files(files.into_iter().map(|f| f.into()).collect())
-                        .format(src_format.into())
+                        .files(
+                            files
+                                .into_iter()
+                                .map(|f| kcmc::ImportFile::builder().path(f.path).data(f.data).build())
+                                .collect(),
+                        )
+                        .format(crate::reinterpret(src_format)?)
                         .build(),
                 ),
             )

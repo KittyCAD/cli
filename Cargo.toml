@@ -47,7 +47,6 @@ kittycad = { version = "0.4.6", features = [
 ] }
 kittycad-modeling-cmds = { version = "=0.2.169", features = [
   "websocket",
-  "convert_client_crate",
   "tabled",
 ] }
 log = "0.4.29"
