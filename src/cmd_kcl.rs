@@ -325,7 +325,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                 kittycad::types::ImageFormat::Jpeg => kcmc::ImageFormat::Jpeg,
             }
         } else {
-            get_image_format_from_extension(&crate::cmd_file::get_extension(self.output_file.clone()))?
+            get_image_format_from_extension_kcmc(&crate::cmd_file::get_extension(self.output_file.clone()))?
         };
 
         // Get the contents of the input file.
@@ -674,8 +674,20 @@ impl CmdKclView {
 }
 
 /// Get the  image format from the extension.
-pub fn get_image_format_from_extension(ext: &str) -> Result<kittycad_modeling_cmds::ImageFormat> {
+pub fn get_image_format_from_extension_kcmc(ext: &str) -> Result<kcmc::ImageFormat> {
     match kittycad_modeling_cmds::ImageFormat::from_str(ext) {
+        Ok(format) => Ok(format),
+        Err(_) => {
+            anyhow::bail!(
+                    "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
+                )
+        }
+    }
+}
+
+/// Get the  image format from the extension.
+pub fn get_image_format_from_extension_dot_rs(ext: &str) -> Result<kittycad::types::ImageFormat> {
+    match kittycad::types::ImageFormat::from_str(ext) {
         Ok(format) => Ok(format),
         Err(_) => {
             anyhow::bail!(
