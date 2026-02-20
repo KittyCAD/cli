@@ -911,26 +911,22 @@ impl crate::cmd::Command for CmdKclAnalyze {
                 &filepath.display().to_string(),
                 &code,
                 vec![
-                    kcmc::ModelingCmd::Volume(
-                        kcmc::Volume::builder()
-                            .output_unit(self.volume_output_unit.clone().into())
-                            .build(),
-                    ),
+                    kcmc::ModelingCmd::Volume(kcmc::Volume::builder().output_unit(self.volume_output_unit).build()),
                     kcmc::ModelingCmd::Mass(
                         kcmc::Mass::builder()
                             .material_density(self.material_density.into())
-                            .material_density_unit(self.material_density_unit.clone().into())
-                            .output_unit(self.mass_output_unit.clone().into())
+                            .material_density_unit(self.material_density_unit)
+                            .output_unit(self.mass_output_unit)
                             .build(),
                     ),
                     kcmc::ModelingCmd::SurfaceArea(
                         kcmc::SurfaceArea::builder()
-                            .output_unit(self.surface_area_output_unit.clone().into())
+                            .output_unit(self.surface_area_output_unit)
                             .build(),
                     ),
                     kcmc::ModelingCmd::CenterOfMass(
                         kcmc::CenterOfMass::builder()
-                            .output_unit(self.center_of_mass_output_unit.clone().into())
+                            .output_unit(self.center_of_mass_output_unit)
                             .build(),
                     ),
                 ],
@@ -969,11 +965,12 @@ impl crate::cmd::Command for CmdKclAnalyze {
             None => anyhow::bail!("Expected center of mass response from engine"),
         };
 
-        let density_value = kcmc::units::UnitDensity::from(self.material_density_unit.clone())
-            .convert_to(self.density_output_unit.clone().into(), self.material_density.into());
+        let density_value = self
+            .material_density_unit
+            .convert_to(self.density_output_unit, self.material_density.into());
         let density = KclAnalyzeDensityOutput {
             density: density_value,
-            output_unit: self.density_output_unit.clone().into(),
+            output_unit: self.density_output_unit,
         };
 
         let output = KclAnalyzeOutput {
@@ -1136,8 +1133,8 @@ impl crate::cmd::Command for CmdKclMass {
                     kittycad_modeling_cmds::Mass::builder()
                         .entity_ids(vec![]) // get whole model
                         .material_density(self.material_density.into())
-                        .material_density_unit(self.material_density_unit.clone().into())
-                        .output_unit(self.output_unit.clone().into())
+                        .material_density_unit(self.material_density_unit)
+                        .output_unit(self.output_unit)
                         .build(),
                 ),
                 executor_settings,
@@ -1212,7 +1209,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
                 kittycad_modeling_cmds::ModelingCmd::CenterOfMass(
                     kittycad_modeling_cmds::CenterOfMass::builder()
                         .entity_ids(vec![]) // get whole model
-                        .output_unit(self.output_unit.clone().into())
+                        .output_unit(self.output_unit)
                         .build(),
                 ),
                 executor_settings,
@@ -1300,8 +1297,8 @@ impl crate::cmd::Command for CmdKclDensity {
                     kittycad_modeling_cmds::Density::builder()
                         .entity_ids(vec![]) // get whole model
                         .material_mass(self.material_mass.into())
-                        .material_mass_unit(self.material_mass_unit.clone().into())
-                        .output_unit(self.output_unit.clone().into())
+                        .material_mass_unit(self.material_mass_unit)
+                        .output_unit(self.output_unit)
                         .build(),
                 ),
                 executor_settings,
@@ -1376,7 +1373,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
                 kittycad_modeling_cmds::ModelingCmd::SurfaceArea(
                     kittycad_modeling_cmds::SurfaceArea::builder()
                         .entity_ids(vec![]) // get whole model
-                        .output_unit(self.output_unit.clone().into())
+                        .output_unit(self.output_unit)
                         .build(),
                 ),
                 executor_settings,
@@ -1496,18 +1493,6 @@ pub fn get_extension(path: std::path::PathBuf) -> String {
         .to_str()
         .unwrap_or("")
         .to_string()
-}
-
-fn print_trace_link_kt(io: &mut IoStreams, session_data: &Option<kittycad::types::ModelingSessionData>) {
-    let Some(data) = session_data else {
-        return;
-    };
-    let api_call_id = &data.api_call_id;
-    let link = format!("https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{api_call_id}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D");
-    let _ = writeln!(
-        io.out,
-        "Was this request slow? Send a Zoo employee this link:\n----\n{link}"
-    );
 }
 
 fn print_trace_link(io: &mut IoStreams, session_data: &Option<ModelingSessionData>) {
