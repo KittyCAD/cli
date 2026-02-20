@@ -860,7 +860,7 @@ pub struct CmdKclAnalyze {
     material_density: f32,
 
     /// What units are `material-density` measured in?
-    #[clap(long = "material-density-unit", value_enum, default_value = "kgm3")]
+    #[clap(long = "material-density-unit", value_enum, default_value = "kg:m3")]
     material_density_unit: kcmc::units::UnitDensity,
 
     /// How to present the data to stdout. Machine-friendly and human-friendly options.
@@ -876,7 +876,7 @@ pub struct CmdKclAnalyze {
     pub mass_output_unit: kcmc::units::UnitMass,
 
     /// What units do you want densities shown in?
-    #[clap(long = "density-output-unit", value_enum, default_value = "kgm3")]
+    #[clap(long = "density-output-unit", value_enum, default_value = "kg:m3")]
     pub density_output_unit: kcmc::units::UnitDensity,
 
     /// What units do you want areas shown in?
