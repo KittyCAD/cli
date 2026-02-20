@@ -6,7 +6,7 @@ use image::{DynamicImage, ImageReader};
 use kcl_lib::{ToLspRange, TypedPath};
 use kcmc::{format::OutputFormat3d as OutputFormat, ok_response::OkModelingCmdResponse};
 use kittycad::types as kt;
-use kittycad_modeling_cmds::{self as kcmc, units::UnitLength};
+use kittycad_modeling_cmds::{self as kcmc, units::UnitLength, websocket::ModelingSessionData};
 use url::Url;
 
 use crate::{
@@ -148,7 +148,7 @@ impl crate::cmd::Command for CmdKclExport {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
 
         Ok(())
@@ -470,7 +470,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
         };
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
 
         Ok(())
@@ -860,32 +860,32 @@ pub struct CmdKclAnalyze {
     material_density: f32,
 
     /// What units are `material-density` measured in?
-    #[clap(long = "material-density-unit", value_enum, default_value_t = kittycad::types::UnitDensity::KgM3)]
-    material_density_unit: kittycad::types::UnitDensity,
+    #[clap(long = "material-density-unit", value_enum, default_value = "kgm3")]
+    material_density_unit: kcmc::units::UnitDensity,
 
     /// How to present the data to stdout. Machine-friendly and human-friendly options.
     #[clap(long, value_enum)]
     pub format: Option<FormatOutput>,
 
     /// What units do you want volumes shown in?
-    #[clap(long = "volume-output-unit", value_enum, default_value_t = kittycad::types::UnitVolume::M3)]
-    pub volume_output_unit: kittycad::types::UnitVolume,
+    #[clap(long = "volume-output-unit", value_enum, default_value = "m3")]
+    pub volume_output_unit: kcmc::units::UnitVolume,
 
     /// What units do you want masses shown in?
-    #[clap(long = "mass-output-unit", value_enum, default_value_t = kittycad::types::UnitMass::Kg)]
-    pub mass_output_unit: kittycad::types::UnitMass,
+    #[clap(long = "mass-output-unit", value_enum, default_value = "kg")]
+    pub mass_output_unit: kcmc::units::UnitMass,
 
     /// What units do you want densities shown in?
-    #[clap(long = "density-output-unit", value_enum, default_value_t = kittycad::types::UnitDensity::KgM3)]
-    pub density_output_unit: kittycad::types::UnitDensity,
+    #[clap(long = "density-output-unit", value_enum, default_value = "kgm3")]
+    pub density_output_unit: kcmc::units::UnitDensity,
 
     /// What units do you want areas shown in?
-    #[clap(long = "surface-area-output-unit", value_enum, default_value_t = kittycad::types::UnitArea::M2)]
-    pub surface_area_output_unit: kittycad::types::UnitArea,
+    #[clap(long = "surface-area-output-unit", value_enum, default_value = "m2")]
+    pub surface_area_output_unit: kcmc::units::UnitArea,
 
     /// What units do you want lengths shown in?
-    #[clap(long = "center-of-mass-output-unit", value_enum, default_value_t = kittycad::types::UnitLength::M)]
-    pub center_of_mass_output_unit: kittycad::types::UnitLength,
+    #[clap(long = "center-of-mass-output-unit", value_enum, default_value = "m")]
+    pub center_of_mass_output_unit: kcmc::units::UnitLength,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -992,7 +992,7 @@ impl crate::cmd::Command for CmdKclAnalyze {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -1022,7 +1022,7 @@ pub struct CmdKclVolume {
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
-    pub output_unit: kittycad::types::UnitVolume,
+    pub output_unit: kcmc::units::UnitVolume,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -1048,7 +1048,7 @@ impl crate::cmd::Command for CmdKclVolume {
                 kittycad_modeling_cmds::ModelingCmd::Volume(
                     kittycad_modeling_cmds::Volume::builder()
                         .entity_ids(vec![]) // get whole model
-                        .output_unit(self.output_unit.clone().into())
+                        .output_unit(self.output_unit)
                         .build(),
                 ),
                 executor_settings,
@@ -1067,7 +1067,7 @@ impl crate::cmd::Command for CmdKclVolume {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -1097,7 +1097,7 @@ pub struct CmdKclMass {
 
     /// Material density unit.
     #[clap(long = "material-density-unit", value_enum)]
-    material_density_unit: kittycad::types::UnitDensity,
+    material_density_unit: kcmc::units::UnitDensity,
 
     /// Output format.
     #[clap(long, short, value_enum)]
@@ -1105,7 +1105,7 @@ pub struct CmdKclMass {
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
-    pub output_unit: kittycad::types::UnitMass,
+    pub output_unit: kcmc::units::UnitMass,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -1156,7 +1156,7 @@ impl crate::cmd::Command for CmdKclMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -1186,7 +1186,7 @@ pub struct CmdKclCenterOfMass {
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
-    pub output_unit: kittycad::types::UnitLength,
+    pub output_unit: kcmc::units::UnitLength,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -1231,7 +1231,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -1261,7 +1261,7 @@ pub struct CmdKclDensity {
 
     /// The unit of the material mass.
     #[clap(long = "material-mass-unit", value_enum)]
-    material_mass_unit: kittycad::types::UnitMass,
+    material_mass_unit: kcmc::units::UnitMass,
 
     /// Output format.
     #[clap(long, short, value_enum)]
@@ -1269,7 +1269,7 @@ pub struct CmdKclDensity {
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
-    pub output_unit: kittycad::types::UnitDensity,
+    pub output_unit: kcmc::units::UnitDensity,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -1320,7 +1320,7 @@ impl crate::cmd::Command for CmdKclDensity {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -1350,7 +1350,7 @@ pub struct CmdKclSurfaceArea {
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
-    pub output_unit: kittycad::types::UnitArea,
+    pub output_unit: kcmc::units::UnitArea,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -1395,7 +1395,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         }
 
         if self.show_trace {
-            print_trace_link(&mut ctx.io, &session_data.map(kt::ModelingSessionData::from))
+            print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
     }
@@ -1498,7 +1498,19 @@ pub fn get_extension(path: std::path::PathBuf) -> String {
         .to_string()
 }
 
-fn print_trace_link(io: &mut IoStreams, session_data: &Option<kittycad::types::ModelingSessionData>) {
+fn print_trace_link_kt(io: &mut IoStreams, session_data: &Option<kittycad::types::ModelingSessionData>) {
+    let Some(data) = session_data else {
+        return;
+    };
+    let api_call_id = &data.api_call_id;
+    let link = format!("https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{api_call_id}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D");
+    let _ = writeln!(
+        io.out,
+        "Was this request slow? Send a Zoo employee this link:\n----\n{link}"
+    );
+}
+
+fn print_trace_link(io: &mut IoStreams, session_data: &Option<ModelingSessionData>) {
     let Some(data) = session_data else {
         return;
     };

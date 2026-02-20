@@ -5,9 +5,7 @@ use futures::StreamExt;
 use kcl_lib::{native_engine::EngineConnection, EngineManager};
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
-use kittycad_modeling_cmds::{
-    self as kcmc, output::TakeSnapshot, shared::FileExportFormat, websocket::ModelingSessionData, ModelingCmd,
-};
+use kittycad_modeling_cmds::{self as kcmc, output::TakeSnapshot, websocket::ModelingSessionData, ModelingCmd};
 use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
 
 use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
@@ -305,16 +303,6 @@ impl Context<'_> {
         show_reasoning: bool,
     ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
-
-        let format = match format {
-            kittycad::types::FileExportFormat::Fbx => FileExportFormat::Fbx,
-            kittycad::types::FileExportFormat::Glb => FileExportFormat::Glb,
-            kittycad::types::FileExportFormat::Obj => FileExportFormat::Obj,
-            kittycad::types::FileExportFormat::Ply => FileExportFormat::Ply,
-            kittycad::types::FileExportFormat::Stl => FileExportFormat::Stl,
-            kittycad::types::FileExportFormat::Gltf => FileExportFormat::Gltf,
-            kittycad::types::FileExportFormat::Step => FileExportFormat::Step,
-        };
 
         // Create the text-to-cad request.
         let mut gen_model: TextToCad = client
