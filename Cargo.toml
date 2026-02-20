@@ -45,7 +45,7 @@ kittycad = { version = "0.4.6", features = [
   "requests",
   "retry",
 ] }
-kittycad-modeling-cmds = { version = "0.2.171", features = [
+kittycad-modeling-cmds = { version = "0.2.172", features = [
   "websocket",
   "tabled",
 ] }
@@ -118,5 +118,5 @@ incremental = true
 debug = 0
 
 [patch.crates-io]
-kittycad-modeling-cmds = { git = "https://github.com/alteous/modeling-api", branch = "alteous/remove-cruft"}
+# kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}
 # kcl-lib = { path = "../modeling-app/rust/kcl-lib" }
