@@ -7,7 +7,10 @@ use anyhow::Result;
 use base64::prelude::*;
 use clap::Parser;
 use kcl_lib::EngineManager;
-use kittycad_modeling_cmds as kcmc;
+use kittycad_modeling_cmds::{
+    self as kcmc, ok_response::OkModelingCmdResponse, shared::FileImportFormat, websocket::OkWebSocketResponseData,
+    ModelingCmd,
+};
 
 use crate::cmd_kcl::write_deterministic_export;
 
@@ -109,7 +112,7 @@ impl crate::cmd::Command for CmdFileConvert {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension_dot_rs(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -176,7 +179,7 @@ pub struct CmdFileSnapshot {
 
     /// A valid source file format.
     #[clap(short = 's', long = "src-format", value_enum)]
-    src_format: Option<kittycad::types::FileImportFormat>,
+    src_format: Option<FileImportFormat>,
 
     /// The path to a file to output the image.
     #[clap(name = "output-file", required = true)]
@@ -184,7 +187,7 @@ pub struct CmdFileSnapshot {
 
     /// A valid output image format.
     #[clap(short = 't', long = "output-format", value_enum)]
-    output_format: Option<kittycad::types::ImageFormat>,
+    output_format: Option<kcmc::ImageFormat>,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -205,23 +208,22 @@ impl crate::cmd::Command for CmdFileSnapshot {
         }
 
         // Parse the image format.
-        let output_format = if let Some(output_format) = &self.output_format {
-            match output_format {
-                kittycad::types::ImageFormat::Png => kcmc::ImageFormat::Png,
-                kittycad::types::ImageFormat::Jpeg => kcmc::ImageFormat::Jpeg,
-            }
+        let output_format = if let Some(output_format) = self.output_format {
+            output_format
         } else {
-            crate::cmd_kcl::get_image_format_from_extension(&crate::cmd_file::get_extension(self.output_file.clone()))?
+            crate::cmd_kcl::get_image_format_from_extension_kcmc(&crate::cmd_file::get_extension(
+                self.output_file.clone(),
+            ))?
         };
         // Parse the source format.
-        let src_format = if let Some(src_format) = &self.src_format {
-            src_format.clone()
+        let src_format = if let Some(src_format) = self.src_format {
+            src_format
         } else {
-            get_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension_kcmc(&get_extension(self.input.clone()))?
         };
 
         // TODO: let user choose the units.
-        let src_format = get_input_format(src_format, kittycad::types::UnitLength::Mm)?;
+        let src_format = get_input_format(src_format, kcmc::units::UnitLength::Millimeters)?;
 
         // Get the contents of the input file.
         let file_location_str = self.input.to_str().unwrap_or_default();
@@ -232,12 +234,12 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // In order for the program to know it's dealing with this type, an
         // attempt to parse as json is made, then we check for the buffers
         // property which describes what external files are needed.
-        let mut files: Vec<kittycad::types::ImportFile> = vec![kittycad::types::ImportFile {
-            path: filename.to_string(),
-            data: input.clone(),
-        }];
+        let mut files: Vec<kcmc::ImportFile> = vec![kcmc::ImportFile::builder()
+            .path(filename.to_string())
+            .data(input.clone())
+            .build()];
 
-        if let kittycad::types::InputFormat3D::Gltf {} = src_format {
+        if matches!(src_format, kcmc::format::InputFormat3d::Gltf(_)) {
             if let Ok(str) = std::str::from_utf8(&input) {
                 if let Ok(json) = serde_json::from_str::<crate::types::GltfStandardJsonLite>(str) {
                     // Use the path of the control file as the prefix path of
@@ -252,10 +254,12 @@ impl crate::cmd::Command for CmdFileSnapshot {
                             let hash_u64 = hasher.finish();
 
                             if let Some(buf_base64) = buffer.uri.split(',').nth(1) {
-                                files.push(kittycad::types::ImportFile {
-                                    path: hash_u64.to_string(),
-                                    data: BASE64_STANDARD.decode(buf_base64)?,
-                                });
+                                files.push(
+                                    kcmc::ImportFile::builder()
+                                        .path(hash_u64.to_string())
+                                        .data(BASE64_STANDARD.decode(buf_base64)?)
+                                        .build(),
+                                );
                             } else {
                                 anyhow::bail!("invalid data uri in gltf.buffers.uri property");
                             }
@@ -267,10 +271,12 @@ impl crate::cmd::Command for CmdFileSnapshot {
                                 .join(std::path::Path::new(&buffer.uri));
                             let path = path_.to_str().unwrap_or_default();
                             let data = ctx.read_file(path)?;
-                            files.push(kittycad::types::ImportFile {
-                                path: path_.file_name().unwrap_or_default().to_str().unwrap_or("").to_string(),
-                                data,
-                            });
+                            files.push(
+                                kcmc::ImportFile::builder()
+                                    .path(path_.file_name().unwrap_or_default().to_str().unwrap_or("").to_string())
+                                    .data(data)
+                                    .build(),
+                            );
                         }
                     }
                 }
@@ -284,17 +290,12 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                &kcmc::ModelingCmd::ImportFiles(
-                    kcmc::ImportFiles::builder()
-                        .files(files.into_iter().map(|f| f.into()).collect())
-                        .format(src_format.into())
-                        .build(),
-                ),
+                &ModelingCmd::ImportFiles(kcmc::ImportFiles::builder().files(files).format(src_format).build()),
             )
             .await?;
 
-        let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::ImportFiles(data),
+        let OkWebSocketResponseData::Modeling {
+            modeling_response: OkModelingCmdResponse::ImportFiles(data),
         } = &resp
         else {
             anyhow::bail!("Unexpected response from engine import: {resp:?}");
@@ -307,7 +308,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                &kittycad_modeling_cmds::ModelingCmd::DefaultCameraFocusOn(
+                &ModelingCmd::DefaultCameraFocusOn(
                     kittycad_modeling_cmds::DefaultCameraFocusOn::builder()
                         .uuid(object_id)
                         .build(),
@@ -321,7 +322,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
             .send_modeling_cmd(
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
-                &kittycad_modeling_cmds::ModelingCmd::TakeSnapshot(
+                &ModelingCmd::TakeSnapshot(
                     kittycad_modeling_cmds::TakeSnapshot::builder()
                         .format(output_format)
                         .build(),
@@ -329,8 +330,8 @@ impl crate::cmd::Command for CmdFileSnapshot {
             )
             .await?;
 
-        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
-            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(data),
+        if let OkWebSocketResponseData::Modeling {
+            modeling_response: OkModelingCmdResponse::TakeSnapshot(data),
         } = &resp
         {
             // Save the snapshot locally.
@@ -388,7 +389,7 @@ impl crate::cmd::Command for CmdFileVolume {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension_dot_rs(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -461,7 +462,7 @@ impl crate::cmd::Command for CmdFileMass {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension_dot_rs(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -528,7 +529,7 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension_dot_rs(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -601,7 +602,7 @@ impl crate::cmd::Command for CmdFileDensity {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension_dot_rs(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -668,7 +669,7 @@ impl crate::cmd::Command for CmdFileSurfaceArea {
         let src_format = if let Some(src_format) = &self.src_format {
             src_format.clone()
         } else {
-            get_import_format_from_extension(&get_extension(self.input.clone()))?
+            get_import_format_from_extension_dot_rs(&get_extension(self.input.clone()))?
         };
 
         // Get the contents of the input file.
@@ -701,7 +702,24 @@ pub fn get_extension(path: std::path::PathBuf) -> String {
 }
 
 /// Get the source format from the extension.
-fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileImportFormat> {
+fn get_import_format_from_extension_kcmc(ext: &str) -> Result<FileImportFormat> {
+    match FileImportFormat::from_str(ext) {
+        Ok(format) => Ok(format),
+        Err(_) => {
+            if ext == "stp" {
+                Ok(FileImportFormat::Step)
+            } else if ext == "glb" {
+                Ok(FileImportFormat::Gltf)
+            } else {
+                anyhow::bail!(
+                    "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
+                )
+            }
+        }
+    }
+}
+/// Get the source format from the extension.
+fn get_import_format_from_extension_dot_rs(ext: &str) -> Result<kittycad::types::FileImportFormat> {
     match kittycad::types::FileImportFormat::from_str(ext) {
         Ok(format) => Ok(format),
         Err(_) => {
@@ -719,37 +737,31 @@ fn get_import_format_from_extension(ext: &str) -> Result<kittycad::types::FileIm
 }
 
 /// Get the source format from the extension.
-fn get_input_format(
-    format: kittycad::types::FileImportFormat,
-    ul: kittycad::types::UnitLength,
-) -> Result<kittycad::types::InputFormat3D> {
-    // Zoo co-ordinate system.
-    //
-    // * Forward: -Y
-    // * Up: +Z
-    // * Handedness: Right
-    let coords = kittycad::types::System {
-        forward: kittycad::types::AxisDirectionPair {
-            axis: kittycad::types::Axis::Y,
-            direction: kittycad::types::Direction::Negative,
-        },
-        up: kittycad::types::AxisDirectionPair {
-            axis: kittycad::types::Axis::Z,
-            direction: kittycad::types::Direction::Positive,
-        },
-    };
+fn get_input_format(format: FileImportFormat, ul: kcmc::units::UnitLength) -> Result<kcmc::format::InputFormat3d> {
+    use kcmc::format::InputFormat3d;
     match format {
-        kittycad::types::FileImportFormat::Step => Ok(kittycad::types::InputFormat3D::Step {
-            split_closed_faces: false,
-        }),
-        kittycad::types::FileImportFormat::Stl => Ok(kittycad::types::InputFormat3D::Stl { coords, units: ul }),
-        kittycad::types::FileImportFormat::Obj => Ok(kittycad::types::InputFormat3D::Obj { coords, units: ul }),
-        kittycad::types::FileImportFormat::Gltf => Ok(kittycad::types::InputFormat3D::Gltf {}),
-        kittycad::types::FileImportFormat::Ply => Ok(kittycad::types::InputFormat3D::Ply { coords, units: ul }),
-        kittycad::types::FileImportFormat::Fbx => Ok(kittycad::types::InputFormat3D::Fbx {}),
-        kittycad::types::FileImportFormat::Sldprt => Ok(kittycad::types::InputFormat3D::Sldprt {
-            split_closed_faces: false,
-        }),
+        FileImportFormat::Step => Ok(InputFormat3d::Step(
+            kcmc::format::step::import::Options::builder().build(),
+        )),
+        FileImportFormat::Stl => Ok(InputFormat3d::Stl(
+            kcmc::format::stl::import::Options::builder().units(ul).build(),
+        )),
+        FileImportFormat::Obj => Ok(InputFormat3d::Obj(
+            kcmc::format::obj::import::Options::builder().units(ul).build(),
+        )),
+        FileImportFormat::Gltf => Ok(InputFormat3d::Gltf(
+            kcmc::format::gltf::import::Options::builder().build(),
+        )),
+        FileImportFormat::Ply => Ok(InputFormat3d::Ply(
+            kcmc::format::ply::import::Options::builder().units(ul).build(),
+        )),
+        FileImportFormat::Fbx => Ok(InputFormat3d::Fbx(
+            kcmc::format::fbx::import::Options::builder().build(),
+        )),
+        FileImportFormat::Sldprt => Ok(InputFormat3d::Sldprt(
+            kcmc::format::sldprt::import::Options::builder().build(),
+        )),
+        other => anyhow::bail!("Zoo CLI cannot yet handle filetype {other}"),
     }
 }
 
