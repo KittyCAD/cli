@@ -83,7 +83,7 @@ slog-stdlog = "4"
 slog-term = "2"
 tabled = { version = "0.20.0", features = ["ansi"] }
 tabwriter = "1.4.1"
-tempfile = "3.19.1"
+tempfile = "3.25.0"
 terminal_size = "0.4.3"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
@@ -92,7 +92,7 @@ toml = "0.8.20"
 toml_edit = "0.22.23"
 unicode-segmentation = "1.12.0"
 url = "2.5.4"
-uuid = { version = "1.20.0", features = ["serde", "v4"] }
+uuid = { version = "1.21.0", features = ["serde", "v4"] }
 version-compare = "0.2.1"
 viuer = { version = "0.11.0", features = ["print-file"] }
 
@@ -104,7 +104,7 @@ expectorate = "1.2.0"
 futures = "0.3"
 pretty_assertions = "1"
 serial_test = "3.3.1"
-tempfile = "3.19.1"
+tempfile = "3.25.0"
 test-context = "0.1.4"
 
 [profile.dev]
