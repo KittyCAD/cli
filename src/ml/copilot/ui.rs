@@ -217,6 +217,15 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     push_assistant_block(&mut lines, rows, None, Some(prefix));
                 }
                 kittycad::types::MlCopilotServerMessage::ProjectUpdated { files: _ } => {}
+                kittycad::types::MlCopilotServerMessage::BackendShutdown { reason } => {
+                    let msg = reason
+                        .as_ref()
+                        .map(|r| format!("Backend shutdown: {}", r))
+                        .unwrap_or_else(|| "Backend shutdown".to_string());
+                    let rows: Vec<String> = msg.split('\n').map(|s| s.to_string()).collect();
+                    push_assistant_block(&mut lines, rows, Some(Style::default().fg(Color::Red)), None);
+                }
+                kittycad::types::MlCopilotServerMessage::Files { .. } => {}
             },
         }
     }

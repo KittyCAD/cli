@@ -163,6 +163,12 @@ pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
         if let Ok(cmd) = name.parse::<kittycad::types::MlCopilotSystemCommand>() {
             return Some(SlashCommand::System(cmd));
         }
+        let normalized = name.replace('-', "_");
+        if normalized != name {
+            if let Ok(cmd) = normalized.parse::<kittycad::types::MlCopilotSystemCommand>() {
+                return Some(SlashCommand::System(cmd));
+            }
+        }
     }
     None
 }
@@ -568,7 +574,7 @@ mod tests {
     #[test]
     fn tab_autocomplete_unique() {
         let mut app = App::new();
-        app.input = "/a".into();
+        app.input = "/ac".into();
         let _ = app.handle_key_action(key(KeyCode::Tab, KeyModifiers::NONE));
         assert_eq!(app.input, "/accept");
     }
