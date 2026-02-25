@@ -225,10 +225,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     let rows: Vec<String> = msg.split('\n').map(|s| s.to_string()).collect();
                     push_assistant_block(&mut lines, rows, Some(Style::default().fg(Color::Red)), None);
                 }
-                kittycad::types::MlCopilotServerMessage::Files { files } => {
-                    let msg = format!("Received {} file(s) from server", files.len());
-                    push_assistant_block(&mut lines, vec![msg], None, None);
-                }
+                kittycad::types::MlCopilotServerMessage::Files { .. } => {}
             },
         }
     }
