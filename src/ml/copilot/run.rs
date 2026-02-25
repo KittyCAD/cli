@@ -56,6 +56,7 @@ fn build_user_message(
         Some(forced_tools)
     };
     let msg = kittycad::types::MlCopilotClientMessage::User {
+        additional_files: None,
         content,
         current_files: Some(files),
         forced_tools,
