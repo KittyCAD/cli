@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.147"
+version = "0.2.148"
 edition = "2021"
 build = "build.rs"
 
@@ -37,8 +37,8 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.14.0"
-kcl-lib = { version = "=0.2.128", features = ["disable-println"] }
-kcl-test-server = "=0.1.128"
+kcl-lib = { version = "=0.2.129", features = ["disable-println"] }
+kcl-test-server = "=0.2.129"
 kittycad = { version = "0.4.6", features = [
   "clap",
   "tabled",

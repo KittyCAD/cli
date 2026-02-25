@@ -2694,9 +2694,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.1.126"
+version = "0.2.129"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0df1f8a80f8df00d64fdb705e49f540457a69ad3b08d3bf3f6b4843b3f42d9a6"
+checksum = "c2f10d1656e2ad7dde361454eebcba7c509cc0f7e088d1b4fe3f01a8d442744d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2705,9 +2705,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.1.126"
+version = "0.2.129"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d269f35d75dcb874c248dc3b69a6372bba9d06403028391f08ecf5160e7e6abe"
+checksum = "58a828b7bc16e28650b0456af5b9b1012aa3054d65fbd9ba8b321858536475d4"
 dependencies = [
  "miette",
  "serde",
@@ -2731,9 +2731,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.128"
+version = "0.2.129"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55c021d2261b256fe81fd1362ef7c56a72373556c3b6e0e0b8adb717b13524a0"
+checksum = "0e855c8d0629a1f913a81664f088a72fb4707436ccb027b0bd4fa460e84eba37"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2784,7 +2784,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-tungstenite",
- "toml 0.9.11+spec-1.1.0",
+ "toml 1.0.3+spec-1.1.0",
  "tower-lsp",
  "ts-rs",
  "tynm",
@@ -2804,9 +2804,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.1.128"
+version = "0.2.129"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18b8b89b49fed5ee7f3d67132770af0c2354f07f317be86c93989767c7f0b67b"
+checksum = "0e523f39d0ef3cfa67d7e05d5f6454ad47bd0247edd5d15c75a061741ed5ea9d"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -5826,14 +5826,14 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.9.11+spec-1.1.0"
+version = "1.0.3+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3afc9a848309fe1aaffaed6e1546a7a14de1f935dc9d89d32afd9a44bab7c46"
+checksum = "c7614eaf19ad818347db24addfa201729cf2a9b6fdfd9eb0ab870fcacc606c0c"
 dependencies = [
  "indexmap 2.13.0",
  "serde_core",
  "serde_spanned 1.0.4",
- "toml_datetime 0.7.5+spec-1.1.0",
+ "toml_datetime 1.0.0+spec-1.1.0",
  "toml_parser",
  "toml_writer",
  "winnow",
@@ -5850,9 +5850,9 @@ dependencies = [
 
 [[package]]
 name = "toml_datetime"
-version = "0.7.5+spec-1.1.0"
+version = "1.0.0+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92e1cfed4a3038bc5a127e35a2d360f145e1f4b971b551a2ba5fd7aedf7e1347"
+checksum = "32c2555c699578a4f59f0cc68e5116c8d7cabbd45e1409b989d4be085b53f13e"
 dependencies = [
  "serde_core",
 ]
@@ -5873,9 +5873,9 @@ dependencies = [
 
 [[package]]
 name = "toml_parser"
-version = "1.0.6+spec-1.1.0"
+version = "1.0.9+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3198b4b0a8e11f09dd03e133c0280504d0801269e9afa46362ffde1cbeebf44"
+checksum = "702d4415e08923e7e1ef96cd5727c0dfed80b4d2fa25db9647fe5eb6f7c5a4c4"
 dependencies = [
  "winnow",
 ]
@@ -6093,9 +6093,9 @@ dependencies = [
 
 [[package]]
 name = "typed-path"
-version = "0.12.2"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3015e6ce46d5ad8751e4a772543a30c7511468070e98e64e20165f8f81155b64"
+checksum = "8e28f89b80c87b8fb0cf04ab448d5dd0dd0ade2f8891bae878de66a75a28600e"
 
 [[package]]
 name = "typenum"
@@ -7160,7 +7160,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.147"
+version = "0.2.148"
 dependencies = [
  "anyhow",
  "async-trait",
