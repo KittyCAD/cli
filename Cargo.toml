@@ -105,7 +105,7 @@ futures = "0.3"
 pretty_assertions = "1"
 serial_test = "3.4.0"
 tempfile = "3.25.0"
-test-context = "0.1.4"
+test-context = "0.5.4"
 
 [profile.dev]
 # Disabling debug info speeds up builds a bunch,
