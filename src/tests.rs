@@ -19,7 +19,6 @@ struct MainContext {
     client: kittycad::Client,
 }
 
-#[async_trait::async_trait]
 impl AsyncTestContext for MainContext {
     async fn setup() -> Self {
         let test_host = std::env::var("ZOO_TEST_HOST").unwrap_or_default();
