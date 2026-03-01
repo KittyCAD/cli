@@ -49,7 +49,6 @@ mod test {
         orig_zoo_token: Result<String, std::env::VarError>,
     }
 
-    #[async_trait::async_trait]
     impl AsyncTestContext for TContext {
         async fn setup() -> TContext {
             let orig = TContext {
