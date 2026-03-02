@@ -13,7 +13,7 @@ anyhow = { version = "1", features = ["backtrace"] }
 async-trait = "0.1.88"
 base64 = "0.22.1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
-clap = { version = "4.5.58", features = [
+clap = { version = "4.5.60", features = [
   "cargo",
   "derive",
   "env",
@@ -37,8 +37,8 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.14.0"
-kcl-lib = { version = "=0.2.129", features = ["disable-println"] }
-kcl-test-server = "=0.2.129"
+kcl-lib = { version = "=0.2.130", features = ["disable-println"] }
+kcl-test-server = "=0.2.130"
 kittycad = { version = "0.4.7", features = [
   "clap",
   "tabled",
