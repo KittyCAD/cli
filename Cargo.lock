@@ -1350,7 +1350,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "976dd42dc7e85965fe702eb8164f21f450704bdde31faefd6471dba214cb594e"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2596,7 +2596,7 @@ checksum = "e04d7f318608d35d4b61ddd75cbdaee86b023ebe2bd5a66ee0915f0bf93095a9"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2691,9 +2691,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.130"
+version = "0.2.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a372f1e8a736de12704461a1cc1155f9fc4c49d76cc28d6977e74f0f8308dd8e"
+checksum = "558199f58f26cfd5609e277e758e0ddf0494c8122046ee5d85e517ab81396545"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2702,9 +2702,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.130"
+version = "0.2.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb62287fed4673ebaf5edc2e765e59ea0618a98e4b3a27111e7f5333f56f75bb"
+checksum = "6a9104609e86a9336c97eef3ec97e81d0312f0a96aecfb4c73a1d1e4d17aae6e"
 dependencies = [
  "miette",
  "serde",
@@ -2714,9 +2714,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-ezpz"
-version = "0.2.16"
+version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bd213b7ccf9f01e2a697cb2aed8a27b81580f203c5baed9e450cbe5666d9c2c"
+checksum = "370e20fe16bf4c21d0df3caf957675fa489fc192fa723fee0baf00fd515e55d9"
 dependencies = [
  "faer",
  "indexmap 2.13.0",
@@ -2728,9 +2728,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.130"
+version = "0.2.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a6cbd9bc7470df3fda449b8f787dc083ae208b742cbb4fcdc37cdfe378460d8"
+checksum = "f8da968eeb4a4c91cf7188f938c680cd19e4193584c22a57acc1c7f3984d7216"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2801,9 +2801,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.130"
+version = "0.2.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3481b9597b7b7c5bf2566b4452e08b8c2f2b88b4dc3e734c7366af24033400b9"
+checksum = "e9895ab17849dfc2c65622b9392cec4042704f0d842dc86c5516350096cac84a"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -4069,7 +4069,7 @@ dependencies = [
  "once_cell",
  "socket2 0.5.9",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -4676,7 +4676,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -6035,9 +6035,9 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "ts-rs"
-version = "11.1.0"
+version = "12.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4994acea2522cd2b3b85c1d9529a55991e3ad5e25cdcd3de9d505972c4379424"
+checksum = "756050066659291d47a554a9f558125db17428b073c5ffce1daf5dcb0f7231d8"
 dependencies = [
  "chrono",
  "indexmap 2.13.0",
@@ -6050,9 +6050,9 @@ dependencies = [
 
 [[package]]
 name = "ts-rs-macros"
-version = "11.1.0"
+version = "12.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee6ff59666c9cbaec3533964505d39154dc4e0a56151fdea30a09ed0301f62e2"
+checksum = "38d90eea51bc7988ef9e674bf80a85ba6804739e535e9cab48e4bb34a8b652aa"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7139,9 +7139,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "7.2.0"
+version = "8.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c42e33efc22a0650c311c2ef19115ce232583abbe80850bc8b66509ebef02de0"
+checksum = "b680f2a0cd479b4cff6e1233c483fdead418106eae419dc60200ae9850f6d004"
 dependencies = [
  "crc32fast",
  "indexmap 2.13.0",
@@ -7157,7 +7157,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.148"
+version = "0.2.149"
 dependencies = [
  "anyhow",
  "async-trait",
