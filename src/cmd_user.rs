@@ -60,8 +60,10 @@ mod test {
             let test_host = std::env::var("ZOO_TEST_HOST").unwrap_or_default();
 
             let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
-            std::env::set_var("ZOO_HOST", test_host);
-            std::env::set_var("ZOO_API_TOKEN", test_token);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("ZOO_HOST", test_host) };
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("ZOO_API_TOKEN", test_token) };
 
             orig
         }
@@ -69,15 +71,19 @@ mod test {
         async fn teardown(self) {
             // Put the original env var back.
             if let Ok(ref val) = self.orig_zoo_host {
-                std::env::set_var("ZOO_HOST", val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("ZOO_HOST", val) };
             } else {
-                std::env::remove_var("ZOO_HOST");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("ZOO_HOST") };
             }
 
             if let Ok(ref val) = self.orig_zoo_token {
-                std::env::set_var("ZOO_API_TOKEN", val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("ZOO_API_TOKEN", val) };
             } else {
-                std::env::remove_var("ZOO_API_TOKEN");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("ZOO_API_TOKEN") };
             }
         }
     }

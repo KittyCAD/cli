@@ -64,9 +64,14 @@ impl Context<'_> {
         // 3. PAGER
         if let Ok(zoo_pager) = std::env::var("ZOO_PAGER") {
             io.set_pager(zoo_pager);
-        } else if let Ok(pager) = config.get("", "pager") {
-            if !pager.is_empty() {
-                io.set_pager(pager);
+        } else {
+            match config.get("", "pager") {
+                Ok(pager) => {
+                    if !pager.is_empty() {
+                        io.set_pager(pager);
+                    }
+                }
+                _ => {}
             }
         }
 
@@ -1054,15 +1059,19 @@ mod test {
         fn teardown(self) {
             // Put the original env var back.
             if let Ok(ref val) = self.orig_zoo_pager_env {
-                std::env::set_var("ZOO_PAGER", val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("ZOO_PAGER", val) };
             } else {
-                std::env::remove_var("ZOO_PAGER");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("ZOO_PAGER") };
             }
 
             if let Ok(ref val) = self.orig_zoo_force_tty_env {
-                std::env::set_var("ZOO_FORCE_TTY", val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("ZOO_FORCE_TTY", val) };
             } else {
-                std::env::remove_var("ZOO_FORCE_TTY");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("ZOO_FORCE_TTY") };
             }
         }
     }
@@ -1148,15 +1157,19 @@ mod test {
             }
 
             if !t.zoo_pager_env.is_empty() {
-                std::env::set_var("ZOO_PAGER", t.zoo_pager_env.clone());
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("ZOO_PAGER", t.zoo_pager_env.clone()) };
             } else {
-                std::env::remove_var("ZOO_PAGER");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("ZOO_PAGER") };
             }
 
             if !t.zoo_force_tty_env.is_empty() {
-                std::env::set_var("ZOO_FORCE_TTY", t.zoo_force_tty_env.clone());
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("ZOO_FORCE_TTY", t.zoo_force_tty_env.clone()) };
             } else {
-                std::env::remove_var("ZOO_FORCE_TTY");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("ZOO_FORCE_TTY") };
             }
 
             let ctx = Context::new(&mut c);

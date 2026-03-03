@@ -168,21 +168,27 @@ mod test {
         fn teardown(self) {
             // Put the original env var back.
             if let Ok(ref val) = self.orig_no_color_env {
-                std::env::set_var("NO_COLOR", val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("NO_COLOR", val) };
             } else {
-                std::env::remove_var("NO_COLOR");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("NO_COLOR") };
             }
 
             if let Ok(ref val) = self.orig_clicolor_env {
-                std::env::set_var("CLICOLOR", val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("CLICOLOR", val) };
             } else {
-                std::env::remove_var("CLICOLOR");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("CLICOLOR") };
             }
 
             if let Ok(ref val) = self.orig_clicolor_force_env {
-                std::env::set_var("CLICOLOR_FORCE", val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::set_var("CLICOLOR_FORCE", val) };
             } else {
-                std::env::remove_var("CLICOLOR_FORCE");
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { std::env::remove_var("CLICOLOR_FORCE") };
             }
         }
     }
@@ -238,9 +244,12 @@ mod test {
         ];
 
         for t in tests {
-            std::env::set_var("NO_COLOR", t.no_color_env);
-            std::env::set_var("CLICOLOR", t.clicolor_env);
-            std::env::set_var("CLICOLOR_FORCE", t.clicolor_force_env);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("NO_COLOR", t.no_color_env) };
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("CLICOLOR", t.clicolor_env) };
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("CLICOLOR_FORCE", t.clicolor_force_env) };
 
             let got = env_color_disabled();
             assert_eq!(got, t.want, "test {}", t.name);
@@ -296,9 +305,12 @@ mod test {
         ];
 
         for t in tests {
-            std::env::set_var("NO_COLOR", t.no_color_env);
-            std::env::set_var("CLICOLOR", t.clicolor_env);
-            std::env::set_var("CLICOLOR_FORCE", t.clicolor_force_env);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("NO_COLOR", t.no_color_env) };
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("CLICOLOR", t.clicolor_env) };
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { std::env::set_var("CLICOLOR_FORCE", t.clicolor_force_env) };
 
             let got = env_color_forced();
 

@@ -157,7 +157,7 @@ pub fn validate_value(target_key: &str, value: &str) -> Result<()> {
 
 // new_from_string initializes a Config from a toml string.
 #[cfg(test)]
-pub fn new_from_string(s: &str) -> Result<impl Config> {
+pub fn new_from_string(s: &str) -> Result<impl Config + use<>> {
     let root = s.parse::<toml_edit::DocumentMut>()?;
     Ok(new_config(root))
 }
