@@ -417,6 +417,26 @@ impl crate::cmd::Command for CmdKclSnapshot {
                         session_data,
                     )
                 }
+                CameraView::Iso => {
+                    let (responses, session_data) = ctx
+                        .run_kcl_then_snapshots(
+                            "",
+                            &filepath.display().to_string(),
+                            &code,
+                            one_sided_view(
+                                camera_angles::iso(),
+                                self.camera_style,
+                                self.camera_padding,
+                                output_format,
+                            ),
+                            executor_settings,
+                        )
+                        .await?;
+                    (
+                        responses.into_iter().map(|resp| resp.contents.0).collect(),
+                        session_data,
+                    )
+                }
                 CameraView::FourWays => {
                     let (responses, session_data) = ctx
                         .run_kcl_then_snapshots(
@@ -576,6 +596,18 @@ impl crate::cmd::Command for CmdKclView {
             CameraView::RightSide => {
                 self.write_single_image(
                     camera_angles::right_side(),
+                    ctx,
+                    code,
+                    &filepath,
+                    output_format,
+                    &tmp_file,
+                    executor_settings,
+                )
+                .await?;
+            }
+            CameraView::Iso => {
+                self.write_single_image(
+                    camera_angles::iso(),
                     ctx,
                     code,
                     &filepath,

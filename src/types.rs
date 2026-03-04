@@ -20,6 +20,7 @@ pub enum CameraView {
     Top,
     RightSide,
     FourWays,
+    Iso,
 }
 
 impl FormatOutput {
