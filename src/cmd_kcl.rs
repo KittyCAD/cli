@@ -334,6 +334,8 @@ impl crate::cmd::Command for CmdKclSnapshot {
         // Get the modeling settings from the project.toml if exists.
         let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
         executor_settings.replay = self.replay.then_some(filepath.to_string_lossy().to_string());
+        // Required for transparent solids (e.g. with `appearance(opacity = 40)`).
+        executor_settings.enable_ssao = true;
 
         let (many_pngs, session_data) = match self.session {
             Some(addr) => {
