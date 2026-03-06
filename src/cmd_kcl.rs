@@ -39,6 +39,7 @@ enum SubCommand {
     Density(CmdKclDensity),
     SurfaceArea(CmdKclSurfaceArea),
     Lint(CmdKclLint),
+    BoundingBox(CmdKclBoundingBox),
 }
 
 #[async_trait::async_trait(?Send)]
@@ -56,6 +57,7 @@ impl crate::cmd::Command for CmdKcl {
             SubCommand::Density(cmd) => cmd.run(ctx).await,
             SubCommand::SurfaceArea(cmd) => cmd.run(ctx).await,
             SubCommand::Lint(cmd) => cmd.run(ctx).await,
+            SubCommand::BoundingBox(cmd) => cmd.run(ctx).await,
         }
     }
 }
@@ -1060,6 +1062,33 @@ pub struct CmdKclVolume {
     pub show_trace: bool,
 }
 
+/// Get the bounding box that contains everything in a KCL file.
+///
+///     # get the volume of a file
+///     $ zoo kcl bounding-box my-file.kcl
+///
+///     # pass a file from stdin
+///     $ cat my-file.kcl | zoo kcl bounding-box
+///
+/// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdKclBoundingBox {
+    /// The path to the input file.
+    /// This can also be the path to a directory containing a main.kcl file.
+    /// If you pass `-` as the path, the file will be read from stdin.
+    #[clap(name = "input", required = true)]
+    pub input: std::path::PathBuf,
+
+    /// Output format.
+    #[clap(long, short, value_enum)]
+    pub format: Option<FormatOutput>,
+
+    /// Output unit.
+    #[clap(long = "output-unit", short = 'u', value_enum)]
+    pub output_unit: kcmc::units::UnitLength,
+}
+
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclVolume {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
@@ -1101,6 +1130,73 @@ impl crate::cmd::Command for CmdKclVolume {
             print_trace_link(&mut ctx.io, &session_data)
         }
         Ok(())
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdKclBoundingBox {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        // Get the contents of the input file.
+        let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
+
+        // Get the modeling settings from the project.toml if exists.
+        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+
+        // Spin up websockets and do the conversion.
+        // This will not return until there are files.
+        let (resp, _session_data) = ctx
+            .send_kcl_modeling_cmd(
+                "",
+                &filepath.display().to_string(),
+                &code,
+                kittycad_modeling_cmds::ModelingCmd::BoundingBox(
+                    kittycad_modeling_cmds::BoundingBox::builder()
+                        .entity_ids(vec![]) // get whole model
+                        .build(),
+                ),
+                executor_settings,
+            )
+            .await?;
+
+        if let kittycad_modeling_cmds::websocket::OkWebSocketResponseData::Modeling {
+            modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::BoundingBox(data),
+        } = &resp
+        {
+            // Print the output.
+            let output_unit = self.output_unit;
+            // let UnitLength::Meters.convert_to(UnitLength::Inches, x_meters)
+            let printable_box = BoundingBox::from_response(data, output_unit);
+            let format = ctx.format(&self.format)?;
+            ctx.io.write_output(&format, &printable_box)?;
+        } else {
+            anyhow::bail!("Unexpected response from engine: {resp:?}");
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, tabled::Tabled, serde::Serialize)]
+struct BoundingBox {
+    center_x: f64,
+    center_y: f64,
+    center_z: f64,
+    distance_x: f64,
+    distance_y: f64,
+    distance_z: f64,
+}
+
+impl BoundingBox {
+    fn from_response(data: &kcmc::output::BoundingBox, output_unit: UnitLength) -> Self {
+        let mm = UnitLength::Millimeters;
+        Self {
+            center_x: mm.convert_to(output_unit, data.center.x),
+            center_y: mm.convert_to(output_unit, data.center.y),
+            center_z: mm.convert_to(output_unit, data.center.z),
+            distance_x: mm.convert_to(output_unit, data.dimensions.x),
+            distance_y: mm.convert_to(output_unit, data.dimensions.y),
+            distance_z: mm.convert_to(output_unit, data.dimensions.z),
+        }
     }
 }
 
