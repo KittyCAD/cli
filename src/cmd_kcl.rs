@@ -1165,9 +1165,8 @@ impl crate::cmd::Command for CmdKclBoundingBox {
             // Print the output.
             let output_unit = self.output_unit;
             // let UnitLength::Meters.convert_to(UnitLength::Inches, x_meters)
-            let printable_box = BoundingBox::from_response(data, output_unit);
-            let format = ctx.format(&self.format)?;
-            ctx.io.write_output(&format, &printable_box)?;
+            let printable_box = bounding_box_rows(data, output_unit);
+            ctx.io.write_output_table_for_vec(&printable_box)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
@@ -1177,27 +1176,47 @@ impl crate::cmd::Command for CmdKclBoundingBox {
 }
 
 #[derive(Debug, tabled::Tabled, serde::Serialize)]
-struct BoundingBox {
-    center_x: f64,
-    center_y: f64,
-    center_z: f64,
-    distance_x: f64,
-    distance_y: f64,
-    distance_z: f64,
+#[tabled(rename_all = "PascalCase")]
+struct BoundingBoxRow {
+    property: &'static str,
+    axis: &'static str,
+    value: f64,
 }
 
-impl BoundingBox {
-    fn from_response(data: &kcmc::output::BoundingBox, output_unit: UnitLength) -> Self {
-        let mm = UnitLength::Millimeters;
-        Self {
-            center_x: mm.convert_to(output_unit, data.center.x),
-            center_y: mm.convert_to(output_unit, data.center.y),
-            center_z: mm.convert_to(output_unit, data.center.z),
-            distance_x: mm.convert_to(output_unit, data.dimensions.x),
-            distance_y: mm.convert_to(output_unit, data.dimensions.y),
-            distance_z: mm.convert_to(output_unit, data.dimensions.z),
-        }
-    }
+fn bounding_box_rows(data: &kcmc::output::BoundingBox, output_unit: UnitLength) -> Vec<BoundingBoxRow> {
+    let mm = UnitLength::Millimeters;
+    vec![
+        BoundingBoxRow {
+            property: "Center",
+            axis: "x",
+            value: mm.convert_to(output_unit, data.center.x),
+        },
+        BoundingBoxRow {
+            property: "Center",
+            axis: "y",
+            value: mm.convert_to(output_unit, data.center.y),
+        },
+        BoundingBoxRow {
+            property: "Center",
+            axis: "z",
+            value: mm.convert_to(output_unit, data.center.z),
+        },
+        BoundingBoxRow {
+            property: "Distance",
+            axis: "x",
+            value: mm.convert_to(output_unit, data.dimensions.x),
+        },
+        BoundingBoxRow {
+            property: "Distance",
+            axis: "y",
+            value: mm.convert_to(output_unit, data.dimensions.y),
+        },
+        BoundingBoxRow {
+            property: "Distance",
+            axis: "z",
+            value: mm.convert_to(output_unit, data.dimensions.z),
+        },
+    ]
 }
 
 /// Get the mass of objects in a kcl file.
