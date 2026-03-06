@@ -272,7 +272,7 @@ impl IoStreams {
 
     pub fn write_output_table_for_vec<T: tabled::Tabled>(&mut self, value: impl IntoIterator<Item = T>) -> Result<()> {
         let table = tabled::Table::new(value)
-            .with(tabled::settings::Style::psql())
+            .with(tabled::settings::Style::sharp())
             .to_string();
 
         writeln!(self.out, "{table}")?;
@@ -288,7 +288,7 @@ impl IoStreams {
                     .with(tabled::settings::Alignment::left())
                     .with(tabled::settings::Alignment::top()),
             )
-            .with(tabled::settings::Style::psql())
+            .with(tabled::settings::Style::sharp())
             .to_string();
 
         writeln!(self.out, "{table}")?;
