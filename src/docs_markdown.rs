@@ -17,14 +17,16 @@ impl MarkdownDocument<'_> {
             attrs: vec![],
         }));
         self.0.push(pulldown_cmark::Event::Text(text.into()));
-        self.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Heading(level)));
+        self.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Heading(level)));
     }
 
     fn paragraph(&mut self, text: String) {
         self.0
             .push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::Paragraph));
         self.0.push(pulldown_cmark::Event::Text(text.into()));
-        self.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Paragraph));
+        self.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Paragraph));
     }
 
     fn link_in_list(&mut self, text: String, url: String) {
@@ -68,7 +70,8 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
             );
         }
 
-        doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
     }
 
     let args = app.get_arguments().collect::<Vec<&clap::Arg>>();
@@ -150,7 +153,10 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
 
         html.push_str("</dl>\n\n");
 
+        doc.0.push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::HtmlBlock));
         doc.0.push(pulldown_cmark::Event::Html(html.into()));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::HtmlBlock));
     }
 
     // TODO: add examples
@@ -184,7 +190,8 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                 .push(pulldown_cmark::Event::Text(format!(" {}", entry.description).into()));
             doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Item));
         }
-        doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
     }
 
     // Check if the command has a parent.
@@ -215,7 +222,8 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
             }
         }
 
-        doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
     }
 
     Ok(())
