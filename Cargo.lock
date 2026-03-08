@@ -626,9 +626,9 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.43"
+version = "0.4.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fac4744fb15ae8337dc853fee7fb3f4e48c0fbaa23d0afe49c447b4fab126118"
+checksum = "c673075a2e0e5f4a1dde27ce9dee1ea4558c7ffe648f576438a20ca1d2acc4b0"
 dependencies = [
  "iana-time-zone",
  "js-sys",
@@ -2691,9 +2691,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.131"
+version = "0.2.132"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "558199f58f26cfd5609e277e758e0ddf0494c8122046ee5d85e517ab81396545"
+checksum = "77dc10b97769b8690f1aa4128428d5afa94759ff3c05b376ce8ec644a5aebf35"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2702,9 +2702,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.131"
+version = "0.2.132"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a9104609e86a9336c97eef3ec97e81d0312f0a96aecfb4c73a1d1e4d17aae6e"
+checksum = "6fdc16f8839f84b247c125e9f74e66b96fe6fee14916c5df4baa7186c54b026c"
 dependencies = [
  "miette",
  "serde",
@@ -2728,9 +2728,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.131"
+version = "0.2.132"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8da968eeb4a4c91cf7188f938c680cd19e4193584c22a57acc1c7f3984d7216"
+checksum = "2929f50ff6517ac4bd0c49dcf52526adb5ed4549172080811ab49b25bc939269"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2801,9 +2801,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.131"
+version = "0.2.132"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9895ab17849dfc2c65622b9392cec4042704f0d842dc86c5516350096cac84a"
+checksum = "fbd12f83bd2f56de7155de5efb7c5c7e911ac5338b165958ff42829a2bad11b6"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -5010,9 +5010,9 @@ dependencies = [
 
 [[package]]
 name = "serde_tokenstream"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64060d864397305347a78851c51588fd283767e7e7589829e8121d65512340f1"
+checksum = "d7c49585c52c01f13c5c2ebb333f14f6885d76daa768d8a037d28017ec538c69"
 dependencies = [
  "proc-macro2",
  "quote",
