@@ -83,7 +83,7 @@ slog-stdlog = "4"
 slog-term = "2"
 tabled = { version = "0.20.0", features = ["ansi"] }
 tabwriter = "1.4.1"
-tempfile = "3.25.0"
+tempfile = "3.26.0"
 terminal_size = "0.4.3"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
@@ -104,7 +104,7 @@ expectorate = "1.2.0"
 futures = "0.3"
 pretty_assertions = "1"
 serial_test = "3.4.0"
-tempfile = "3.25.0"
+tempfile = "3.26.0"
 test-context = "0.5.4"
 
 [profile.dev]
