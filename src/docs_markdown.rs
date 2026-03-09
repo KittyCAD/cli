@@ -10,34 +10,38 @@ struct MarkdownDocument<'a>(Vec<pulldown_cmark::Event<'a>>);
 
 impl MarkdownDocument<'_> {
     fn header(&mut self, text: String, level: pulldown_cmark::HeadingLevel) {
-        self.0.push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::Heading(
+        self.0.push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::Heading {
             level,
-            None,
-            vec![],
-        )));
+            id: None,
+            classes: vec![],
+            attrs: vec![],
+        }));
         self.0.push(pulldown_cmark::Event::Text(text.into()));
-        self.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::Heading(
-            level,
-            None,
-            vec![],
-        )));
+        self.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Heading(level)));
     }
 
     fn paragraph(&mut self, text: String) {
         self.0
             .push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::Paragraph));
         self.0.push(pulldown_cmark::Event::Text(text.into()));
-        self.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::Paragraph));
+        self.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Paragraph));
     }
 
     fn link_in_list(&mut self, text: String, url: String) {
-        let link = pulldown_cmark::Tag::Link(pulldown_cmark::LinkType::Inline, url.into(), "".into());
+        let link = pulldown_cmark::Tag::Link {
+            link_type: pulldown_cmark::LinkType::Inline,
+            dest_url: url.into(),
+            title: "".into(),
+            id: "".into(),
+        };
 
         self.0.push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::Item));
-        self.0.push(pulldown_cmark::Event::Start(link.clone()));
+        self.0.push(pulldown_cmark::Event::Start(link));
         self.0.push(pulldown_cmark::Event::Text(text.into()));
-        self.0.push(pulldown_cmark::Event::End(link));
-        self.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::Item));
+        self.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Link));
+        self.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Item));
     }
 }
 
@@ -66,7 +70,8 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
             );
         }
 
-        doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::List(None)));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
     }
 
     let args = app.get_arguments().collect::<Vec<&clap::Arg>>();
@@ -148,7 +153,10 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
 
         html.push_str("</dl>\n\n");
 
+        doc.0.push(pulldown_cmark::Event::Start(pulldown_cmark::Tag::HtmlBlock));
         doc.0.push(pulldown_cmark::Event::Html(html.into()));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::HtmlBlock));
     }
 
     // TODO: add examples
@@ -180,9 +188,10 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
             doc.0.push(pulldown_cmark::Event::Code(entry.command.clone().into()));
             doc.0
                 .push(pulldown_cmark::Event::Text(format!(" {}", entry.description).into()));
-            doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::Item));
+            doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Item));
         }
-        doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::List(None)));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
     }
 
     // Check if the command has a parent.
@@ -213,7 +222,8 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
             }
         }
 
-        doc.0.push(pulldown_cmark::Event::End(pulldown_cmark::Tag::List(None)));
+        doc.0
+            .push(pulldown_cmark::Event::End(pulldown_cmark::TagEnd::List(false)));
     }
 
     Ok(())
@@ -267,7 +277,7 @@ pub fn app_to_markdown(app: &Command, title: &str) -> Result<String> {
     do_markdown(&mut document, app, title)?;
 
     let mut result = String::new();
-    cmark_with_options(document.0.iter(), &mut result, get_cmark_options())?;
+    cmark_with_options(document.0.into_iter(), &mut result, get_cmark_options())?;
 
     // Fix the code blocks.
     result = cleanup_code_blocks(&result)?;

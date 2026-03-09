@@ -40,7 +40,7 @@ fn render_preserving_newlines(s: &str) -> Vec<String> {
 }
 
 fn render_markdown_to_lines(md: &str) -> Vec<String> {
-    use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
+    use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
     let mut lines: Vec<String> = Vec::new();
     let mut cur = String::new();
     let mut list_prefix = String::new();
@@ -55,7 +55,7 @@ fn render_markdown_to_lines(md: &str) -> Vec<String> {
                 }
                 list_prefix = "- ".to_string();
             }
-            Event::End(Tag::List(_)) => {
+            Event::End(TagEnd::List(_)) => {
                 if !cur.is_empty() {
                     lines.push(std::mem::take(&mut cur));
                 }
@@ -67,17 +67,17 @@ fn render_markdown_to_lines(md: &str) -> Vec<String> {
                 }
                 cur.push_str(&list_prefix);
             }
-            Event::End(Tag::Item) => {
+            Event::End(TagEnd::Item) => {
                 if !cur.is_empty() {
                     lines.push(std::mem::take(&mut cur));
                 }
             }
-            Event::Start(Tag::Paragraph) | Event::Start(Tag::Heading(_, _, _)) => {
+            Event::Start(Tag::Paragraph) | Event::Start(Tag::Heading { .. }) => {
                 if !cur.is_empty() {
                     lines.push(std::mem::take(&mut cur));
                 }
             }
-            Event::End(Tag::Paragraph) | Event::End(Tag::Heading(_, _, _)) => {
+            Event::End(TagEnd::Paragraph) | Event::End(TagEnd::Heading(_)) => {
                 if !cur.is_empty() {
                     lines.push(std::mem::take(&mut cur));
                 }
@@ -93,7 +93,7 @@ fn render_markdown_to_lines(md: &str) -> Vec<String> {
                     _ => "```".to_string(),
                 });
             }
-            Event::End(Tag::CodeBlock(_)) => {
+            Event::End(TagEnd::CodeBlock) => {
                 if !cur.is_empty() {
                     lines.push(std::mem::take(&mut cur));
                 }
