@@ -1028,7 +1028,7 @@ impl crate::cmd::Command for CmdKclAnalyze {
                 modeling_response: OkModelingCmdResponse::BoundingBox(data),
             }) => data,
             Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
-            None => anyhow::bail!("Expected center of mass response from engine"),
+            None => anyhow::bail!("Expected bounding box response from engine"),
         };
 
         let density_value = self
