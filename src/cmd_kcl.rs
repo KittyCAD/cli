@@ -1164,7 +1164,6 @@ impl crate::cmd::Command for CmdKclBoundingBox {
         {
             // Print the output.
             let output_unit = self.output_unit;
-            // let UnitLength::Meters.convert_to(UnitLength::Inches, x_meters)
             let printable_box = bounding_box_rows(data, output_unit);
             ctx.io.write_output_table_for_vec(&printable_box)?;
         } else {
