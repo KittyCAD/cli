@@ -819,6 +819,7 @@ struct KclAnalyzeOutput {
     density: KclAnalyzeDensityOutput,
     surface_area: kcmc::output::SurfaceArea,
     center_of_mass: kcmc::output::CenterOfMass,
+    bounding_box: kcmc::output::BoundingBox,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -864,6 +865,22 @@ impl KclAnalyzeOutput {
                     self.center_of_mass.center_of_mass.x,
                     self.center_of_mass.center_of_mass.y,
                     self.center_of_mass.center_of_mass.z
+                ),
+                unit: self.center_of_mass.output_unit.to_string(),
+            },
+            KclAnalyzeTableRow {
+                property: "bounding_box_center".to_string(),
+                value: format!(
+                    "({}, {}, {})",
+                    self.bounding_box.center.x, self.bounding_box.center.y, self.bounding_box.center.z
+                ),
+                unit: self.center_of_mass.output_unit.to_string(),
+            },
+            KclAnalyzeTableRow {
+                property: "bounding_box_dimensions".to_string(),
+                value: format!(
+                    "({}, {}, {})",
+                    self.bounding_box.dimensions.x, self.bounding_box.dimensions.y, self.bounding_box.dimensions.z
                 ),
                 unit: self.center_of_mass.output_unit.to_string(),
             },
@@ -965,6 +982,12 @@ impl crate::cmd::Command for CmdKclAnalyze {
                             .output_unit(self.center_of_mass_output_unit)
                             .build(),
                     ),
+                    kcmc::ModelingCmd::BoundingBox(
+                        kcmc::BoundingBox::builder()
+                            .output_unit(self.center_of_mass_output_unit)
+                            .entity_ids(Default::default()) // everything
+                            .build(),
+                    ),
                 ],
                 executor_settings,
             )
@@ -1000,6 +1023,13 @@ impl crate::cmd::Command for CmdKclAnalyze {
             Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
             None => anyhow::bail!("Expected center of mass response from engine"),
         };
+        let bounding_box = match responses.next() {
+            Some(Modeling {
+                modeling_response: OkModelingCmdResponse::BoundingBox(data),
+            }) => data,
+            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
+            None => anyhow::bail!("Expected bounding box response from engine"),
+        };
 
         let density_value = self
             .material_density_unit
@@ -1015,6 +1045,7 @@ impl crate::cmd::Command for CmdKclAnalyze {
             density,
             surface_area,
             center_of_mass,
+            bounding_box,
         };
 
         let format = ctx.format(&self.format)?;
