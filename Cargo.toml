@@ -88,8 +88,8 @@ terminal_size = "0.4.3"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.28"
-toml = "1.0.3"
-toml_edit = "0.25.3"
+toml = "1.0.6"
+toml_edit = "0.25.4"
 unicode-segmentation = "1.12.0"
 url = "2.5.4"
 uuid = { version = "1.22.0", features = ["serde", "v4"] }
@@ -105,7 +105,7 @@ futures = "0.3"
 pretty_assertions = "1"
 serial_test = "3.4.0"
 tempfile = "3.26.0"
-test-context = "0.5.4"
+test-context = "0.5.5"
 
 [profile.dev]
 # Disabling debug info speeds up builds a bunch,
