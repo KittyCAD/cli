@@ -221,7 +221,7 @@ jobs:
         with:
           path: releases
           destination: dl.kittycad.io
-      - uses: actions/create-github-app-token@v2
+      - uses: actions/create-github-app-token@v3
         id: app-token
         with:
           # required
