@@ -744,7 +744,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2705,9 +2705,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.134"
+version = "0.2.135"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1968e45558dc83e677e206ed376e7ff8c50cdbe95bdec5fe38a416407e3d1a9c"
+checksum = "adec347454d57f48622e724e3e90a7b5888bcd6b49413e212f1b5165a96b874c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2716,9 +2716,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.134"
+version = "0.2.135"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f087d35707d6caaca0047a4437a48f0a1148d8b92fc71557e5fc9df98bb2d18"
+checksum = "8ea8860484c99a4c463b307b69662017d4a65a333ff858f7b2929e1dc1920c11"
 dependencies = [
  "miette",
  "serde",
@@ -2728,9 +2728,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.134"
+version = "0.2.135"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53d632ebbbcc06aee6d4e2a915b4596e7636690a547d850b65ce7ab0551310f7"
+checksum = "10a0e245af26e386604a7c63190b541a992bf0be1ac9c4172056493ecf177c41"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2801,9 +2801,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.134"
+version = "0.2.135"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "caa8f07ef9ae8b9e9dbd11fe6a1742093571cd1ddd12bedeaabc1f098ea5ba6a"
+checksum = "484ed15e883e8fc3a66592957429ea3cfcbf7b421d27f9982c35dd87f57e8ace"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -6600,7 +6600,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7188,7 +7188,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.151"
+version = "0.2.152"
 dependencies = [
  "anyhow",
  "async-trait",
