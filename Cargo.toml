@@ -87,7 +87,7 @@ tempfile = "3.27.0"
 terminal_size = "0.4.3"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
-tokio-tungstenite = "0.28"
+tokio-tungstenite = "0.29"
 toml = "1.0.6"
 toml_edit = "0.25.4"
 unicode-segmentation = "1.12.0"
