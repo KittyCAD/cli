@@ -56,7 +56,7 @@ num-traits = "0.2.19"
 oauth2 = "4.4.2"
 open = "5.3.3"
 parse-display = "0.10.0"
-pulldown-cmark = "0.13.1"
+pulldown-cmark = "0.13.2"
 pulldown-cmark-to-cmark = "22.0.0"
 ratatui = { version = "0.30", default-features = false, features = [
   "crossterm",
@@ -88,8 +88,8 @@ terminal_size = "0.4.3"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.29"
-toml = "1.0.6"
-toml_edit = "0.25.4"
+toml = "1.0.7"
+toml_edit = "0.25.5"
 unicode-segmentation = "1.12.0"
 url = "2.5.4"
 uuid = { version = "1.22.0", features = ["serde", "v4"] }
