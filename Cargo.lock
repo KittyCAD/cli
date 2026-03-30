@@ -754,7 +754,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1497,6 +1497,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e6853b52649d4ac5c0bd02320cddc5ba956bdb407c4b75a2c6b75bf51500f8c"
 dependencies = [
  "simd-adler32",
+]
+
+[[package]]
+name = "filetime"
+version = "0.2.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f98844151eee8917efc50bd9e8318cb963ae8b297431495d3f758616ea5c57db"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "libredox",
 ]
 
 [[package]]
@@ -2744,9 +2755,8 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.138"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab70ad08996240a1b1a703e45684c675eda3616d52db6a71c17d9fc4dcc6d90b"
+version = "0.2.136"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#5fef43054e567674b74248fdba6bd4a4824e00be"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2755,9 +2765,8 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.138"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d6de33ca503e032d4b6f3020fe298707bdaad8bd16d0e4bc89588f7ea67436a"
+version = "0.2.136"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#5fef43054e567674b74248fdba6bd4a4824e00be"
 dependencies = [
  "miette",
  "serde",
@@ -2767,9 +2776,8 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.138"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83205ebe36647cc2d494b73aa399ba0bd6cdf2b86fa9203cd5ba1ac54f0a0c8d"
+version = "0.2.136"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#5fef43054e567674b74248fdba6bd4a4824e00be"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2841,9 +2849,8 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.138"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efef481f9dd4bddd6e307b2ce28be49bc0e628d65e8261dab706563c823aa9c8"
+version = "0.2.136"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#5fef43054e567674b74248fdba6bd4a4824e00be"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -3007,6 +3014,7 @@ checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
 dependencies = [
  "bitflags 2.10.0",
  "libc",
+ "redox_syscall 0.5.11",
 ]
 
 [[package]]
@@ -3567,7 +3575,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#da04836f04550393bab2d4f774b37a85d94c2258"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#bc7287cdb92a5c27e6df9f92f954beb6106e50aa"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -5582,6 +5590,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f764005d11ee5f36500a149ace24e00e3da98b0158b3e2d53a7495660d3f4d60"
 
 [[package]]
+name = "tar"
+version = "0.4.45"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22692a6476a21fa75fdfc11d452fda482af402c008cdbaf3476414e122040973"
+dependencies = [
+ "filetime",
+ "libc",
+ "xattr",
+]
+
+[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6633,7 +6652,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -7076,6 +7095,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
 
 [[package]]
+name = "xattr"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32e45ad4206f6d2479085147f02bc2ef834ac85886624a23575ae137c8aa8156"
+dependencies = [
+ "libc",
+ "rustix 1.1.4",
+]
+
+[[package]]
 name = "y4m"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7283,6 +7312,7 @@ dependencies = [
  "slog-term",
  "tabled",
  "tabwriter",
+ "tar",
  "tempfile",
  "terminal_size",
  "test-context",
