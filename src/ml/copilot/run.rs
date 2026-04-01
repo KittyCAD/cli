@@ -65,6 +65,7 @@ fn build_user_message(
         mode: None,
         model: None,
         reasoning_effort: None,
+        sketch_solve: Default::default(),
     };
     let len = serde_json::to_string(&msg).map(|s| s.len()).unwrap_or(0);
     (msg, len)

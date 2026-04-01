@@ -172,6 +172,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 ]));
             }
             ChatEvent::Server(msg) => match msg {
+                kittycad::types::MlCopilotServerMessage::Pong { .. } => {}
                 kittycad::types::MlCopilotServerMessage::SessionData { .. } => {
                     // Session metadata is not surfaced in the chat pane.
                 }
