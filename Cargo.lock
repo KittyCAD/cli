@@ -2744,9 +2744,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.137"
+version = "0.2.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "273c71754e63127e08ba226b9764dd44f8445cb8d809c8a7e87a5805aa141861"
+checksum = "ab70ad08996240a1b1a703e45684c675eda3616d52db6a71c17d9fc4dcc6d90b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2755,9 +2755,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.137"
+version = "0.2.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89f37972dec43d4fad249f635195ba00ef7c4fed7410f1e5875c04e71c06ce60"
+checksum = "3d6de33ca503e032d4b6f3020fe298707bdaad8bd16d0e4bc89588f7ea67436a"
 dependencies = [
  "miette",
  "serde",
@@ -2767,9 +2767,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.137"
+version = "0.2.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eadf4c9396cf9345c460e3c6f7b3f34bb948cf09540d8f9644066cfda84b9f9f"
+checksum = "83205ebe36647cc2d494b73aa399ba0bd6cdf2b86fa9203cd5ba1ac54f0a0c8d"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2841,9 +2841,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.137"
+version = "0.2.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2197100098f1d49b79ba9bc631da2d3b47671ac25193bd9752e202c4e68ad23"
+checksum = "efef481f9dd4bddd6e307b2ce28be49bc0e628d65e8261dab706563c823aa9c8"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2898,9 +2898,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.184"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f9b59f6f84ad425b02dc4a4f5d7ec03ba9760777eaab8b1a0b770c6ae8ea7fe"
+checksum = "3f443465b82e4a875fdfeb58d50fe7762159195974e3133daf9a4b3f72f810be"
 dependencies = [
  "anyhow",
  "bon",
@@ -7230,7 +7230,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.154"
+version = "0.2.155"
 dependencies = [
  "anyhow",
  "async-trait",
