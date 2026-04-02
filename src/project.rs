@@ -10,9 +10,6 @@ pub struct LocalProject {
     pub project_toml: PathBuf,
 }
 
-const ZOO_TABLE_KEY: &str = "zoo";
-const ZOO_PROJECT_ID_KEY: &str = "project_id";
-
 pub fn resolve_local_project(input: &Path) -> Result<LocalProject> {
     let input = normalize_input_path(input)?;
 
@@ -64,51 +61,75 @@ pub fn resolve_local_project(input: &Path) -> Result<LocalProject> {
     Ok(LocalProject { root, project_toml })
 }
 
-pub fn read_persisted_cloud_project_id(project_toml: &Path) -> Result<Option<uuid::Uuid>> {
+pub fn read_persisted_cloud_project_id(project_toml: &Path, environment: &str) -> Result<Option<uuid::Uuid>> {
     if !project_toml.exists() {
         return Ok(None);
     }
 
-    let contents = std::fs::read_to_string(project_toml)
-        .with_context(|| format!("failed to read `{}`", project_toml.display()))?;
-    let doc = contents
-        .parse::<toml_edit::DocumentMut>()
-        .with_context(|| format!("failed to parse `{}`", project_toml.display()))?;
-
-    let Some(project_id) = doc
-        .get(ZOO_TABLE_KEY)
-        .and_then(|item| item.get(ZOO_PROJECT_ID_KEY))
+    let doc = read_project_toml_document(project_toml)?;
+    let project_id = doc
+        .get("cloud")
+        .and_then(|item| item.as_table_like())
+        .and_then(|cloud| cloud.get(environment))
+        .and_then(|item| item.as_table_like())
+        .and_then(|settings| settings.get("project_id"))
         .and_then(|item| item.as_str())
-    else {
-        return Ok(None);
-    };
+        .map(str::parse::<uuid::Uuid>)
+        .transpose()
+        .with_context(|| {
+            format!(
+                "failed to parse cloud project id for environment `{environment}` in `{}`",
+                project_toml.display()
+            )
+        })?;
 
-    Ok(Some(uuid::Uuid::parse_str(project_id).with_context(|| {
-        format!(
-            "failed to parse `{}.{}` in `{}` as a UUID",
-            ZOO_TABLE_KEY,
-            ZOO_PROJECT_ID_KEY,
-            project_toml.display()
-        )
-    })?))
+    if let Some(project_id) = project_id {
+        return if project_id.is_nil() {
+            Ok(None)
+        } else {
+            Ok(Some(project_id))
+        };
+    }
+
+    Ok(None)
 }
 
-pub fn persist_cloud_project_id(project_toml: &Path, id: uuid::Uuid) -> Result<()> {
-    let existing = if project_toml.exists() {
-        std::fs::read_to_string(project_toml).with_context(|| format!("failed to read `{}`", project_toml.display()))?
-    } else {
-        toml::to_string(&kcl_lib::ProjectConfiguration::default())?
-    };
+pub fn persist_cloud_project_id(project_toml: &Path, environment: &str, id: uuid::Uuid) -> Result<()> {
+    let mut doc = read_or_default_project_toml_document(project_toml)?;
 
-    let mut doc = existing
-        .parse::<toml_edit::DocumentMut>()
-        .with_context(|| format!("failed to parse `{}`", project_toml.display()))?;
-
-    let has_zoo_table = matches!(doc.get(ZOO_TABLE_KEY), Some(item) if item.is_table());
-    if !has_zoo_table {
-        doc.insert(ZOO_TABLE_KEY, toml_edit::Item::Table(toml_edit::Table::new()));
+    if !matches!(doc.get("cloud"), None | Some(toml_edit::Item::Table(_))) {
+        anyhow::bail!("`{}` has a non-table `cloud` entry", project_toml.display());
     }
-    doc[ZOO_TABLE_KEY][ZOO_PROJECT_ID_KEY] = toml_edit::value(id.to_string());
+    if doc.get("cloud").is_none() {
+        doc.as_table_mut()
+            .insert("cloud", toml_edit::Item::Table(toml_edit::Table::new()));
+    }
+
+    let cloud = doc
+        .as_table_mut()
+        .get_mut("cloud")
+        .and_then(|item| item.as_table_like_mut())
+        .with_context(|| format!("`{}` has an invalid `cloud` table", project_toml.display()))?;
+    if !matches!(cloud.get(environment), None | Some(toml_edit::Item::Table(_))) {
+        anyhow::bail!(
+            "`{}` has a non-table cloud environment entry for `{environment}`",
+            project_toml.display()
+        );
+    }
+    if cloud.get(environment).is_none() {
+        cloud.insert(environment, toml_edit::Item::Table(toml_edit::Table::new()));
+    }
+
+    let environment_settings = cloud
+        .get_mut(environment)
+        .and_then(|item| item.as_table_like_mut())
+        .with_context(|| {
+            format!(
+                "`{}` has an invalid cloud environment table for `{environment}`",
+                project_toml.display()
+            )
+        })?;
+    environment_settings.insert("project_id", toml_edit::value(id.to_string()));
 
     std::fs::write(project_toml, doc.to_string())
         .with_context(|| format!("failed to write `{}`", project_toml.display()))?;
@@ -117,6 +138,7 @@ pub fn persist_cloud_project_id(project_toml: &Path, id: uuid::Uuid) -> Result<(
 }
 
 pub fn collect_project_attachments(root: &Path) -> Result<Vec<kittycad::types::multipart::Attachment>> {
+    let gitignore = project_gitignore(root)?;
     let mut dirs = VecDeque::from([root.to_path_buf()]);
     let mut files = Vec::new();
 
@@ -136,14 +158,14 @@ pub fn collect_project_attachments(root: &Path) -> Result<Vec<kittycad::types::m
             let name = name.to_string_lossy();
 
             if file_type.is_dir() {
-                if should_skip_dir(&name) {
+                if should_skip_dir(&name) || is_ignored_by_project_gitignore(gitignore.as_ref(), &path, true) {
                     continue;
                 }
                 dirs.push_back(path);
                 continue;
             }
 
-            if file_type.is_file() {
+            if file_type.is_file() && !is_ignored_by_project_gitignore(gitignore.as_ref(), &path, false) {
                 files.push(path);
             }
         }
@@ -206,6 +228,48 @@ pub fn ensure_download_destination(output_dir: &Path, force: bool) -> Result<()>
     Ok(())
 }
 
+fn project_gitignore(root: &Path) -> Result<Option<ignore::gitignore::Gitignore>> {
+    let gitignore_path = root.join(".gitignore");
+    if !gitignore_path.is_file() {
+        return Ok(None);
+    }
+
+    let mut builder = ignore::gitignore::GitignoreBuilder::new(root);
+    builder.add(gitignore_path);
+    let gitignore = builder
+        .build()
+        .with_context(|| format!("failed to parse `{}`", root.join(".gitignore").display()))?;
+    Ok(Some(gitignore))
+}
+
+fn read_project_toml_document(project_toml: &Path) -> Result<toml_edit::DocumentMut> {
+    let contents = std::fs::read_to_string(project_toml)
+        .with_context(|| format!("failed to read `{}`", project_toml.display()))?;
+    contents
+        .parse::<toml_edit::DocumentMut>()
+        .with_context(|| format!("failed to parse `{}`", project_toml.display()))
+}
+
+fn read_or_default_project_toml_document(project_toml: &Path) -> Result<toml_edit::DocumentMut> {
+    if project_toml.exists() {
+        read_project_toml_document(project_toml)
+    } else {
+        toml::to_string(&kcl_lib::ProjectConfiguration::default())?
+            .parse::<toml_edit::DocumentMut>()
+            .with_context(|| format!("failed to construct `{}`", project_toml.display()))
+    }
+}
+
+fn is_ignored_by_project_gitignore(
+    gitignore: Option<&ignore::gitignore::Gitignore>,
+    path: &Path,
+    is_dir: bool,
+) -> bool {
+    gitignore
+        .map(|gitignore| gitignore.matched_path_or_any_parents(path, is_dir).is_ignore())
+        .unwrap_or(false)
+}
+
 fn build_attachment(root: &Path, path: &Path) -> Result<kittycad::types::multipart::Attachment> {
     let mut attachment = kittycad::types::multipart::Attachment::try_from(path.to_path_buf())
         .with_context(|| format!("failed to read `{}`", path.display()))?;
@@ -238,6 +302,21 @@ fn normalize_input_path(input: &Path) -> Result<PathBuf> {
     }
 }
 
+pub fn project_cloud_environment_name_for_host(host: &str) -> Result<String> {
+    let parsed = crate::cmd_auth::parse_host(host)?;
+    let hostname = parsed
+        .host_str()
+        .with_context(|| format!("host `{host}` is missing a hostname"))?;
+
+    let mut environment = hostname.strip_prefix("api.").unwrap_or(hostname).to_string();
+    if let Some(port) = parsed.port() {
+        environment.push(':');
+        environment.push_str(&port.to_string());
+    }
+
+    Ok(environment)
+}
+
 fn should_skip_dir(name: &str) -> bool {
     matches!(name, ".git" | ".jj" | "target" | "node_modules")
 }
@@ -246,6 +325,8 @@ fn should_skip_dir(name: &str) -> bool {
 mod tests {
     use super::*;
 
+    const DEFAULT_ENVIRONMENT: &str = "zoo.dev";
+
     #[test]
     fn persist_cloud_project_id_round_trip() {
         let tmp = tempfile::tempdir().expect("tempdir");
@@ -253,9 +334,10 @@ mod tests {
 
         let project = resolve_local_project(tmp.path()).expect("resolve project");
         let id = uuid::Uuid::new_v4();
-        persist_cloud_project_id(&project.project_toml, id).expect("persist cloud project id");
+        persist_cloud_project_id(&project.project_toml, DEFAULT_ENVIRONMENT, id).expect("persist cloud project id");
 
-        let got = read_persisted_cloud_project_id(&project.project_toml).expect("read cloud project id");
+        let got =
+            read_persisted_cloud_project_id(&project.project_toml, DEFAULT_ENVIRONMENT).expect("read cloud project id");
         assert_eq!(got, Some(id));
     }
 
@@ -272,13 +354,24 @@ mod tests {
         )
         .expect("write project.toml");
 
-        persist_cloud_project_id(&tmp.path().join("project.toml"), cloud_id).expect("persist cloud project id");
+        persist_cloud_project_id(&tmp.path().join("project.toml"), DEFAULT_ENVIRONMENT, cloud_id)
+            .expect("persist cloud project id");
 
         let contents = std::fs::read_to_string(tmp.path().join("project.toml")).expect("read project.toml");
         let parsed: kcl_lib::ProjectConfiguration = toml::from_str(&contents).expect("parse project config");
         assert_eq!(parsed.settings.meta.id, local_id);
+        assert_eq!(
+            parsed
+                .cloud
+                .environments
+                .get(DEFAULT_ENVIRONMENT)
+                .expect("cloud environment")
+                .project_id,
+            cloud_id
+        );
 
-        let got = read_persisted_cloud_project_id(&tmp.path().join("project.toml")).expect("read cloud project id");
+        let got = read_persisted_cloud_project_id(&tmp.path().join("project.toml"), DEFAULT_ENVIRONMENT)
+            .expect("read cloud project id");
         assert_eq!(got, Some(cloud_id));
     }
 
@@ -300,6 +393,29 @@ mod tests {
         paths.sort();
 
         assert_eq!(paths, vec!["main.kcl", "project.toml", "subdir/part.kcl"]);
+    }
+
+    #[test]
+    fn collect_project_attachments_respects_root_gitignore() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(tmp.path().join("ignored-dir")).expect("mkdir ignored-dir");
+        std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main");
+        std::fs::write(tmp.path().join(".gitignore"), "ignored.kcl\nignored-dir/\n").expect("write gitignore");
+        std::fs::write(tmp.path().join("ignored.kcl"), "cube(2)\n").expect("write ignored");
+        std::fs::write(tmp.path().join("ignored-dir/part.kcl"), "cube(3)\n").expect("write ignored dir file");
+        std::fs::write(tmp.path().join("kept.kcl"), "cube(4)\n").expect("write kept");
+
+        let project = resolve_local_project(tmp.path()).expect("resolve project");
+        let attachments = collect_project_attachments(&project.root).expect("collect attachments");
+
+        let mut paths = attachments
+            .iter()
+            .filter_map(|attachment| attachment.filepath.as_ref())
+            .map(|path| path.to_string_lossy().to_string())
+            .collect::<Vec<_>>();
+        paths.sort();
+
+        assert_eq!(paths, vec![".gitignore", "kept.kcl", "main.kcl", "project.toml"]);
     }
 
     #[test]
@@ -337,5 +453,21 @@ mod tests {
         ensure_download_destination(&output_dir, false).expect("create missing output dir");
 
         assert!(output_dir.is_dir());
+    }
+
+    #[test]
+    fn project_cloud_environment_name_for_host_strips_api_prefix() {
+        assert_eq!(
+            project_cloud_environment_name_for_host("https://api.zoo.dev").expect("default environment"),
+            "zoo.dev"
+        );
+        assert_eq!(
+            project_cloud_environment_name_for_host("https://api.dev.zoo.dev").expect("dev environment"),
+            "dev.zoo.dev"
+        );
+        assert_eq!(
+            project_cloud_environment_name_for_host("http://localhost:8888").expect("localhost environment"),
+            "localhost:8888"
+        );
     }
 }

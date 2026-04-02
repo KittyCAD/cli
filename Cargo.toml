@@ -32,6 +32,7 @@ futures = "0.3"
 git_rev = "0.1.0"
 heck = "0.5.0"
 http = "1"
+ignore = "0.4"
 image = { version = "0.25", default-features = false, features = [
   "png",
   "jpeg",
@@ -118,4 +119,5 @@ incremental = true
 # Set this to 1 or 2 to get more useful backtraces in debugger.
 debug = 0
 
+[patch.crates-io]
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}

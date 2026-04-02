@@ -136,6 +136,11 @@ impl Context<'_> {
         self.override_host.as_deref()
     }
 
+    pub fn project_cloud_environment_name(&self, hostname: &str) -> Result<String> {
+        let (_, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
+        crate::project::project_cloud_environment_name_for_host(&baseurl)
+    }
+
     // Test-only helper for verifying host resolution semantics without creating a client.
     #[cfg(test)]
     pub(crate) fn resolve_host_for_tests(&self, hostname: &str) -> Result<String> {

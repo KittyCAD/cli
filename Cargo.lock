@@ -7369,6 +7369,7 @@ dependencies = [
  "git_rev",
  "heck",
  "http 1.4.0",
+ "ignore",
  "image",
  "itertools",
  "kcl-lib",
