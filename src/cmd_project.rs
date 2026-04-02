@@ -18,6 +18,7 @@ enum SubCommand {
     Categories(CmdProjectCategories),
     Download(CmdProjectDownload),
     List(CmdProjectList),
+    Publish(CmdProjectPublish),
     #[clap(alias = "get")]
     View(CmdProjectView),
     Upload(CmdProjectUpload),
@@ -31,6 +32,7 @@ impl crate::cmd::Command for CmdProject {
             SubCommand::Categories(cmd) => cmd.run(ctx).await,
             SubCommand::Download(cmd) => cmd.run(ctx).await,
             SubCommand::List(cmd) => cmd.run(ctx).await,
+            SubCommand::Publish(cmd) => cmd.run(ctx).await,
             SubCommand::View(cmd) => cmd.run(ctx).await,
             SubCommand::Upload(cmd) => cmd.run(ctx).await,
             SubCommand::Update(cmd) => cmd.run(ctx).await,
@@ -229,6 +231,65 @@ impl crate::cmd::Command for CmdProjectView {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let client = ctx.api_client("")?;
         let project = client.users().get_project(self.id).await?;
+        let format = ctx.format(&self.format)?;
+        write_project_output(ctx, &format, &project)?;
+        Ok(())
+    }
+}
+
+/// Submit an existing cloud project for publication review.
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdProjectPublish {
+    /// The project directory, a `.kcl` file within it, or `project.toml`.
+    ///
+    /// Used to look up the persisted Zoo cloud project id when `--id` is not passed.
+    #[clap(name = "input")]
+    pub input: Option<PathBuf>,
+
+    /// Override the persisted Zoo cloud project id from `project.toml`.
+    #[clap(long)]
+    pub id: Option<uuid::Uuid>,
+
+    /// Command output format.
+    #[clap(long, short, value_enum)]
+    pub format: Option<FormatOutput>,
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdProjectPublish {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let local = self
+            .input
+            .as_ref()
+            .map(|input| crate::project::resolve_local_project(input))
+            .transpose()?;
+        let project_id = match (self.id, local.as_ref()) {
+            (Some(id), _) => id,
+            (None, Some(local)) => {
+                crate::project::read_persisted_cloud_project_id(&local.project_toml)?.with_context(|| {
+                    format!(
+                        "no Zoo cloud project id found in `{}`; pass `--id`",
+                        local.project_toml.display()
+                    )
+                })?
+            }
+            (None, None) => anyhow::bail!("pass a local project path or `--id`"),
+        };
+
+        let client = ctx.api_client("")?;
+        let project = client.users().publish_project(project_id).await?;
+
+        if let Some(local) = local {
+            crate::project::persist_cloud_project_id(&local.project_toml, project.id)?;
+        }
+        writeln!(
+            ctx.io.out,
+            "{} Submitted Zoo cloud project {} for publication review",
+            ctx.io.color_scheme().success_icon(),
+            project.id
+        )?;
+
         let format = ctx.format(&self.format)?;
         write_project_output(ctx, &format, &project)?;
         Ok(())

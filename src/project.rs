@@ -117,6 +117,7 @@ pub fn persist_cloud_project_id(project_toml: &Path, id: uuid::Uuid) -> Result<(
 }
 
 pub fn collect_project_attachments(root: &Path) -> Result<Vec<kittycad::types::multipart::Attachment>> {
+    let gitignore = project_gitignore(root)?;
     let mut dirs = VecDeque::from([root.to_path_buf()]);
     let mut files = Vec::new();
 
@@ -136,14 +137,14 @@ pub fn collect_project_attachments(root: &Path) -> Result<Vec<kittycad::types::m
             let name = name.to_string_lossy();
 
             if file_type.is_dir() {
-                if should_skip_dir(&name) {
+                if should_skip_dir(&name) || is_ignored_by_project_gitignore(gitignore.as_ref(), &path, true) {
                     continue;
                 }
                 dirs.push_back(path);
                 continue;
             }
 
-            if file_type.is_file() {
+            if file_type.is_file() && !is_ignored_by_project_gitignore(gitignore.as_ref(), &path, false) {
                 files.push(path);
             }
         }
@@ -204,6 +205,30 @@ pub fn ensure_download_destination(output_dir: &Path, force: bool) -> Result<()>
     }
 
     Ok(())
+}
+
+fn project_gitignore(root: &Path) -> Result<Option<ignore::gitignore::Gitignore>> {
+    let gitignore_path = root.join(".gitignore");
+    if !gitignore_path.is_file() {
+        return Ok(None);
+    }
+
+    let mut builder = ignore::gitignore::GitignoreBuilder::new(root);
+    builder.add(gitignore_path);
+    let gitignore = builder
+        .build()
+        .with_context(|| format!("failed to parse `{}`", root.join(".gitignore").display()))?;
+    Ok(Some(gitignore))
+}
+
+fn is_ignored_by_project_gitignore(
+    gitignore: Option<&ignore::gitignore::Gitignore>,
+    path: &Path,
+    is_dir: bool,
+) -> bool {
+    gitignore
+        .map(|gitignore| gitignore.matched_path_or_any_parents(path, is_dir).is_ignore())
+        .unwrap_or(false)
 }
 
 fn build_attachment(root: &Path, path: &Path) -> Result<kittycad::types::multipart::Attachment> {
@@ -300,6 +325,29 @@ mod tests {
         paths.sort();
 
         assert_eq!(paths, vec!["main.kcl", "project.toml", "subdir/part.kcl"]);
+    }
+
+    #[test]
+    fn collect_project_attachments_respects_root_gitignore() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(tmp.path().join("ignored-dir")).expect("mkdir ignored-dir");
+        std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main");
+        std::fs::write(tmp.path().join(".gitignore"), "ignored.kcl\nignored-dir/\n").expect("write gitignore");
+        std::fs::write(tmp.path().join("ignored.kcl"), "cube(2)\n").expect("write ignored");
+        std::fs::write(tmp.path().join("ignored-dir/part.kcl"), "cube(3)\n").expect("write ignored dir file");
+        std::fs::write(tmp.path().join("kept.kcl"), "cube(4)\n").expect("write kept");
+
+        let project = resolve_local_project(tmp.path()).expect("resolve project");
+        let attachments = collect_project_attachments(&project.root).expect("collect attachments");
+
+        let mut paths = attachments
+            .iter()
+            .filter_map(|attachment| attachment.filepath.as_ref())
+            .map(|path| path.to_string_lossy().to_string())
+            .collect::<Vec<_>>();
+        paths.sort();
+
+        assert_eq!(paths, vec![".gitignore", "kept.kcl", "main.kcl", "project.toml"]);
     }
 
     #[test]

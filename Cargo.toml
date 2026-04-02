@@ -32,6 +32,7 @@ futures = "0.3"
 git_rev = "0.1.0"
 heck = "0.5.0"
 http = "1"
+ignore = "0.4"
 image = { version = "0.25", default-features = false, features = [
   "png",
   "jpeg",
@@ -39,7 +40,7 @@ image = { version = "0.25", default-features = false, features = [
 itertools = "0.14.0"
 kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "main", features = ["disable-println"] }
 kcl-test-server = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
-kittycad = { version = "0.4.9", features = [
+kittycad = { git = "https://github.com/KittyCAD/kittycad.rs", branch = "main", features = [
   "clap",
   "tabled",
   "requests",
@@ -117,5 +118,8 @@ debug = 0
 incremental = true
 # Set this to 1 or 2 to get more useful backtraces in debugger.
 debug = 0
+
+[patch.crates-io]
+kittycad = { git = "https://github.com/KittyCAD/kittycad.rs", branch = "main" }
 
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}

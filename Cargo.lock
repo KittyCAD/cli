@@ -754,7 +754,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2864,8 +2864,7 @@ dependencies = [
 [[package]]
 name = "kittycad"
 version = "0.4.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f25f584622bc2ae682b0f64115fa9bfa26044ee71a8a7cf3ec8a207d35569202"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#6bfa6a848a35a019a003c04f518df3d8d64e1064"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3575,7 +3574,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#bc7287cdb92a5c27e6df9f92f954beb6106e50aa"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#6bfa6a848a35a019a003c04f518df3d8d64e1064"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -6652,7 +6651,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7279,6 +7278,7 @@ dependencies = [
  "git_rev",
  "heck",
  "http 1.4.0",
+ "ignore",
  "image",
  "itertools",
  "kcl-lib",
