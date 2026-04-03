@@ -30,7 +30,7 @@ impl crate::cmd::Command for CmdApiCall {
 /// Perform operations for API calls.
 ///
 ///     # get the status of an async API call
-///     $ zoo api-call status <id>
+///    `$ zoo api-call status <id>`
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApiCallStatus {
