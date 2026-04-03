@@ -31,6 +31,8 @@ pub mod cmd_kcl;
 pub mod cmd_ml;
 /// The open command.
 pub mod cmd_open;
+/// The project command.
+pub mod cmd_project;
 /// The say command.
 pub mod cmd_say;
 /// The start-session command.
@@ -61,6 +63,7 @@ mod context;
 mod docs_markdown;
 mod iostreams;
 mod ml;
+mod project;
 mod types;
 
 #[cfg(test)]
@@ -150,6 +153,7 @@ enum SubCommand {
     Generate(cmd_generate::CmdGenerate),
     Kcl(cmd_kcl::CmdKcl),
     Ml(cmd_ml::CmdMl),
+    Project(cmd_project::CmdProject),
     Say(cmd_say::CmdSay),
     // Hide until <https://github.com/KittyCAD/cli/issues/983> is done.
     #[clap(hide = true)]
@@ -284,6 +288,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Generate(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Kcl(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Ml(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::Project(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Say(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::StartSession(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Open(cmd) => run_cmd(&cmd, ctx).await,
