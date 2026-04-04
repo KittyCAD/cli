@@ -681,8 +681,7 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::R
         input.parent().unwrap().to_path_buf()
     };
     if let Some(p) = crate::cmd_kcl::find_project_toml(&dir)? {
-        let s = std::fs::read_to_string(&p)?;
-        let project: kcl_lib::ProjectConfiguration = toml::from_str(&s)?;
+        let project = crate::project::read_project_configuration(&p)?;
         let mut derived: kcl_lib::ExecutorSettings = project.into();
         let typed = TypedPath::from(input.display().to_string().as_str());
         derived.with_current_file(typed);

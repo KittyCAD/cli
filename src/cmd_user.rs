@@ -92,6 +92,7 @@ mod test {
                 new_is_onboarded: Default::default(),
                 new_company: Default::default(),
                 new_discord: Default::default(),
+                new_username: Default::default(),
                 new_phone: Default::default(),
                 new_username: Default::default(),
                 new_last_name: Default::default(),

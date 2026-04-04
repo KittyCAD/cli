@@ -1,9 +1,14 @@
-use std::{io::Write, path::PathBuf};
+use std::{
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{Context as _, Result};
 use clap::Parser;
 
 use crate::types::FormatOutput;
+
+const PROJECT_ARCHIVE_ACCEPT: &str = "application/x-tar, application/octet-stream;q=0.9, */*;q=0.1";
 
 /// Manage Zoo projects.
 #[derive(Parser, Debug, Clone)]
@@ -16,13 +21,13 @@ pub struct CmdProject {
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
     Categories(CmdProjectCategories),
+    Delete(CmdProjectDelete),
     Download(CmdProjectDownload),
     List(CmdProjectList),
     Publish(CmdProjectPublish),
     #[clap(alias = "get")]
     View(CmdProjectView),
     Upload(CmdProjectUpload),
-    Update(CmdProjectUpdate),
 }
 
 #[async_trait::async_trait(?Send)]
@@ -30,12 +35,12 @@ impl crate::cmd::Command for CmdProject {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
             SubCommand::Categories(cmd) => cmd.run(ctx).await,
+            SubCommand::Delete(cmd) => cmd.run(ctx).await,
             SubCommand::Download(cmd) => cmd.run(ctx).await,
             SubCommand::List(cmd) => cmd.run(ctx).await,
             SubCommand::Publish(cmd) => cmd.run(ctx).await,
             SubCommand::View(cmd) => cmd.run(ctx).await,
             SubCommand::Upload(cmd) => cmd.run(ctx).await,
-            SubCommand::Update(cmd) => cmd.run(ctx).await,
         }
     }
 }
@@ -54,8 +59,83 @@ impl crate::cmd::Command for CmdProjectCategories {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let client = ctx.api_client("")?;
         let categories = client.projects().list_categories().await?;
+        let categories = categories
+            .into_iter()
+            .map(project_category_output_row)
+            .collect::<Vec<_>>();
         let format = ctx.format(&self.format)?;
         ctx.io.write_output_for_vec(&format, categories)?;
+        Ok(())
+    }
+}
+
+/// Delete one of your uploaded projects.
+#[derive(Parser, Debug, Clone)]
+#[clap(verbatim_doc_comment)]
+pub struct CmdProjectDelete {
+    /// The project id, or a local project directory, `.kcl` file, or `project.toml`.
+    ///
+    /// When a local path is provided, the persisted Zoo cloud project id will be removed from
+    /// `project.toml` after the remote project is deleted.
+    #[clap(name = "id-or-path", required = true)]
+    pub input: String,
+}
+
+enum ProjectTarget {
+    Id(uuid::Uuid),
+    Local {
+        local: crate::project::LocalProject,
+        id: uuid::Uuid,
+    },
+}
+
+fn resolve_project_target(input: &str, environment: &str) -> Result<ProjectTarget> {
+    let path = PathBuf::from(input);
+    if input == "." || path.exists() {
+        let local = crate::project::resolve_local_project(&path)?;
+        let id = crate::project::read_persisted_cloud_project_id(&local.project_toml, environment)?
+            .with_context(|| format!("no Zoo cloud project id found in `{}`", local.project_toml.display()))?;
+        return Ok(ProjectTarget::Local { local, id });
+    }
+
+    if let Ok(id) = uuid::Uuid::parse_str(input) {
+        return Ok(ProjectTarget::Id(id));
+    }
+
+    anyhow::bail!("input `{input}` must be an existing project path or a project id");
+}
+
+#[async_trait::async_trait(?Send)]
+impl crate::cmd::Command for CmdProjectDelete {
+    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let environment = ctx.project_cloud_environment_name("")?;
+        let target = resolve_project_target(&self.input, &environment)?;
+        let id = match &target {
+            ProjectTarget::Id(id) => *id,
+            ProjectTarget::Local { id, .. } => *id,
+        };
+
+        let client = ctx.api_client("")?;
+        client.projects().delete(id).await?;
+
+        if let ProjectTarget::Local { local, .. } = target {
+            crate::project::clear_persisted_cloud_project_id(&local.project_toml, &environment)?;
+            writeln!(
+                ctx.io.out,
+                "{} Deleted Zoo cloud project {} and cleared {}",
+                ctx.io.color_scheme().success_icon(),
+                id,
+                local.project_toml.display()
+            )?;
+        } else {
+            writeln!(
+                ctx.io.out,
+                "{} Deleted Zoo cloud project {}",
+                ctx.io.color_scheme().success_icon(),
+                id
+            )?;
+        }
+
         Ok(())
     }
 }
@@ -83,10 +163,17 @@ impl crate::cmd::Command for CmdProjectDownload {
         crate::project::ensure_download_destination(&self.output_dir, self.force)?;
         let environment = ctx.project_cloud_environment_name("")?;
 
-        let client = ctx.api_client("")?;
         let endpoint = format!("/user/projects/{}/download", self.id);
-        let req = client.request_raw(http::Method::GET, &endpoint, None).await?;
-        let resp = req.0.send().await?;
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::ACCEPT,
+            reqwest::header::HeaderValue::from_static(PROJECT_ARCHIVE_ACCEPT),
+        );
+        let resp = ctx
+            .raw_http_request("", reqwest::Method::GET, &endpoint)?
+            .headers(headers)
+            .send()
+            .await?;
         let status = resp.status();
         if !status.is_success() {
             let body = resp.text().await.unwrap_or_default();
@@ -94,37 +181,37 @@ impl crate::cmd::Command for CmdProjectDownload {
         }
 
         let body = resp.bytes().await?;
-        let mut archive = tar::Archive::new(std::io::Cursor::new(body));
-        archive
-            .unpack(&self.output_dir)
-            .with_context(|| format!("failed to extract archive into `{}`", self.output_dir.display()))?;
-
-        if let Some(project_root) = crate::project::find_project_root_under(&self.output_dir)? {
-            let project_toml = project_root.join("project.toml");
-            crate::project::persist_cloud_project_id(&project_toml, &environment, self.id)?;
-            writeln!(
-                ctx.io.out,
-                "{} Downloaded project {} into {}",
-                ctx.io.color_scheme().success_icon(),
-                self.id,
-                project_root.display()
-            )?;
-        } else {
-            writeln!(
-                ctx.io.out,
-                "{} Downloaded project {} into {}",
-                ctx.io.color_scheme().success_icon(),
-                self.id,
-                self.output_dir.display()
-            )?;
-            writeln!(
-                ctx.io.out,
-                "Could not locate a project root to persist the project id automatically."
-            )?;
-        }
+        let project_root = extract_project_archive(body.as_ref(), &self.output_dir)?;
+        let project_toml = project_root.join("project.toml");
+        crate::project::persist_cloud_project_id(&project_toml, &environment, self.id)?;
+        writeln!(
+            ctx.io.out,
+            "{} Downloaded project {} into {}",
+            ctx.io.color_scheme().success_icon(),
+            self.id,
+            project_root.display()
+        )?;
 
         Ok(())
     }
+}
+
+fn extract_project_archive(archive_bytes: &[u8], output_dir: &Path) -> Result<PathBuf> {
+    if archive_bytes.is_empty() {
+        anyhow::bail!("downloaded project archive was empty");
+    }
+
+    let mut archive = tar::Archive::new(std::io::Cursor::new(archive_bytes));
+    archive
+        .unpack(output_dir)
+        .with_context(|| format!("failed to extract archive into `{}`", output_dir.display()))?;
+
+    crate::project::find_project_root_under(output_dir)?.with_context(|| {
+        format!(
+            "downloaded project archive did not contain a project root under `{}`",
+            output_dir.display()
+        )
+    })
 }
 
 /// List your projects.
@@ -134,6 +221,13 @@ pub struct CmdProjectList {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<FormatOutput>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, tabled::Tabled)]
+struct ProjectCategoryOutputRow {
+    description: String,
+    display_name: String,
+    slug: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize, tabled::Tabled)]
@@ -158,6 +252,14 @@ struct ProjectViewTableRow {
     created_at: chrono::DateTime<chrono::Utc>,
     #[tabled(rename = "updated")]
     updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+fn project_category_output_row(category: kittycad::types::ProjectCategoryResponse) -> ProjectCategoryOutputRow {
+    ProjectCategoryOutputRow {
+        description: category.description,
+        display_name: category.display_name,
+        slug: category.slug,
+    }
 }
 
 fn project_view_table_row(project: &kittycad::types::ProjectResponse) -> ProjectViewTableRow {
@@ -218,9 +320,9 @@ impl crate::cmd::Command for CmdProjectList {
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdProjectView {
-    /// The project id.
-    #[clap(name = "id", required = true)]
-    pub id: uuid::Uuid,
+    /// The project id, or a local project directory, `.kcl` file, or `project.toml`.
+    #[clap(name = "id-or-path", required = true)]
+    pub input: String,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -230,8 +332,14 @@ pub struct CmdProjectView {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdProjectView {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let environment = ctx.project_cloud_environment_name("")?;
+        let target = resolve_project_target(&self.input, &environment)?;
+        let project_id = match target {
+            ProjectTarget::Id(id) => id,
+            ProjectTarget::Local { id, .. } => id,
+        };
         let client = ctx.api_client("")?;
-        let project = client.projects().get(self.id).await?;
+        let project = client.projects().get(project_id).await?;
         let format = ctx.format(&self.format)?;
         write_project_output(ctx, &format, &project)?;
         Ok(())
@@ -242,15 +350,9 @@ impl crate::cmd::Command for CmdProjectView {
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdProjectPublish {
-    /// The project directory, a `.kcl` file within it, or `project.toml`.
-    ///
-    /// Used to look up the persisted Zoo cloud project id when `--id` is not passed.
-    #[clap(name = "input")]
-    pub input: Option<PathBuf>,
-
-    /// Override the persisted Zoo cloud project id from `project.toml`.
-    #[clap(long)]
-    pub id: Option<uuid::Uuid>,
+    /// The project id, or a local project directory, `.kcl` file, or `project.toml`.
+    #[clap(name = "id-or-path", required = true)]
+    pub input: String,
 
     /// Command output format.
     #[clap(long, short, value_enum)]
@@ -261,27 +363,16 @@ pub struct CmdProjectPublish {
 impl crate::cmd::Command for CmdProjectPublish {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let environment = ctx.project_cloud_environment_name("")?;
-        let local = self
-            .input
-            .as_ref()
-            .map(|input| crate::project::resolve_local_project(input))
-            .transpose()?;
-        let project_id = match (self.id, local.as_ref()) {
-            (Some(id), _) => id,
-            (None, Some(local)) => crate::project::read_persisted_cloud_project_id(&local.project_toml, &environment)?
-                .with_context(|| {
-                    format!(
-                        "no Zoo cloud project id found in `{}`; pass `--id`",
-                        local.project_toml.display()
-                    )
-                })?,
-            (None, None) => anyhow::bail!("pass a local project path or `--id`"),
+        let target = resolve_project_target(&self.input, &environment)?;
+        let project_id = match &target {
+            ProjectTarget::Id(id) => *id,
+            ProjectTarget::Local { id, .. } => *id,
         };
 
         let client = ctx.api_client("")?;
         let project = client.projects().publish(project_id).await?;
 
-        if let Some(local) = local {
+        if let ProjectTarget::Local { local, .. } = target {
             crate::project::persist_cloud_project_id(&local.project_toml, &environment, project.id)?;
         }
         writeln!(
@@ -309,8 +400,12 @@ pub struct CmdProjectUpload {
     pub input: PathBuf,
 
     /// Always create a new remote project even if one is already persisted locally.
-    #[clap(long, default_value = "false")]
+    #[clap(long, default_value = "false", conflicts_with = "id")]
     pub new: bool,
+
+    /// Override the persisted Zoo cloud project id from `project.toml`.
+    #[clap(long, conflicts_with = "new")]
+    pub id: Option<uuid::Uuid>,
 
     /// Title to use for the cloud project. Defaults to the local project directory name.
     #[clap(long)]
@@ -330,10 +425,10 @@ impl crate::cmd::Command for CmdProjectUpload {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let local = crate::project::resolve_local_project(&self.input)?;
         let environment = ctx.project_cloud_environment_name("")?;
-        let existing_id = if self.new {
-            None
-        } else {
-            crate::project::read_persisted_cloud_project_id(&local.project_toml, &environment)?
+        let existing_id = match self.id {
+            Some(id) => Some(id),
+            None if self.new => None,
+            None => crate::project::read_persisted_cloud_project_id(&local.project_toml, &environment)?,
         };
         let attachments = crate::project::collect_project_attachments(&local.root)?;
         let client = ctx.api_client("")?;
@@ -359,71 +454,6 @@ impl crate::cmd::Command for CmdProjectUpload {
             "{} {} Zoo cloud project id {} in {}",
             ctx.io.color_scheme().success_icon(),
             if existing_id.is_some() { "Updated" } else { "Stored" },
-            project.id,
-            local.project_toml.display()
-        )?;
-
-        let format = ctx.format(&self.format)?;
-        write_project_output(ctx, &format, &project)?;
-        Ok(())
-    }
-}
-
-/// Replace an existing remote project with your local project files.
-#[derive(Parser, Debug, Clone)]
-#[clap(verbatim_doc_comment)]
-pub struct CmdProjectUpdate {
-    /// The project directory, a `.kcl` file within it, or `project.toml`.
-    #[clap(name = "input", default_value = ".")]
-    pub input: PathBuf,
-
-    /// Override the persisted Zoo cloud project id from `project.toml`.
-    #[clap(long)]
-    pub id: Option<uuid::Uuid>,
-
-    /// Title to use for the cloud project. Defaults to the existing remote title.
-    #[clap(long)]
-    pub title: Option<String>,
-
-    /// Description to use for the cloud project. Defaults to the existing remote description.
-    #[clap(long)]
-    pub description: Option<String>,
-
-    /// Command output format.
-    #[clap(long, short, value_enum)]
-    pub format: Option<FormatOutput>,
-}
-
-#[async_trait::async_trait(?Send)]
-impl crate::cmd::Command for CmdProjectUpdate {
-    async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
-        let local = crate::project::resolve_local_project(&self.input)?;
-        let environment = ctx.project_cloud_environment_name("")?;
-        let project_id = match self.id {
-            Some(id) => id,
-            None => crate::project::read_persisted_cloud_project_id(&local.project_toml, &environment)?.with_context(
-                || {
-                    format!(
-                        "no Zoo cloud project id found in `{}`; pass `--id`",
-                        local.project_toml.display()
-                    )
-                },
-            )?,
-        };
-        let attachments = crate::project::collect_project_attachments(&local.root)?;
-        let client = ctx.api_client("")?;
-        let existing = client.projects().get(project_id).await?;
-        let body = ProjectUpsertBody {
-            title: self.title.clone().unwrap_or(existing.title),
-            description: self.description.clone().unwrap_or(existing.description),
-        };
-        let project = update_project_with_body(ctx, attachments, project_id, &body).await?;
-
-        crate::project::persist_cloud_project_id(&local.project_toml, &environment, project.id)?;
-        writeln!(
-            ctx.io.out,
-            "{} Stored Zoo cloud project id {} in {}",
-            ctx.io.color_scheme().success_icon(),
             project.id,
             local.project_toml.display()
         )?;
@@ -502,4 +532,89 @@ async fn send_project_form(
     }
 
     serde_json::from_str(&text).with_context(|| format!("failed to parse project response body: {text}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::*;
+
+    fn build_project_archive(files: &[(&str, &str)]) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        let mut builder = tar::Builder::new(&mut bytes);
+
+        for (path, contents) in files {
+            let mut header = tar::Header::new_gnu();
+            header.set_path(path).expect("set path");
+            header.set_mode(0o644);
+            header.set_size(contents.len() as u64);
+            header.set_cksum();
+            builder.append(&header, contents.as_bytes()).expect("append file");
+        }
+
+        builder.finish().expect("finish archive");
+        drop(builder);
+        bytes
+    }
+
+    #[test]
+    fn resolve_project_target_accepts_uuid() {
+        let id = uuid::Uuid::new_v4();
+
+        let target = resolve_project_target(&id.to_string(), "zoo.dev").expect("resolve project target");
+
+        match target {
+            ProjectTarget::Id(got) => assert_eq!(got, id),
+            ProjectTarget::Local { .. } => panic!("expected uuid target"),
+        }
+    }
+
+    #[test]
+    fn resolve_project_target_accepts_project_path() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main");
+        let project_toml = tmp.path().join("project.toml");
+        let id = uuid::Uuid::new_v4();
+        crate::project::persist_cloud_project_id(&project_toml, "zoo.dev", id).expect("persist cloud project id");
+
+        let target =
+            resolve_project_target(tmp.path().to_str().expect("path utf8"), "zoo.dev").expect("resolve project target");
+
+        match target {
+            ProjectTarget::Local { local, id: got } => {
+                assert_eq!(got, id);
+                assert_eq!(local.root, PathBuf::from(tmp.path()));
+                assert_eq!(local.project_toml, project_toml);
+            }
+            ProjectTarget::Id(_) => panic!("expected local target"),
+        }
+    }
+
+    #[test]
+    fn extract_project_archive_rejects_empty_archive() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+
+        let err = extract_project_archive(&[], tmp.path()).expect_err("empty archive should fail");
+
+        assert!(
+            err.to_string().contains("archive was empty"),
+            "unexpected error: {err:#}"
+        );
+    }
+
+    #[test]
+    fn extract_project_archive_returns_project_root() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let archive = build_project_archive(&[
+            ("downloaded-project/main.kcl", "cube(1)\n"),
+            ("downloaded-project/project.toml", ""),
+            ("downloaded-project/readme.md", "hello\n"),
+        ]);
+
+        let project_root = extract_project_archive(&archive, tmp.path()).expect("extract project archive");
+
+        assert_eq!(project_root, tmp.path().join("downloaded-project"));
+        assert!(project_root.join("main.kcl").is_file());
+    }
 }
