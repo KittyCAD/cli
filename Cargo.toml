@@ -88,11 +88,11 @@ terminal_size = "0.4.3"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.29"
-toml = "1.0.7"
+toml = "1.1.0"
 toml_edit = "0.25.5"
-unicode-segmentation = "1.12.0"
+unicode-segmentation = "1.13.2"
 url = "2.5.4"
-uuid = { version = "1.22.0", features = ["serde", "v4"] }
+uuid = { version = "1.23.0", features = ["serde", "v4"] }
 version-compare = "0.2.1"
 viuer = { version = "0.11.0", features = ["print-file"] }
 
