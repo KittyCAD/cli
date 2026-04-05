@@ -56,7 +56,7 @@ num-traits = "0.2.19"
 oauth2 = "4.4.2"
 open = "5.3.3"
 parse-display = "0.10.0"
-pulldown-cmark = "0.13.2"
+pulldown-cmark = "0.13.3"
 pulldown-cmark-to-cmark = "22.0.0"
 ratatui = { version = "0.30", default-features = false, features = [
   "crossterm",
@@ -84,12 +84,12 @@ slog-term = "2"
 tabled = { version = "0.20.0", features = ["ansi"] }
 tabwriter = "1.4.1"
 tempfile = "3.27.0"
-terminal_size = "0.4.3"
+terminal_size = "0.4.4"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.29"
 toml = "1.1.0"
-toml_edit = "0.25.5"
+toml_edit = "0.25.8"
 unicode-segmentation = "1.13.2"
 url = "2.5.4"
 uuid = { version = "1.23.0", features = ["serde", "v4"] }
