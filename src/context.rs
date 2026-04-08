@@ -621,17 +621,25 @@ impl Context<'_> {
             data: code.as_bytes().to_vec(),
         });
 
-        // Walk the directory and collect all the kcl files.
-        let parent = filepath.parent().ok_or_else(|| {
+        // Walk the containing directory and collect all the sibling kcl files. For a
+        // relative input like `gear.kcl`, `parent()` is `Some("")`, which needs to be
+        // treated as the current directory rather than an invalid path.
+        let project_root = filepath.parent().ok_or_else(|| {
             let filepath_display = filepath.display().to_string();
             anyhow!("Could not get parent directory to: `{filepath_display}`")
         })?;
-        let walked_kcl = kcl_lib::walk_dir(&parent.to_path_buf()).await?;
+        let project_root = if project_root.as_os_str().is_empty() {
+            std::path::PathBuf::from(".")
+        } else {
+            project_root.to_path_buf()
+        };
+        let walked_kcl = kcl_lib::walk_dir(&project_root).await?;
+        let canonical_filepath = std::fs::canonicalize(&filepath).unwrap_or_else(|_| filepath.clone());
 
         // Get all the attachements async.
         let futures = walked_kcl
             .into_iter()
-            .filter(|file| *file != filepath)
+            .filter(|file| std::fs::canonicalize(file).unwrap_or_else(|_| file.clone()) != canonical_filepath)
             .map(|file| {
                 tokio::spawn(async move {
                     let path_display = file.display().to_string();
@@ -1120,6 +1128,38 @@ mod test {
         // Explicit arg overrides global
         let h3 = ctx.resolve_host_for_tests("http://foo:1234").unwrap();
         assert_eq!(h3, "http://foo:1234");
+    }
+
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn collect_kcl_files_uses_current_directory_for_relative_file_inputs() {
+        let tmp = tempfile::tempdir().expect("failed to create temp dir");
+        std::fs::write(tmp.path().join("gear.kcl"), "cube(1)\n").expect("write gear.kcl");
+
+        let old_current_directory = std::env::current_dir().expect("current dir");
+        std::env::set_current_dir(tmp.path()).expect("set current dir");
+
+        let mut config = crate::config::new_blank_config().unwrap();
+        let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
+        let (io, _stdout_path, _stderr_path) = crate::iostreams::IoStreams::test();
+        let mut ctx = Context {
+            config: &mut c,
+            io,
+            debug: false,
+            override_host: None,
+        };
+
+        let (files, filepath) = ctx
+            .collect_kcl_files(std::path::Path::new("gear.kcl"))
+            .await
+            .expect("collect relative project files");
+
+        std::env::set_current_dir(old_current_directory).expect("restore current dir");
+
+        assert_eq!(filepath, std::path::PathBuf::from("gear.kcl"));
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].name, "gear.kcl");
+        assert_eq!(files[0].filepath.as_deref(), Some(std::path::Path::new("gear.kcl")));
     }
 
     #[test]
