@@ -37,8 +37,8 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.14.0"
-kcl-lib = { version = "=0.2.139", features = ["disable-println"] }
-kcl-test-server = "=0.2.139"
+kcl-lib = { version = "=0.2.140", default-features = false, features = ["cli", "engine", "artifact-graph", "disable-println"] }
+kcl-test-server = "=0.2.140"
 kittycad = { version = "0.4.9", features = [
   "clap",
   "tabled",
