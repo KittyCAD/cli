@@ -2809,9 +2809,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.139"
+version = "0.2.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "548b6f31299a55b7fba61d560f9fc471f573b6e73f3b9e7ac43872471837547d"
+checksum = "c31b7cd5a0e9d67ec6e0108db4d5fe24163db11cd5ac392dc4ce80a6d4a11acf"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2820,9 +2820,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.139"
+version = "0.2.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f13545a77e4d067a7c1bdc4c8bb9419aed287cc15f73f62be023053f2fdd6330"
+checksum = "a317221a4d9e15582714c02b00284e7dbb7488a20f058e4265b7c0f24c6e020b"
 dependencies = [
  "miette",
  "serde",
@@ -2832,9 +2832,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.139"
+version = "0.2.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4679d686753ccdfc8ee370b74d375ec06d995d57f45c5e435f9e0a28636b0a48"
+checksum = "36b6b1ed5a4027e9f2bc0be22da2a69b8e9067b682568554f0cff021cb24889f"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2907,9 +2907,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.139"
+version = "0.2.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b53bc72d74815302f0260c3c48f40b1f25f9b2cb585e6f566f4704de344a23e4"
+checksum = "0e06d7251df8212ccd4d0ab3db13c3a256cd853ec27fad2e7bdb3d441648b430"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
