@@ -64,6 +64,9 @@ pub struct CmdUserEdit {
     #[doc = "The user's phone number."]
     #[clap(long = "phone", short = 'p', required = false, default_value_t)]
     pub new_phone: kittycad::types::phone_number::PhoneNumber,
+    #[doc = "Public username/handle for community-facing features. Empty clears it."]
+    #[clap(long = "username", short = 'u', required = false)]
+    pub new_username: Option<String>,
 }
 
 # [async_trait :: async_trait (? Send)]
@@ -77,6 +80,7 @@ impl crate::cmd::Command for CmdUserEdit {
             && self.new_is_onboarded.is_none()
             && self.new_last_name.is_none()
             && self.new_phone.is_none()
+            && self.new_username.is_none()
         {
             return Err(anyhow::anyhow!("nothing to edit"));
         }
@@ -93,6 +97,7 @@ impl crate::cmd::Command for CmdUserEdit {
                 is_onboarded: self.new_is_onboarded.clone(),
                 last_name: self.new_last_name.clone(),
                 phone: self.new_phone.clone(),
+                username: self.new_username.clone(),
             })
             .await?;
         let cs = ctx.io.color_scheme();
