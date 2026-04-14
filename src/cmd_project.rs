@@ -8,7 +8,7 @@ use clap::Parser;
 
 use crate::types::FormatOutput;
 
-const PROJECT_ARCHIVE_ACCEPT: &str = "application/x-tar, application/octet-stream;q=0.9, */*;q=0.1";
+const PROJECT_ARCHIVE_ACCEPT: &str = "application/x-tar";
 
 /// Manage Zoo projects.
 #[derive(Parser, Debug, Clone)]
@@ -89,6 +89,15 @@ enum ProjectTarget {
     },
 }
 
+impl ProjectTarget {
+    fn id(&self) -> uuid::Uuid {
+        match self {
+            Self::Id(id) => *id,
+            Self::Local { id, .. } => *id,
+        }
+    }
+}
+
 fn resolve_project_target(input: &str, environment: &str) -> Result<ProjectTarget> {
     let path = PathBuf::from(input);
     if input == "." || path.exists() {
@@ -110,10 +119,7 @@ impl crate::cmd::Command for CmdProjectDelete {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let environment = ctx.project_cloud_environment_name("")?;
         let target = resolve_project_target(&self.input, &environment)?;
-        let id = match &target {
-            ProjectTarget::Id(id) => *id,
-            ProjectTarget::Local { id, .. } => *id,
-        };
+        let id = target.id();
 
         let client = ctx.api_client("")?;
         client.projects().delete(id).await?;
@@ -164,14 +170,9 @@ impl crate::cmd::Command for CmdProjectDownload {
         let environment = ctx.project_cloud_environment_name("")?;
 
         let endpoint = format!("/user/projects/{}/download", self.id);
-        let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert(
-            reqwest::header::ACCEPT,
-            reqwest::header::HeaderValue::from_static(PROJECT_ARCHIVE_ACCEPT),
-        );
         let resp = ctx
             .raw_http_request("", reqwest::Method::GET, &endpoint)?
-            .headers(headers)
+            .header(reqwest::header::ACCEPT, PROJECT_ARCHIVE_ACCEPT)
             .send()
             .await?;
         let status = resp.status();
@@ -334,10 +335,7 @@ impl crate::cmd::Command for CmdProjectView {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let environment = ctx.project_cloud_environment_name("")?;
         let target = resolve_project_target(&self.input, &environment)?;
-        let project_id = match target {
-            ProjectTarget::Id(id) => id,
-            ProjectTarget::Local { id, .. } => id,
-        };
+        let project_id = target.id();
         let client = ctx.api_client("")?;
         let project = client.projects().get(project_id).await?;
         let format = ctx.format(&self.format)?;
@@ -364,10 +362,7 @@ impl crate::cmd::Command for CmdProjectPublish {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let environment = ctx.project_cloud_environment_name("")?;
         let target = resolve_project_target(&self.input, &environment)?;
-        let project_id = match &target {
-            ProjectTarget::Id(id) => *id,
-            ProjectTarget::Local { id, .. } => *id,
-        };
+        let project_id = target.id();
 
         let client = ctx.api_client("")?;
         let project = client.projects().publish(project_id).await?;

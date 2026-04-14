@@ -94,7 +94,6 @@ mod test {
                 new_discord: Default::default(),
                 new_username: Default::default(),
                 new_phone: Default::default(),
-                new_username: Default::default(),
                 new_last_name: Default::default(),
                 new_first_name: Default::default(),
                 new_github: Default::default(),
