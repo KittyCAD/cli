@@ -19,6 +19,34 @@ pub struct Context<'a> {
 }
 
 impl Context<'_> {
+    fn resolve_api_host_and_baseurl(&self, hostname: &str) -> Result<(String, String)> {
+        let host = if !hostname.is_empty() {
+            hostname.to_string()
+        } else if let Some(h) = &self.override_host {
+            h.clone()
+        } else {
+            self.config.default_host()?
+        };
+
+        let mut baseurl = host.to_string();
+        if !host.starts_with("http://") && !host.starts_with("https://") {
+            baseurl = format!("https://{host}");
+            if host.starts_with("localhost") {
+                baseurl = format!("http://{host}")
+            }
+        }
+
+        Ok((host, baseurl))
+    }
+
+    fn http_client_builder(&self) -> reqwest::ClientBuilder {
+        let user_agent = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"),);
+        reqwest::Client::builder()
+            .user_agent(user_agent)
+            .timeout(std::time::Duration::from_secs(600))
+            .connect_timeout(std::time::Duration::from_secs(60))
+    }
+
     pub fn new(config: &mut (dyn Config + Send + Sync)) -> Context<'_> {
         // Let's get our IO streams.
         let mut io = crate::iostreams::IoStreams::system();
@@ -60,35 +88,12 @@ impl Context<'_> {
     /// This function returns an API client for Zoo that is based on the configured
     /// user.
     pub fn api_client(&self, hostname: &str) -> Result<kittycad::Client> {
-        // Resolution order: explicit arg > global override > default host from config
-        let host = if !hostname.is_empty() {
-            hostname.to_string()
-        } else if let Some(h) = &self.override_host {
-            h.clone()
-        } else {
-            self.config.default_host()?
-        };
+        let (host, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
 
-        // Change the baseURL to the one we want.
-        let mut baseurl = host.to_string();
-        if !host.starts_with("http://") && !host.starts_with("https://") {
-            baseurl = format!("https://{host}");
-            if host.starts_with("localhost") {
-                baseurl = format!("http://{host}")
-            }
-        }
-
-        let user_agent = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"),);
-        let http_client = reqwest::Client::builder()
-            .user_agent(user_agent)
+        let http_client = self.http_client_builder();
+        let ws_client = self
+            .http_client_builder()
             // For file conversions we need this to be long.
-            .timeout(std::time::Duration::from_secs(600))
-            .connect_timeout(std::time::Duration::from_secs(60));
-        let ws_client = reqwest::Client::builder()
-            .user_agent(user_agent)
-            // For file conversions we need this to be long.
-            .timeout(std::time::Duration::from_secs(600))
-            .connect_timeout(std::time::Duration::from_secs(60))
             .tcp_keepalive(std::time::Duration::from_secs(600))
             .http1_only();
 
@@ -105,9 +110,35 @@ impl Context<'_> {
         Ok(client)
     }
 
+    pub fn raw_http_request(
+        &self,
+        hostname: &str,
+        method: reqwest::Method,
+        uri: &str,
+    ) -> Result<reqwest::RequestBuilder> {
+        let (host, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
+        let token = self.config.get(&host, "token")?;
+        let client = self.http_client_builder().build()?;
+        let url = if uri.starts_with("https://") || uri.starts_with("http://") {
+            uri.to_string()
+        } else {
+            format!("{}/{}", baseurl.trim_end_matches('/'), uri.trim_start_matches('/'))
+        };
+
+        Ok(client.request(method, url).bearer_auth(token).header(
+            reqwest::header::ACCEPT,
+            reqwest::header::HeaderValue::from_static("application/json"),
+        ))
+    }
+
     /// Return the global host override if set.
     pub fn global_host(&self) -> Option<&str> {
         self.override_host.as_deref()
+    }
+
+    pub fn project_cloud_environment_name(&self, hostname: &str) -> Result<String> {
+        let (_, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
+        crate::project::project_cloud_environment_name_for_host(&baseurl)
     }
 
     // Test-only helper for verifying host resolution semantics without creating a client.

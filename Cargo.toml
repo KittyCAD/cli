@@ -32,6 +32,7 @@ futures = "0.3"
 git_rev = "0.1.0"
 heck = "0.5.0"
 http = "1"
+ignore = "0.4"
 image = { version = "0.25", default-features = false, features = [
   "png",
   "jpeg",
@@ -84,6 +85,7 @@ slog-term = "2"
 tabled = { version = "0.20.0", features = ["ansi"] }
 tabwriter = "1.4.1"
 tempfile = "3.27.0"
+tar = "0.4"
 terminal_size = "0.4.4"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
@@ -119,4 +121,3 @@ debug = 0
 
 [patch.crates-io]
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}
-# kcl-lib = { path = "../modeling-app/rust/kcl-lib" }
