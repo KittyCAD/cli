@@ -167,7 +167,7 @@ mod tests {
         let files = scan_relevant_files(root);
         let mut keys: Vec<_> = files.keys().cloned().collect();
         keys.sort();
-        assert_eq!(keys, vec!["foo.KCL", "main.kcl", "sub/bar.kcl"]);
+        assert_eq!(keys, vec!["README.md", "foo.KCL", "main.kcl", "sub/bar.kcl"]);
         assert_eq!(files.get("main.kcl").unwrap(), b"cube(1)");
     }
 

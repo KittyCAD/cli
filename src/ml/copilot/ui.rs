@@ -67,20 +67,14 @@ fn render_markdown_to_lines(md: &str) -> Vec<String> {
                 }
                 cur.push_str(&list_prefix);
             }
-            Event::End(TagEnd::Item) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
+            Event::End(TagEnd::Item) if !cur.is_empty() => {
+                lines.push(std::mem::take(&mut cur));
             }
-            Event::Start(Tag::Paragraph) | Event::Start(Tag::Heading { .. }) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
+            Event::Start(Tag::Paragraph) | Event::Start(Tag::Heading { .. }) if !cur.is_empty() => {
+                lines.push(std::mem::take(&mut cur));
             }
-            Event::End(TagEnd::Paragraph) | Event::End(TagEnd::Heading(_)) => {
-                if !cur.is_empty() {
-                    lines.push(std::mem::take(&mut cur));
-                }
+            Event::End(TagEnd::Paragraph) | Event::End(TagEnd::Heading(_)) if !cur.is_empty() => {
+                lines.push(std::mem::take(&mut cur));
             }
             Event::Start(Tag::CodeBlock(kind)) => {
                 if !cur.is_empty() {
