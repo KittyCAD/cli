@@ -74,7 +74,6 @@ impl crate::cmd::Command for CmdProjectCategories {
 #[clap(verbatim_doc_comment)]
 pub struct CmdProjectDelete {
     /// The project id, or a local project directory, `.kcl` file, or `project.toml`.
-    ///
     /// When a local path is provided, the persisted Zoo cloud project id will be removed from
     /// `project.toml` after the remote project is deleted.
     #[clap(name = "id-or-path", required = true)]
