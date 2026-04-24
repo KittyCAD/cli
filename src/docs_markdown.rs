@@ -80,8 +80,6 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
 
         let mut html = "<dl class=\"flags\">\n".to_string();
 
-        println!("{args:#?}");
-
         for (i, arg) in args.iter().enumerate() {
             if i > 0 {
                 html.push('\n');
@@ -109,6 +107,7 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                 .get_long_help()
                 .unwrap_or_else(|| arg.get_help().unwrap_or_default())
                 .to_string();
+            desc = normalize_description_for_definition_list(&desc);
 
             // Check if the arg is an enum and if so, add the possible values.
             let possible_values = arg.get_possible_values();
@@ -121,10 +120,6 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
                     desc.push_str(value.get_name());
                 }
                 desc.push_str("</code>");
-            }
-
-            if arg.get_long().unwrap_or_default() == "shell" {
-                println!("{arg:?}");
             }
 
             let values = arg.get_default_values();
@@ -229,6 +224,10 @@ fn do_markdown(doc: &mut MarkdownDocument, app: &Command, title: &str) -> Result
     Ok(())
 }
 
+fn normalize_description_for_definition_list(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
 fn get_cmark_options() -> pulldown_cmark_to_cmark::Options<'static> {
     pulldown_cmark_to_cmark::Options {
         newlines_after_codeblock: 2,
@@ -292,6 +291,22 @@ pub fn app_to_markdown(app: &Command, title: &str) -> Result<String> {
 mod test {
     use pretty_assertions::assert_eq;
 
+    fn definition_descriptions(markdown: &str) -> Vec<&str> {
+        let mut descriptions = Vec::new();
+        let mut remainder = markdown;
+
+        while let Some(start) = remainder.find("<dd>") {
+            let after_start = &remainder[start + "<dd>".len()..];
+            let Some(end) = after_start.find("</dd>") else {
+                break;
+            };
+            descriptions.push(&after_start[..end]);
+            remainder = &after_start[end + "</dd>".len()..];
+        }
+
+        descriptions
+    }
+
     #[test]
     fn test_rustdoc_to_markdown_link() {
         assert_eq!(
@@ -335,5 +350,35 @@ mod test {
             super::cleanup_code_blocks("```some code\nsome other code```").unwrap(),
             "```\nsome code\nsome other code\n```"
         );
+    }
+
+    #[test]
+    fn test_multiline_arg_description_is_safe_for_mdx_definition_list() {
+        let app = clap::Command::new("delete")
+            .about("Delete one of your uploaded projects.")
+            .arg(
+                clap::Arg::new("id-or-path")
+                    .help(
+                        "The project id, or a local project directory, `.kcl` file, or `project.toml`.\n\n\
+                         When a local path is provided, the persisted Zoo cloud project id will be removed from\n\
+                         `project.toml` after the remote project is deleted.",
+                    )
+                    .required(true),
+            );
+
+        let markdown = super::app_to_markdown(&app, "zoo project delete").unwrap();
+
+        assert!(markdown.contains(
+            "<dd>The project id, or a local project directory, `.kcl` file, or `project.toml`. \
+             When a local path is provided, the persisted Zoo cloud project id will be removed from \
+             `project.toml` after the remote project is deleted.</dd>"
+        ));
+
+        for description in definition_descriptions(&markdown) {
+            assert!(
+                !description.contains('\n'),
+                "definition descriptions must stay inline for MDX: {description:?}"
+            );
+        }
     }
 }
