@@ -49,15 +49,13 @@ jobs:
           path: docs
           persist-credentials: false
 
-      - name: Install Node.js
-        uses: actions/setup-node@v6.3.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: docs/package-lock.json
 
-      - name: Install documentation dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
         working-directory: docs
 
       - name: Replace generated CLI docs
@@ -66,6 +64,6 @@ jobs:
           rm -rf docs/content/pages/docs/cli/manual/zoo*.md
           mv -f generated_docs/md/zoo*.md docs/content/pages/docs/cli/manual/
 
-      - name: Build documentation
+      - name: Run build
         run: npm run build
         working-directory: docs
