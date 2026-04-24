@@ -1,0 +1,71 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+name: documentation build
+jobs:
+  documentationbuild:
+    name: generated CLI docs build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout CLI
+        uses: actions/checkout@v6
+
+      - name: Install latest rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v5.0.4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v5.0.4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v5.0.4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Generate CLI markdown
+        run: make gen-md
+
+      - name: Checkout documentation
+        uses: actions/checkout@v6
+        with:
+          repository: kittycad/documentation
+          path: docs
+          persist-credentials: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6.3.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install documentation dependencies
+        run: npm ci
+        working-directory: docs
+
+      - name: Replace generated CLI docs
+        run: |
+          rm -rf docs/content/pages/docs/cli/manual/kittycad*.md
+          rm -rf docs/content/pages/docs/cli/manual/zoo*.md
+          mv -f generated_docs/md/zoo*.md docs/content/pages/docs/cli/manual/
+
+      - name: Build documentation
+        run: npm run build
+        working-directory: docs

@@ -29,7 +29,7 @@ endif
 
 # For this to work, you need to install toml-cli: https://github.com/gnprice/toml-cli
 # `cargo install toml-cli`
-VERSION := $(shell toml get $(CURDIR)/Cargo.toml package.version | jq -r .)
+VERSION = $(shell toml get $(CURDIR)/Cargo.toml package.version | jq -r .)
 
 GITCOMMIT := $(shell git rev-parse --short HEAD)
 GITUNTRACKEDCHANGES := $(shell git status --porcelain --untracked-files=no)
@@ -116,4 +116,3 @@ __check_defined = \
     $(if $(value $1),, \
     $(error Undefined $1$(if $2, ($2))$(if $(value @), \
     required by target `$@')))
-
