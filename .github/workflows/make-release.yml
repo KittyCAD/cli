@@ -133,7 +133,7 @@ jobs:
             fi
           fi
       - name: Create a Release
-        uses: softprops/action-gh-release@v2.6.2
+        uses: softprops/action-gh-release@v3.0.0
         with:
           body_path: ${{github.workspace}}/release.md
           prerelease: ${{steps.extract_prerelease.outputs.prerelease}}
