@@ -23,7 +23,7 @@ clap = { version = "4.6.1", features = [
 ] }
 clap_complete = { version = "4.6.2" }
 cli-macro = { path = "cli-macro" }
-colored_json = "4.1"
+colored_json = "5.0"
 crossterm = { version = "0.29", features = ["event-stream"] }
 data-encoding = "2.11.0"
 dialoguer = "0.12.0"
