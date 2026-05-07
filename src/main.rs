@@ -31,6 +31,8 @@ pub mod cmd_kcl;
 pub mod cmd_ml;
 /// The open command.
 pub mod cmd_open;
+/// The org command.
+pub mod cmd_org;
 /// The project command.
 pub mod cmd_project;
 /// The say command.
@@ -153,6 +155,7 @@ enum SubCommand {
     Generate(cmd_generate::CmdGenerate),
     Kcl(cmd_kcl::CmdKcl),
     Ml(cmd_ml::CmdMl),
+    Org(cmd_org::CmdOrg),
     Project(cmd_project::CmdProject),
     Say(cmd_say::CmdSay),
     // Hide until <https://github.com/KittyCAD/cli/issues/983> is done.
@@ -288,6 +291,7 @@ async fn do_main(mut args: Vec<String>, ctx: &mut crate::context::Context<'_>) -
         SubCommand::Generate(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Kcl(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Ml(cmd) => run_cmd(&cmd, ctx).await,
+        SubCommand::Org(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Project(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::Say(cmd) => run_cmd(&cmd, ctx).await,
         SubCommand::StartSession(cmd) => run_cmd(&cmd, ctx).await,
