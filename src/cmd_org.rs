@@ -219,7 +219,13 @@ impl crate::cmd::Command for CmdOrgDatasetCreate {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         validate_create_source(self.provider, self.uri.as_deref(), self.access_role_arn.as_deref())?;
 
-        let client = ctx.api_client("")?;
+        let upload_attachments = collect_create_dataset_upload_attachments(
+            self.provider,
+            &self.upload,
+            self.recursive,
+            self.base_dir.as_deref(),
+        )?;
+
         let body = kittycad::types::CreateOrgDataset {
             name: self.name.clone(),
             source: kittycad::types::OrgDatasetSource {
@@ -228,17 +234,13 @@ impl crate::cmd::Command for CmdOrgDatasetCreate {
                 uri: self.uri.clone(),
             },
         };
+        let client = ctx.api_client("")?;
         let dataset = client.orgs().create_dataset(&body).await?;
 
-        let upload = if self.upload.is_empty() {
-            None
-        } else {
-            if self.provider != DatasetStorageProvider::ZooManaged {
-                anyhow::bail!("--upload is only supported for Zoo-managed datasets");
-            }
-            let attachments =
-                collect_dataset_upload_attachments(&self.upload, self.recursive, self.base_dir.as_deref())?;
+        let upload = if let Some(attachments) = upload_attachments {
             Some(client.orgs().upload_dataset_files(attachments, dataset.id).await?)
+        } else {
+            None
         };
 
         let format = ctx.format(&self.format)?;
@@ -1099,6 +1101,21 @@ fn validate_create_source(provider: DatasetStorageProvider, uri: Option<&str>, r
     Ok(())
 }
 
+fn collect_create_dataset_upload_attachments(
+    provider: DatasetStorageProvider,
+    upload: &[PathBuf],
+    recursive: bool,
+    base_dir: Option<&Path>,
+) -> Result<Option<Vec<kittycad::types::multipart::Attachment>>> {
+    if upload.is_empty() {
+        return Ok(None);
+    }
+    if provider != DatasetStorageProvider::ZooManaged {
+        anyhow::bail!("--upload is only supported for Zoo-managed datasets");
+    }
+    collect_dataset_upload_attachments(upload, recursive, base_dir).map(Some)
+}
+
 async fn collect_all_datasets(
     client: &kittycad::Client,
     limit: Option<u32>,
@@ -1882,6 +1899,14 @@ mod tests {
         assert!(is_archive_path(Path::new("dataset.zip")));
         assert!(is_archive_path(Path::new("dataset.tar.gz")));
         assert!(!is_archive_path(Path::new("part.sldprt")));
+    }
+
+    #[test]
+    fn create_upload_validation_rejects_non_zoo_managed_before_reading_files() {
+        let missing_file = PathBuf::from("missing.sldprt");
+        let err = collect_create_dataset_upload_attachments(DatasetStorageProvider::S3, &[missing_file], false, None)
+            .unwrap_err();
+        assert_eq!(err.to_string(), "--upload is only supported for Zoo-managed datasets");
     }
 
     #[test]
