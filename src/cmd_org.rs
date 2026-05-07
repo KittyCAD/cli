@@ -1625,7 +1625,7 @@ fn stats_row(stats: &kittycad::types::OrgDatasetConversionStatsResponse) -> Stat
 
 fn sorted_status_counts(counts: &HashMap<String, i64>) -> String {
     let mut counts = counts.iter().collect::<Vec<_>>();
-    counts.sort_by(|(left, _), (right, _)| left.cmp(right));
+    counts.sort_by_key(|(status, _)| *status);
     counts
         .into_iter()
         .map(|(status, count)| format!("{status}:{count}"))
