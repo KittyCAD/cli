@@ -110,7 +110,7 @@ jobs:
         shell: bash
         run: |
           ls -la
-          echo 'These instructions are meant as an easy way to install. Note: you likely need to install `coreutils` in order to have the `sha256sum` command.' > release.md
+          echo 'These instructions are meant as an easy way to install. Unix snippets use `sha256sum`; macOS users may need `coreutils` for that command.' > release.md
           echo "" >> release.md
           cat macos-latest-${{github.ref_name}}-README.md  \
             ubuntu-latest-${{github.ref_name}}-README.md \
