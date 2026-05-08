@@ -93,7 +93,7 @@ function Wait-ForArtifact {
 function Get-PowerShellBlock {
     param([string]$Markdown)
 
-    $match = [regex]::Match($Markdown, "(?s)```powershell\r?\n(?<script>.*?)\r?\n```")
+    $match = [regex]::Match($Markdown, '(?s)```powershell\r?\n(?<script>.*?)\r?\n```')
     if (-not $match.Success) {
         throw "generated instructions did not contain a PowerShell code block"
     }
