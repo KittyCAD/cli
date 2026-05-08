@@ -10,6 +10,7 @@ NAME := zoo
 BUILDDIR := ${PREFIX}/cross
 
 GENERATED_DOCS_DIR := ${PREFIX}/generated_docs
+DOWNLOAD_BASE_URL ?= https://dl.zoo.dev/releases/cli
 
 UNAME := $(shell uname)
 
@@ -46,18 +47,12 @@ cargo build --release --target $(1) || cross build --release --target $(1)
 mv $(CURDIR)/target/$(1)/release/$(NAME) $(BUILDDIR)/$(NAME)-$(1) || mv $(CURDIR)/target/$(1)/release/$(NAME).exe $(BUILDDIR)/$(NAME)-$(1)
 md5sum $(BUILDDIR)/$(NAME)-$(1) > $(BUILDDIR)/$(NAME)-$(1).md5;
 sha256sum $(BUILDDIR)/$(NAME)-$(1) > $(BUILDDIR)/$(NAME)-$(1).sha256;
-echo -e "### $(1)\n\n" >> $(BUILDDIR)/README.md;
-echo -e "\`\`\`console" >> $(BUILDDIR)/README.md;
-echo -e "# Export the sha256sum for verification." >> $(BUILDDIR)/README.md;
-echo -e "$$ export ZOO_CLI_SHA256=\"`cat $(BUILDDIR)/$(NAME)-$(1).sha256 | awk '{print $$1}'`\"\n\n" >> $(BUILDDIR)/README.md;
-echo -e "# Download and check the sha256sum." >> $(BUILDDIR)/README.md;
-echo -e "$$ curl -fSL \"https://dl.zoo.dev/releases/cli/v$(VERSION)/$(NAME)-$(1)\" -o \"/usr/local/bin/$(NAME)\" \\" >> $(BUILDDIR)/README.md;
-echo -e "\t&& echo \"\$${ZOO_CLI_SHA256}  /usr/local/bin/$(NAME)\" | sha256sum -c - \\" >> $(BUILDDIR)/README.md;
-echo -e "\t&& chmod a+x \"/usr/local/bin/$(NAME)\"\n\n" >> $(BUILDDIR)/README.md;
-echo -e "$$ echo \"$(NAME) cli installed!\"\n" >> $(BUILDDIR)/README.md;
-echo -e "# Run it!" >> $(BUILDDIR)/README.md;
-echo -e "$$ $(NAME) -h" >> $(BUILDDIR)/README.md;
-echo -e "\`\`\`\n\n" >> $(BUILDDIR)/README.md;
+bash $(CURDIR)/scripts/release-install-instructions.sh \
+	"$(1)" \
+	"v$(VERSION)" \
+	"$(NAME)" \
+	"$$(awk '{print $$1}' $(BUILDDIR)/$(NAME)-$(1).sha256)" \
+	"$(DOWNLOAD_BASE_URL)" >> $(BUILDDIR)/README.md;
 endef
 
 # If running on a Mac you will need:
