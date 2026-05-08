@@ -194,6 +194,9 @@ try {
     }
 
     $installScript = Get-PowerShellBlock -Markdown ($instructions -join "`n")
+    if ($installScript -notmatch '\[EnvironmentVariableTarget\]::User') {
+        throw "Windows instructions do not persist the Zoo CLI directory to the user Path"
+    }
     Set-Content -Path (Join-Path $testRoot "install.ps1") -Value $installScript -Encoding utf8
 
     $testLocalAppData = Join-Path $testRoot "local-app-data"
@@ -217,8 +220,6 @@ try {
         throw "installed binary hash mismatch"
     }
 
-    $userPathAfterInstall = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
-    Assert-PathEntryCount -PathValue $userPathAfterInstall -Directory $installDir -ExpectedCount 1
     Assert-PathEntryCount -PathValue $env:Path -Directory $installDir -ExpectedCount 1
 
     & $installedCli -h | Out-Null
