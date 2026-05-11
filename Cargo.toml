@@ -21,7 +21,7 @@ clap = { version = "4.6.1", features = [
   "help",
   "wrap_help",
 ] }
-clap_complete = { version = "4.6.2" }
+clap_complete = { version = "4.6.3" }
 cli-macro = { path = "cli-macro" }
 colored_json = "4.1"
 crossterm = { version = "0.29", features = ["event-stream"] }
@@ -38,8 +38,8 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.14.0"
-kcl-lib = { version = "=0.2.150", features = ["disable-println"] }
-kcl-test-server = "=0.2.150"
+kcl-lib = { version = "=0.2.151", features = ["disable-println"] }
+kcl-test-server = "=0.2.151"
 kittycad = { version = "0.4.12", features = [
   "clap",
   "tabled",
