@@ -354,10 +354,12 @@ async fn get_image_bytes(
     output_format: ImageFormat,
 ) -> Result<Vec<u8>> {
     let engine = ctx.engine("", None).await?;
+    let batch_context = kcl_lib::EngineBatchContext::new();
 
     // Send an import request to the engine.
     let resp = engine
         .send_modeling_cmd(
+            &batch_context,
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
             &ModelingCmd::from(
@@ -384,6 +386,7 @@ async fn get_image_bytes(
     // Zoom on the object.
     engine
         .send_modeling_cmd(
+            &batch_context,
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
             &ModelingCmd::from(mcmd::DefaultCameraFocusOn::builder().uuid(object_id).build()),
@@ -394,6 +397,7 @@ async fn get_image_bytes(
     // This will not return until there are files.
     let resp = engine
         .send_modeling_cmd(
+            &batch_context,
             uuid::Uuid::new_v4(),
             kcl_lib::SourceRange::default(),
             &ModelingCmd::from(mcmd::TakeSnapshot::builder().format(output_format).build()),

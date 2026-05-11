@@ -284,10 +284,12 @@ impl crate::cmd::Command for CmdFileSnapshot {
         }
 
         let engine = ctx.engine("", None).await?;
+        let batch_context = kcl_lib::EngineBatchContext::new();
 
         // Send an import request to the engine.
         let resp = engine
             .send_modeling_cmd(
+                &batch_context,
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
                 &ModelingCmd::ImportFiles(kcmc::ImportFiles::builder().files(files).format(src_format).build()),
@@ -306,6 +308,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // Zoom on the object.
         engine
             .send_modeling_cmd(
+                &batch_context,
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
                 &ModelingCmd::DefaultCameraFocusOn(
@@ -320,6 +323,7 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // This will not return until there are files.
         let resp = engine
             .send_modeling_cmd(
+                &batch_context,
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
                 &ModelingCmd::TakeSnapshot(
