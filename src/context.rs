@@ -162,8 +162,14 @@ impl Context<'_> {
     ) -> Result<OkWebSocketResponseData> {
         let engine = self.engine(hostname, replay).await?;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
         let resp = engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
+            .send_modeling_cmd(
+                &batch_context,
+                uuid::Uuid::new_v4(),
+                kcl_lib::SourceRange::default(),
+                &cmd,
+            )
             .await?;
         Ok(resp)
     }
@@ -227,9 +233,12 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
+
         // Zoom on the object.
         ctx.engine
             .send_modeling_cmd(
+                &batch_context,
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
                 &ModelingCmd::from(
@@ -244,7 +253,12 @@ impl Context<'_> {
 
         let resp = ctx
             .engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
+            .send_modeling_cmd(
+                &batch_context,
+                uuid::Uuid::new_v4(),
+                kcl_lib::SourceRange::default(),
+                &cmd,
+            )
             .await
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
         Ok((resp, session_data))
@@ -271,11 +285,17 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
         let mut responses = Vec::with_capacity(cmds.len());
         for cmd in cmds {
             let resp = ctx
                 .engine
-                .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
+                .send_modeling_cmd(
+                    &batch_context,
+                    uuid::Uuid::new_v4(),
+                    kcl_lib::SourceRange::default(),
+                    &cmd,
+                )
                 .await
                 .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
             responses.push(resp);
@@ -307,11 +327,17 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
         let mut snapshot_resps = Vec::new();
         for snapshot_cmd in snapshot_cmds {
             let resp = ctx
                 .engine
-                .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &snapshot_cmd)
+                .send_modeling_cmd(
+                    &batch_context,
+                    uuid::Uuid::new_v4(),
+                    kcl_lib::SourceRange::default(),
+                    &snapshot_cmd,
+                )
                 .await
                 .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
             if let OkWebSocketResponseData::Modeling {
