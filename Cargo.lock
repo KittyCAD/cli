@@ -2828,9 +2828,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.152"
+version = "0.2.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f7e07060f7b72f4ed2eac4474bde1b02411aeb4eee5617a4bd53dbff30a89e8"
+checksum = "70ae88951dad060d2eaa3741c854294f63a4e8b8f357d622dcdf6a690f17a004"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2839,9 +2839,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.152"
+version = "0.2.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4230f9bc42eb708abbba65125b95ae69745af3a4235f62b8f3f26300ef8ed92"
+checksum = "15fd31b5ff42564c1e1b8565b4acb77e5c48e685c9977f90deab663a1bf23685"
 dependencies = [
  "miette",
  "serde",
@@ -2851,9 +2851,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.152"
+version = "0.2.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23b28795af6631ed15ceed896c17969aaf8528ef25a8bb0bc262c0fc3d0498f0"
+checksum = "9adefec9ac7e6eef7b33ab149eadb710a1c9ebea741a8c0f0662a5e9ed9c8d88"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2891,6 +2891,7 @@ dependencies = [
  "miette",
  "mime_guess",
  "nalgebra-glm",
+ "num-traits 0.2.19",
  "parse-display",
  "rayon",
  "regex",
@@ -2926,9 +2927,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.152"
+version = "0.2.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9dc8fe3cc28a8303e31773d651e09307b537aa2ac647f299ba986572d52a8520"
+checksum = "ce3ccc14ac68ff57470388a174f7c155751c78b9079c535d5b2ca51c08d6a8d6"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2982,10 +2983,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "kittycad-modeling-cmds"
-version = "0.2.195"
+name = "kittycad-measurements"
+version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adea5e242fa7d56bc95a51df88654b5fe26d06f0f62b6619e3732440ec7d42e3"
+checksum = "7412b22b064c31f34dcc35097a1c2d16dd73c4d2f7bf1b059d39eed9accfc332"
+dependencies = [
+ "libm",
+]
+
+[[package]]
+name = "kittycad-modeling-cmds"
+version = "0.2.196"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5896de9faa7d6d4ac85f7d6599432a9d442edd843843e62fd5cc6026356462b9"
 dependencies = [
  "anyhow",
  "bon",
@@ -2995,9 +3005,9 @@ dependencies = [
  "enum-iterator-derive",
  "euler",
  "http 1.4.0",
+ "kittycad-measurements",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",
- "measurements",
  "parse-display",
  "parse-display-derive",
  "schemars",
@@ -7341,7 +7351,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.165"
+version = "0.2.166"
 dependencies = [
  "anyhow",
  "async-trait",
