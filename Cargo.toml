@@ -121,3 +121,5 @@ debug = 0
 
 [patch.crates-io]
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}
+kcl-lib = { path = "../modeling-app/rust/kcl-lib"}
+kittycad-modeling-cmds = { path = "../modeling-api/modeling-cmds"}
