@@ -35728,6 +35728,11 @@
             "description": "The dataset's display name.",
             "type": "string"
           },
+          "require_raw_kcl_similarity_score_for_success": {
+            "description": "Whether a low raw-KCL similarity score should block conversion success.",
+            "default": false,
+            "type": "boolean"
+          },
           "source": {
             "description": "Details for accessing the dataset.",
             "allOf": [
@@ -50960,6 +50965,10 @@
               }
             ]
           },
+          "require_raw_kcl_similarity_score_for_success": {
+            "description": "Whether a low raw-KCL similarity score should block conversion success for this dataset.",
+            "type": "boolean"
+          },
           "source_uri": {
             "description": "Fully-qualified URI to the dataset location (e.g. s3://bucket/prefix).",
             "type": "string"
@@ -50993,6 +51002,7 @@
           "id",
           "name",
           "org_id",
+          "require_raw_kcl_similarity_score_for_success",
           "source_uri",
           "status",
           "storage_provider",
@@ -58902,6 +58912,11 @@
             "nullable": true,
             "description": "Optional new display name.",
             "type": "string"
+          },
+          "require_raw_kcl_similarity_score_for_success": {
+            "nullable": true,
+            "description": "Optional override for whether a low raw-KCL similarity score should block conversion success.",
+            "type": "boolean"
           },
           "source": {
             "nullable": true,
