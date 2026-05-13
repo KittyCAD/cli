@@ -17,6 +17,9 @@ use crate::{
 
 mod camera_angles;
 
+/// Send a heartbeat every N seconds.
+pub const HEARTBEATS: u64 = 3;
+
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -338,6 +341,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
         executor_settings.replay = self.replay.then_some(filepath.to_string_lossy().to_string());
         // Required for transparent solids (e.g. with `appearance(opacity = 40)`).
         executor_settings.enable_ssao = true;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         let (many_pngs, session_data) = match self.session {
             Some(addr) => {
@@ -956,7 +960,8 @@ impl crate::cmd::Command for CmdKclAnalyze {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         let (responses, session_data) = ctx
             .run_kcl_then_modeling_cmds(
@@ -1127,7 +1132,8 @@ impl crate::cmd::Command for CmdKclVolume {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -1171,7 +1177,8 @@ impl crate::cmd::Command for CmdKclBoundingBox {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -1299,7 +1306,8 @@ impl crate::cmd::Command for CmdKclMass {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -1376,7 +1384,8 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -1463,7 +1472,8 @@ impl crate::cmd::Command for CmdKclDensity {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.
@@ -1540,7 +1550,8 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
         // Get the modeling settings from the project.toml if exists.
-        let executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
+        executor_settings.heartbeats = Some(HEARTBEATS);
 
         // Spin up websockets and do the conversion.
         // This will not return until there are files.

@@ -120,4 +120,5 @@ incremental = true
 debug = 0
 
 [patch.crates-io]
+kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}
