@@ -225,7 +225,7 @@ impl Context<'_> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let ctx = kcl_lib::ExecutorContext::new(&client, cmd_kcl::with_heartbeats(settings)).await?;
         let mut state = kcl_lib::ExecState::new(&ctx);
         let session_data = ctx
             .run(&program, &mut state)
@@ -277,7 +277,7 @@ impl Context<'_> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let ctx = kcl_lib::ExecutorContext::new(&client, cmd_kcl::with_heartbeats(settings)).await?;
         let mut state = kcl_lib::ExecState::new(&ctx);
         let session_data = ctx
             .run(&program, &mut state)
@@ -319,7 +319,7 @@ impl Context<'_> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let ctx = kcl_lib::ExecutorContext::new(&client, cmd_kcl::with_heartbeats(settings)).await?;
         let mut state = kcl_lib::ExecState::new(&ctx);
         let session_data = ctx
             .run(&program, &mut state)
