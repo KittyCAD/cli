@@ -54,15 +54,7 @@ jobs:
 
       - uses: taiki-e/install-action@nextest
       - uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Run cargo test
-        run: |
-          cargo nextest run --workspace
-        env:
-          ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          RUST_BACKTRACE: 1
-
-      - name: Test with coverage
+      - name: Run tests with coverage
         run: cargo llvm-cov nextest --workspace --lcov --output-path lcov.info --no-fail-fast
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
