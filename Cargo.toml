@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.167"
+version = "0.2.168"
 edition = "2021"
 build = "build.rs"
 
@@ -38,8 +38,8 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.14.0"
-kcl-lib = { version = "=0.2.154", features = ["disable-println"] }
-kcl-test-server = "=0.2.154"
+kcl-lib = { version = "=0.2.155", features = ["disable-println"] }
+kcl-test-server = "=0.2.155"
 kittycad = { version = "0.4.12", features = [
   "clap",
   "tabled",
@@ -120,5 +120,5 @@ incremental = true
 debug = 0
 
 [patch.crates-io]
-kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
+# kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}

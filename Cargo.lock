@@ -2828,8 +2828,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.154"
-source = "git+https://github.com/KittyCAD/modeling-app?branch=main#cbecf46665c3c0c01c383df6f45666a9d7dad7aa"
+version = "0.2.155"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc16cd534504ae7e31fb57ba2fe91bcc57d8e93a2b3fc9429599facb3aa44ef6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2838,8 +2839,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.154"
-source = "git+https://github.com/KittyCAD/modeling-app?branch=main#cbecf46665c3c0c01c383df6f45666a9d7dad7aa"
+version = "0.2.155"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69121983df990f86171301229de7504c18656db94979a234f34b5f35b4faac9b"
 dependencies = [
  "miette",
  "serde",
@@ -2849,8 +2851,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.154"
-source = "git+https://github.com/KittyCAD/modeling-app?branch=main#cbecf46665c3c0c01c383df6f45666a9d7dad7aa"
+version = "0.2.155"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c742bc43c1503dc9e9d33ecb776e6aed3e547d75e77d1b5d7f3e0b2ee21c4cff"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2924,9 +2927,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.154"
+version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94924626924686b63346bceb6f9c2a06240249d249b6a4f966339f1b35f061ab"
+checksum = "5207cf4f0e72ec93dd0f2c62e658d7940d26593487eb3f683a262d97d82f1d23"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -7348,7 +7351,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.167"
+version = "0.2.168"
 dependencies = [
  "anyhow",
  "async-trait",
