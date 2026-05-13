@@ -8,7 +8,7 @@ use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCre
 use kittycad_modeling_cmds::{self as kcmc, output::TakeSnapshot, websocket::ModelingSessionData, ModelingCmd};
 use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
 
-use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
+use crate::{cmd_kcl, config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
 pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
@@ -207,7 +207,7 @@ impl Context<'_> {
     pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineConnection> {
         let ws = self.engine_ws(hostname, replay).await?;
 
-        let engine = EngineConnection::new(ws).await?;
+        let engine = EngineConnection::new(ws, Some(cmd_kcl::HEARTBEATS)).await?;
 
         Ok(engine)
     }
