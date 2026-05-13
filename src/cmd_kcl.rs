@@ -1918,8 +1918,10 @@ mod tests {
 
     #[test]
     fn with_heartbeats_preserves_explicit_setting() {
-        let mut settings = kcl_lib::ExecutorSettings::default();
-        settings.heartbeats = Some(17);
+        let settings = kcl_lib::ExecutorSettings {
+            heartbeats: Some(17),
+            ..Default::default()
+        };
 
         let settings = with_heartbeats(settings);
 
