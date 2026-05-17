@@ -56,7 +56,7 @@ nu-ansi-term = "0.50.3"
 num-traits = "0.2.19"
 oauth2 = "4.4.2"
 open = "5.3.4"
-parse-display = "0.10.0"
+parse-display = "0.11.0"
 pulldown-cmark = "0.13.3"
 pulldown-cmark-to-cmark = "22.0.0"
 ratatui = { version = "0.30", default-features = false, features = [
