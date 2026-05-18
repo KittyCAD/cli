@@ -50879,6 +50879,12 @@
             "description": "Human-friendly block reason message.",
             "type": "string"
           },
+          "max_engine_sessions_per_user_override": {
+            "nullable": true,
+            "description": "Optional org-wide per-user override for concurrent engine sessions.",
+            "type": "integer",
+            "format": "int32"
+          },
           "never_block": {
             "description": "Whether this organization is permanently exempt from blocking.",
             "type": "boolean"
