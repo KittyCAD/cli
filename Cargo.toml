@@ -40,7 +40,7 @@ image = { version = "0.25", default-features = false, features = [
 itertools = "0.14.0"
 kcl-lib = { version = "=0.2.157", features = ["disable-println"] }
 kcl-test-server = "=0.2.157"
-kittycad = { version = "0.4.12", features = [
+kittycad = { version = "0.4.13", features = [
   "clap",
   "tabled",
   "requests",
