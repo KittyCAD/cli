@@ -22,7 +22,7 @@ clap = { version = "4.6.1", features = [
   "help",
   "wrap_help",
 ] }
-clap_complete = { version = "4.6.3" }
+clap_complete = { version = "4.6.5" }
 cli-macro = { path = "cli-macro" }
 colored_json = "4.1"
 crossterm = { version = "0.29", features = ["event-stream"] }
@@ -56,7 +56,7 @@ miette = { version = "7.5.0", features = ["fancy"] }
 nu-ansi-term = "0.50.3"
 num-traits = "0.2.19"
 oauth2 = "4.4.2"
-open = "5.3.4"
+open = "5.3.5"
 parse-display = "0.11.0"
 pulldown-cmark = "0.13.3"
 pulldown-cmark-to-cmark = "22.0.0"
