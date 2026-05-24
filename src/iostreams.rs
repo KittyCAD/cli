@@ -313,7 +313,6 @@ impl IoStreams {
             if enabled.is_ok() {
                 assume_true_color = true;
             }
-
         }
 
         let mut io = IoStreams {
