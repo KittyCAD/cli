@@ -40703,6 +40703,13 @@
             "enum": [
               "thoughtful"
             ]
+          },
+          {
+            "description": "Let the system automatically choose the model and reasoning effort.",
+            "type": "string",
+            "enum": [
+              "auto"
+            ]
           }
         ]
       },
