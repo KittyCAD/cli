@@ -53414,6 +53414,10 @@
               }
             ]
           },
+          "revision": {
+            "description": "Opaque revision token for optimistic project mutations.",
+            "type": "string"
+          },
           "title": {
             "description": "User-facing project title.",
             "type": "string"
@@ -53436,6 +53440,7 @@
           "project_toml_path",
           "publication",
           "publication_status",
+          "revision",
           "title",
           "updated_at"
         ]
@@ -53548,6 +53553,10 @@
               }
             ]
           },
+          "revision": {
+            "description": "Opaque revision token for optimistic project mutations.",
+            "type": "string"
+          },
           "title": {
             "description": "User-facing project title.",
             "type": "string"
@@ -53569,6 +53578,7 @@
           "project_toml_path",
           "publication",
           "publication_status",
+          "revision",
           "title",
           "updated_at"
         ]
