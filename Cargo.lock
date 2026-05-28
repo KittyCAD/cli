@@ -1273,9 +1273,9 @@ dependencies = [
 
 [[package]]
 name = "dyn-stack-macros"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00140340c29b813fdf6ff2237c4407405baefc72cacbe8f1e2277a75b90e5d30"
+checksum = "e1d926b4d407d372f141f93bb444696142c29d32962ccbd3531117cf3aa0bfa9"
 
 [[package]]
 name = "either"
