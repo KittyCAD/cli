@@ -68,8 +68,27 @@
       pkgs,
       system,
     }: let
+      fetchCrate = args:
+        let
+          crateMatch =
+            if args ? url && builtins.isString args.url
+            then builtins.match "https://crates.io/api/v1/crates/([^/]+)/([^/]+)/download" args.url
+            else null;
+        in
+          pkgs.fetchurl (args
+            // (
+              if crateMatch == null
+              then {}
+              else {
+                url = let
+                  name = builtins.elemAt crateMatch 0;
+                  version = builtins.elemAt crateMatch 1;
+                in "https://static.crates.io/crates/${name}/${name}-${version}.crate";
+              }
+            ));
       naersk-lib = pkgs.callPackage naersk {
         cargo = pkgs.rustToolchain;
+        fetchurl = fetchCrate;
         rustc = pkgs.rustToolchain;
       };
     in {

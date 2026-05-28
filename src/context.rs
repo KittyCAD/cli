@@ -181,6 +181,7 @@ impl Context<'_> {
         let pool = None;
         let post_effect = None;
         let show_grid = None;
+        let pr = std::env::var("ZOO_ENGINE_PR").ok().and_then(|s| s.parse().ok());
         let unlocked_framerate = None;
         let video_res_height = None;
         let video_res_width = None;
@@ -192,7 +193,7 @@ impl Context<'_> {
                 order_independent_transparency: Some(false),
                 pool,
                 post_effect,
-                pr: None,
+                pr,
                 replay,
                 show_grid,
                 unlocked_framerate,
