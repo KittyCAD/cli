@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.172"
+version = "0.2.173"
 edition = "2021"
 rust-version = "1.95"
 build = "build.rs"
