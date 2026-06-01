@@ -31837,6 +31837,15 @@
                 "$ref": "#/components/schemas/AnnotationTextOptions"
               }
             ]
+          },
+          "units": {
+            "nullable": true,
+            "description": "Length Units to use for this individual annotation.  If not provided, the units set by SetSceneUnits will be used.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UnitLength"
+              }
+            ]
           }
         }
       },
@@ -38549,6 +38558,27 @@
         "description": "The valid types of source file formats.",
         "oneOf": [
           {
+            "description": "ACIS part format.",
+            "type": "string",
+            "enum": [
+              "acis"
+            ]
+          },
+          {
+            "description": "CATIA part format.",
+            "type": "string",
+            "enum": [
+              "catia"
+            ]
+          },
+          {
+            "description": "PTC Creo part format.",
+            "type": "string",
+            "enum": [
+              "creo"
+            ]
+          },
+          {
             "description": "Autodesk Filmbox (FBX) format. <https://en.wikipedia.org/wiki/FBX>",
             "type": "string",
             "enum": [
@@ -38563,10 +38593,31 @@
             ]
           },
           {
+            "description": "Autodesk Inventor part format.",
+            "type": "string",
+            "enum": [
+              "inventor"
+            ]
+          },
+          {
+            "description": "Siemens NX part format.",
+            "type": "string",
+            "enum": [
+              "nx"
+            ]
+          },
+          {
             "description": "The OBJ file format. <https://en.wikipedia.org/wiki/Wavefront_.obj_file> It may or may not have an an attached material (mtl // mtllib) within the file, but we interact with it as if it does not.",
             "type": "string",
             "enum": [
               "obj"
+            ]
+          },
+          {
+            "description": "Parasolid part format.",
+            "type": "string",
+            "enum": [
+              "parasolid"
             ]
           },
           {
@@ -39266,6 +39317,120 @@
         "description": "Input format specifier.",
         "oneOf": [
           {
+            "description": "ACIS part format.",
+            "type": "object",
+            "properties": {
+              "coords": {
+                "description": "Co-ordinate system of input data.",
+                "default": {
+                  "forward": {
+                    "axis": "y",
+                    "direction": "negative"
+                  },
+                  "up": {
+                    "axis": "z",
+                    "direction": "positive"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ]
+              },
+              "split_closed_faces": {
+                "description": "Splits all closed faces into two open faces.\n\nDefaults to `false` but is implicitly `true` when importing into the engine.",
+                "default": false,
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "acis"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "CATIA part format.",
+            "type": "object",
+            "properties": {
+              "coords": {
+                "description": "Co-ordinate system of input data.",
+                "default": {
+                  "forward": {
+                    "axis": "y",
+                    "direction": "negative"
+                  },
+                  "up": {
+                    "axis": "z",
+                    "direction": "positive"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ]
+              },
+              "split_closed_faces": {
+                "description": "Splits all closed faces into two open faces.\n\nDefaults to `false` but is implicitly `true` when importing into the engine.",
+                "default": false,
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "catia"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "PTC Creo part format.",
+            "type": "object",
+            "properties": {
+              "coords": {
+                "description": "Co-ordinate system of input data.",
+                "default": {
+                  "forward": {
+                    "axis": "z",
+                    "direction": "positive"
+                  },
+                  "up": {
+                    "axis": "y",
+                    "direction": "positive"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ]
+              },
+              "split_closed_faces": {
+                "description": "Splits all closed faces into two open faces.\n\nDefaults to `false` but is implicitly `true` when importing into the engine.",
+                "default": false,
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "creo"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
             "description": "Autodesk Filmbox (FBX) format.",
             "type": "object",
             "properties": {
@@ -39288,6 +39453,82 @@
                 "type": "string",
                 "enum": [
                   "gltf"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "Autodesk Inventor part format.",
+            "type": "object",
+            "properties": {
+              "coords": {
+                "description": "Co-ordinate system of input data.",
+                "default": {
+                  "forward": {
+                    "axis": "y",
+                    "direction": "negative"
+                  },
+                  "up": {
+                    "axis": "z",
+                    "direction": "positive"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ]
+              },
+              "split_closed_faces": {
+                "description": "Splits all closed faces into two open faces.\n\nDefaults to `false` but is implicitly `true` when importing into the engine.",
+                "default": false,
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "inventor"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "Siemens NX part format.",
+            "type": "object",
+            "properties": {
+              "coords": {
+                "description": "Co-ordinate system of input data.",
+                "default": {
+                  "forward": {
+                    "axis": "y",
+                    "direction": "negative"
+                  },
+                  "up": {
+                    "axis": "z",
+                    "direction": "positive"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ]
+              },
+              "split_closed_faces": {
+                "description": "Splits all closed faces into two open faces.\n\nDefaults to `false` but is implicitly `true` when importing into the engine.",
+                "default": false,
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "nx"
                 ]
               }
             },
@@ -39329,6 +39570,44 @@
             ]
           },
           {
+            "description": "Parasolid part format.",
+            "type": "object",
+            "properties": {
+              "coords": {
+                "description": "Co-ordinate system of input data.",
+                "default": {
+                  "forward": {
+                    "axis": "y",
+                    "direction": "negative"
+                  },
+                  "up": {
+                    "axis": "z",
+                    "direction": "positive"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ]
+              },
+              "split_closed_faces": {
+                "description": "Splits all closed faces into two open faces.\n\nDefaults to `false` but is implicitly `true` when importing into the engine.",
+                "default": false,
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "parasolid"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
             "description": "The PLY Polygon File Format.",
             "type": "object",
             "properties": {
@@ -39365,6 +39644,24 @@
             "description": "SolidWorks part (SLDPRT) format.",
             "type": "object",
             "properties": {
+              "coords": {
+                "description": "Co-ordinate system of input data.",
+                "default": {
+                  "forward": {
+                    "axis": "z",
+                    "direction": "positive"
+                  },
+                  "up": {
+                    "axis": "y",
+                    "direction": "positive"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/System"
+                  }
+                ]
+              },
               "split_closed_faces": {
                 "description": "Splits all closed faces into two open faces.\n\nDefaults to `false` but is implicitly `true` when importing into the engine.",
                 "default": false,
@@ -41790,6 +42087,15 @@
                   }
                 ]
               },
+              "draft_angle": {
+                "nullable": true,
+                "description": "What draft angle should be used in this extrusion? Negative values indicate an outward draft, while positive values indicate an inward draft",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Angle"
+                  }
+                ]
+              },
               "extrude_method": {
                 "description": "Should the extrusion create a new object or be part of the existing object.",
                 "default": "merge",
@@ -44032,6 +44338,31 @@
             ]
           },
           {
+            "description": "Set the name of an object",
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "Name of the object. Using a zero-length name unsets the name.",
+                "type": "string"
+              },
+              "object_id": {
+                "description": "Which object to change",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "object_set_name"
+                ]
+              }
+            },
+            "required": [
+              "object_id",
+              "type"
+            ]
+          },
+          {
             "description": "What type of entity is this?",
             "type": "object",
             "properties": {
@@ -45670,7 +46001,7 @@
             ]
           },
           {
-            "description": "Set the units of the scene. For all following commands, the units will be interpreted as the given units. Any previously executed commands will not be affected or have their units changed. They will remain in the units they were originally executed in.",
+            "description": "Set the units of the scene. For all following commands, the units will be interpreted as the given units. Any previously executed commands will not be affected or have their units changed. They will remain in the units they were originally executed in. If not set, engine units default to mm.",
             "type": "object",
             "properties": {
               "type": {
@@ -47399,6 +47730,10 @@
         "description": "The response from the `ObjectSetMaterialParamsPbr` endpoint.",
         "type": "object"
       },
+      "ObjectSetName": {
+        "description": "The response from the `ObjectSetName` endpoint.",
+        "type": "object"
+      },
       "ObjectVisible": {
         "description": "The response from the `ObjectVisible` endpoint.",
         "type": "object"
@@ -47975,6 +48310,24 @@
                 "type": "string",
                 "enum": [
                   "object_set_material_params_pbr"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/ObjectSetName"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "object_set_name"
                 ]
               }
             },
@@ -51891,7 +52244,7 @@
         "description": "The type of origin",
         "oneOf": [
           {
-            "description": "Local Origin (center of object bounding box).",
+            "description": "Local Origin ([0, 0, 0] in object space).",
             "type": "object",
             "properties": {
               "type": {
@@ -51906,7 +52259,7 @@
             ]
           },
           {
-            "description": "Global Origin (0, 0, 0).",
+            "description": "Global Origin ([0, 0, 0] in world space).",
             "type": "object",
             "properties": {
               "type": {
@@ -51921,7 +52274,7 @@
             ]
           },
           {
-            "description": "Custom Origin (user specified point).",
+            "description": "Custom Origin (user specified point in world space).",
             "type": "object",
             "properties": {
               "origin": {
