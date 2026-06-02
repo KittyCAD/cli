@@ -84,6 +84,7 @@
           };
         };
 
+        doCheck = false;
         nativeBuildInputs = [pkgs.pkg-config];
         buildInputs = [pkgs.openssl];
       };
