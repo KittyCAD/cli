@@ -4,14 +4,12 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
-    naersk.url = "github:nix-community/naersk";
   };
 
   outputs = {
     self,
     nixpkgs,
     rust-overlay,
-    naersk,
   }: let
     overlays = [
       (import rust-overlay)
@@ -68,37 +66,26 @@
       pkgs,
       system,
     }: let
-      fetchCrate = args:
-        let
-          crateMatch =
-            if args ? url && builtins.isString args.url
-            then builtins.match "https://crates.io/api/v1/crates/([^/]+)/([^/]+)/download" args.url
-            else null;
-        in
-          pkgs.fetchurl (args
-            // (
-              if crateMatch == null
-              then {}
-              else {
-                url = let
-                  name = builtins.elemAt crateMatch 0;
-                  version = builtins.elemAt crateMatch 1;
-                in "https://static.crates.io/crates/${name}/${name}-${version}.crate";
-              }
-            ));
-      naersk-lib = pkgs.callPackage naersk {
+      cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+      rustPlatform = pkgs.makeRustPlatform {
         cargo = pkgs.rustToolchain;
-        fetchurl = fetchCrate;
         rustc = pkgs.rustToolchain;
       };
     in {
-      zoo = naersk-lib.buildPackage {
+      zoo = rustPlatform.buildRustPackage {
         pname = "zoo";
-        version = "0.1.0";
-        release = true;
+        version = cargoToml.package.version;
         src = ./.;
 
-        buildInputs = [pkgs.openssl pkgs.pkg-config];
+        cargoLock = {
+          lockFile = ./Cargo.lock;
+          outputHashes = {
+            "openapitor-0.0.9" = "sha256-YRLglTUCrXyoajZK2v9FpHUVsD3ugPQwliwFGs/47Z0=";
+          };
+        };
+
+        nativeBuildInputs = [pkgs.pkg-config];
+        buildInputs = [pkgs.openssl];
       };
       default = self.packages.${system}.zoo;
     });
