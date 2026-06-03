@@ -15706,112 +15706,6 @@
         }
       }
     },
-    "/orgs/{id}/admin/details": {
-      "get": {
-        "tags": [
-          "orgs",
-          "hidden"
-        ],
-        "summary": "Get admin-only details for an organization.",
-        "description": "Zoo admins can retrieve extended information about any organization, while non-admins receive a 404 to avoid leaking existence.",
-        "operationId": "org_admin_details_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "description": "The organization ID.",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/Uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "headers": {
-              "Access-Control-Allow-Credentials": {
-                "description": "Access-Control-Allow-Credentials header.",
-                "style": "simple",
-                "schema": {
-                  "nullable": true,
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
-                "style": "simple",
-                "schema": {
-                  "nullable": true,
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "description": "Access-Control-Allow-Methods header.",
-                "style": "simple",
-                "schema": {
-                  "nullable": true,
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Origin": {
-                "description": "Access-Control-Allow-Origin header.",
-                "style": "simple",
-                "schema": {
-                  "nullable": true,
-                  "type": "string"
-                }
-              },
-              "Content-Location": {
-                "description": "The Content-Location header for responses that are not the final destination. This is used to indicate where the resource can be found, when it is finished.",
-                "style": "simple",
-                "schema": {
-                  "nullable": true,
-                  "type": "string"
-                }
-              },
-              "Location": {
-                "description": "The location header for redirects and letting users know if there is a websocket they can listen to for status updates on their operation.",
-                "style": "simple",
-                "schema": {
-                  "nullable": true,
-                  "type": "string"
-                }
-              },
-              "Set-Cookie": {
-                "description": "Set-Cookie header.",
-                "style": "simple",
-                "schema": {
-                  "nullable": true,
-                  "type": "string"
-                }
-              },
-              "X-Api-Call-Id": {
-                "description": "ID for this request. We return it so that users can report this to us and help us debug their problems.",
-                "style": "simple",
-                "required": true,
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrgAdminDetails"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "$ref": "#/components/responses/Error"
-          },
-          "5XX": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
     "/orgs/{id}/billing/contract": {
       "get": {
         "tags": [
@@ -20798,7 +20692,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiToken"
+                  "$ref": "#/components/schemas/ApiTokenWithFullToken"
                 }
               }
             }
@@ -32207,7 +32101,7 @@
             "type": "string"
           },
           "token": {
-            "description": "The API token itself.",
+            "description": "The API token itself. Note: This is partially obfuscated when serialized to JSON responses, as API tokens are too sensitive to return in full. Only the last 4 characters are shown to allow users to identify their tokens.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ApiTokenUuid"
@@ -32262,6 +32156,65 @@
       "ApiTokenUuid": {
         "description": "An auth token. A uuid with a prefix of api-",
         "type": "string"
+      },
+      "ApiTokenWithFullToken": {
+        "description": "An API token with the full, unobfuscated token value.\n\nThis is used specifically for the creation endpoint response, where the user needs to see the full token exactly once. All other endpoints return the obfuscated version via the `ApiToken` struct.",
+        "type": "object",
+        "properties": {
+          "created_at": {
+            "title": "DateTime",
+            "description": "The date and time the API token was created.",
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "description": "The unique identifier for the API token.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
+          },
+          "is_valid": {
+            "description": "If the token is valid.",
+            "type": "boolean"
+          },
+          "label": {
+            "nullable": true,
+            "description": "An optional label for the API token.",
+            "type": "string"
+          },
+          "token": {
+            "description": "The API token itself - unobfuscated.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApiTokenUuid"
+              }
+            ]
+          },
+          "updated_at": {
+            "title": "DateTime",
+            "description": "The date and time the API token was last updated.",
+            "type": "string",
+            "format": "date-time"
+          },
+          "user_id": {
+            "description": "The ID of the user that owns the API token.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
+          }
+        },
+        "required": [
+          "created_at",
+          "id",
+          "is_valid",
+          "token",
+          "updated_at",
+          "user_id"
+        ]
       },
       "AppClientInfo": {
         "description": "Information about a third party app client.",
@@ -51164,148 +51117,6 @@
           "created_at",
           "id",
           "updated_at"
-        ]
-      },
-      "OrgAddress": {
-        "description": "An address for an organization.",
-        "type": "object",
-        "properties": {
-          "city": {
-            "description": "The city component.",
-            "type": "string"
-          },
-          "country": {
-            "description": "The country component. This is a two-letter ISO country code.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CountryCode"
-              }
-            ]
-          },
-          "created_at": {
-            "title": "DateTime",
-            "description": "The time and date the address was created.",
-            "type": "string",
-            "format": "date-time"
-          },
-          "id": {
-            "description": "The unique identifier of the address.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
-          },
-          "org_id": {
-            "description": "The org ID that this address belongs to.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
-          },
-          "state": {
-            "description": "The state component.",
-            "type": "string"
-          },
-          "street1": {
-            "description": "The first street component.",
-            "type": "string"
-          },
-          "street2": {
-            "description": "The second street component.",
-            "type": "string"
-          },
-          "updated_at": {
-            "title": "DateTime",
-            "description": "The time and date the address was last updated.",
-            "type": "string",
-            "format": "date-time"
-          },
-          "zip": {
-            "description": "The zip component.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "country",
-          "created_at",
-          "id",
-          "org_id",
-          "updated_at"
-        ]
-      },
-      "OrgAdminDetails": {
-        "description": "Extra admin-only details for an organization.",
-        "type": "object",
-        "properties": {
-          "address": {
-            "nullable": true,
-            "description": "Latest billing address stored for the organization.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/OrgAddress"
-              }
-            ]
-          },
-          "address_summary": {
-            "nullable": true,
-            "description": "Readable billing address summary.",
-            "type": "string"
-          },
-          "block": {
-            "nullable": true,
-            "description": "Block reason when the org is blocked.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BlockReason"
-              }
-            ]
-          },
-          "block_message": {
-            "nullable": true,
-            "description": "Human-friendly block reason message.",
-            "type": "string"
-          },
-          "max_engine_sessions_per_user_override": {
-            "nullable": true,
-            "description": "Optional org-wide per-user override for concurrent engine sessions.",
-            "type": "integer",
-            "format": "int32"
-          },
-          "never_block": {
-            "description": "Whether this organization is permanently exempt from blocking.",
-            "type": "boolean"
-          },
-          "payment_methods": {
-            "description": "Known payment methods on file.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PaymentMethod"
-            }
-          },
-          "payment_methods_summary": {
-            "description": "Summaries of the known payment methods.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "stripe_customer_id": {
-            "nullable": true,
-            "description": "Stripe customer identifier if one exists.",
-            "type": "string"
-          },
-          "stripe_dashboard_url": {
-            "nullable": true,
-            "description": "Direct link to the Stripe customer dashboard.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "never_block",
-          "payment_methods",
-          "payment_methods_summary"
         ]
       },
       "OrgDataset": {
