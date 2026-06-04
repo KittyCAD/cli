@@ -41745,6 +41745,15 @@
                 "enum": [
                   "edit_kcl_code"
                 ]
+              },
+              "zookeeper_edit_patch": {
+                "nullable": true,
+                "description": "Optional reversible delta for undoing/redoing a Zookeeper project edit locally. The `outputs` map remains the resulting project state.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ZookeeperEditPatch"
+                  }
+                ]
               }
             },
             "required": [
@@ -60555,6 +60564,106 @@
             "type": "string",
             "enum": [
               "text_to_cad"
+            ]
+          }
+        ]
+      },
+      "ZookeeperEditPatch": {
+        "description": "Local replay data for a single successful Zookeeper project edit.",
+        "type": "object",
+        "properties": {
+          "changed_files": {
+            "description": "Project files changed by this Zookeeper edit.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ZookeeperEditPatchFile"
+            }
+          },
+          "run_id": {
+            "description": "Stable id for the Zookeeper run that produced this edit.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id"
+        ]
+      },
+      "ZookeeperEditPatchFile": {
+        "description": "Replay data for one project file changed by a Zookeeper edit.",
+        "oneOf": [
+          {
+            "description": "The file was created by Zookeeper.",
+            "type": "object",
+            "properties": {
+              "contents": {
+                "description": "File contents created by Zookeeper.",
+                "type": "string"
+              },
+              "path": {
+                "description": "Project-relative path to the changed file.",
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "created"
+                ]
+              }
+            },
+            "required": [
+              "contents",
+              "path",
+              "status"
+            ]
+          },
+          {
+            "description": "The file was modified by Zookeeper.",
+            "type": "object",
+            "properties": {
+              "diff": {
+                "description": "Machine-applicable unified diff from the previous contents to the new contents.",
+                "type": "string"
+              },
+              "path": {
+                "description": "Project-relative path to the changed file.",
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "modified"
+                ]
+              }
+            },
+            "required": [
+              "diff",
+              "path",
+              "status"
+            ]
+          },
+          {
+            "description": "The file was deleted by Zookeeper.",
+            "type": "object",
+            "properties": {
+              "path": {
+                "description": "Project-relative path to the changed file.",
+                "type": "string"
+              },
+              "previous_contents": {
+                "description": "File contents before Zookeeper deleted the file.",
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "deleted"
+                ]
+              }
+            },
+            "required": [
+              "path",
+              "previous_contents",
+              "status"
             ]
           }
         ]
