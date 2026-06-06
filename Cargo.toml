@@ -106,7 +106,7 @@ built = "0.7"
 expectorate = "1.2.0"
 futures = "0.3"
 pretty_assertions = "1"
-serial_test = "3.4.0"
+serial_test = "3.5.0"
 tempfile = "3.27.0"
 test-context = "0.5.8"
 
