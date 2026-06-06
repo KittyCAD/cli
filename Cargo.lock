@@ -2021,7 +2021,7 @@ dependencies = [
  "fnv",
  "futures-core",
  "futures-sink",
- "http 1.4.0",
+ "http 1.4.1",
  "indexmap 2.14.0",
  "slab",
  "tokio",
@@ -2136,9 +2136,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "1.4.0"
+version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3ba2a386d7f85a81f119ad7498ebe444d2e22c2af0b86b069416ace48b3311a"
+checksum = "8be7462df143984c4598a256ef469b251d7d7f9e271135073e78fc535414f3d0"
 dependencies = [
  "bytes",
  "itoa",
@@ -2162,7 +2162,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1efedce1fb8e6913f23e0c92de8e62cd5b772a67e7b3946df930a62566c93184"
 dependencies = [
  "bytes",
- "http 1.4.0",
+ "http 1.4.1",
 ]
 
 [[package]]
@@ -2173,7 +2173,7 @@ checksum = "b021d93e26becf5dc7e1b75b1bed1fd93124b374ceb73f43d4d4eafec896a64a"
 dependencies = [
  "bytes",
  "futures-core",
- "http 1.4.0",
+ "http 1.4.1",
  "http-body 1.0.1",
  "pin-project-lite",
 ]
@@ -2233,7 +2233,7 @@ dependencies = [
  "futures-channel",
  "futures-util",
  "h2 0.4.9",
- "http 1.4.0",
+ "http 1.4.1",
  "http-body 1.0.1",
  "httparse",
  "itoa",
@@ -2264,7 +2264,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d191583f3da1305256f22463b9bb0471acad48a4e534a5218b9963e9c1f59b2"
 dependencies = [
  "futures-util",
- "http 1.4.0",
+ "http 1.4.1",
  "hyper 1.6.0",
  "hyper-util",
  "rustls 0.23.26",
@@ -2287,7 +2287,7 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-util",
- "http 1.4.0",
+ "http 1.4.1",
  "http-body 1.0.1",
  "hyper 1.6.0",
  "ipnet",
@@ -2804,7 +2804,7 @@ dependencies = [
  "git_rev",
  "gloo-utils",
  "gltf-json",
- "http 1.4.0",
+ "http 1.4.1",
  "ignore",
  "image",
  "image-compare",
@@ -2887,7 +2887,7 @@ dependencies = [
  "format_serde_error",
  "futures",
  "getrandom 0.3.2",
- "http 1.4.0",
+ "http 1.4.1",
  "itertools",
  "log",
  "mime_guess",
@@ -2934,7 +2934,7 @@ dependencies = [
  "enum-iterator",
  "enum-iterator-derive",
  "euler",
- "http 1.4.0",
+ "http 1.4.1",
  "kittycad-measurements",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",
@@ -3085,9 +3085,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.29"
+version = "0.4.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
+checksum = "616ec5685824bcc94416c6d4a7a446eea774a31efd7062c8480ba6fd06d7a6e5"
 dependencies = [
  "serde_core",
 ]
@@ -3589,7 +3589,7 @@ dependencies = [
  "data-encoding",
  "format_serde_error",
  "futures-util",
- "http 1.4.0",
+ "http 1.4.1",
  "indexmap 2.14.0",
  "json-patch",
  "log",
@@ -4565,7 +4565,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2 0.4.9",
- "http 1.4.0",
+ "http 1.4.1",
  "http-body 1.0.1",
  "http-body-util",
  "hyper 1.6.0",
@@ -4605,7 +4605,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f67ad7fdf5c0a015763fcd164bee294b13fb7b6f89f1b55961d40f00c3e32d6b"
 dependencies = [
  "async-trait",
- "http 1.4.0",
+ "http 1.4.1",
  "reqwest 0.12.28",
  "reqwest-middleware",
 ]
@@ -4618,7 +4618,7 @@ checksum = "57f17d28a6e6acfe1733fe24bcd30774d13bffa4b8a22535b4c8c98423088d4e"
 dependencies = [
  "anyhow",
  "async-trait",
- "http 1.4.0",
+ "http 1.4.1",
  "reqwest 0.12.28",
  "serde",
  "thiserror 1.0.69",
@@ -4635,7 +4635,7 @@ dependencies = [
  "async-trait",
  "futures",
  "getrandom 0.2.16",
- "http 1.4.0",
+ "http 1.4.1",
  "hyper 1.6.0",
  "parking_lot 0.11.2",
  "reqwest 0.12.28",
@@ -4656,7 +4656,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "getrandom 0.2.16",
- "http 1.4.0",
+ "http 1.4.1",
  "matchit",
  "reqwest 0.12.28",
  "reqwest-middleware",
@@ -6091,7 +6091,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "http 1.4.0",
+ "http 1.4.1",
  "http-body 1.0.1",
  "http-body-util",
  "iri-string",
@@ -6222,7 +6222,7 @@ checksum = "6c01152af293afb9c7c2a57e4b559c5620b421f6d133261c60dd2d0cdb38e6b8"
 dependencies = [
  "bytes",
  "data-encoding",
- "http 1.4.0",
+ "http 1.4.1",
  "httparse",
  "log",
  "rand 0.9.4",
@@ -6360,9 +6360,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.23.1"
+version = "1.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddd74a9687298c6858e9b88ec8935ec45d22e8fd5e6394fa1bd4e99a87789c76"
+checksum = "d258b83ceec21034727ecee8c382cfa6c3e133699b0742c64571814fb420c9f7"
 dependencies = [
  "getrandom 0.4.1",
  "js-sys",
@@ -7320,7 +7320,7 @@ dependencies = [
  "futures",
  "git_rev",
  "heck",
- "http 1.4.0",
+ "http 1.4.1",
  "ignore",
  "image",
  "itertools",
