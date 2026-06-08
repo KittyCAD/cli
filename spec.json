@@ -15391,16 +15391,16 @@
           "service-accounts"
         ],
         "summary": "Delete an service account for your org.",
-        "description": "This endpoint requires authentication by an org member. It deletes the requested service account for the organization.\n\nThis endpoint does not actually delete the service account from the database. It merely marks the token as invalid. We still want to keep the service account in the database for historical purposes.",
+        "description": "This endpoint requires authentication by an org member. It deletes the requested service account for the organization.\n\nThis endpoint does not actually delete the service account from the database. It merely marks the token as invalid. We still want to keep the service account in the database for historical purposes.\n\nThe token path parameter can be either the full service account token (prefixed with `svc-`) or the token's unique ID (a UUID).",
         "operationId": "delete_service_account_for_org",
         "parameters": [
           {
             "in": "path",
             "name": "token",
-            "description": "The service account.",
+            "description": "The service account token (prefixed with `svc-`) or the token's unique ID (a UUID).",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/ServiceAccountUuid"
+              "type": "string"
             }
           }
         ],
@@ -20900,16 +20900,16 @@
           "api-tokens"
         ],
         "summary": "Delete an API token for your user.",
-        "description": "This endpoint requires authentication by any Zoo user. It deletes the requested API token for the user.\n\nThis endpoint does not actually delete the API token from the database. It merely marks the token as invalid. We still want to keep the token in the database for historical purposes.",
+        "description": "This endpoint requires authentication by any Zoo user. It deletes the requested API token for the user.\n\nThis endpoint does not actually delete the API token from the database. It merely marks the token as invalid. We still want to keep the token in the database for historical purposes.\n\nThe token path parameter can be either the full API token (prefixed with `api-`) or the token's unique ID (a UUID).",
         "operationId": "delete_api_token_for_user",
         "parameters": [
           {
             "in": "path",
             "name": "token",
-            "description": "The API token.",
+            "description": "The API token (prefixed with `api-`) or the token's unique ID (a UUID).",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/ApiTokenUuid"
+              "type": "string"
             }
           }
         ],
