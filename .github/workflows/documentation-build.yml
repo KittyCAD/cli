@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout CLI
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Install latest rust
         uses: dtolnay/rust-toolchain@stable
@@ -43,7 +43,7 @@ jobs:
         run: make gen-md
 
       - name: Checkout documentation
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
         with:
           repository: kittycad/documentation
           path: docs
