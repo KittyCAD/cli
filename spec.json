@@ -41096,6 +41096,11 @@
             "description": "Human-readable display description.",
             "type": "string"
           },
+          "disabled": {
+            "description": "Whether this mode is unavailable for the user's current plan.",
+            "default": false,
+            "type": "boolean"
+          },
           "icon": {
             "description": "Client icon identifier.",
             "type": "string"
