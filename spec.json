@@ -36497,6 +36497,60 @@
           }
         ]
       },
+      "DirectionType": {
+        "description": "What to use as a direction when one is needed (e.g. for an extrusion).",
+        "oneOf": [
+          {
+            "description": "Uses the direction of an edge, if linear",
+            "type": "object",
+            "properties": {
+              "edge": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "Edge ID.",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "required": [
+              "edge"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "description": "Uses the provided vector as the direction.",
+            "type": "object",
+            "properties": {
+              "axis": {
+                "type": "object",
+                "properties": {
+                  "direction": {
+                    "description": "Direction.",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Point3d"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "direction"
+                ]
+              }
+            },
+            "required": [
+              "axis"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
       "DisableDryRun": {
         "description": "The response from the `DisableDryRun` endpoint.",
         "type": "object"
@@ -36631,6 +36685,23 @@
               "v2"
             ]
           }
+        ]
+      },
+      "EdgeGetLength": {
+        "description": "The response from the `EdgeGetLength` command.",
+        "type": "object",
+        "properties": {
+          "length": {
+            "description": "The length of the edge.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LengthUnit"
+              }
+            ]
+          }
+        },
+        "required": [
+          "length"
         ]
       },
       "EdgeInfo": {
@@ -42067,6 +42138,15 @@
                   }
                 ]
               },
+              "direction": {
+                "nullable": true,
+                "description": "What direction to extrude in. If None, the engine will extrude in the direction normal of the target's plane.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/DirectionType"
+                  }
+                ]
+              },
               "distance": {
                 "description": "How far off the plane to extrude",
                 "allOf": [
@@ -43425,6 +43505,27 @@
               "distance_type",
               "entity_id1",
               "entity_id2",
+              "type"
+            ]
+          },
+          {
+            "description": "What is the length of this edge?",
+            "type": "object",
+            "properties": {
+              "edge_id": {
+                "description": "ID of the edge being queried.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "edge_get_length"
+                ]
+              }
+            },
+            "required": [
+              "edge_id",
               "type"
             ]
           },
@@ -50212,6 +50313,24 @@
                 "type": "string",
                 "enum": [
                   "entity_get_distance"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "type"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/EdgeGetLength"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "edge_get_length"
                 ]
               }
             },
