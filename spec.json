@@ -415,6 +415,100 @@
         }
       }
     },
+    "/announcements": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "List all active announcements.",
+        "description": "No authentication is required.",
+        "operationId": "get_announcements",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Content-Location": {
+                "description": "The Content-Location header for responses that are not the final destination. This is used to indicate where the resource can be found, when it is finished.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "The location header for redirects and letting users know if there is a websocket they can listen to for status updates on their operation.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "description": "Set-Cookie header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "X-Api-Call-Id": {
+                "description": "ID for this request. We return it so that users can report this to us and help us debug their problems.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementList"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api-calls/{id}": {
       "get": {
         "tags": [
@@ -31818,6 +31912,60 @@
           }
         ]
       },
+      "Announcement": {
+        "description": "An announcement broadcast to all clients.",
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "body": {
+            "type": "string"
+          },
+          "created_at": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "active",
+          "created_at",
+          "id",
+          "title",
+          "updated_at"
+        ]
+      },
+      "AnnouncementList": {
+        "description": "Response containing active announcements.",
+        "type": "object",
+        "properties": {
+          "announcements": {
+            "description": "The list of active announcements.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Announcement"
+            }
+          }
+        },
+        "required": [
+          "announcements"
+        ]
+      },
       "ApiCallStatus": {
         "description": "The status of an async API call.",
         "oneOf": [
@@ -40452,6 +40600,13 @@
             "enum": [
               "deleted"
             ]
+          },
+          {
+            "description": "The project was reviewed and changes were requested before it can be published.",
+            "type": "string",
+            "enum": [
+              "changes_requested"
+            ]
           }
         ]
       },
@@ -42388,9 +42543,14 @@
                   }
                 ]
               },
+              "orient_profile_perpendicular": {
+                "nullable": true,
+                "description": "If true, before the sweep starts, the profile will be re-oriented so that it is perpendicular to the path being swept along. If false, the profile is left in its current orientation. Defaults to false.",
+                "type": "boolean"
+              },
               "relative_to": {
-                "description": "What is this sweep relative to?",
-                "default": "sketch_plane",
+                "nullable": true,
+                "description": "What is this sweep relative to? Deprecated; please use `translate_profile_to_path` and `orient_profile_perpendicular` instead.",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/RelativeTo"
@@ -42424,6 +42584,11 @@
                     "$ref": "#/components/schemas/ModelingCmdId"
                   }
                 ]
+              },
+              "translate_profile_to_path": {
+                "nullable": true,
+                "description": "If true, the profile being swept will be moved to the path being swept along, before the sweep starts. If false, the profile stays where it is, and the sweep starts from there. Defaults to false.",
+                "type": "boolean"
               },
               "type": {
                 "type": "string",
@@ -53684,6 +53849,11 @@
         "description": "Owner-facing publication metadata for a project.",
         "type": "object",
         "properties": {
+          "feedback": {
+            "nullable": true,
+            "description": "Moderator feedback when changes have been requested, if any.",
+            "type": "string"
+          },
           "has_unpublished_changes": {
             "description": "Whether the current editable draft differs from the last live version.",
             "type": "boolean"
