@@ -2758,9 +2758,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.163"
+version = "0.2.164"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9460c6bd2611a08865ad64282fcda1d4e1407c372453833d724a1f6a0bc0eb62"
+checksum = "e24aca8744decfa93bc93dcb4ca59ed97b14fd9e447ed7e0cb6441c55d7ab89a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2769,9 +2769,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.163"
+version = "0.2.164"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47f668f7dbea826522e5c7beaa37f5bbfc638212b13a9f2a8d08d6a4289d4f20"
+checksum = "28a62ac8c4c9724ecc08d9aaeb77465c0a8b5933643e6603bfda197c8ef4dbd6"
 dependencies = [
  "miette",
  "serde",
@@ -2781,9 +2781,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.163"
+version = "0.2.164"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18f7a8ce47f7ca0e0e9f35d5664d624b3058d378cee2422ea00be9f436273507"
+checksum = "d542bb34ad15e8a8ac82435147e18a7b9822a9d1ef6df56aa27f162400b08598"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2857,9 +2857,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.163"
+version = "0.2.164"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa8acc19abf3d701f7a16cee83e617e72cd58b569d6acb1491c9d802c7eabc67"
+checksum = "cac54fb0e09d9b35731c586fc60461178c1b0e6bd79f727dc546713ab9e615ba"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2923,9 +2923,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.205"
+version = "0.2.206"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "612835dddacd987ad49e3a6c618dc295dded4cf1616885ecadc815892a5252ca"
+checksum = "a35208abdee644c5a75a6becc4c95ab1590f994f9fb58ff97510c621bdf770b2"
 dependencies = [
  "anyhow",
  "bon",
@@ -2938,8 +2938,8 @@ dependencies = [
  "kittycad-measurements",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",
- "parse-display 0.10.0",
- "parse-display-derive 0.10.0",
+ "parse-display 0.11.0",
+ "parse-display-derive 0.11.0",
  "schemars",
  "serde",
  "serde_bytes",
@@ -7285,7 +7285,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.176"
+version = "0.2.177"
 dependencies = [
  "anyhow",
  "async-trait",
