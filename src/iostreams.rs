@@ -239,14 +239,14 @@ impl IoStreams {
         }
     }
 
-    pub fn write_output<T: serde::Serialize + tabled::Tabled>(
+    pub fn write_output<T: serde::Serialize>(
         &mut self,
         format: &crate::types::FormatOutput,
         value: &T,
     ) -> Result<()> {
         match format {
             crate::types::FormatOutput::Json => self.write_output_json(&serde_json::to_value(value)?),
-            crate::types::FormatOutput::Table => self.write_output_table(value),
+            crate::types::FormatOutput::Table => self.write_output_table_from_serialize(value),
             crate::types::FormatOutput::Yaml => self.write_output_yaml(value),
         }
     }
@@ -280,16 +280,29 @@ impl IoStreams {
         Ok(())
     }
 
-    pub fn write_output_table<T: tabled::Tabled>(&mut self, value: &T) -> Result<()> {
-        let table = tabled::Table::new(vec![value])
-            .with(tabled::settings::Rotate::Left)
-            .with(
-                tabled::settings::Modify::new(tabled::settings::object::Segment::all())
-                    .with(tabled::settings::Alignment::left())
-                    .with(tabled::settings::Alignment::top()),
+    fn write_output_table_from_serialize<T: serde::Serialize>(&mut self, value: &T) -> Result<()> {
+        let value = serde_json::to_value(value)?;
+        let value = value
+            .as_object()
+            .ok_or_else(|| anyhow!("cannot output non-object data as table"))?;
+
+        let table = tabled::Table::new(value.iter().map(|(key, value)| {
+            (
+                key.clone(),
+                match value {
+                    serde_json::Value::String(v) => v.clone(),
+                    _ => value.to_string(),
+                },
             )
-            .with(tabled::settings::Style::sharp())
-            .to_string();
+        }))
+        .with(tabled::settings::Rotate::Left)
+        .with(
+            tabled::settings::Modify::new(tabled::settings::object::Segment::all())
+                .with(tabled::settings::Alignment::left())
+                .with(tabled::settings::Alignment::top()),
+        )
+        .with(tabled::settings::Style::sharp())
+        .to_string();
 
         writeln!(self.out, "{table}")?;
 
