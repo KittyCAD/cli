@@ -280,22 +280,6 @@ impl IoStreams {
         Ok(())
     }
 
-    pub fn write_output_table<T: tabled::Tabled>(&mut self, value: &T) -> Result<()> {
-        let table = tabled::Table::new(vec![value])
-            .with(tabled::settings::Rotate::Left)
-            .with(
-                tabled::settings::Modify::new(tabled::settings::object::Segment::all())
-                    .with(tabled::settings::Alignment::left())
-                    .with(tabled::settings::Alignment::top()),
-            )
-            .with(tabled::settings::Style::sharp())
-            .to_string();
-
-        writeln!(self.out, "{table}")?;
-
-        Ok(())
-    }
-
     fn write_output_table_from_serialize<T: serde::Serialize>(&mut self, value: &T) -> Result<()> {
         let value = serde_json::to_value(value)?;
         let value = value
