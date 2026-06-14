@@ -62,7 +62,7 @@ jobs:
           RUST_BACKTRACE: 1
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
