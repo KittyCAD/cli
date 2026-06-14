@@ -290,7 +290,7 @@ impl IoStreams {
             (
                 key.clone(),
                 match value {
-                    serde_json::Value::String(v) => v.to_string(),
+                    serde_json::Value::String(v) => v.clone(),
                     _ => value.to_string(),
                 },
             )
