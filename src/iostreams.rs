@@ -239,11 +239,7 @@ impl IoStreams {
         }
     }
 
-    pub fn write_output<T: serde::Serialize>(
-        &mut self,
-        format: &crate::types::FormatOutput,
-        value: &T,
-    ) -> Result<()> {
+    pub fn write_output<T: serde::Serialize>(&mut self, format: &crate::types::FormatOutput, value: &T) -> Result<()> {
         match format {
             crate::types::FormatOutput::Json => self.write_output_json(&serde_json::to_value(value)?),
             crate::types::FormatOutput::Table => self.write_output_table_from_serialize(value),
