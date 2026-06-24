@@ -42,6 +42,10 @@ The tests use the `ZOO_TEST_TOKEN`  variables for knowing how to authenticate.
     ```
     cargo check
     ```
+1. Make sure you have [toml-cli](https://github.com/gnprice/toml-cli) installed.
+   ```
+   cargo install toml-cli
+   ```
 2. Run `make tag` this is just an easy command for making a tag formatted
    correctly with the version.
 3. Push the tag (the result of `make tag` gives instructions for this)
@@ -67,4 +71,3 @@ If you want to only build one of the cross targets, supply the `CROSS_TARGETS` e
 
 
 If you get an error about md5sum on mac when running `make release`, you probably need to `brew install coreutils`
-

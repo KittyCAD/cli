@@ -1,7 +1,8 @@
 [package]
 name = "zoo"
-version = "0.2.160"
+version = "0.2.178"
 edition = "2021"
+rust-version = "1.95"
 build = "build.rs"
 
 [workspace]
@@ -13,7 +14,7 @@ anyhow = { version = "1", features = ["backtrace"] }
 async-trait = "0.1.88"
 base64 = "0.22.1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
-clap = { version = "4.6.0", features = [
+clap = { version = "4.6.1", features = [
   "cargo",
   "derive",
   "env",
@@ -21,11 +22,11 @@ clap = { version = "4.6.0", features = [
   "help",
   "wrap_help",
 ] }
-clap_complete = { version = "4.6.0" }
+clap_complete = { version = "4.6.5" }
 cli-macro = { path = "cli-macro" }
-colored_json = "4.1"
+colored_json = "5.0"
 crossterm = { version = "0.29", features = ["event-stream"] }
-data-encoding = "2.10.0"
+data-encoding = "2.11.0"
 dialoguer = "0.12.0"
 dirs = "6"
 futures = "0.3"
@@ -38,26 +39,26 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.14.0"
-kcl-lib = { version = "=0.2.145", features = ["disable-println"] }
-kcl-test-server = "=0.2.145"
-kittycad = { version = "0.4.10", features = [
+kcl-lib = { version = "=0.2.165", features = ["disable-println"] }
+kcl-test-server = "=0.2.165"
+kittycad = { version = "0.4.12", features = [
   "clap",
   "tabled",
   "requests",
   "retry",
 ] }
-kittycad-modeling-cmds = { version = "0.2.187", features = [
+kittycad-modeling-cmds = { version = "0.2.206", features = [
   "websocket",
   "tabled",
 ] }
-log = "0.4.29"
+log = "0.4.30"
 miette = { version = "7.5.0", features = ["fancy"] }
 nu-ansi-term = "0.50.3"
 num-traits = "0.2.19"
 oauth2 = "4.4.2"
-open = "5.3.3"
-parse-display = "0.10.0"
-pulldown-cmark = "0.13.3"
+open = "5.3.5"
+parse-display = "0.11.0"
+pulldown-cmark = "0.13.4"
 pulldown-cmark-to-cmark = "22.0.0"
 ratatui = { version = "0.30", default-features = false, features = [
   "crossterm",
@@ -75,7 +76,7 @@ ring = "0.17.14"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
-shlex = "1.3.0"
+shlex = "2.0.1"
 similar = "3"
 slog = "2"
 slog-async = "2"
@@ -94,7 +95,7 @@ toml = "1.1.0"
 toml_edit = "0.25.8"
 unicode-segmentation = "1.13.2"
 url = "2.5.4"
-uuid = { version = "1.23.0", features = ["serde", "v4"] }
+uuid = { version = "1.23.2", features = ["serde", "v4"] }
 version-compare = "0.2.1"
 viuer = { version = "0.11.0", features = ["print-file"] }
 
@@ -105,9 +106,9 @@ built = "0.7"
 expectorate = "1.2.0"
 futures = "0.3"
 pretty_assertions = "1"
-serial_test = "3.4.0"
+serial_test = "3.5.0"
 tempfile = "3.27.0"
-test-context = "0.5.5"
+test-context = "0.5.8"
 
 [profile.dev]
 # Disabling debug info speeds up builds a bunch,
@@ -120,4 +121,5 @@ incremental = true
 debug = 0
 
 [patch.crates-io]
+# kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}

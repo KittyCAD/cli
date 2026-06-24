@@ -4,14 +4,12 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
-    naersk.url = "github:nix-community/naersk";
   };
 
   outputs = {
     self,
     nixpkgs,
     rust-overlay,
-    naersk,
   }: let
     overlays = [
       (import rust-overlay)
@@ -68,18 +66,27 @@
       pkgs,
       system,
     }: let
-      naersk-lib = pkgs.callPackage naersk {
+      cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+      rustPlatform = pkgs.makeRustPlatform {
         cargo = pkgs.rustToolchain;
         rustc = pkgs.rustToolchain;
       };
     in {
-      zoo = naersk-lib.buildPackage {
+      zoo = rustPlatform.buildRustPackage {
         pname = "zoo";
-        version = "0.1.0";
-        release = true;
+        version = cargoToml.package.version;
         src = ./.;
 
-        buildInputs = [pkgs.openssl pkgs.pkg-config];
+        cargoLock = {
+          lockFile = ./Cargo.lock;
+          outputHashes = {
+            "openapitor-0.0.9" = "sha256-YRLglTUCrXyoajZK2v9FpHUVsD3ugPQwliwFGs/47Z0=";
+          };
+        };
+
+        doCheck = false;
+        nativeBuildInputs = [pkgs.pkg-config];
+        buildInputs = [pkgs.openssl];
       };
       default = self.packages.${system}.zoo;
     });

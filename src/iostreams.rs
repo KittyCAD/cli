@@ -313,10 +313,6 @@ impl IoStreams {
             if enabled.is_ok() {
                 assume_true_color = true;
             }
-
-            // Enable colored json output.
-            #[cfg(windows)]
-            let _ = colored_json::enable_ansi_support();
         }
 
         let mut io = IoStreams {

@@ -8,7 +8,7 @@ use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCre
 use kittycad_modeling_cmds::{self as kcmc, output::TakeSnapshot, websocket::ModelingSessionData, ModelingCmd};
 use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
 
-use crate::{config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
+use crate::{cmd_kcl, config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
 pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
@@ -162,8 +162,14 @@ impl Context<'_> {
     ) -> Result<OkWebSocketResponseData> {
         let engine = self.engine(hostname, replay).await?;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
         let resp = engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
+            .send_modeling_cmd(
+                &batch_context,
+                uuid::Uuid::new_v4(),
+                kcl_lib::SourceRange::default(),
+                &cmd,
+            )
             .await?;
         Ok(resp)
     }
@@ -175,6 +181,7 @@ impl Context<'_> {
         let pool = None;
         let post_effect = None;
         let show_grid = None;
+        let pr = std::env::var("ZOO_ENGINE_PR").ok().and_then(|s| s.parse().ok());
         let unlocked_framerate = None;
         let video_res_height = None;
         let video_res_width = None;
@@ -186,7 +193,7 @@ impl Context<'_> {
                 order_independent_transparency: Some(false),
                 pool,
                 post_effect,
-                pr: None,
+                pr,
                 replay,
                 show_grid,
                 unlocked_framerate,
@@ -201,7 +208,7 @@ impl Context<'_> {
     pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineConnection> {
         let ws = self.engine_ws(hostname, replay).await?;
 
-        let engine = EngineConnection::new(ws).await?;
+        let engine = EngineConnection::new(ws, Some(cmd_kcl::HEARTBEATS)).await?;
 
         Ok(engine)
     }
@@ -219,7 +226,7 @@ impl Context<'_> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let ctx = kcl_lib::ExecutorContext::new(&client, cmd_kcl::with_heartbeats(settings)).await?;
         let mut state = kcl_lib::ExecState::new(&ctx);
         let session_data = ctx
             .run(&program, &mut state)
@@ -227,9 +234,12 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
+
         // Zoom on the object.
         ctx.engine
             .send_modeling_cmd(
+                &batch_context,
                 uuid::Uuid::new_v4(),
                 kcl_lib::SourceRange::default(),
                 &ModelingCmd::from(
@@ -244,7 +254,12 @@ impl Context<'_> {
 
         let resp = ctx
             .engine
-            .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
+            .send_modeling_cmd(
+                &batch_context,
+                uuid::Uuid::new_v4(),
+                kcl_lib::SourceRange::default(),
+                &cmd,
+            )
             .await
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
         Ok((resp, session_data))
@@ -263,7 +278,7 @@ impl Context<'_> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let ctx = kcl_lib::ExecutorContext::new(&client, cmd_kcl::with_heartbeats(settings)).await?;
         let mut state = kcl_lib::ExecState::new(&ctx);
         let session_data = ctx
             .run(&program, &mut state)
@@ -271,11 +286,17 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
         let mut responses = Vec::with_capacity(cmds.len());
         for cmd in cmds {
             let resp = ctx
                 .engine
-                .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &cmd)
+                .send_modeling_cmd(
+                    &batch_context,
+                    uuid::Uuid::new_v4(),
+                    kcl_lib::SourceRange::default(),
+                    &cmd,
+                )
                 .await
                 .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
             responses.push(resp);
@@ -299,7 +320,7 @@ impl Context<'_> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let ctx = kcl_lib::ExecutorContext::new(&client, settings).await?;
+        let ctx = kcl_lib::ExecutorContext::new(&client, cmd_kcl::with_heartbeats(settings)).await?;
         let mut state = kcl_lib::ExecState::new(&ctx);
         let session_data = ctx
             .run(&program, &mut state)
@@ -307,11 +328,17 @@ impl Context<'_> {
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
 
+        let batch_context = kcl_lib::EngineBatchContext::new();
         let mut snapshot_resps = Vec::new();
         for snapshot_cmd in snapshot_cmds {
             let resp = ctx
                 .engine
-                .send_modeling_cmd(uuid::Uuid::new_v4(), kcl_lib::SourceRange::default(), &snapshot_cmd)
+                .send_modeling_cmd(
+                    &batch_context,
+                    uuid::Uuid::new_v4(),
+                    kcl_lib::SourceRange::default(),
+                    &snapshot_cmd,
+                )
                 .await
                 .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
             if let OkWebSocketResponseData::Modeling {

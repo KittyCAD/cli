@@ -17,6 +17,16 @@ use crate::{
 
 mod camera_angles;
 
+/// Send a heartbeat every N seconds.
+pub const HEARTBEATS: u64 = 3;
+
+pub(crate) fn with_heartbeats(mut settings: kcl_lib::ExecutorSettings) -> kcl_lib::ExecutorSettings {
+    if settings.heartbeats.is_none() {
+        settings.heartbeats = Some(HEARTBEATS);
+    }
+    settings
+}
+
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -1696,7 +1706,7 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
 
     // Check if the path was stdin.
     if input.to_str() == Some("-") {
-        return Ok(default_settings);
+        return Ok(with_heartbeats(default_settings));
     }
 
     // Make it a path.
@@ -1726,9 +1736,9 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
         let mut settings: kcl_lib::ExecutorSettings = project_toml.into();
         let typed_path = TypedPath::from(input.display().to_string().as_str());
         settings.with_current_file(typed_path);
-        Ok(settings)
+        Ok(with_heartbeats(settings))
     } else {
-        Ok(default_settings)
+        Ok(with_heartbeats(default_settings))
     }
 }
 
@@ -1893,4 +1903,39 @@ fn combine_quadrants(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn with_heartbeats_adds_cli_default() {
+        let settings = with_heartbeats(kcl_lib::ExecutorSettings::default());
+
+        assert_eq!(settings.heartbeats, Some(HEARTBEATS));
+    }
+
+    #[test]
+    fn with_heartbeats_preserves_explicit_setting() {
+        let settings = kcl_lib::ExecutorSettings {
+            heartbeats: Some(17),
+            ..Default::default()
+        };
+
+        let settings = with_heartbeats(settings);
+
+        assert_eq!(settings.heartbeats, Some(17));
+    }
+
+    #[test]
+    fn project_modeling_settings_enable_heartbeats() {
+        let temp = tempfile::tempdir().unwrap();
+        let input = temp.path().join("main.kcl");
+        std::fs::write(&input, "cube(1)\n").unwrap();
+
+        let settings = get_modeling_settings_from_project_toml(&input).unwrap();
+
+        assert_eq!(settings.heartbeats, Some(HEARTBEATS));
+    }
 }

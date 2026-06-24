@@ -13,7 +13,7 @@ jobs:
     name: make release
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v3.0.0'
         with:
@@ -39,17 +39,17 @@ jobs:
 
           cargo install toml-cli
       - name: Cache cargo registry
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo index
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo build
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
@@ -89,7 +89,7 @@ jobs:
     needs: [makerelease]
     name: createrelease
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
       - name: Install latest nightly
         uses: dtolnay/rust-toolchain@stable
       - uses: actions/download-artifact@v8
@@ -110,7 +110,7 @@ jobs:
         shell: bash
         run: |
           ls -la
-          echo 'These instructions are meant as an easy way to install. Note: you likely need to install `coreutils` in order to have the `sha256sum` command.' > release.md
+          echo 'These instructions are meant as an easy way to install. Unix snippets use `sha256sum`; macOS users may need `coreutils` for that command.' > release.md
           echo "" >> release.md
           cat macos-latest-${{github.ref_name}}-README.md  \
             ubuntu-latest-${{github.ref_name}}-README.md \
@@ -133,7 +133,7 @@ jobs:
             fi
           fi
       - name: Create a Release
-        uses: softprops/action-gh-release@v2.6.2
+        uses: softprops/action-gh-release@v3.0.0
         with:
           body_path: ${{github.workspace}}/release.md
           prerelease: ${{steps.extract_prerelease.outputs.prerelease}}
@@ -221,14 +221,14 @@ jobs:
         with:
           path: releases
           destination: dl.kittycad.io
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@v3.2.0
         id: app-token
         with:
           # required
           app-id: ${{ secrets.GH_ORG_APP_ID }}
           private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
         with:
           repository: 'kittycad/homebrew-kittycad'
           path: 'homebrew-kittycad'
@@ -252,7 +252,7 @@ jobs:
           git push -f origin "$NEW_BRANCH"
           gh pr create --title "Update tap formula" \
               --body "Updating the formula for our homebrew tap" \
-              --reviewer jessfraz,maxammann \
+              --reviewer jessfraz \
               --head "$NEW_BRANCH" \
               --base main || true
         env:
