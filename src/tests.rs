@@ -1231,4 +1231,9 @@ async fn test_main(ctx: &mut MainContext) {
         eprintln!("Test '{}' failed:\n{}", test_error.name, test_error.reason);
     }
     eprintln!("Failed {failed} tests, passed {passed}, skipped {skipped}");
+    assert_eq!(failed, 0, "There should have been zero failures.");
+    assert!(
+        passed > 0,
+        "There should have been at least one passing test. passed={passed}, skipped={skipped}"
+    );
 }
