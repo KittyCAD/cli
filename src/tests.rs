@@ -994,6 +994,112 @@ cli_tests! {
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
+async fn analyze_a_kcl_file_with_non_fatal_errors_exits_non_zero(ctx: &mut MainContext) {
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "analyze a kcl file with non-fatal errors",
+            svec![
+                "zoo",
+                "kcl",
+                "analyze",
+                "tests/non_fatal_error.kcl",
+                "--format=json",
+                "--material-density",
+                "1.0",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stderr_contains("KCL execution reported errors")
+        .exit_code(1),
+    )
+    .await;
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn analyze_a_kcl_file_with_non_fatal_errors_allowed_exits_zero(ctx: &mut MainContext) {
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "analyze a kcl file with non-fatal errors allowed",
+            svec![
+                "zoo",
+                "kcl",
+                "analyze",
+                "--allow-errors",
+                "tests/non_fatal_error.kcl",
+                "--format=json",
+                "--material-density",
+                "1.0",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stdout_contains(r#""mass""#)
+        .stderr_contains("tests/non_fatal_error.kcl"),
+    )
+    .await;
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn export_a_kcl_file_with_non_fatal_errors_exits_non_zero(ctx: &mut MainContext) {
+    let output_dir = tempfile::tempdir().expect("failed to create export output dir");
+
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "export a kcl file with non-fatal errors",
+            svec![
+                "zoo",
+                "kcl",
+                "export",
+                "tests/non_fatal_error.kcl",
+                output_dir.path().display(),
+                "-t",
+                "obj",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stderr_contains("KCL execution reported errors")
+        .exit_code(1),
+    )
+    .await;
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn export_a_kcl_file_with_non_fatal_errors_allowed_exits_zero(ctx: &mut MainContext) {
+    let output_dir = tempfile::tempdir().expect("failed to create export output dir");
+
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "export a kcl file with non-fatal errors allowed",
+            svec![
+                "zoo",
+                "kcl",
+                "export",
+                "--allow-errors",
+                "tests/non_fatal_error.kcl",
+                output_dir.path().display(),
+                "-t",
+                "obj",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stdout_contains("Wrote file:")
+        .stderr_contains("tests/non_fatal_error.kcl"),
+    )
+    .await;
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
 async fn ml_kcl_edit_reasoning_on(ctx: &mut MainContext) {
     let tmp = make_single_file_edit_project();
     run_test_item(
