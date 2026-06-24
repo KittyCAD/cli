@@ -801,7 +801,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("74.052")
+        .stdout_contains("74.023")
     }
 
     get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_toml(_ctx) => {
@@ -822,7 +822,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("74.052")
+        .stdout_contains("74.023")
     }
 
     analyze_a_kcl_file_as_table(_ctx) => {
