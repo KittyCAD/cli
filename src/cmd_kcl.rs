@@ -35,6 +35,23 @@ pub struct CmdKcl {
     subcmd: SubCommand,
 }
 
+#[derive(clap::Args, Debug, Clone, Copy, Default)]
+struct KclRunOptions {
+    /// When there are KCL problems that are are errors, continue anyway.
+    /// Problems (AKA compilation issues) may be detected in KCL parsing or
+    /// execution and can have varying severity. Some errors are fatal and are
+    /// not affected by this option. Which errors are considered fatal may
+    /// change without notice.
+    #[clap(long = "allow-errors", default_value = "false")]
+    allow_errors: bool,
+}
+
+impl KclRunOptions {
+    fn issue_check(self) -> kcl_error_fmt::KclIssueCheck {
+        kcl_error_fmt::KclIssueCheck::from_allow_errors(self.allow_errors)
+    }
+}
+
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
     Export(CmdKclExport),
@@ -114,6 +131,9 @@ pub struct CmdKclExport {
     /// This is useful for when pushing to version control.
     #[clap(long, default_value = "false")]
     pub deterministic: bool,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -146,6 +166,13 @@ impl crate::cmd::Command for CmdKclExport {
             .await
             .map_err(|err| kcl_error_fmt::into_miette(err, &code))?
             .1;
+        kcl_error_fmt::check_exec_state_issues(
+            &mut ctx.io.err_out,
+            &filepath.display().to_string(),
+            &code,
+            &state,
+            self.run_options.issue_check(),
+        )?;
 
         let files = ectx
             .export(get_output_format(&self.output_format, units, self.deterministic))
@@ -300,6 +327,9 @@ pub struct CmdKclSnapshot {
     #[clap(long, default_value = "false")]
     pub replay: bool,
 
+    #[clap(flatten)]
+    run_options: KclRunOptions,
+
     /// Which angle to take the snapshot from.
     /// Defaults to "front".
     #[clap(long, value_enum)]
@@ -384,6 +414,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                                 output_format,
                             ),
                             executor_settings,
+                            self.run_options.issue_check(),
                         )
                         .await?;
                     (
@@ -404,6 +435,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                                 output_format,
                             ),
                             executor_settings,
+                            self.run_options.issue_check(),
                         )
                         .await?;
                     (
@@ -424,6 +456,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                                 output_format,
                             ),
                             executor_settings,
+                            self.run_options.issue_check(),
                         )
                         .await?;
                     (
@@ -444,6 +477,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                                 output_format,
                             ),
                             executor_settings,
+                            self.run_options.issue_check(),
                         )
                         .await?;
                     (
@@ -459,6 +493,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                             &code,
                             four_sides_view(self.camera_style, self.camera_padding, output_format),
                             executor_settings,
+                            self.run_options.issue_check(),
                         )
                         .await?;
                     (
@@ -566,6 +601,9 @@ pub struct CmdKclView {
     /// and padding = -0.2 means the view will span 80% of the object(s) bounding box.
     #[clap(long, default_value = "0.1", allow_negative_numbers = true)]
     pub camera_padding: f32,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -639,6 +677,7 @@ impl crate::cmd::Command for CmdKclView {
                         &code,
                         four_sides_view(self.camera_style, self.camera_padding, output_format),
                         executor_settings,
+                        self.run_options.issue_check(),
                     )
                     .await?;
                 let [a, b, c, d] = responses
@@ -705,6 +744,7 @@ impl CmdKclView {
                 &code,
                 one_sided_view(angle, self.camera_style, self.camera_padding, output_format),
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
         let num_responses = responses.len();
@@ -953,6 +993,9 @@ pub struct CmdKclAnalyze {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -1000,6 +1043,7 @@ impl crate::cmd::Command for CmdKclAnalyze {
                     ),
                 ],
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
 
@@ -1101,6 +1145,9 @@ pub struct CmdKclVolume {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 /// Get the bounding box that contains everything in a KCL file.
@@ -1128,6 +1175,9 @@ pub struct CmdKclBoundingBox {
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
     pub output_unit: kcmc::units::UnitLength,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -1153,6 +1203,7 @@ impl crate::cmd::Command for CmdKclVolume {
                         .build(),
                 ),
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
 
@@ -1196,6 +1247,7 @@ impl crate::cmd::Command for CmdKclBoundingBox {
                         .build(),
                 ),
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
 
@@ -1296,6 +1348,9 @@ pub struct CmdKclMass {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -1327,6 +1382,7 @@ impl crate::cmd::Command for CmdKclMass {
                         .build(),
                 ),
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
 
@@ -1377,6 +1433,9 @@ pub struct CmdKclCenterOfMass {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -1402,6 +1461,7 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
                         .build(),
                 ),
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
 
@@ -1460,6 +1520,9 @@ pub struct CmdKclDensity {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -1491,6 +1554,7 @@ impl crate::cmd::Command for CmdKclDensity {
                         .build(),
                 ),
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
 
@@ -1541,6 +1605,9 @@ pub struct CmdKclSurfaceArea {
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
+
+    #[clap(flatten)]
+    run_options: KclRunOptions,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -1566,6 +1633,7 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
                         .build(),
                 ),
                 executor_settings,
+                self.run_options.issue_check(),
             )
             .await?;
 
