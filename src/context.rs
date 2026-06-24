@@ -358,7 +358,7 @@ impl Context<'_> {
         prompt: &str,
         kcl: bool,
         format: kittycad::types::FileExportFormat,
-        show_reasoning: bool,
+        _show_reasoning: bool,
     ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
 
@@ -377,10 +377,9 @@ impl Context<'_> {
             )
             .await?;
 
-        // Start reasoning websocket to stream reasoning messages for this generation.
-        let mut reasoning_guard = self
-            .spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
-            .await;
+        // Plain text-to-CAD generation does not currently emit reasoning websocket
+        // messages or an EndOfStream marker. KCL edits still stream reasoning through
+        // get_edit_for_prompt.
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -438,16 +437,11 @@ impl Context<'_> {
                 anyhow::bail!("Unexpected response type: {result:?}");
             }
 
-            reasoning_guard.drain(&mut self.io.err_out)?;
             status = gen_model.status.clone();
 
             // Wait for a bit before polling again.
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-            reasoning_guard.drain(&mut self.io.err_out)?;
         }
-
-        // Flush reasoning output before returning success or surfacing a terminal error.
-        reasoning_guard.finish(&mut self.io.err_out).await?;
 
         // If the model failed we will want to tell the user.
         if gen_model.status == ApiCallStatus::Failed {
@@ -828,9 +822,16 @@ impl ReasoningGuard {
 
     async fn finish(mut self, err_out: &mut dyn Write) -> Result<()> {
         self.drain(err_out)?;
-        if let Some(handle) = self.handle.take() {
-            handle.abort();
-            let _ = tokio::time::timeout(Duration::from_secs(1), handle).await;
+        if let Some(mut handle) = self.handle.take() {
+            // KCL edit streams should finish by sending `EndOfStream`, so give
+            // the task a short chance to drain final messages. Text-to-CAD
+            // generation showed that not every endpoint closes the reasoning
+            // stream, so this remains a brief best-effort grace period.
+            if tokio::time::timeout(Duration::from_secs(1), &mut handle).await.is_err() {
+                self.drain(err_out)?;
+                handle.abort();
+                let _ = handle.await;
+            }
         }
         self.drain(err_out)
     }

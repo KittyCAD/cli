@@ -390,7 +390,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("Completed")
-        .stderr_contains("reasoning:")
     }
 
     ml_text_to_cad_export_no_reasoning(_ctx) => {
