@@ -1,4 +1,4 @@
-use std::{str::FromStr, time::Duration};
+use std::{io::Write, str::FromStr, time::Duration};
 
 use anyhow::{anyhow, Result};
 use futures::StreamExt;
@@ -353,7 +353,7 @@ impl Context<'_> {
     }
 
     pub async fn get_model_for_prompt(
-        &self,
+        &mut self,
         hostname: &str,
         prompt: &str,
         kcl: bool,
@@ -378,10 +378,9 @@ impl Context<'_> {
             .await?;
 
         // Start reasoning websocket to stream reasoning messages for this generation.
-        let reasoning_guard = ReasoningGuard::new(
-            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
-                .await,
-        );
+        let mut reasoning_guard = self
+            .spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+            .await;
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -439,11 +438,16 @@ impl Context<'_> {
                 anyhow::bail!("Unexpected response type: {result:?}");
             }
 
+            reasoning_guard.drain(&mut self.io.err_out)?;
             status = gen_model.status.clone();
 
             // Wait for a bit before polling again.
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+            reasoning_guard.drain(&mut self.io.err_out)?;
         }
+
+        // Flush reasoning output before returning success or surfacing a terminal error.
+        reasoning_guard.finish(&mut self.io.err_out).await?;
 
         // If the model failed we will want to tell the user.
         if gen_model.status == ApiCallStatus::Failed {
@@ -458,13 +462,11 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model! Ensure the guard finishes before returning.
-        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
     pub async fn get_edit_for_prompt(
-        &self,
+        &mut self,
         hostname: &str,
         body: &kittycad::types::TextToCadMultiFileIterationBody,
         files: Vec<kittycad::types::multipart::Attachment>,
@@ -477,10 +479,9 @@ impl Context<'_> {
 
         // Start reasoning websocket to stream reasoning messages for this edit.
         // default to showing reasoning for edits as well; caller can pass false by wrapping here if needed later
-        let reasoning_guard = ReasoningGuard::new(
-            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
-                .await,
-        );
+        let mut reasoning_guard = self
+            .spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+            .await;
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -538,11 +539,16 @@ impl Context<'_> {
                 anyhow::bail!("Unexpected response type: {result:?}");
             }
 
+            reasoning_guard.drain(&mut self.io.err_out)?;
             status = gen_model.status.clone();
 
             // Wait for a bit before polling again.
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+            reasoning_guard.drain(&mut self.io.err_out)?;
         }
+
+        // Flush reasoning output before returning success or surfacing a terminal error.
+        reasoning_guard.finish(&mut self.io.err_out).await?;
 
         // If the model failed we will want to tell the user.
         if gen_model.status == ApiCallStatus::Failed {
@@ -557,8 +563,6 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model! Ensure the guard finishes before returning.
-        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
@@ -745,20 +749,16 @@ impl Context<'_> {
 }
 
 impl Context<'_> {
-    async fn spawn_reasoning_ws_task(
-        &self,
-        client: &kittycad::Client,
-        id: uuid::Uuid,
-        enable: bool,
-    ) -> Option<tokio::task::JoinHandle<()>> {
+    async fn spawn_reasoning_ws_task(&self, client: &kittycad::Client, id: uuid::Uuid, enable: bool) -> ReasoningGuard {
         if !enable {
-            return None;
+            return ReasoningGuard::default();
         }
 
         match client.ml().reasoning_ws(id).await {
             Ok((upgraded, _headers)) => {
                 let use_color = self.io.color_enabled() && self.io.is_stderr_tty();
-                Some(tokio::spawn(async move {
+                let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
+                let handle = tokio::spawn(async move {
                     let mut ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
                     while let Some(msg) = ws.next().await {
                         let Ok(msg) = msg else { break };
@@ -769,10 +769,14 @@ impl Context<'_> {
                             {
                                 match server_msg {
                                     kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
-                                        print_reasoning(reason, use_color);
+                                        for line in format_reasoning(reason, use_color) {
+                                            if sender.send(line).is_err() {
+                                                break;
+                                            }
+                                        }
                                     }
                                     kittycad::types::MlCopilotServerMessage::Error { detail } => {
-                                        print_copilot_error(&detail, use_color);
+                                        let _ = sender.send(format_copilot_error(&detail, use_color));
                                         // Do not break: errors may be non-fatal; keep streaming.
                                     }
                                     kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
@@ -786,42 +790,55 @@ impl Context<'_> {
                         }
                     }
                     let _ = ws.close(None).await;
-                }))
+                });
+                ReasoningGuard::new(handle, receiver)
             }
             Err(err) => {
                 let _ = err; // suppress unused warning; intentionally silent
-                None
+                ReasoningGuard::default()
             }
         }
-    }
-}
-
-// Print only reasoning messages in a friendly, concise CLI format.
-pub(crate) fn print_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) {
-    for line in format_reasoning(reason, use_color) {
-        eprintln!("{line}");
     }
 }
 
 // RAII guard to ensure the reasoning websocket task is cancelled and joined.
-struct ReasoningGuard(Option<tokio::task::JoinHandle<()>>);
+#[derive(Default)]
+struct ReasoningGuard {
+    handle: Option<tokio::task::JoinHandle<()>>,
+    receiver: Option<tokio::sync::mpsc::UnboundedReceiver<String>>,
+}
 
 impl ReasoningGuard {
-    fn new(handle: Option<tokio::task::JoinHandle<()>>) -> Self {
-        ReasoningGuard(handle)
+    fn new(handle: tokio::task::JoinHandle<()>, receiver: tokio::sync::mpsc::UnboundedReceiver<String>) -> Self {
+        Self {
+            handle: Some(handle),
+            receiver: Some(receiver),
+        }
     }
 
-    async fn finish(mut self) {
-        if let Some(handle) = self.0.take() {
+    fn drain(&mut self, err_out: &mut dyn Write) -> Result<()> {
+        let Some(receiver) = &mut self.receiver else {
+            return Ok(());
+        };
+        while let Ok(line) = receiver.try_recv() {
+            writeln!(err_out, "{line}")?;
+        }
+        Ok(())
+    }
+
+    async fn finish(mut self, err_out: &mut dyn Write) -> Result<()> {
+        self.drain(err_out)?;
+        if let Some(handle) = self.handle.take() {
             handle.abort();
             let _ = tokio::time::timeout(Duration::from_secs(1), handle).await;
         }
+        self.drain(err_out)
     }
 }
 
 impl Drop for ReasoningGuard {
     fn drop(&mut self) {
-        if let Some(handle) = self.0.take() {
+        if let Some(handle) = self.handle.take() {
             handle.abort();
             // Ensure the task is polled to completion in the background.
             tokio::spawn(async move {
@@ -992,12 +1009,12 @@ fn indent_block(s: &str) -> String {
     out
 }
 
-fn print_copilot_error(detail: &str, use_color: bool) {
+fn format_copilot_error(detail: &str, use_color: bool) -> String {
     use nu_ansi_term::Color;
     if use_color {
-        eprintln!("{} {}", Color::Red.paint("ml error:"), detail.trim());
+        format!("{} {}", Color::Red.paint("ml error:"), detail.trim())
     } else {
-        eprintln!("ml error: {}", detail.trim());
+        format!("ml error: {}", detail.trim())
     }
 }
 
