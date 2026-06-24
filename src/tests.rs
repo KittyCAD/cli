@@ -246,6 +246,8 @@ fn setup_aliases(config: &mut TestConfig, ctx: &MainContext) -> Result<()> {
 fn make_single_file_edit_project() -> tempfile::TempDir {
     let tmp = tempfile::tempdir().expect("failed to create temp dir");
     std::fs::copy("tests/gear.kcl", tmp.path().join("gear.kcl")).expect("copy gear.kcl");
+    // TODO: Fix it so we don't need this temp file.
+    std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main.kcl");
     tmp
 }
 
