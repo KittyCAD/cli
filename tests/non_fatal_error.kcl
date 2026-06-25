@@ -1,0 +1,177 @@
+// One-screw wall hanger
+// Single printed hanger with thick arm, screw bore, and deep triangular web.
+@settings(defaultLengthUnit = mm, kclVersion = 2.0, experimentalFeatures = allow)
+
+plateThickness = 10mm
+plateHeight = 116mm
+hangerWidth = 46mm
+armLength = 54mm
+armThickness = 16mm
+armTopZ = 58mm
+lipThickness = 10mm
+lipHeight = 22mm
+webFootZ = 12mm
+webBackFromTip = 15mm
+screwCenterZ = 86mm
+screwClearanceDia = 5.4mm
+screwSeatDia = 14mm
+screwSeatDepth = 3.2mm
+screwSeatPadDia = 26mm
+screwSeatPadThickness = 3mm
+screwSeatPadOverlap = 0.8mm
+
+armEndX = plateThickness + armLength
+lipBackX = armEndX - lipThickness
+armBottomZ = armTopZ - armThickness
+lipTopZ = armTopZ + lipHeight
+webTipX = armEndX - webBackFromTip
+
+hangerSideSketch = sketch(on = XZ) {
+  wallBack = line(start = [var 0mm, var 0mm], end = [var 0mm, var 116mm])
+  plateTop = line(start = [var 0mm, var 116mm], end = [var 10mm, var 116mm])
+  upperPlateFront = line(start = [var 10mm, var 116mm], end = [var 10mm, var 58mm])
+  armTop = line(start = [var 10mm, var 58mm], end = [var 54mm, var 58mm])
+  lipBack = line(start = [var 54mm, var 58mm], end = [var 54mm, var 80mm])
+  lipTop = line(start = [var 54mm, var 80mm], end = [var 64mm, var 80mm])
+  lipFront = line(start = [var 64mm, var 80mm], end = [var 64mm, var 42mm])
+  armUnderside = line(start = [var 64mm, var 42mm], end = [var 49mm, var 42mm])
+  webSlope = line(start = [var 49mm, var 42mm], end = [var 10mm, var 12mm])
+  lowerPlateFront = line(start = [var 10mm, var 12mm], end = [var 10mm, var 0mm])
+  plateBottom = line(start = [var 10mm, var 0mm], end = [var 0mm, var 0mm])
+
+  coincident([wallBack.start, ORIGIN])
+  coincident([wallBack.end, plateTop.start])
+  coincident([plateTop.end, upperPlateFront.start])
+  coincident([upperPlateFront.end, armTop.start])
+  coincident([armTop.end, lipBack.start])
+  coincident([lipBack.end, lipTop.start])
+  coincident([lipTop.end, lipFront.start])
+  coincident([lipFront.end, armUnderside.start])
+  coincident([armUnderside.end, webSlope.start])
+  coincident([webSlope.end, lowerPlateFront.start])
+  coincident([lowerPlateFront.end, plateBottom.start])
+  coincident([plateBottom.end, wallBack.start])
+
+  vertical(wallBack)
+  horizontal(plateTop)
+  vertical(upperPlateFront)
+  horizontal(armTop)
+  vertical(lipBack)
+  horizontal(lipTop)
+  vertical(lipFront)
+  horizontal(armUnderside)
+  vertical(lowerPlateFront)
+  horizontal(plateBottom)
+
+  distance([wallBack.start, wallBack.end]) == plateHeight
+  distance([plateTop.start, plateTop.end]) == plateThickness
+  distance([
+  upperPlateFront.start,
+  upperPlateFront.end
+]) == plateHeight - armTopZ
+  distance([armTop.start, armTop.end]) == armLength - lipThickness
+  distance([lipBack.start, lipBack.end]) == lipHeight
+  distance([lipTop.start, lipTop.end]) == lipThickness
+  distance([lipFront.start, lipFront.end]) == lipHeight + armThickness
+  distance([armUnderside.start, armUnderside.end]) == webBackFromTip
+  distance([
+  lowerPlateFront.start,
+  lowerPlateFront.end
+]) == webFootZ
+  distance([plateBottom.start, plateBottom.end]) == plateThickness
+}
+
+hangerRegion = region(point = [20mm, 50mm], sketch = hangerSideSketch)
+hangerBlank = extrude(sketches = hangerRegion, length = hangerWidth, symmetric = true)
+hide(hangerSideSketch)
+
+screwSeatPadSketch = sketch(on = YZ) {
+  padRadiusGuide = line(start = [var 0mm, var 86mm], end = [var 13mm, var 86mm], construction = true)
+  padCircle = circle(center = [var 0mm, var 86mm], start = [var 13mm, var 86mm])
+  screwHeightGuide = line(start = [var 0mm, var 0mm], end = [var 0mm, var 86mm], construction = true)
+
+  coincident([screwHeightGuide.start, ORIGIN])
+  coincident([screwHeightGuide.end, padCircle.center])
+  coincident([padRadiusGuide.start, padCircle.center])
+  coincident([padRadiusGuide.end, padCircle.start])
+  vertical(screwHeightGuide)
+  horizontal(padRadiusGuide)
+  verticalDistance([ORIGIN, screwHeightGuide.end]) == screwCenterZ
+  distance([
+  padRadiusGuide.start,
+  padRadiusGuide.end
+]) == screwSeatPadDia / 2
+}
+
+screwSeatPadRegion = region(point = screwSeatPadSketch.padCircle.center, sketch = screwSeatPadSketch)
+screwSeatPadRaw = extrude(sketches = screwSeatPadRegion, length = screwSeatPadThickness, symmetric = true)
+screwSeatPad = translate(screwSeatPadRaw, x = plateThickness + screwSeatPadThickness / 2 - screwSeatPadOverlap, global = true)
+hide(screwSeatPadSketch)
+
+hangerWithSeatPad = union([hangerBlank, screwSeatPad])
+
+screwClearanceSketch = sketch(on = YZ) {
+  screwHeightGuide = line(start = [var 0mm, var 0mm], end = [var 0mm, var 86mm], construction = true)
+  screwRadiusGuide = line(start = [var 0mm, var 86mm], end = [var 2.7mm, var 86mm], construction = true)
+  screwClearance = circle(center = [var 0mm, var 86mm], start = [var 2.7mm, var 86mm])
+
+  coincident([screwHeightGuide.start, ORIGIN])
+  coincident([
+    screwHeightGuide.end,
+    screwClearance.center
+  ])
+  coincident([
+    screwRadiusGuide.start,
+    screwClearance.center
+  ])
+  coincident([
+    screwRadiusGuide.end,
+    screwClearance.start
+  ])
+  vertical(screwHeightGuide)
+  horizontal(screwRadiusGuide)
+  verticalDistance([ORIGIN, screwHeightGuide.end]) == screwCenterZ
+  distance([
+  screwRadiusGuide.start,
+  screwRadiusGuide.end
+]) == screwClearanceDia / 2
+}
+
+screwClearanceRegion = region(point = screwClearanceSketch.screwClearance.center, sketch = screwClearanceSketch)
+screwClearanceCutter = extrude(sketches = screwClearanceRegion, length = plateThickness + screwSeatPadThickness + 8mm, symmetric = true)
+hide(screwClearanceSketch)
+
+screwSeatSketch = sketch(on = YZ) {
+  seatHeightGuide = line(start = [var 0mm, var 0mm], end = [var 0mm, var 86mm], construction = true)
+  seatRadiusGuide = line(start = [var 0mm, var 86mm], end = [var 7mm, var 86mm], construction = true)
+  screwSeat = circle(center = [var 0mm, var 86mm], start = [var 7mm, var 86mm])
+
+  coincident([seatHeightGuide.start, ORIGIN])
+  coincident([seatHeightGuide.end, screwSeat.center])
+  coincident([
+    seatRadiusGuide.start,
+    screwSeat.center
+  ])
+  coincident([seatRadiusGuide.end, screwSeat.start])
+  vertical(seatHeightGuide)
+  horizontal(seatRadiusGuide)
+  verticalDistance([ORIGIN, seatHeightGuide.end]) == screwCenterZ
+  distance([
+  seatRadiusGuide.start,
+  seatRadiusGuide.end
+]) == screwSeatDia / 2
+}
+
+screwSeatRegion = region(point = screwSeatSketch.screwSeat.center, sketch = screwSeatSketch)
+screwSeatCutterRaw = extrude(sketches = screwSeatRegion, length = screwSeatPadThickness + screwSeatDepth + 2mm, symmetric = true)
+screwSeatCutter = translate(screwSeatCutterRaw, x = plateThickness + screwSeatPadThickness / 2, global = true)
+hide(screwSeatSketch)
+
+hangerWithScrewFeatures = subtract(hangerWithSeatPad, tools = [screwClearanceCutter, screwSeatCutter])
+
+export wallHanger = appearance(
+  hangerWithScrewFeatures,
+  color = "#198b4a",
+  metalness = 0,
+  roughness = 72,
+)

@@ -736,6 +736,7 @@ async fn render_side_by_side(
             &old_code,
             ModelingCmd::TakeSnapshot(TakeSnapshot::builder().format(ImageFormat::Png).build()),
             old_settings.clone(),
+            crate::kcl_error_fmt::KclIssueCheck::Ignore,
         )
         .await?;
     let old_png = match old_resp {
@@ -775,6 +776,7 @@ async fn render_side_by_side(
             &new_code,
             ModelingCmd::TakeSnapshot(TakeSnapshot::builder().format(ImageFormat::Png).build()),
             new_settings,
+            crate::kcl_error_fmt::KclIssueCheck::Ignore,
         )
         .await?;
     let new_png = match new_resp {

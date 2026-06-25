@@ -740,6 +740,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("Snapshot saved to `tests/gear.png`")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     snapshot_a_kcl_file_with_a_project_toml_as_png(_ctx) => {
@@ -755,6 +756,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("Snapshot saved to `tests/with-settings/gear.png`")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     snapshot_a_kcl_file_with_a_nested_project_toml_as_png(_ctx) => {
@@ -770,6 +772,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("Snapshot saved to `tests/nested-settings/subdir/gear.png`")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     snapshot_a_kcl_assembly_as_png(_ctx) => {
@@ -810,6 +813,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("1268.234")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     get_the_mass_of_a_kcl_file_but_use_project_toml(_ctx) => {
@@ -831,6 +835,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("74.023")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_toml(_ctx) => {
@@ -852,6 +857,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("74.023")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_as_table(_ctx) => {
@@ -876,6 +882,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("center_of_mass")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_as_json(_ctx) => {
@@ -901,6 +908,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains(r#""center_of_mass""#)
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_as_json_with_default_metric_units(_ctx) => {
@@ -918,6 +926,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains(r#""output_unit": "kg:m3""#)
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_and_use_project_toml(_ctx) => {
@@ -943,6 +952,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains(r#""mass""#)
+        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_with_invalid_density(_ctx) => {
@@ -988,7 +998,114 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("0.0007")
+        .stderr_contains("Prefer to use explicit units for angles")
     }
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn analyze_a_kcl_file_with_non_fatal_errors_exits_non_zero(ctx: &mut MainContext) {
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "analyze a kcl file with non-fatal errors",
+            svec![
+                "zoo",
+                "kcl",
+                "analyze",
+                "tests/non_fatal_error.kcl",
+                "--format=json",
+                "--material-density",
+                "1.0",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stderr_contains("KCL execution reported errors")
+        .exit_code(1),
+    )
+    .await;
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn analyze_a_kcl_file_with_non_fatal_errors_allowed_exits_zero(ctx: &mut MainContext) {
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "analyze a kcl file with non-fatal errors allowed",
+            svec![
+                "zoo",
+                "kcl",
+                "analyze",
+                "--allow-errors",
+                "tests/non_fatal_error.kcl",
+                "--format=json",
+                "--material-density",
+                "1.0",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stdout_contains(r#""mass""#)
+        .stderr_contains("tests/non_fatal_error.kcl"),
+    )
+    .await;
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn export_a_kcl_file_with_non_fatal_errors_exits_non_zero(ctx: &mut MainContext) {
+    let output_dir = tempfile::tempdir().expect("failed to create export output dir");
+
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "export a kcl file with non-fatal errors",
+            svec![
+                "zoo",
+                "kcl",
+                "export",
+                "tests/non_fatal_error.kcl",
+                output_dir.path().display(),
+                "-t",
+                "obj",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stderr_contains("KCL execution reported errors")
+        .exit_code(1),
+    )
+    .await;
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn export_a_kcl_file_with_non_fatal_errors_allowed_exits_zero(ctx: &mut MainContext) {
+    let output_dir = tempfile::tempdir().expect("failed to create export output dir");
+
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "export a kcl file with non-fatal errors allowed",
+            svec![
+                "zoo",
+                "kcl",
+                "export",
+                "--allow-errors",
+                "tests/non_fatal_error.kcl",
+                output_dir.path().display(),
+                "-t",
+                "obj",
+            ],
+        )
+        .setup(setup_authenticated)
+        .stdout_contains("Wrote file:")
+        .stderr_contains("tests/non_fatal_error.kcl"),
+    )
+    .await;
 }
 
 #[test_context(MainContext)]

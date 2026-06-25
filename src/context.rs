@@ -214,12 +214,13 @@ impl Context<'_> {
     }
 
     pub async fn send_kcl_modeling_cmd(
-        &self,
+        &mut self,
         hostname: &str,
         filename: &str,
         code: &str,
         cmd: kittycad_modeling_cmds::ModelingCmd,
         settings: kcl_lib::ExecutorSettings,
+        issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
@@ -233,6 +234,7 @@ impl Context<'_> {
             .await
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
+        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
 
@@ -266,12 +268,13 @@ impl Context<'_> {
     }
 
     pub(crate) async fn run_kcl_then_modeling_cmds(
-        &self,
+        &mut self,
         hostname: &str,
         filename: &str,
         code: &str,
         cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
         settings: kcl_lib::ExecutorSettings,
+        issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
@@ -285,6 +288,7 @@ impl Context<'_> {
             .await
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
+        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
         let mut responses = Vec::with_capacity(cmds.len());
@@ -308,12 +312,13 @@ impl Context<'_> {
     /// Run the given KCL program, then after, run the given extra modeling commands.
     /// If any of those extra modeling commands were TakeSnapshot, return the snapshots.
     pub async fn run_kcl_then_snapshots(
-        &self,
+        &mut self,
         hostname: &str,
         filename: &str,
         code: &str,
         snapshot_cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
         settings: kcl_lib::ExecutorSettings,
+        issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<TakeSnapshot>, Option<ModelingSessionData>)> {
         let client = self.api_client(hostname)?;
 
@@ -327,6 +332,7 @@ impl Context<'_> {
             .await
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
+        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
         let mut snapshot_resps = Vec::new();
