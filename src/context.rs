@@ -352,6 +352,12 @@ impl Context<'_> {
         Ok((snapshot_resps, session_data))
     }
 
+    /// Create and poll a plain text-to-CAD job.
+    ///
+    /// `show_reasoning` is accepted to keep the command-facing API aligned with
+    /// KCL edit generation, but this endpoint currently does not emit reasoning
+    /// websocket messages or an `EndOfStream` marker. The parameter is ignored so
+    /// text-to-CAD commands do not hang while waiting for reasoning output.
     pub async fn get_model_for_prompt(
         &mut self,
         hostname: &str,

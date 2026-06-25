@@ -278,6 +278,10 @@ async fn run_test_item(ctx: &mut MainContext, item: TestItem) {
         setup(&mut config, ctx).unwrap_or_else(|err| panic!("setup for '{}' failed: {err}", item.name));
     }
 
+    run_test_item_with_config(&mut config, item).await;
+}
+
+async fn run_test_item_with_config(config: &mut TestConfig, item: TestItem) {
     let (mut io, stdout_path, stderr_path) = crate::iostreams::IoStreams::test();
     io.set_stdout_tty(false);
     io.set_color_enabled(false);
@@ -286,7 +290,7 @@ async fn run_test_item(ctx: &mut MainContext, item: TestItem) {
     }
 
     let mut command_ctx = crate::context::Context {
-        config: &mut config,
+        config,
         io,
         debug: false,
         override_host: None,
@@ -357,6 +361,30 @@ async fn run_test_item(ctx: &mut MainContext, item: TestItem) {
             );
         }
     }
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn login_persists_credentials_for_following_command(ctx: &mut MainContext) {
+    let mut config = TestConfig::new().expect("failed to create blank test config");
+
+    run_test_item_with_config(
+        &mut config,
+        TestItem::new(
+            "login persists credentials",
+            svec!["zoo", "--host", ctx.test_host.clone(), "auth", "login", "--with-token",],
+        )
+        .stdin(ctx.test_token.clone())
+        .stdout_contains("✔ Logged in as "),
+    )
+    .await;
+
+    run_test_item_with_config(
+        &mut config,
+        TestItem::new("api /user after login", svec!["zoo", "api", "/user"]).stdout_contains(r#""created_at": ""#),
+    )
+    .await;
 }
 
 cli_tests! {
