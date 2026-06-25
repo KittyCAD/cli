@@ -1,4 +1,4 @@
-use std::{str::FromStr, time::Duration};
+use std::{io::Write, str::FromStr, time::Duration};
 
 use anyhow::{anyhow, Result};
 use futures::StreamExt;
@@ -352,13 +352,19 @@ impl Context<'_> {
         Ok((snapshot_resps, session_data))
     }
 
+    /// Create and poll a plain text-to-CAD job.
+    ///
+    /// `show_reasoning` is accepted to keep the command-facing API aligned with
+    /// KCL edit generation, but this endpoint currently does not emit reasoning
+    /// websocket messages or an `EndOfStream` marker. The parameter is ignored so
+    /// text-to-CAD commands do not hang while waiting for reasoning output.
     pub async fn get_model_for_prompt(
-        &self,
+        &mut self,
         hostname: &str,
         prompt: &str,
         kcl: bool,
         format: kittycad::types::FileExportFormat,
-        show_reasoning: bool,
+        _show_reasoning: bool,
     ) -> Result<TextToCad> {
         let client = self.api_client(hostname)?;
 
@@ -377,11 +383,9 @@ impl Context<'_> {
             )
             .await?;
 
-        // Start reasoning websocket to stream reasoning messages for this generation.
-        let reasoning_guard = ReasoningGuard::new(
-            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
-                .await,
-        );
+        // Plain text-to-CAD generation does not currently emit reasoning websocket
+        // messages or an EndOfStream marker. KCL edits still stream reasoning through
+        // get_edit_for_prompt.
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -458,13 +462,11 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model! Ensure the guard finishes before returning.
-        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
     pub async fn get_edit_for_prompt(
-        &self,
+        &mut self,
         hostname: &str,
         body: &kittycad::types::TextToCadMultiFileIterationBody,
         files: Vec<kittycad::types::multipart::Attachment>,
@@ -477,10 +479,9 @@ impl Context<'_> {
 
         // Start reasoning websocket to stream reasoning messages for this edit.
         // default to showing reasoning for edits as well; caller can pass false by wrapping here if needed later
-        let reasoning_guard = ReasoningGuard::new(
-            self.spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
-                .await,
-        );
+        let mut reasoning_guard = self
+            .spawn_reasoning_ws_task(&client, gen_model.id, show_reasoning)
+            .await;
 
         // Poll until the model is ready.
         let mut status = gen_model.status.clone();
@@ -538,11 +539,16 @@ impl Context<'_> {
                 anyhow::bail!("Unexpected response type: {result:?}");
             }
 
+            reasoning_guard.drain(&mut self.io.err_out)?;
             status = gen_model.status.clone();
 
             // Wait for a bit before polling again.
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+            reasoning_guard.drain(&mut self.io.err_out)?;
         }
+
+        // Flush reasoning output before returning success or surfacing a terminal error.
+        reasoning_guard.finish(&mut self.io.err_out).await?;
 
         // If the model failed we will want to tell the user.
         if gen_model.status == ApiCallStatus::Failed {
@@ -557,8 +563,6 @@ impl Context<'_> {
             anyhow::bail!("Your prompt timed out");
         }
 
-        // Okay, we successfully got a model! Ensure the guard finishes before returning.
-        reasoning_guard.finish().await;
         Ok(gen_model)
     }
 
@@ -679,17 +683,25 @@ impl Context<'_> {
             data: code.as_bytes().to_vec(),
         });
 
-        // Walk the directory and collect all the kcl files.
-        let parent = filepath.parent().ok_or_else(|| {
+        // Walk the containing directory and collect all the sibling kcl files. For a
+        // relative input like `gear.kcl`, `parent()` is `Some("")`, which needs to be
+        // treated as the current directory rather than an invalid path.
+        let project_root = filepath.parent().ok_or_else(|| {
             let filepath_display = filepath.display().to_string();
             anyhow!("Could not get parent directory to: `{filepath_display}`")
         })?;
-        let walked_kcl = kcl_lib::walk_dir(&parent.to_path_buf()).await?;
+        let project_root = if project_root.as_os_str().is_empty() {
+            std::path::PathBuf::from(".")
+        } else {
+            project_root.to_path_buf()
+        };
+        let walked_kcl = kcl_lib::walk_dir(&project_root).await?;
+        let canonical_filepath = std::fs::canonicalize(&filepath).unwrap_or_else(|_| filepath.clone());
 
         // Get all the attachements async.
         let futures = walked_kcl
             .into_iter()
-            .filter(|file| *file != filepath)
+            .filter(|file| std::fs::canonicalize(file).unwrap_or_else(|_| file.clone()) != canonical_filepath)
             .map(|file| {
                 tokio::spawn(async move {
                     let path_display = file.display().to_string();
@@ -737,20 +749,16 @@ impl Context<'_> {
 }
 
 impl Context<'_> {
-    async fn spawn_reasoning_ws_task(
-        &self,
-        client: &kittycad::Client,
-        id: uuid::Uuid,
-        enable: bool,
-    ) -> Option<tokio::task::JoinHandle<()>> {
+    async fn spawn_reasoning_ws_task(&self, client: &kittycad::Client, id: uuid::Uuid, enable: bool) -> ReasoningGuard {
         if !enable {
-            return None;
+            return ReasoningGuard::default();
         }
 
         match client.ml().reasoning_ws(id).await {
             Ok((upgraded, _headers)) => {
                 let use_color = self.io.color_enabled() && self.io.is_stderr_tty();
-                Some(tokio::spawn(async move {
+                let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
+                let handle = tokio::spawn(async move {
                     let mut ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
                     while let Some(msg) = ws.next().await {
                         let Ok(msg) = msg else { break };
@@ -761,10 +769,14 @@ impl Context<'_> {
                             {
                                 match server_msg {
                                     kittycad::types::MlCopilotServerMessage::Reasoning(reason) => {
-                                        print_reasoning(reason, use_color);
+                                        for line in format_reasoning(reason, use_color) {
+                                            if sender.send(line).is_err() {
+                                                break;
+                                            }
+                                        }
                                     }
                                     kittycad::types::MlCopilotServerMessage::Error { detail } => {
-                                        print_copilot_error(&detail, use_color);
+                                        let _ = sender.send(format_copilot_error(&detail, use_color));
                                         // Do not break: errors may be non-fatal; keep streaming.
                                     }
                                     kittycad::types::MlCopilotServerMessage::EndOfStream { .. } => {
@@ -778,42 +790,62 @@ impl Context<'_> {
                         }
                     }
                     let _ = ws.close(None).await;
-                }))
+                });
+                ReasoningGuard::new(handle, receiver)
             }
             Err(err) => {
                 let _ = err; // suppress unused warning; intentionally silent
-                None
+                ReasoningGuard::default()
             }
         }
-    }
-}
-
-// Print only reasoning messages in a friendly, concise CLI format.
-pub(crate) fn print_reasoning(reason: kittycad::types::ReasoningMessage, use_color: bool) {
-    for line in format_reasoning(reason, use_color) {
-        eprintln!("{line}");
     }
 }
 
 // RAII guard to ensure the reasoning websocket task is cancelled and joined.
-struct ReasoningGuard(Option<tokio::task::JoinHandle<()>>);
+#[derive(Default)]
+struct ReasoningGuard {
+    handle: Option<tokio::task::JoinHandle<()>>,
+    receiver: Option<tokio::sync::mpsc::UnboundedReceiver<String>>,
+}
 
 impl ReasoningGuard {
-    fn new(handle: Option<tokio::task::JoinHandle<()>>) -> Self {
-        ReasoningGuard(handle)
+    fn new(handle: tokio::task::JoinHandle<()>, receiver: tokio::sync::mpsc::UnboundedReceiver<String>) -> Self {
+        Self {
+            handle: Some(handle),
+            receiver: Some(receiver),
+        }
     }
 
-    async fn finish(mut self) {
-        if let Some(handle) = self.0.take() {
-            handle.abort();
-            let _ = tokio::time::timeout(Duration::from_secs(1), handle).await;
+    fn drain(&mut self, err_out: &mut dyn Write) -> Result<()> {
+        let Some(receiver) = &mut self.receiver else {
+            return Ok(());
+        };
+        while let Ok(line) = receiver.try_recv() {
+            writeln!(err_out, "{line}")?;
         }
+        Ok(())
+    }
+
+    async fn finish(mut self, err_out: &mut dyn Write) -> Result<()> {
+        self.drain(err_out)?;
+        if let Some(mut handle) = self.handle.take() {
+            // KCL edit streams should finish by sending `EndOfStream`, so give
+            // the task a short chance to drain final messages. Text-to-CAD
+            // generation showed that not every endpoint closes the reasoning
+            // stream, so this remains a brief best-effort grace period.
+            if tokio::time::timeout(Duration::from_secs(1), &mut handle).await.is_err() {
+                self.drain(err_out)?;
+                handle.abort();
+                let _ = handle.await;
+            }
+        }
+        self.drain(err_out)
     }
 }
 
 impl Drop for ReasoningGuard {
     fn drop(&mut self) {
-        if let Some(handle) = self.0.take() {
+        if let Some(handle) = self.handle.take() {
             handle.abort();
             // Ensure the task is polled to completion in the background.
             tokio::spawn(async move {
@@ -984,12 +1016,12 @@ fn indent_block(s: &str) -> String {
     out
 }
 
-fn print_copilot_error(detail: &str, use_color: bool) {
+fn format_copilot_error(detail: &str, use_color: bool) -> String {
     use nu_ansi_term::Color;
     if use_color {
-        eprintln!("{} {}", Color::Red.paint("ml error:"), detail.trim());
+        format!("{} {}", Color::Red.paint("ml error:"), detail.trim())
     } else {
-        eprintln!("ml error: {}", detail.trim());
+        format!("ml error: {}", detail.trim())
     }
 }
 
@@ -1178,6 +1210,38 @@ mod test {
         // Explicit arg overrides global
         let h3 = ctx.resolve_host_for_tests("http://foo:1234").unwrap();
         assert_eq!(h3, "http://foo:1234");
+    }
+
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn collect_kcl_files_uses_current_directory_for_relative_file_inputs() {
+        let tmp = tempfile::tempdir().expect("failed to create temp dir");
+        std::fs::write(tmp.path().join("gear.kcl"), "cube(1)\n").expect("write gear.kcl");
+
+        let old_current_directory = std::env::current_dir().expect("current dir");
+        std::env::set_current_dir(tmp.path()).expect("set current dir");
+
+        let mut config = crate::config::new_blank_config().unwrap();
+        let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
+        let (io, _stdout_path, _stderr_path) = crate::iostreams::IoStreams::test();
+        let mut ctx = Context {
+            config: &mut c,
+            io,
+            debug: false,
+            override_host: None,
+        };
+
+        let (files, filepath) = ctx
+            .collect_kcl_files(std::path::Path::new("gear.kcl"))
+            .await
+            .expect("collect relative project files");
+
+        std::env::set_current_dir(old_current_directory).expect("restore current dir");
+
+        assert_eq!(filepath, std::path::PathBuf::from("gear.kcl"));
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].name, "gear.kcl");
+        assert_eq!(files[0].filepath.as_deref(), Some(std::path::Path::new("gear.kcl")));
     }
 
     #[test]
