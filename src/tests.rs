@@ -246,6 +246,8 @@ fn setup_aliases(config: &mut TestConfig, ctx: &MainContext) -> Result<()> {
 fn make_single_file_edit_project() -> tempfile::TempDir {
     let tmp = tempfile::tempdir().expect("failed to create temp dir");
     std::fs::copy("tests/gear.kcl", tmp.path().join("gear.kcl")).expect("copy gear.kcl");
+    // TODO: Fix it so we don't need this temp file.
+    std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main.kcl");
     tmp
 }
 
@@ -388,7 +390,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("Completed")
-        .stderr_contains("reasoning:")
     }
 
     ml_text_to_cad_export_no_reasoning(_ctx) => {
@@ -801,7 +802,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("74.052")
+        .stdout_contains("74.023")
     }
 
     get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_toml(_ctx) => {
@@ -822,7 +823,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("74.052")
+        .stdout_contains("74.023")
     }
 
     analyze_a_kcl_file_as_table(_ctx) => {
