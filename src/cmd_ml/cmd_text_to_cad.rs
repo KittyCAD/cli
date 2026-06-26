@@ -1,6 +1,5 @@
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
-use kcl_lib::EngineManager;
 use kcmc::{
     each_cmd as mcmd, format::InputFormat3d, ok_response::OkModelingCmdResponse, websocket::OkWebSocketResponseData,
     ImageFormat, ModelingCmd,
