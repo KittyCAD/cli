@@ -2,7 +2,7 @@ use std::{io::Write, str::FromStr, time::Duration};
 
 use anyhow::{anyhow, Result};
 use futures::StreamExt;
-use kcl_lib::{native_engine::EngineConnection, EngineManager};
+use kcl_lib::engine_connection::EngineManager;
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
 use kittycad_modeling_cmds::{self as kcmc, output::TakeSnapshot, websocket::ModelingSessionData, ModelingCmd};
@@ -205,10 +205,10 @@ impl Context<'_> {
         Ok(ws)
     }
 
-    pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineConnection> {
+    pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineManager> {
         let ws = self.engine_ws(hostname, replay).await?;
 
-        let engine = EngineConnection::new(ws, Some(cmd_kcl::HEARTBEATS)).await?;
+        let engine = EngineManager::new_websocket_transport(ws, Some(cmd_kcl::HEARTBEATS)).await;
 
         Ok(engine)
     }

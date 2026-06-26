@@ -6,7 +6,6 @@ use std::{
 use anyhow::Result;
 use base64::prelude::*;
 use clap::Parser;
-use kcl_lib::EngineManager;
 use kittycad_modeling_cmds::{
     self as kcmc, ok_response::OkModelingCmdResponse, shared::FileImportFormat, websocket::OkWebSocketResponseData,
     ModelingCmd,
