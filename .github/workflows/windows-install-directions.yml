@@ -33,7 +33,7 @@ jobs:
     name: install from generated directions
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - name: Install latest rust
         uses: dtolnay/rust-toolchain@stable
         with:
