@@ -3,7 +3,7 @@ use std::{net::SocketAddr, path::Path, str::FromStr};
 use anyhow::Result;
 use clap::Parser;
 use image::{DynamicImage, ImageReader};
-use kcl_lib::{ToLspRange, TypedPath};
+use kcl_lib::{unit_conversion::ToKcmc, ToLspRange, TypedPath};
 use kcmc::{format::OutputFormat3d as OutputFormat, ok_response::OkModelingCmdResponse};
 use kittycad::types as kt;
 use kittycad_modeling_cmds::{self as kcmc, units::UnitLength, websocket::ModelingSessionData};
@@ -156,7 +156,7 @@ impl crate::cmd::Command for CmdKclExport {
         let program = kcl_lib::Program::parse_no_errs(&code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
         let meta_settings = program.meta_settings()?.unwrap_or_default();
-        let units: UnitLength = meta_settings.default_length_units;
+        let units: UnitLength = meta_settings.default_length_units.to_kcmc();
 
         let client = ctx.api_client("")?;
         let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
