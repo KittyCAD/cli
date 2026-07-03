@@ -39,6 +39,7 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.15.0"
+kcl-error = "=0.2.167"
 kcl-lib = { version = "=0.2.167", features = ["disable-println"] }
 kcl-test-server = "=0.2.167"
 kittycad = { version = "0.4.12", features = [
@@ -73,6 +74,7 @@ reqwest = { version = "0.12", default-features = false, features = [
   "deflate",
 ] }
 ring = "0.17.14"
+rmp-serde = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
