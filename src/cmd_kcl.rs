@@ -157,6 +157,38 @@ impl crate::cmd::Command for CmdKclExport {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
         let meta_settings = program.meta_settings()?.unwrap_or_default();
         let units: UnitLength = meta_settings.default_length_units.to_kcmc();
+        let output_format = get_output_format(&self.output_format, units, self.deterministic);
+
+        if crate::context::Context::use_server_kcl_execution() {
+            let (mut responses, session_data) = ctx
+                .run_server_kcl_then_modeling_cmds(
+                    "",
+                    &filepath,
+                    &code,
+                    vec![kcmc::ModelingCmd::Export(
+                        kcmc::Export::builder().entity_ids(vec![]).format(output_format).build(),
+                    )],
+                    settings,
+                    self.run_options.issue_check(),
+                )
+                .await?;
+            let Some(kcmc::websocket::OkWebSocketResponseData::Export { files }) = responses.pop() else {
+                anyhow::bail!("Expected Export response from engine");
+            };
+
+            for file in files {
+                let path = self.output_dir.join(file.name);
+                std::fs::write(&path, file.contents)?;
+
+                writeln!(ctx.io.out, "Wrote file: {}", path.display())?;
+            }
+
+            if self.show_trace {
+                print_trace_link(&mut ctx.io, &session_data)
+            }
+
+            return Ok(());
+        }
 
         let client = ctx.api_client("")?;
         let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
@@ -174,9 +206,7 @@ impl crate::cmd::Command for CmdKclExport {
             self.run_options.issue_check(),
         )?;
 
-        let files = ectx
-            .export(get_output_format(&self.output_format, units, self.deterministic))
-            .await?;
+        let files = ectx.export(output_format).await?;
 
         // Save the files to our export directory.
         for file in files {
@@ -506,11 +536,17 @@ impl crate::cmd::Command for CmdKclSnapshot {
         };
         let output_file_display = self.output_file.display().to_string();
 
+        let from_engine = if crate::context::Context::use_server_kcl_execution() {
+            "from engine "
+        } else {
+            ""
+        };
+
         // Is there just 1 PNG?
         match <[_; 1]>::try_from(many_pngs) {
             Ok([single]) => {
                 std::fs::write(&self.output_file, single)?;
-                writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+                writeln!(ctx.io.out, "Snapshot {from_engine}saved to `{output_file_display}`")?;
             }
             // If not, maybe there's 4 PNGs?
             Err(output_file_contents) => match <[_; 4]>::try_from(output_file_contents) {
@@ -530,7 +566,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                         &self.output_file,
                         output_format,
                     )?;
-                    writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+                    writeln!(ctx.io.out, "Snapshot {from_engine}saved to `{output_file_display}`")?;
                 }
                 // If not 4, error.
                 Err(vec) => {

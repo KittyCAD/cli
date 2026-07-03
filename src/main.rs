@@ -4,6 +4,7 @@
 // Always export the cmd_* modules as public so that it tells us when we are
 // missing docs.
 
+mod build_kcl_project;
 mod cmd;
 /// The alias command.
 pub mod cmd_alias;
