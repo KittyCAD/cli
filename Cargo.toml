@@ -47,7 +47,7 @@ kittycad = { version = "0.4.12", features = [
   "requests",
   "retry",
 ] }
-kittycad-modeling-cmds = { version = "0.2.208", features = [
+kittycad-modeling-cmds = { version = "0.2.209", features = [
   "websocket",
   "tabled",
 ] }
@@ -121,5 +121,6 @@ incremental = true
 debug = 0
 
 [patch.crates-io]
-# kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
+kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
+kcl-test-server = { git = "https://github.com/KittyCAD/modeling-app", branch = "main" }
 # kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", branch = "achalmers/remove-cruft"}

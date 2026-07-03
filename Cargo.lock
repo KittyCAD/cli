@@ -525,6 +525,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bs58"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf88ba1141d185c399bee5288d850d63b8369520c1eafc32a0430b5b6c287bf4"
+dependencies = [
+ "tinyvec",
+]
+
+[[package]]
 name = "bstr"
 version = "1.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1157,6 +1166,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ececcb659e7ba858fb4f10388c250a7252eb0a27373f1a72b8748afdd248e587"
 dependencies = [
  "powerfmt",
+ "serde_core",
 ]
 
 [[package]]
@@ -2132,6 +2142,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fbd780fe5cc30f81464441920d82ac8740e2e46b29a6fad543ddd075229ce37e"
 
 [[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
 name = "home"
 version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2785,16 +2801,15 @@ dependencies = [
 [[package]]
 name = "kcl-api"
 version = "0.2.167"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d0782f9f12d26f00ae5c0a28a670e4e60ae8ea8f7eb8fe2dc644edbffc06b7d"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#16dee6595e8585a4aeaddcde435cda2d85b489ed"
 dependencies = [
  "indexmap 2.14.0",
- "kcl-error",
+ "kcl-error 0.2.167 (git+https://github.com/KittyCAD/modeling-app?branch=main)",
  "kittycad-measurements",
  "kittycad-unit-conversion-derive",
  "parse-display 0.11.0",
  "parse-display-derive 0.11.0",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "ts-rs",
  "uuid",
@@ -2803,8 +2818,7 @@ dependencies = [
 [[package]]
 name = "kcl-derive-docs"
 version = "0.2.167"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "570fc50f5925bf4b10014fe3403789bdb83da16406c59dccd72d40eccd546e13"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#16dee6595e8585a4aeaddcde435cda2d85b489ed"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2818,7 +2832,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5df43f5977901ffe0036cca941f2e542f6d04f70889d8d95735188c0e16944c6"
 dependencies = [
  "miette",
- "schemars",
+ "schemars 0.8.22",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "ts-rs",
+]
+
+[[package]]
+name = "kcl-error"
+version = "0.2.167"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#16dee6595e8585a4aeaddcde435cda2d85b489ed"
+dependencies = [
+ "miette",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -2828,8 +2855,7 @@ dependencies = [
 [[package]]
 name = "kcl-lib"
 version = "0.2.167"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8554618da616fdb606bf0777271c644aa3779482f8ee2a47bd921c1f18c7114"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#16dee6595e8585a4aeaddcde435cda2d85b489ed"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2859,7 +2885,7 @@ dependencies = [
  "js-sys",
  "kcl-api",
  "kcl-derive-docs",
- "kcl-error",
+ "kcl-error 0.2.167 (git+https://github.com/KittyCAD/modeling-app?branch=main)",
  "kittycad",
  "kittycad-modeling-cmds",
  "lazy_static",
@@ -2876,7 +2902,7 @@ dependencies = [
  "rgba_simple",
  "rmp-serde",
  "ropey",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sha2 0.11.0",
@@ -2905,8 +2931,7 @@ dependencies = [
 [[package]]
 name = "kcl-test-server"
 version = "0.2.167"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efc65b9bf2c113192810400f572c4c79b6b51724e089274c9bcafa4287904a4c"
+source = "git+https://github.com/KittyCAD/modeling-app?branch=main#16dee6595e8585a4aeaddcde435cda2d85b489ed"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2946,7 +2971,7 @@ dependencies = [
  "reqwest-middleware",
  "reqwest-retry",
  "reqwest-tracing",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_bytes",
  "serde_json",
@@ -2970,9 +2995,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.208"
+version = "0.2.209"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6e1f60a7440459009f291de2287e3c9b030120c3827ecb8a467a31370103d14"
+checksum = "f1068db9b2fe4d8fbf20f9002d2433837a9f7afded7510cf7ed973b4cb69dd24"
 dependencies = [
  "anyhow",
  "bon",
@@ -2982,17 +3007,20 @@ dependencies = [
  "enum-iterator-derive",
  "euler",
  "http 1.4.2",
+ "kcl-error 0.2.167 (registry+https://github.com/rust-lang/crates.io-index)",
  "kittycad-measurements",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",
  "parse-display 0.11.0",
  "parse-display-derive 0.11.0",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_bytes",
  "serde_json",
+ "serde_with",
  "tabled",
  "ts-rs",
+ "typed-path",
  "uuid",
 ]
 
@@ -3652,7 +3680,7 @@ dependencies = [
  "reqwest 0.12.28",
  "reqwest-middleware",
  "rustfmt-wrapper",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "serde_yaml 0.9.34+deprecated",
@@ -4541,6 +4569,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "ref-cast"
+version = "1.0.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f354300ae66f76f1c85c5f84693f0ce81d747e2c3f21a45fef496d89c960bf7d"
+dependencies = [
+ "ref-cast-impl",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7186006dcb21920990093f30e3dea63b7d6e977bf1256be20c3563a5db070da"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.118",
+]
+
+[[package]]
 name = "regex"
 version = "1.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5002,6 +5050,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "schemars"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4cd191f9397d57d581cddd31014772520aa448f65ef991055d7f61582c65165f"
+dependencies = [
+ "dyn-clone",
+ "ref-cast",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "schemars"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2b42f36aa1cd011945615b92222f6bf73c599a102a300334cd7f8dbeec726cc"
+dependencies = [
+ "dyn-clone",
+ "ref-cast",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "schemars_derive"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5189,6 +5261,38 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serde_with"
+version = "3.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76a5c54c7310e7b8b9577c286d7e399ddd876c3e12b3ed917a8aabc4b96e9e8c"
+dependencies = [
+ "base64 0.22.1",
+ "bs58",
+ "chrono",
+ "hex",
+ "indexmap 1.9.3",
+ "indexmap 2.14.0",
+ "schemars 0.9.0",
+ "schemars 1.2.1",
+ "serde_core",
+ "serde_json",
+ "serde_with_macros",
+ "time",
+]
+
+[[package]]
+name = "serde_with_macros"
+version = "3.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84d57bc0c8b9a17920c178daa6bb924850d54a9c97ab45194bb8c17ad66bb660"
+dependencies = [
+ "darling 0.23.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.118",
 ]
 
 [[package]]
