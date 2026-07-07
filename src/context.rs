@@ -43,10 +43,9 @@ impl Default for RetryConfig {
 
 #[cfg(test)]
 enum KclExecutionError {
-    Setup(anyhow::Error),
     Execution(Box<kcl_lib::KclErrorWithOutputs>),
     Kcl(Box<kcl_lib::KclError>),
-    Issue(anyhow::Error),
+    Other(anyhow::Error),
 }
 
 #[cfg(test)]
@@ -60,10 +59,9 @@ struct KclProgramRun {
 impl KclExecutionError {
     fn into_anyhow(self, filename: &str, code: &str) -> anyhow::Error {
         match self {
-            Self::Setup(err) => err,
             Self::Execution(err) => kcl_error_fmt::into_miette(*err, code),
             Self::Kcl(err) => kcl_error_fmt::into_miette_for_parse(filename, code, *err),
-            Self::Issue(err) => err,
+            Self::Other(err) => err,
         }
     }
 }
@@ -72,10 +70,9 @@ impl KclExecutionError {
 impl std::fmt::Display for KclExecutionError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Setup(err) => write!(formatter, "{err}"),
             Self::Execution(err) => write!(formatter, "{err}"),
             Self::Kcl(err) => write!(formatter, "{err}"),
-            Self::Issue(err) => write!(formatter, "{err}"),
+            Self::Other(err) => write!(formatter, "{err}"),
         }
     }
 }
@@ -84,10 +81,9 @@ impl std::fmt::Display for KclExecutionError {
 impl kcl_lib::IsRetryable for KclExecutionError {
     fn is_retryable(&self) -> bool {
         match self {
-            Self::Setup(_) => false,
             Self::Execution(err) => kcl_lib::IsRetryable::is_retryable(err.as_ref()),
             Self::Kcl(err) => kcl_lib::IsRetryable::is_retryable(err.as_ref()),
-            Self::Issue(_) => false,
+            Self::Other(_) => false,
         }
     }
 }
@@ -146,7 +142,7 @@ async fn run_kcl_program_once_with_client(
 ) -> std::result::Result<KclProgramRun, KclExecutionError> {
     let ctx = kcl_lib::ExecutorContext::new(client, settings)
         .await
-        .map_err(KclExecutionError::Setup)?;
+        .map_err(KclExecutionError::Other)?;
     let mut state = kcl_lib::ExecState::new(&ctx);
     let session_data = ctx
         .run(program, &mut state)
@@ -396,7 +392,7 @@ impl<'a> Context<'a> {
                         &run.exec_state,
                         issue_check,
                     )
-                    .map_err(KclExecutionError::Issue)?;
+                    .map_err(KclExecutionError::Other)?;
 
                     let batch_context = kcl_lib::EngineBatchContext::new();
 
@@ -505,7 +501,7 @@ impl<'a> Context<'a> {
                         &run.exec_state,
                         issue_check,
                     )
-                    .map_err(KclExecutionError::Issue)?;
+                    .map_err(KclExecutionError::Other)?;
 
                     let batch_context = kcl_lib::EngineBatchContext::new();
                     let mut responses = Vec::with_capacity(cmds.len());
@@ -591,7 +587,7 @@ impl<'a> Context<'a> {
                         &run.exec_state,
                         issue_check,
                     )
-                    .map_err(KclExecutionError::Issue)?;
+                    .map_err(KclExecutionError::Other)?;
 
                     let batch_context = kcl_lib::EngineBatchContext::new();
                     let mut snapshot_resps = Vec::new();
@@ -682,7 +678,7 @@ impl<'a> Context<'a> {
                         &run.exec_state,
                         issue_check,
                     )
-                    .map_err(KclExecutionError::Issue)?;
+                    .map_err(KclExecutionError::Other)?;
 
                     let files = run
                         .exec_ctx
