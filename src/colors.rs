@@ -1,10 +1,18 @@
 use crate::config_file::get_env_var;
 
 pub fn env_color_disabled() -> bool {
-    !get_env_var("NO_COLOR").is_empty() || get_env_var("CLICOLOR") == "0"
+    env_color_disabled_with(get_env_var)
 }
 
 pub fn env_color_forced() -> bool {
+    env_color_forced_with(get_env_var)
+}
+
+fn env_color_disabled_with(get_env_var: impl Fn(&str) -> String) -> bool {
+    !get_env_var("NO_COLOR").is_empty() || get_env_var("CLICOLOR") == "0"
+}
+
+fn env_color_forced_with(get_env_var: impl Fn(&str) -> String) -> bool {
     !get_env_var("CLICOLOR_FORCE").is_empty() && get_env_var("CLICOLOR_FORCE") != "0"
 }
 
@@ -146,52 +154,8 @@ impl ColorScheme {
 #[cfg(test)]
 mod test {
     use pretty_assertions::assert_eq;
-    use test_context::{test_context, TestContext};
 
     use super::*;
-
-    struct Context {
-        orig_no_color_env: Result<String, std::env::VarError>,
-        orig_clicolor_env: Result<String, std::env::VarError>,
-        orig_clicolor_force_env: Result<String, std::env::VarError>,
-    }
-
-    impl TestContext for Context {
-        fn setup() -> Context {
-            Context {
-                orig_no_color_env: std::env::var("NO_COLOR"),
-                orig_clicolor_env: std::env::var("CLICOLOR"),
-                orig_clicolor_force_env: std::env::var("CLICOLOR_FORCE"),
-            }
-        }
-
-        fn teardown(self) {
-            // Put the original env var back.
-            if let Ok(ref val) = self.orig_no_color_env {
-                // TODO: Audit that the environment access only happens in single-threaded code.
-                unsafe { std::env::set_var("NO_COLOR", val) };
-            } else {
-                // TODO: Audit that the environment access only happens in single-threaded code.
-                unsafe { std::env::remove_var("NO_COLOR") };
-            }
-
-            if let Ok(ref val) = self.orig_clicolor_env {
-                // TODO: Audit that the environment access only happens in single-threaded code.
-                unsafe { std::env::set_var("CLICOLOR", val) };
-            } else {
-                // TODO: Audit that the environment access only happens in single-threaded code.
-                unsafe { std::env::remove_var("CLICOLOR") };
-            }
-
-            if let Ok(ref val) = self.orig_clicolor_force_env {
-                // TODO: Audit that the environment access only happens in single-threaded code.
-                unsafe { std::env::set_var("CLICOLOR_FORCE", val) };
-            } else {
-                // TODO: Audit that the environment access only happens in single-threaded code.
-                unsafe { std::env::remove_var("CLICOLOR_FORCE") };
-            }
-        }
-    }
 
     pub struct TestItem {
         name: String,
@@ -201,10 +165,8 @@ mod test {
         want: bool,
     }
 
-    #[test_context(Context)]
     #[test]
-    #[serial_test::serial]
-    fn test_env_color_disabled(_ctx: &mut Context) {
+    fn test_env_color_disabled() {
         let tests = vec![
             TestItem {
                 name: "pristine env".to_string(),
@@ -244,21 +206,18 @@ mod test {
         ];
 
         for t in tests {
-            // TODO: Audit that the environment access only happens in single-threaded code.
-            unsafe { std::env::set_var("NO_COLOR", t.no_color_env) };
-            // TODO: Audit that the environment access only happens in single-threaded code.
-            unsafe { std::env::set_var("CLICOLOR", t.clicolor_env) };
-            // TODO: Audit that the environment access only happens in single-threaded code.
-            unsafe { std::env::set_var("CLICOLOR_FORCE", t.clicolor_force_env) };
-
-            let got = env_color_disabled();
+            let got = env_color_disabled_with(|key| match key {
+                "NO_COLOR" => t.no_color_env.clone(),
+                "CLICOLOR" => t.clicolor_env.clone(),
+                "CLICOLOR_FORCE" => t.clicolor_force_env.clone(),
+                _ => String::new(),
+            });
             assert_eq!(got, t.want, "test {}", t.name);
         }
     }
 
-    #[test_context(Context)]
     #[test]
-    fn test_env_color_forced(_ctx: &mut Context) {
+    fn test_env_color_forced() {
         let tests = vec![
             TestItem {
                 name: "pristine env".to_string(),
@@ -305,14 +264,12 @@ mod test {
         ];
 
         for t in tests {
-            // TODO: Audit that the environment access only happens in single-threaded code.
-            unsafe { std::env::set_var("NO_COLOR", t.no_color_env) };
-            // TODO: Audit that the environment access only happens in single-threaded code.
-            unsafe { std::env::set_var("CLICOLOR", t.clicolor_env) };
-            // TODO: Audit that the environment access only happens in single-threaded code.
-            unsafe { std::env::set_var("CLICOLOR_FORCE", t.clicolor_force_env) };
-
-            let got = env_color_forced();
+            let got = env_color_forced_with(|key| match key {
+                "NO_COLOR" => t.no_color_env.clone(),
+                "CLICOLOR" => t.clicolor_env.clone(),
+                "CLICOLOR_FORCE" => t.clicolor_force_env.clone(),
+                _ => String::new(),
+            });
 
             assert_eq!(got, t.want, "test {}", t.name);
         }
