@@ -73,18 +73,18 @@ impl<'a> Context<'a> {
         if let Ok(zoo_pager) = get_env_var("ZOO_PAGER") {
             io.set_pager(zoo_pager);
         } else {
-            if let Ok(pager) = config.get("", "pager") {
-                if !pager.is_empty() {
-                    io.set_pager(pager);
-                }
+            if let Ok(pager) = config.get("", "pager")
+                && !pager.is_empty()
+            {
+                io.set_pager(pager);
             }
         }
 
         // Check if we should force use the tty.
-        if let Ok(zoo_force_tty) = get_env_var("ZOO_FORCE_TTY") {
-            if !zoo_force_tty.is_empty() {
-                io.force_terminal(&zoo_force_tty);
-            }
+        if let Ok(zoo_force_tty) = get_env_var("ZOO_FORCE_TTY")
+            && !zoo_force_tty.is_empty()
+        {
+            io.force_terminal(&zoo_force_tty);
         }
 
         Context {
@@ -669,12 +669,11 @@ impl<'a> Context<'a> {
             }
         } else {
             // Otherwise be sure we have a kcl file.
-            if path.to_str().unwrap_or("-") != "-" {
-                if let Some(ext) = path.extension() {
-                    if ext != "kcl" {
-                        return Err(anyhow::anyhow!("File must have a .kcl extension"));
-                    }
-                }
+            if path.to_str().unwrap_or("-") != "-"
+                && let Some(ext) = path.extension()
+                && ext != "kcl"
+            {
+                return Err(anyhow::anyhow!("File must have a .kcl extension"));
             }
         }
 

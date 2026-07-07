@@ -199,13 +199,14 @@ pub struct CmdFileSnapshot {
 impl crate::cmd::Command for CmdFileSnapshot {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         // Make sure the parent directory is a directory and exists.
-        if let Some(parent) = self.output_file.parent() {
-            if !parent.is_dir() && !parent.to_str().unwrap_or("").is_empty() {
-                anyhow::bail!(
-                    "directory `{}` does not exist or is not a directory",
-                    parent.to_str().unwrap_or("")
-                );
-            }
+        if let Some(parent) = self.output_file.parent()
+            && !parent.is_dir()
+            && !parent.to_str().unwrap_or("").is_empty()
+        {
+            anyhow::bail!(
+                "directory `{}` does not exist or is not a directory",
+                parent.to_str().unwrap_or("")
+            );
         }
 
         // Parse the image format.
@@ -242,46 +243,45 @@ impl crate::cmd::Command for CmdFileSnapshot {
                 .build(),
         ];
 
-        if matches!(src_format, kcmc::format::InputFormat3d::Gltf(_)) {
-            if let Ok(str) = std::str::from_utf8(&input) {
-                if let Ok(json) = serde_json::from_str::<crate::types::GltfStandardJsonLite>(str) {
-                    // Use the path of the control file as the prefix path of
-                    // the relative file name.
+        if matches!(src_format, kcmc::format::InputFormat3d::Gltf(_))
+            && let Ok(str) = std::str::from_utf8(&input)
+            && let Ok(json) = serde_json::from_str::<crate::types::GltfStandardJsonLite>(str)
+        {
+            // Use the path of the control file as the prefix path of
+            // the relative file name.
 
-                    for buffer in json.buffers {
-                        if is_data_uri(&buffer.uri) {
-                            // Using the whole data URI would create massive
-                            // path properties. Use a hash instead.
-                            let mut hasher = DefaultHasher::new();
-                            buffer.uri.hash(&mut hasher);
-                            let hash_u64 = hasher.finish();
+            for buffer in json.buffers {
+                if is_data_uri(&buffer.uri) {
+                    // Using the whole data URI would create massive
+                    // path properties. Use a hash instead.
+                    let mut hasher = DefaultHasher::new();
+                    buffer.uri.hash(&mut hasher);
+                    let hash_u64 = hasher.finish();
 
-                            if let Some(buf_base64) = buffer.uri.split(',').nth(1) {
-                                files.push(
-                                    kcmc::ImportFile::builder()
-                                        .path(hash_u64.to_string())
-                                        .data(BASE64_STANDARD.decode(buf_base64)?)
-                                        .build(),
-                                );
-                            } else {
-                                anyhow::bail!("invalid data uri in gltf.buffers.uri property");
-                            }
-                        } else {
-                            let path_ = self
-                                .input
-                                .parent()
-                                .unwrap_or(std::path::Path::new(""))
-                                .join(std::path::Path::new(&buffer.uri));
-                            let path = path_.to_str().unwrap_or_default();
-                            let data = ctx.read_file(path)?;
-                            files.push(
-                                kcmc::ImportFile::builder()
-                                    .path(path_.file_name().unwrap_or_default().to_str().unwrap_or("").to_string())
-                                    .data(data)
-                                    .build(),
-                            );
-                        }
+                    if let Some(buf_base64) = buffer.uri.split(',').nth(1) {
+                        files.push(
+                            kcmc::ImportFile::builder()
+                                .path(hash_u64.to_string())
+                                .data(BASE64_STANDARD.decode(buf_base64)?)
+                                .build(),
+                        );
+                    } else {
+                        anyhow::bail!("invalid data uri in gltf.buffers.uri property");
                     }
+                } else {
+                    let path_ = self
+                        .input
+                        .parent()
+                        .unwrap_or(std::path::Path::new(""))
+                        .join(std::path::Path::new(&buffer.uri));
+                    let path = path_.to_str().unwrap_or_default();
+                    let data = ctx.read_file(path)?;
+                    files.push(
+                        kcmc::ImportFile::builder()
+                            .path(path_.file_name().unwrap_or_default().to_str().unwrap_or("").to_string())
+                            .data(data)
+                            .build(),
+                    );
                 }
             }
         }

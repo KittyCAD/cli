@@ -61,10 +61,10 @@ fn apply_test_auth_env(cmd: &mut Command) {
         }
     }
 
-    if let Ok(host) = std::env::var("ZOO_TEST_HOST") {
-        if !host.is_empty() {
-            cmd.env("ZOO_HOST", host);
-        }
+    if let Ok(host) = std::env::var("ZOO_TEST_HOST")
+        && !host.is_empty()
+    {
+        cmd.env("ZOO_HOST", host);
     }
 }
 

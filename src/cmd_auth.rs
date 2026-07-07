@@ -437,10 +437,10 @@ impl crate::cmd::Command for CmdAuthStatus {
 
         let only_host = ctx.global_host().map(|s| s.to_string());
         for hostname in &hostnames {
-            if let Some(h) = only_host.as_deref() {
-                if h != *hostname {
-                    continue;
-                }
+            if let Some(h) = only_host.as_deref()
+                && h != *hostname
+            {
+                continue;
             }
 
             hostname_found = true;

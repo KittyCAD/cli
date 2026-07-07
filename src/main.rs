@@ -323,10 +323,10 @@ async fn run_cmd(cmd: &impl crate::cmd::Command, ctx: &mut context::Context<'_>)
                     writeln!(ctx.io.err_out, "zoo.dev api error: {body}")?;
                 } else {
                     writeln!(ctx.io.err_out, "{err}")?;
-                    if let kittycad::types::error::Error::RequestError(inner) = &err {
-                        if let Some(source) = inner.source() {
-                            writeln!(ctx.io.err_out, "  caused by: {source}")?;
-                        }
+                    if let kittycad::types::error::Error::RequestError(inner) = &err
+                        && let Some(source) = inner.source()
+                    {
+                        writeln!(ctx.io.err_out, "  caused by: {source}")?;
                     }
                 }
             }
