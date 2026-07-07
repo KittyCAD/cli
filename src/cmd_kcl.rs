@@ -157,25 +157,17 @@ impl crate::cmd::Command for CmdKclExport {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(&filepath.display().to_string(), &code, err))?;
         let meta_settings = program.meta_settings()?.unwrap_or_default();
         let units: UnitLength = meta_settings.default_length_units.to_kcmc();
+        let output_format = get_output_format(&self.output_format, units, self.deterministic);
 
-        let client = ctx.api_client("")?;
-        let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
-        let mut state = kcl_lib::ExecState::new(&ectx);
-        let session_data = ectx
-            .run(&program, &mut state)
-            .await
-            .map_err(|err| kcl_error_fmt::into_miette(err, &code))?
-            .1;
-        kcl_error_fmt::check_exec_state_issues(
-            &mut ctx.io.err_out,
-            &filepath.display().to_string(),
-            &code,
-            &state,
-            self.run_options.issue_check(),
-        )?;
-
-        let files = ectx
-            .export(get_output_format(&self.output_format, units, self.deterministic))
+        let (files, session_data) = ctx
+            .run_kcl_then_export(
+                &filepath.display().to_string(),
+                &code,
+                &program,
+                settings,
+                self.run_options.issue_check(),
+                output_format,
+            )
             .await?;
 
         // Save the files to our export directory.

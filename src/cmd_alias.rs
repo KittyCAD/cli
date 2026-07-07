@@ -432,6 +432,7 @@ mod test {
                 io,
                 debug: false,
                 override_host: None,
+                kcl_retry_config: None,
             };
 
             let cmd_alias = crate::cmd_alias::CmdAlias { subcmd: t.cmd };
