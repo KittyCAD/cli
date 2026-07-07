@@ -50,11 +50,11 @@ enum KclExecutionError {
 }
 
 #[cfg(test)]
-type KclProgramRun = (
-    kcl_lib::ExecutorContext,
-    kcl_lib::ExecState,
-    Option<ModelingSessionData>,
-);
+struct KclProgramRun {
+    exec_ctx: kcl_lib::ExecutorContext,
+    exec_state: kcl_lib::ExecState,
+    session_data: Option<ModelingSessionData>,
+}
 
 #[cfg(test)]
 impl KclExecutionError {
@@ -153,7 +153,11 @@ async fn run_kcl_program_once_with_client(
         .await
         .map_err(|err| KclExecutionError::Execution(Box::new(err)))?
         .1;
-    Ok((ctx, state, session_data))
+    Ok(KclProgramRun {
+        exec_ctx: ctx,
+        exec_state: state,
+        session_data,
+    })
 }
 
 impl<'a> Context<'a> {
@@ -383,15 +387,21 @@ impl<'a> Context<'a> {
             let mut retries_remaining = retry_config.retries;
             loop {
                 let result = async {
-                    let (ctx, state, session_data) =
-                        run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
+                    let run = run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
 
-                    kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)
-                        .map_err(KclExecutionError::Issue)?;
+                    kcl_error_fmt::check_exec_state_issues(
+                        &mut self.io.err_out,
+                        filename,
+                        code,
+                        &run.exec_state,
+                        issue_check,
+                    )
+                    .map_err(KclExecutionError::Issue)?;
 
                     let batch_context = kcl_lib::EngineBatchContext::new();
 
-                    ctx.engine
+                    run.exec_ctx
+                        .engine
                         .send_modeling_cmd(
                             &batch_context,
                             uuid::Uuid::new_v4(),
@@ -407,7 +417,8 @@ impl<'a> Context<'a> {
                         .await
                         .map_err(|err| KclExecutionError::Kcl(Box::new(err)))?;
 
-                    let resp = ctx
+                    let resp = run
+                        .exec_ctx
                         .engine
                         .send_modeling_cmd(
                             &batch_context,
@@ -417,7 +428,7 @@ impl<'a> Context<'a> {
                         )
                         .await
                         .map_err(|err| KclExecutionError::Kcl(Box::new(err)))?;
-                    Ok((resp, session_data))
+                    Ok((resp, run.session_data))
                 }
                 .await;
 
@@ -485,16 +496,22 @@ impl<'a> Context<'a> {
             let mut retries_remaining = retry_config.retries;
             loop {
                 let result = async {
-                    let (ctx, state, session_data) =
-                        run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
+                    let run = run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
 
-                    kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)
-                        .map_err(KclExecutionError::Issue)?;
+                    kcl_error_fmt::check_exec_state_issues(
+                        &mut self.io.err_out,
+                        filename,
+                        code,
+                        &run.exec_state,
+                        issue_check,
+                    )
+                    .map_err(KclExecutionError::Issue)?;
 
                     let batch_context = kcl_lib::EngineBatchContext::new();
                     let mut responses = Vec::with_capacity(cmds.len());
                     for cmd in cmds.clone() {
-                        let resp = ctx
+                        let resp = run
+                            .exec_ctx
                             .engine
                             .send_modeling_cmd(
                                 &batch_context,
@@ -507,7 +524,7 @@ impl<'a> Context<'a> {
                         responses.push(resp);
                     }
 
-                    Ok((responses, session_data))
+                    Ok((responses, run.session_data))
                 }
                 .await;
 
@@ -565,16 +582,22 @@ impl<'a> Context<'a> {
             let mut retries_remaining = retry_config.retries;
             loop {
                 let result = async {
-                    let (ctx, state, session_data) =
-                        run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
+                    let run = run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
 
-                    kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)
-                        .map_err(KclExecutionError::Issue)?;
+                    kcl_error_fmt::check_exec_state_issues(
+                        &mut self.io.err_out,
+                        filename,
+                        code,
+                        &run.exec_state,
+                        issue_check,
+                    )
+                    .map_err(KclExecutionError::Issue)?;
 
                     let batch_context = kcl_lib::EngineBatchContext::new();
                     let mut snapshot_resps = Vec::new();
                     for snapshot_cmd in snapshot_cmds.clone() {
-                        let resp = ctx
+                        let resp = run
+                            .exec_ctx
                             .engine
                             .send_modeling_cmd(
                                 &batch_context,
@@ -593,7 +616,7 @@ impl<'a> Context<'a> {
                         }
                     }
 
-                    Ok((snapshot_resps, session_data))
+                    Ok((snapshot_resps, run.session_data))
                 }
                 .await;
 
@@ -650,17 +673,23 @@ impl<'a> Context<'a> {
             let mut retries_remaining = retry_config.retries;
             loop {
                 let result = async {
-                    let (ctx, state, session_data) =
-                        run_kcl_program_once_with_client(&client, program, settings.clone()).await?;
+                    let run = run_kcl_program_once_with_client(&client, program, settings.clone()).await?;
 
-                    kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)
-                        .map_err(KclExecutionError::Issue)?;
+                    kcl_error_fmt::check_exec_state_issues(
+                        &mut self.io.err_out,
+                        filename,
+                        code,
+                        &run.exec_state,
+                        issue_check,
+                    )
+                    .map_err(KclExecutionError::Issue)?;
 
-                    let files = ctx
+                    let files = run
+                        .exec_ctx
                         .export(output_format.clone())
                         .await
                         .map_err(|err| KclExecutionError::Kcl(Box::new(err)))?;
-                    Ok((files, session_data))
+                    Ok((files, run.session_data))
                 }
                 .await;
 
@@ -698,19 +727,15 @@ impl<'a> Context<'a> {
     )> {
         #[cfg(test)]
         if let Some(retry_config) = &self.kcl_retry_config {
-            let result: std::result::Result<
-                (
-                    kcl_lib::ExecutorContext,
-                    kcl_lib::ExecState,
-                    Option<ModelingSessionData>,
-                ),
-                KclExecutionError,
-            > = execute_with_retries(retry_config, || {
-                run_kcl_program_once_with_client(client, program, settings.clone())
-            })
-            .await;
+            let result: std::result::Result<KclProgramRun, KclExecutionError> =
+                execute_with_retries(retry_config, || {
+                    run_kcl_program_once_with_client(client, program, settings.clone())
+                })
+                .await;
 
-            return result.map_err(|err| err.into_anyhow("", code));
+            return result
+                .map(|run| (run.exec_ctx, run.exec_state, run.session_data))
+                .map_err(|err| err.into_anyhow("", code));
         }
 
         let ctx = kcl_lib::ExecutorContext::new(client, settings).await?;
