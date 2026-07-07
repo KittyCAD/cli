@@ -99,14 +99,7 @@ where
     loop {
         let exec_result = execute().await;
 
-        if retries_remaining > 0
-            && let Err(error) = &exec_result
-            && error.is_retryable()
-        {
-            if config.print_retries {
-                eprintln!("Execute got {error}; retrying...");
-            }
-            retries_remaining -= 1;
+        if should_retry_kcl_attempt(config, &mut retries_remaining, &exec_result) {
             continue;
         }
 
@@ -115,11 +108,14 @@ where
 }
 
 #[cfg(test)]
-fn should_retry_kcl_attempt<T>(
+fn should_retry_kcl_attempt<T, E>(
     config: &RetryConfig,
     retries_remaining: &mut usize,
-    result: &std::result::Result<T, KclExecutionError>,
-) -> bool {
+    result: &std::result::Result<T, E>,
+) -> bool
+where
+    E: kcl_lib::IsRetryable + std::fmt::Display,
+{
     if *retries_remaining > 0
         && let Err(error) = result
         && kcl_lib::IsRetryable::is_retryable(error)
@@ -382,7 +378,10 @@ impl<'a> Context<'a> {
         if let Some(retry_config) = self.kcl_retry_config.clone() {
             let mut retries_remaining = retry_config.retries;
             loop {
-                let result = async {
+                let result: std::result::Result<
+                    (OkWebSocketResponseData, Option<ModelingSessionData>),
+                    KclExecutionError,
+                > = async {
                     let run = run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
 
                     kcl_error_fmt::check_exec_state_issues(
@@ -491,7 +490,10 @@ impl<'a> Context<'a> {
         if let Some(retry_config) = self.kcl_retry_config.clone() {
             let mut retries_remaining = retry_config.retries;
             loop {
-                let result = async {
+                let result: std::result::Result<
+                    (Vec<OkWebSocketResponseData>, Option<ModelingSessionData>),
+                    KclExecutionError,
+                > = async {
                     let run = run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
 
                     kcl_error_fmt::check_exec_state_issues(
@@ -577,44 +579,45 @@ impl<'a> Context<'a> {
         if let Some(retry_config) = self.kcl_retry_config.clone() {
             let mut retries_remaining = retry_config.retries;
             loop {
-                let result = async {
-                    let run = run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
+                let result: std::result::Result<(Vec<TakeSnapshot>, Option<ModelingSessionData>), KclExecutionError> =
+                    async {
+                        let run = run_kcl_program_once_with_client(&client, &program, settings.clone()).await?;
 
-                    kcl_error_fmt::check_exec_state_issues(
-                        &mut self.io.err_out,
-                        filename,
-                        code,
-                        &run.exec_state,
-                        issue_check,
-                    )
-                    .map_err(KclExecutionError::Other)?;
+                        kcl_error_fmt::check_exec_state_issues(
+                            &mut self.io.err_out,
+                            filename,
+                            code,
+                            &run.exec_state,
+                            issue_check,
+                        )
+                        .map_err(KclExecutionError::Other)?;
 
-                    let batch_context = kcl_lib::EngineBatchContext::new();
-                    let mut snapshot_resps = Vec::new();
-                    for snapshot_cmd in snapshot_cmds.clone() {
-                        let resp = run
-                            .exec_ctx
-                            .engine
-                            .send_modeling_cmd(
-                                &batch_context,
-                                uuid::Uuid::new_v4(),
-                                kcl_lib::SourceRange::default(),
-                                &snapshot_cmd,
-                            )
-                            .await
-                            .map_err(|err| KclExecutionError::Kcl(Box::new(err)))?;
-                        if let OkWebSocketResponseData::Modeling {
-                            modeling_response:
-                                kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(snap),
-                        } = resp
-                        {
-                            snapshot_resps.push(snap);
+                        let batch_context = kcl_lib::EngineBatchContext::new();
+                        let mut snapshot_resps = Vec::new();
+                        for snapshot_cmd in snapshot_cmds.clone() {
+                            let resp = run
+                                .exec_ctx
+                                .engine
+                                .send_modeling_cmd(
+                                    &batch_context,
+                                    uuid::Uuid::new_v4(),
+                                    kcl_lib::SourceRange::default(),
+                                    &snapshot_cmd,
+                                )
+                                .await
+                                .map_err(|err| KclExecutionError::Kcl(Box::new(err)))?;
+                            if let OkWebSocketResponseData::Modeling {
+                                modeling_response:
+                                    kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(snap),
+                            } = resp
+                            {
+                                snapshot_resps.push(snap);
+                            }
                         }
-                    }
 
-                    Ok((snapshot_resps, run.session_data))
-                }
-                .await;
+                        Ok((snapshot_resps, run.session_data))
+                    }
+                    .await;
 
                 if should_retry_kcl_attempt(&retry_config, &mut retries_remaining, &result) {
                     continue;
@@ -668,26 +671,27 @@ impl<'a> Context<'a> {
         if let Some(retry_config) = self.kcl_retry_config.clone() {
             let mut retries_remaining = retry_config.retries;
             loop {
-                let result = async {
-                    let run = run_kcl_program_once_with_client(&client, program, settings.clone()).await?;
+                let result: std::result::Result<(Vec<RawFile>, Option<ModelingSessionData>), KclExecutionError> =
+                    async {
+                        let run = run_kcl_program_once_with_client(&client, program, settings.clone()).await?;
 
-                    kcl_error_fmt::check_exec_state_issues(
-                        &mut self.io.err_out,
-                        filename,
-                        code,
-                        &run.exec_state,
-                        issue_check,
-                    )
-                    .map_err(KclExecutionError::Other)?;
+                        kcl_error_fmt::check_exec_state_issues(
+                            &mut self.io.err_out,
+                            filename,
+                            code,
+                            &run.exec_state,
+                            issue_check,
+                        )
+                        .map_err(KclExecutionError::Other)?;
 
-                    let files = run
-                        .exec_ctx
-                        .export(output_format.clone())
-                        .await
-                        .map_err(|err| KclExecutionError::Kcl(Box::new(err)))?;
-                    Ok((files, run.session_data))
-                }
-                .await;
+                        let files = run
+                            .exec_ctx
+                            .export(output_format.clone())
+                            .await
+                            .map_err(|err| KclExecutionError::Kcl(Box::new(err)))?;
+                        Ok((files, run.session_data))
+                    }
+                    .await;
 
                 if should_retry_kcl_attempt(&retry_config, &mut retries_remaining, &result) {
                     continue;
