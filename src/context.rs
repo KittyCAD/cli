@@ -48,7 +48,6 @@ enum KclExecutionError {
     Other(anyhow::Error),
 }
 
-#[cfg(test)]
 struct KclProgramRun {
     exec_ctx: kcl_lib::ExecutorContext,
     exec_state: kcl_lib::ExecState,
@@ -435,15 +434,16 @@ impl<'a> Context<'a> {
             }
         }
 
-        let (ctx, state, session_data) = self
+        let run = self
             .run_kcl_program_with_client(&client, code, &program, settings)
             .await?;
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)?;
+        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
 
         // Zoom on the object.
-        ctx.engine
+        run.exec_ctx
+            .engine
             .send_modeling_cmd(
                 &batch_context,
                 uuid::Uuid::new_v4(),
@@ -458,7 +458,8 @@ impl<'a> Context<'a> {
             )
             .await?;
 
-        let resp = ctx
+        let resp = run
+            .exec_ctx
             .engine
             .send_modeling_cmd(
                 &batch_context,
@@ -468,7 +469,7 @@ impl<'a> Context<'a> {
             )
             .await
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
-        Ok((resp, session_data))
+        Ok((resp, run.session_data))
     }
 
     pub(crate) async fn run_kcl_then_modeling_cmds(
@@ -534,15 +535,16 @@ impl<'a> Context<'a> {
             }
         }
 
-        let (ctx, state, session_data) = self
+        let run = self
             .run_kcl_program_with_client(&client, code, &program, settings)
             .await?;
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)?;
+        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
         let mut responses = Vec::with_capacity(cmds.len());
         for cmd in cmds {
-            let resp = ctx
+            let resp = run
+                .exec_ctx
                 .engine
                 .send_modeling_cmd(
                     &batch_context,
@@ -555,7 +557,7 @@ impl<'a> Context<'a> {
             responses.push(resp);
         }
 
-        Ok((responses, session_data))
+        Ok((responses, run.session_data))
     }
 
     /// Run the given KCL program, then after, run the given extra modeling commands.
@@ -627,15 +629,16 @@ impl<'a> Context<'a> {
             }
         }
 
-        let (ctx, state, session_data) = self
+        let run = self
             .run_kcl_program_with_client(&client, code, &program, settings)
             .await?;
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)?;
+        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
         let mut snapshot_resps = Vec::new();
         for snapshot_cmd in snapshot_cmds {
-            let resp = ctx
+            let resp = run
+                .exec_ctx
                 .engine
                 .send_modeling_cmd(
                     &batch_context,
@@ -653,7 +656,7 @@ impl<'a> Context<'a> {
             }
         }
 
-        Ok((snapshot_resps, session_data))
+        Ok((snapshot_resps, run.session_data))
     }
 
     pub(crate) async fn run_kcl_then_export(
@@ -701,17 +704,18 @@ impl<'a> Context<'a> {
             }
         }
 
-        let (ctx, state, session_data) = self
+        let run = self
             .run_kcl_program_with_client(&client, code, program, settings)
             .await?;
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &state, issue_check)?;
+        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
 
-        let files = ctx
+        let files = run
+            .exec_ctx
             .export(output_format)
             .await
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        Ok((files, session_data))
+        Ok((files, run.session_data))
     }
 
     async fn run_kcl_program_with_client(
@@ -720,11 +724,7 @@ impl<'a> Context<'a> {
         code: &str,
         program: &kcl_lib::Program,
         settings: kcl_lib::ExecutorSettings,
-    ) -> Result<(
-        kcl_lib::ExecutorContext,
-        kcl_lib::ExecState,
-        Option<ModelingSessionData>,
-    )> {
+    ) -> Result<KclProgramRun> {
         #[cfg(test)]
         if let Some(retry_config) = &self.kcl_retry_config {
             let result: std::result::Result<KclProgramRun, KclExecutionError> =
@@ -733,9 +733,7 @@ impl<'a> Context<'a> {
                 })
                 .await;
 
-            return result
-                .map(|run| (run.exec_ctx, run.exec_state, run.session_data))
-                .map_err(|err| err.into_anyhow("", code));
+            return result.map_err(|err| err.into_anyhow("", code));
         }
 
         let ctx = kcl_lib::ExecutorContext::new(client, settings).await?;
@@ -745,7 +743,11 @@ impl<'a> Context<'a> {
             .await
             .map_err(|err| kcl_error_fmt::into_miette(err, code))?
             .1;
-        Ok((ctx, state, session_data))
+        Ok(KclProgramRun {
+            exec_ctx: ctx,
+            exec_state: state,
+            session_data,
+        })
     }
 
     /// Create and poll a plain text-to-CAD job.
