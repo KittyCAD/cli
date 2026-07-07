@@ -1,7 +1,7 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::Parser;
 
-use crate::config::{ConfigOption, CONFIG_OPTIONS};
+use crate::config::{CONFIG_OPTIONS, ConfigOption};
 
 // TODO: make this doc a function that parses from the config the options so it's not hardcoded
 /// Manage configuration for `zoo`.

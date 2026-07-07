@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::{Command, CommandFactory, Parser};
-use clap_complete::{generate, Shell};
+use clap_complete::{Shell, generate};
 
 /// Generate shell completion scripts.
 ///

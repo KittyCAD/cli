@@ -3,7 +3,7 @@ use std::{net::SocketAddr, path::Path, str::FromStr};
 use anyhow::Result;
 use clap::Parser;
 use image::{DynamicImage, ImageReader};
-use kcl_lib::{unit_conversion::ToKcmc, ToLspRange, TypedPath};
+use kcl_lib::{ToLspRange, TypedPath, unit_conversion::ToKcmc};
 use kcmc::{format::OutputFormat3d as OutputFormat, ok_response::OkModelingCmdResponse};
 use kittycad::types as kt;
 use kittycad_modeling_cmds::{self as kcmc, units::UnitLength, websocket::ModelingSessionData};
@@ -765,8 +765,8 @@ pub fn get_image_format_from_extension_kcmc(ext: &str) -> Result<kcmc::ImageForm
         Ok(format) => Ok(format),
         Err(_) => {
             anyhow::bail!(
-                    "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
-                )
+                "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
+            )
         }
     }
 }
@@ -777,8 +777,8 @@ pub fn get_image_format_from_extension_dot_rs(ext: &str) -> Result<kittycad::typ
         Ok(format) => Ok(format),
         Err(_) => {
             anyhow::bail!(
-                    "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
-                )
+                "unknown source format for file extension: {ext}. Try setting the `--src-format` flag explicitly or use a valid format."
+            )
         }
     }
 }
@@ -1757,7 +1757,9 @@ fn print_trace_link(io: &mut IoStreams, session_data: &Option<ModelingSessionDat
         return;
     };
     let api_call_id = &data.api_call_id;
-    let link = format!("https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{api_call_id}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D");
+    let link = format!(
+        "https://ui.honeycomb.io/kittycad/environments/prod/datasets/api-deux?query=%7B%22time_range%22%3A7200%2C%22granularity%22%3A0%2C%22calculations%22%3A%5B%7B%22op%22%3A%22COUNT%22%7D%5D%2C%22filters%22%3A%5B%7B%22column%22%3A%22api_call.id%22%2C%22op%22%3A%22%3D%22%2C%22value%22%3A%22{api_call_id}%22%7D%5D%2C%22filter_combination%22%3A%22AND%22%2C%22limit%22%3A1000%7D"
+    );
     let _ = writeln!(
         io.out,
         "Was this request slow? Send a Zoo employee this link:\n----\n{link}"

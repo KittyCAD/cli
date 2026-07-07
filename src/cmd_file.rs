@@ -7,8 +7,8 @@ use anyhow::Result;
 use base64::prelude::*;
 use clap::Parser;
 use kittycad_modeling_cmds::{
-    self as kcmc, ok_response::OkModelingCmdResponse, shared::FileImportFormat, websocket::OkWebSocketResponseData,
-    ModelingCmd,
+    self as kcmc, ModelingCmd, ok_response::OkModelingCmdResponse, shared::FileImportFormat,
+    websocket::OkWebSocketResponseData,
 };
 
 use crate::cmd_kcl::write_deterministic_export;
@@ -145,7 +145,9 @@ impl crate::cmd::Command for CmdFileConvert {
                     )?;
                 }
             } else {
-                anyhow::bail!("no output was generated! (this is probably a bug in the API) you should report it to support@zoo.dev");
+                anyhow::bail!(
+                    "no output was generated! (this is probably a bug in the API) you should report it to support@zoo.dev"
+                );
             }
         }
 
@@ -233,10 +235,12 @@ impl crate::cmd::Command for CmdFileSnapshot {
         // In order for the program to know it's dealing with this type, an
         // attempt to parse as json is made, then we check for the buffers
         // property which describes what external files are needed.
-        let mut files: Vec<kcmc::ImportFile> = vec![kcmc::ImportFile::builder()
-            .path(filename.to_string())
-            .data(input.clone())
-            .build()];
+        let mut files: Vec<kcmc::ImportFile> = vec![
+            kcmc::ImportFile::builder()
+                .path(filename.to_string())
+                .data(input.clone())
+                .build(),
+        ];
 
         if matches!(src_format, kcmc::format::InputFormat3d::Gltf(_)) {
             if let Ok(str) = std::str::from_utf8(&input) {

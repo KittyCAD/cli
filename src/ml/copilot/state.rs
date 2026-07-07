@@ -436,11 +436,7 @@ fn autocomplete_slash(current: &str) -> Option<String> {
         return Some(matches[0].to_string());
     }
     let cp = common_prefix(&matches);
-    if cp.len() > current.len() {
-        Some(cp)
-    } else {
-        None
-    }
+    if cp.len() > current.len() { Some(cp) } else { None }
 }
 
 #[cfg(test)]

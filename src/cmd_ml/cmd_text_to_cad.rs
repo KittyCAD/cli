@@ -1,8 +1,8 @@
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
 use kcmc::{
-    each_cmd as mcmd, format::InputFormat3d, ok_response::OkModelingCmdResponse, websocket::OkWebSocketResponseData,
-    ImageFormat, ModelingCmd,
+    ImageFormat, ModelingCmd, each_cmd as mcmd, format::InputFormat3d, ok_response::OkModelingCmdResponse,
+    websocket::OkWebSocketResponseData,
 };
 use kittycad_modeling_cmds::{self as kcmc, ImportFile};
 
@@ -131,8 +131,8 @@ impl crate::cmd::Command for CmdTextToCadExport {
                 }
             } else {
                 anyhow::bail!(
-                "no output was generated! (this is probably a bug in the API) you should report it to support@zoo.dev"
-            );
+                    "no output was generated! (this is probably a bug in the API) you should report it to support@zoo.dev"
+                );
             }
         } else if let Some(code) = &model.code {
             let filename = prompt.replace(" ", "_").to_lowercase() + ".kcl";
@@ -363,10 +363,12 @@ async fn get_image_bytes(
             kcl_lib::SourceRange::default(),
             &ModelingCmd::from(
                 mcmd::ImportFiles::builder()
-                    .files(vec![ImportFile::builder()
-                        .path("model.gltf".to_string())
-                        .data(gltf_bytes.to_vec())
-                        .build()])
+                    .files(vec![
+                        ImportFile::builder()
+                            .path("model.gltf".to_string())
+                            .data(gltf_bytes.to_vec())
+                            .build(),
+                    ])
                     .format(InputFormat3d::Gltf(Default::default()))
                     .build(),
             ),

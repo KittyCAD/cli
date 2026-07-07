@@ -1,12 +1,12 @@
 use std::{io::Write, str::FromStr, time::Duration};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use futures::StreamExt;
 use kcl_lib::engine_connection::EngineManager;
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
-use kittycad_modeling_cmds::{self as kcmc, output::TakeSnapshot, websocket::ModelingSessionData, ModelingCmd};
-use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
+use kittycad_modeling_cmds::{self as kcmc, ModelingCmd, output::TakeSnapshot, websocket::ModelingSessionData};
+use tokio_tungstenite::{WebSocketStream, tungstenite::protocol::Role};
 
 use crate::{cmd_kcl, config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 

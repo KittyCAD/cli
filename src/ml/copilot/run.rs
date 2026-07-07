@@ -8,17 +8,17 @@ use crossterm::{
     cursor::MoveTo,
     event::{Event, EventStream},
     execute, queue,
-    terminal::{disable_raw_mode, enable_raw_mode, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use futures::{SinkExt, StreamExt};
 use kcl_lib::TypedPath;
 use log::LevelFilter;
-use ratatui::{backend::CrosstermBackend, Terminal};
+use ratatui::{Terminal, backend::CrosstermBackend};
 use similar::TextDiff;
 use tokio::sync::mpsc;
 use tokio_tungstenite::{
-    tungstenite::{protocol::Role, Message},
     WebSocketStream,
+    tungstenite::{Message, protocol::Role},
 };
 
 use crate::ml::copilot::{

@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 // ConfigMap implements a low-level get/set config that is backed by an in-memory tree of toml
 // nodes. It allows us to interact with a toml-based config programmatically, preserving any

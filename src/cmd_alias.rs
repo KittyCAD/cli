@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::{Command, CommandFactory, Parser};
 
 /// Create command shortcuts.
