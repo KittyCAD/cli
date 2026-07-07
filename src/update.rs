@@ -5,7 +5,7 @@ use std::{
     io::{IsTerminal, Write},
 };
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use serde::{Deserialize, Serialize};
 
 use crate::config_file::get_env_var;

@@ -146,10 +146,10 @@ pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
             return Some(SlashCommand::ForceTool(tool));
         }
         let normalized = name.replace('-', "_");
-        if normalized != name {
-            if let Ok(tool) = normalized.parse::<kittycad::types::MlCopilotTool>() {
-                return Some(SlashCommand::ForceTool(tool));
-            }
+        if normalized != name
+            && let Ok(tool) = normalized.parse::<kittycad::types::MlCopilotTool>()
+        {
+            return Some(SlashCommand::ForceTool(tool));
         }
         return None;
     }
@@ -164,10 +164,10 @@ pub fn parse_slash_command(input: &str) -> Option<SlashCommand> {
             return Some(SlashCommand::System(cmd));
         }
         let normalized = name.replace('-', "_");
-        if normalized != name {
-            if let Ok(cmd) = normalized.parse::<kittycad::types::MlCopilotSystemCommand>() {
-                return Some(SlashCommand::System(cmd));
-            }
+        if normalized != name
+            && let Ok(cmd) = normalized.parse::<kittycad::types::MlCopilotSystemCommand>()
+        {
+            return Some(SlashCommand::System(cmd));
         }
     }
     None
@@ -192,10 +192,10 @@ impl App {
     /// Handle a key event with richer outcomes, including Exit on Ctrl+C.
     pub fn handle_key_action(&mut self, key: KeyEvent) -> KeyAction {
         // Ctrl+C always exits
-        if key.modifiers.contains(KeyModifiers::CONTROL) {
-            if let KeyCode::Char('c') | KeyCode::Char('C') = key.code {
-                return KeyAction::Exit;
-            }
+        if key.modifiers.contains(KeyModifiers::CONTROL)
+            && let KeyCode::Char('c') | KeyCode::Char('C') = key.code
+        {
+            return KeyAction::Exit;
         }
 
         match key.code {
@@ -297,22 +297,20 @@ impl App {
     /// On EndOfStream, mark not awaiting, and if files are ready and a queue exists, return next to send.
     pub fn on_end_of_stream(&mut self, files_ready: bool) -> Option<QueuedPrompt> {
         self.awaiting_response = false;
-        if files_ready {
-            if let Some(next) = self.queue.pop_front() {
-                self.awaiting_response = true;
-                return Some(next);
-            }
+        if files_ready && let Some(next) = self.queue.pop_front() {
+            self.awaiting_response = true;
+            return Some(next);
         }
         None
     }
 
     /// On scanning done, if not awaiting, return next queued to send.
     pub fn on_scan_done(&mut self) -> Option<QueuedPrompt> {
-        if !self.awaiting_response {
-            if let Some(next) = self.queue.pop_front() {
-                self.awaiting_response = true;
-                return Some(next);
-            }
+        if !self.awaiting_response
+            && let Some(next) = self.queue.pop_front()
+        {
+            self.awaiting_response = true;
+            return Some(next);
         }
         None
     }
@@ -436,11 +434,7 @@ fn autocomplete_slash(current: &str) -> Option<String> {
         return Some(matches[0].to_string());
     }
     let cp = common_prefix(&matches);
-    if cp.len() > current.len() {
-        Some(cp)
-    } else {
-        None
-    }
+    if cp.len() > current.len() { Some(cp) } else { None }
 }
 
 #[cfg(test)]

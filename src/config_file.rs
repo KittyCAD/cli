@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 
 const ZOO_CONFIG_DIR: &str = "ZOO_CONFIG_DIR";
 const XDG_CONFIG_HOME: &str = "XDG_CONFIG_HOME";

@@ -32,7 +32,6 @@ impl crate::cmd::Command for CmdUser {
 #[cfg(test)]
 mod test {
     use pretty_assertions::assert_eq;
-    use test_context::{test_context, AsyncTestContext};
 
     use crate::cmd::Command;
 
@@ -44,48 +43,14 @@ mod test {
         want_err: String,
     }
 
-    struct TContext {
-        orig_zoo_host: Result<String, std::env::VarError>,
-        orig_zoo_token: Result<String, std::env::VarError>,
-    }
-
-    impl AsyncTestContext for TContext {
-        async fn setup() -> TContext {
-            let orig = TContext {
-                orig_zoo_host: std::env::var("ZOO_HOST"),
-                orig_zoo_token: std::env::var("ZOO_API_TOKEN"),
-            };
-
-            // Set our test values.
-            let test_host = std::env::var("ZOO_TEST_HOST").unwrap_or_default();
-
-            let test_token = std::env::var("ZOO_TEST_TOKEN").expect("ZOO_TEST_TOKEN is required");
-            std::env::set_var("ZOO_HOST", test_host);
-            std::env::set_var("ZOO_API_TOKEN", test_token);
-
-            orig
-        }
-
-        async fn teardown(self) {
-            // Put the original env var back.
-            if let Ok(ref val) = self.orig_zoo_host {
-                std::env::set_var("ZOO_HOST", val);
-            } else {
-                std::env::remove_var("ZOO_HOST");
-            }
-
-            if let Ok(ref val) = self.orig_zoo_token {
-                std::env::set_var("ZOO_API_TOKEN", val);
-            } else {
-                std::env::remove_var("ZOO_API_TOKEN");
-            }
-        }
-    }
-
-    #[test_context(TContext)]
+    /// Same-process unit test for paths that do not require dependencies to
+    /// read real process env.
+    ///
+    /// Tests that need `kcl_lib` or other dependencies to read `ZOO_API_TOKEN`
+    /// must use the child-process integration test harness in
+    /// [`tests/kcl_process.rs`](../../tests/kcl_process.rs).
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
-    #[serial_test::serial]
-    async fn test_cmd_user(_ctx: &mut TContext) {
+    async fn test_cmd_user() {
         let tests: Vec<TestItem> = vec![TestItem {
             name: "volume: input file does not exist".to_string(),
             cmd: crate::cmd_user::SubCommand::Edit(crate::cmd_user::CmdUserEdit {
@@ -105,7 +70,6 @@ mod test {
         }];
 
         let mut config = crate::config::new_blank_config().unwrap();
-        let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
 
         for t in tests {
             let (mut io, stdout_path, stderr_path) = crate::iostreams::IoStreams::test();
@@ -117,7 +81,7 @@ mod test {
             io.set_color_enabled(false);
             io.set_never_prompt(true);
             let mut ctx = crate::context::Context {
-                config: &mut c,
+                config: &mut config,
                 io,
                 debug: false,
                 override_host: None,

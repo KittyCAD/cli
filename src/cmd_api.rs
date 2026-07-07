@@ -4,7 +4,7 @@ use std::{
     io::{Read, Write},
 };
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use clap::Parser;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};

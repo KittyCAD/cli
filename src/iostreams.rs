@@ -1,7 +1,7 @@
 use std::{collections::HashMap, env, io::IsTerminal, process::Command};
 
-use anyhow::{anyhow, Result};
-use terminal_size::{terminal_size, Height, Width};
+use anyhow::{Result, anyhow};
+use terminal_size::{Height, Width, terminal_size};
 
 use crate::config_file::get_env_var;
 
@@ -215,10 +215,10 @@ impl IoStreams {
             return;
         }
 
-        if spec.ends_with('%') {
-            if let Ok(p) = spec.trim_end_matches('%').parse::<f64>() {
-                self.terminal_width_override = ((self.terminal_width_override as f64) * (p / 100.00)) as i32;
-            }
+        if spec.ends_with('%')
+            && let Ok(p) = spec.trim_end_matches('%').parse::<f64>()
+        {
+            self.terminal_width_override = ((self.terminal_width_override as f64) * (p / 100.00)) as i32;
         }
     }
 

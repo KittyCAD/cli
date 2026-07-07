@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use thiserror::Error;
 
 /// This trait describes interaction with the configuration for `zoo`.
@@ -77,8 +77,7 @@ pub static CONFIG_OPTIONS: &[ConfigOption] = &[
     ConfigOption::TopLevel {
         key: "pager",
         description: "the terminal pager program to send standard output to",
-        comment:
-            "A pager program to send command output to, e.g. \"less\". Set the value to \"cat\" to disable the pager.",
+        comment: "A pager program to send command output to, e.g. \"less\". Set the value to \"cat\" to disable the pager.",
         default_value: "",
         allowed_values: &[],
     },
@@ -157,7 +156,7 @@ pub fn validate_value(target_key: &str, value: &str) -> Result<()> {
 
 // new_from_string initializes a Config from a toml string.
 #[cfg(test)]
-pub fn new_from_string(s: &str) -> Result<impl Config> {
+pub fn new_from_string(s: &str) -> Result<impl Config + use<>> {
     let root = s.parse::<toml_edit::DocumentMut>()?;
     Ok(new_config(root))
 }
@@ -325,7 +324,10 @@ token = "MY_TOKEN""#,
         // Getting the default host should return an error.
         assert_eq!(c.default_host().is_err(), true);
         if let Err(e) = c.default_host() {
-            assert_eq!(e.to_string(), "Multiple hosts in config file but none has been set as a default. Try setting a default with `zoo config set -H <host> default true`. Options for hosts are: example.org, thing.com");
+            assert_eq!(
+                e.to_string(),
+                "Multiple hosts in config file but none has been set as a default. Try setting a default with `zoo config set -H <host> default true`. Options for hosts are: example.org, thing.com"
+            );
         }
 
         c.set("example.org", "default", Some("true")).unwrap();

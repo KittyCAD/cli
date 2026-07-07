@@ -1439,10 +1439,11 @@ fn is_supported_dataset_file(path: &Path) -> bool {
         return false;
     };
     let mut lower = file_name.to_ascii_lowercase();
-    if let Some((stem, suffix)) = lower.rsplit_once('.') {
-        if !suffix.is_empty() && suffix.chars().all(|c| c.is_ascii_digit()) {
-            lower = stem.to_string();
-        }
+    if let Some((stem, suffix)) = lower.rsplit_once('.')
+        && !suffix.is_empty()
+        && suffix.chars().all(|c| c.is_ascii_digit())
+    {
+        lower = stem.to_string();
     }
     let Some((_, extension)) = lower.rsplit_once('.') else {
         return false;

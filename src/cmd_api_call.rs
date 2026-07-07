@@ -67,30 +67,30 @@ impl crate::cmd::Command for CmdApiCallStatus {
             updated_at: _,
             user_id: _,
         } = &api_call
+            && *status == kittycad::types::ApiCallStatus::Completed
+            && let Some(outputs) = &outputs
         {
-            if *status == kittycad::types::ApiCallStatus::Completed {
-                if let Some(outputs) = &outputs {
-                    let path = std::env::current_dir()?;
-                    for (name, output) in outputs {
-                        if output.is_empty() {
-                            anyhow::bail!("no output was generated for the file conversion! (this is probably a bug in the API) you should report it to support@zoo.dev");
-                        }
-                        let path = path.join(name);
-                        std::fs::write(&path, &output.0)?;
-                    }
-
-                    let paths = outputs
-                        .keys()
-                        .map(|k| path.join(k))
-                        .map(|p| p.to_string_lossy().to_string())
-                        .collect_vec();
-                    // Tell them where we saved the file.
-                    writeln!(ctx.io.out, "Saved file conversion output(s) to: {}", paths.join(", "))?;
-
-                    // Return early.
-                    return Ok(());
+            let path = std::env::current_dir()?;
+            for (name, output) in outputs {
+                if output.is_empty() {
+                    anyhow::bail!(
+                        "no output was generated for the file conversion! (this is probably a bug in the API) you should report it to support@zoo.dev"
+                    );
                 }
+                let path = path.join(name);
+                std::fs::write(&path, &output.0)?;
             }
+
+            let paths = outputs
+                .keys()
+                .map(|k| path.join(k))
+                .map(|p| p.to_string_lossy().to_string())
+                .collect_vec();
+            // Tell them where we saved the file.
+            writeln!(ctx.io.out, "Saved file conversion output(s) to: {}", paths.join(", "))?;
+
+            // Return early.
+            return Ok(());
         }
 
         // Print the output of the conversion.

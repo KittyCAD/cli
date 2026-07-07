@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use tokio::{process::Command, time::sleep};
 use url::Url;
 
@@ -78,7 +78,8 @@ async fn win_ca_cli_smoke() -> Result<()> {
                     return Ok(());
                 } else {
                     last_error = Some(format!(
-                        "CLI succeeded but response missing expected pair {expected_key:?}={expected_value:?}. Full JSON: {json}"));
+                        "CLI succeeded but response missing expected pair {expected_key:?}={expected_value:?}. Full JSON: {json}"
+                    ));
                     break;
                 }
             }

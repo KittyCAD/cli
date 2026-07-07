@@ -292,7 +292,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::{backend::TestBackend, Terminal};
+    use ratatui::{Terminal, backend::TestBackend};
 
     use super::*;
 

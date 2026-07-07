@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use test_context::{test_context, AsyncTestContext};
+use test_context::{AsyncTestContext, test_context};
 
 use crate::config::Config;
 

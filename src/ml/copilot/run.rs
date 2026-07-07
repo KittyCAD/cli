@@ -8,17 +8,17 @@ use crossterm::{
     cursor::MoveTo,
     event::{Event, EventStream},
     execute, queue,
-    terminal::{disable_raw_mode, enable_raw_mode, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use futures::{SinkExt, StreamExt};
 use kcl_lib::TypedPath;
 use log::LevelFilter;
-use ratatui::{backend::CrosstermBackend, Terminal};
+use ratatui::{Terminal, backend::CrosstermBackend};
 use similar::TextDiff;
 use tokio::sync::mpsc;
 use tokio_tungstenite::{
-    tungstenite::{protocol::Role, Message},
     WebSocketStream,
+    tungstenite::{Message, protocol::Role},
 };
 
 use crate::ml::copilot::{
@@ -472,14 +472,13 @@ pub async fn run_copilot_tui(
                                 continue;
                             }
                             let files_ready = files_opt.is_some();
-                            if let Some(prompt) = app.try_submit(submit, files_ready) {
-                                if let Some(files) = &files_opt {
+                            if let Some(prompt) = app.try_submit(submit, files_ready)
+                                && let Some(files) = &files_opt {
                                     let state::QueuedPrompt { content, forced_tools } = prompt;
                                     let (msg, _len) =
                                         build_user_message(content, files, &project_name, forced_tools);
                                     let _ = tx_out.send(WsSend::Client { msg });
                                 }
-                            }
                         }
                         KeyAction::Inserted | KeyAction::None => {}
                     }
@@ -509,14 +508,13 @@ pub async fn run_copilot_tui(
                     ScanEvent::Done(map) => {
                         files_opt = Some(map);
                         app.scanning = false;
-                        if let Some(files) = &files_opt {
-                            if let Some(next) = app.on_scan_done() {
+                        if let Some(files) = &files_opt
+                            && let Some(next) = app.on_scan_done() {
                                 let state::QueuedPrompt { content, forced_tools } = next;
                                 let (msg, _len) =
                                     build_user_message(content, files, &project_name, forced_tools);
                                 let _ = tx_out.send(WsSend::Client { msg });
                             }
-                        }
                     }
                     ScanEvent::Error(e) => { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error{ detail: e })); }
                 }

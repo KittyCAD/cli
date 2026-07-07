@@ -1,12 +1,12 @@
 use std::{io::Write, str::FromStr, time::Duration};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use futures::StreamExt;
 use kcl_lib::engine_connection::EngineManager;
 use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
-use kittycad_modeling_cmds::{self as kcmc, output::TakeSnapshot, websocket::ModelingSessionData, ModelingCmd};
-use tokio_tungstenite::{tungstenite::protocol::Role, WebSocketStream};
+use kittycad_modeling_cmds::{self as kcmc, ModelingCmd, output::TakeSnapshot, websocket::ModelingSessionData};
+use tokio_tungstenite::{WebSocketStream, tungstenite::protocol::Role};
 
 use crate::{cmd_kcl, config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
 
@@ -18,7 +18,7 @@ pub struct Context<'a> {
     pub(crate) override_host: Option<String>,
 }
 
-impl Context<'_> {
+impl<'a> Context<'a> {
     fn resolve_api_host_and_baseurl(&self, hostname: &str) -> Result<(String, String)> {
         let host = if !hostname.is_empty() {
             hostname.to_string()
@@ -47,10 +47,18 @@ impl Context<'_> {
             .connect_timeout(std::time::Duration::from_secs(60))
     }
 
-    pub fn new(config: &mut (dyn Config + Send + Sync)) -> Context<'_> {
+    pub fn new(config: &'a mut (dyn Config + Send + Sync)) -> Context<'a> {
         // Let's get our IO streams.
-        let mut io = crate::iostreams::IoStreams::system();
+        let io = crate::iostreams::IoStreams::system();
 
+        Context::new_with_io_and_env(config, io, |key| std::env::var(key))
+    }
+
+    fn new_with_io_and_env(
+        config: &'a mut (dyn Config + Send + Sync),
+        mut io: crate::iostreams::IoStreams,
+        get_env_var: impl Fn(&str) -> std::result::Result<String, std::env::VarError>,
+    ) -> Context<'a> {
         // Set the prompt.
         let prompt = config.get("", "prompt").unwrap();
         if prompt == "disabled" {
@@ -62,19 +70,21 @@ impl Context<'_> {
         // 1. ZOO_PAGER
         // 2. pager from config
         // 3. PAGER
-        if let Ok(zoo_pager) = std::env::var("ZOO_PAGER") {
+        if let Ok(zoo_pager) = get_env_var("ZOO_PAGER") {
             io.set_pager(zoo_pager);
-        } else if let Ok(pager) = config.get("", "pager") {
-            if !pager.is_empty() {
+        } else {
+            if let Ok(pager) = config.get("", "pager")
+                && !pager.is_empty()
+            {
                 io.set_pager(pager);
             }
         }
 
         // Check if we should force use the tty.
-        if let Ok(zoo_force_tty) = std::env::var("ZOO_FORCE_TTY") {
-            if !zoo_force_tty.is_empty() {
-                io.force_terminal(&zoo_force_tty);
-            }
+        if let Ok(zoo_force_tty) = get_env_var("ZOO_FORCE_TTY")
+            && !zoo_force_tty.is_empty()
+        {
+            io.force_terminal(&zoo_force_tty);
         }
 
         Context {
@@ -659,12 +669,11 @@ impl Context<'_> {
             }
         } else {
             // Otherwise be sure we have a kcl file.
-            if path.to_str().unwrap_or("-") != "-" {
-                if let Some(ext) = path.extension() {
-                    if ext != "kcl" {
-                        return Err(anyhow::anyhow!("File must have a .kcl extension"));
-                    }
-                }
+            if path.to_str().unwrap_or("-") != "-"
+                && let Some(ext) = path.extension()
+                && ext != "kcl"
+            {
+                return Err(anyhow::anyhow!("File must have a .kcl extension"));
             }
         }
 
@@ -1033,39 +1042,11 @@ fn format_copilot_error(detail: &str, use_color: bool) -> String {
 
 #[cfg(test)]
 mod test {
+    use std::{collections::HashMap, sync::Arc};
+
     use pretty_assertions::assert_eq;
-    use test_context::{test_context, TestContext};
 
     use super::*;
-
-    struct TContext {
-        orig_zoo_pager_env: Result<String, std::env::VarError>,
-        orig_zoo_force_tty_env: Result<String, std::env::VarError>,
-    }
-
-    impl TestContext for TContext {
-        fn setup() -> TContext {
-            TContext {
-                orig_zoo_pager_env: std::env::var("ZOO_PAGER"),
-                orig_zoo_force_tty_env: std::env::var("ZOO_FORCE_TTY"),
-            }
-        }
-
-        fn teardown(self) {
-            // Put the original env var back.
-            if let Ok(ref val) = self.orig_zoo_pager_env {
-                std::env::set_var("ZOO_PAGER", val);
-            } else {
-                std::env::remove_var("ZOO_PAGER");
-            }
-
-            if let Ok(ref val) = self.orig_zoo_force_tty_env {
-                std::env::set_var("ZOO_FORCE_TTY", val);
-            } else {
-                std::env::remove_var("ZOO_FORCE_TTY");
-            }
-        }
-    }
 
     pub struct TestItem {
         name: String,
@@ -1078,10 +1059,115 @@ mod test {
         want_terminal_width_override: i32,
     }
 
-    #[test_context(TContext)]
+    struct TestEnvConfig<'a> {
+        config: &'a mut (dyn crate::config::Config + 'a),
+        env: Arc<HashMap<String, String>>,
+    }
+
+    impl TestEnvConfig<'_> {
+        fn get_env_var(&self, key: &str) -> String {
+            self.env.get(key).cloned().unwrap_or_default()
+        }
+    }
+
+    impl crate::config::Config for TestEnvConfig<'_> {
+        fn get(&self, hostname: &str, key: &str) -> Result<String> {
+            let (val, _) = self.get_with_source(hostname, key)?;
+            Ok(val)
+        }
+
+        fn get_with_source(&self, hostname: &str, key: &str) -> Result<(String, String)> {
+            if key == "token" {
+                let token = self.get_env_var("ZOO_API_TOKEN");
+                let token = if token.is_empty() {
+                    self.get_env_var("ZOO_TOKEN")
+                } else {
+                    token
+                };
+                if !token.is_empty() {
+                    return Ok((token, "ZOO_API_TOKEN".to_string()));
+                }
+            } else {
+                let var = format!("ZOO_{}", heck::AsShoutySnakeCase(key));
+                let val = self.get_env_var(&var);
+                if !val.is_empty() {
+                    return Ok((val, var));
+                }
+            }
+
+            self.config.get_with_source(hostname, key)
+        }
+
+        fn set(&mut self, hostname: &str, key: &str, value: Option<&str>) -> Result<()> {
+            self.config.set(hostname, key, value)
+        }
+
+        fn unset_host(&mut self, key: &str) -> Result<()> {
+            self.config.unset_host(key)
+        }
+
+        fn hosts(&self) -> Result<Vec<String>> {
+            self.config.hosts()
+        }
+
+        fn default_host(&self) -> Result<String> {
+            let (host, _) = self.default_host_with_source()?;
+            Ok(host)
+        }
+
+        fn default_host_with_source(&self) -> Result<(String, String)> {
+            if let Some(host) = self.env.get("ZOO_HOST") {
+                Ok((host.clone(), "ZOO_HOST".to_string()))
+            } else {
+                self.config.default_host_with_source()
+            }
+        }
+
+        fn aliases(&mut self) -> Result<crate::config_alias::AliasConfig<'_>> {
+            self.config.aliases()
+        }
+
+        fn save_aliases(&mut self, aliases: &crate::config_map::ConfigMap) -> Result<()> {
+            self.config.save_aliases(aliases)
+        }
+
+        fn expand_alias(&mut self, args: Vec<String>) -> Result<(Vec<String>, bool)> {
+            self.config.expand_alias(args)
+        }
+
+        fn check_writable(&self, hostname: &str, key: &str) -> Result<()> {
+            if key == "token" {
+                let token = self.get_env_var("ZOO_API_TOKEN");
+                let token = if token.is_empty() {
+                    self.get_env_var("ZOO_TOKEN")
+                } else {
+                    token
+                };
+                if !token.is_empty() {
+                    return Err(
+                        crate::config_from_env::ReadOnlyEnvVarError::Variable("ZOO_API_TOKEN".to_string()).into(),
+                    );
+                }
+            }
+
+            self.config.check_writable(hostname, key)
+        }
+
+        fn write(&self) -> Result<()> {
+            self.config.write()
+        }
+
+        fn config_to_string(&self) -> Result<String> {
+            self.config.config_to_string()
+        }
+
+        fn hosts_to_string(&self) -> Result<String> {
+            self.config.hosts_to_string()
+        }
+    }
+
     #[test]
-    #[serial_test::serial]
-    fn test_context(_ctx: &mut TContext) {
+    fn test_context() {
         let tests = vec![
             TestItem {
                 name: "ZOO_PAGER env".to_string(),
@@ -1137,7 +1223,22 @@ mod test {
 
         for t in tests {
             let mut config = crate::config::new_blank_config().unwrap();
-            let mut c = crate::config_from_env::EnvConfig::inherit_env(&mut config);
+            let mut env = HashMap::new();
+
+            if !t.zoo_pager_env.is_empty() {
+                env.insert("ZOO_PAGER".to_string(), t.zoo_pager_env.clone());
+            }
+
+            if !t.zoo_force_tty_env.is_empty() {
+                env.insert("ZOO_FORCE_TTY".to_string(), t.zoo_force_tty_env.clone());
+            }
+
+            let env = Arc::new(env);
+            let context_env = Arc::clone(&env);
+            let mut c = TestEnvConfig {
+                config: &mut config,
+                env,
+            };
 
             if !t.pager.is_empty() {
                 c.set("", "pager", Some(&t.pager)).unwrap();
@@ -1147,19 +1248,10 @@ mod test {
                 c.set("", "prompt", Some(&t.prompt)).unwrap();
             }
 
-            if !t.zoo_pager_env.is_empty() {
-                std::env::set_var("ZOO_PAGER", t.zoo_pager_env.clone());
-            } else {
-                std::env::remove_var("ZOO_PAGER");
-            }
-
-            if !t.zoo_force_tty_env.is_empty() {
-                std::env::set_var("ZOO_FORCE_TTY", t.zoo_force_tty_env.clone());
-            } else {
-                std::env::remove_var("ZOO_FORCE_TTY");
-            }
-
-            let ctx = Context::new(&mut c);
+            let (io, _stdout_path, _stderr_path) = crate::iostreams::IoStreams::test();
+            let ctx = Context::new_with_io_and_env(&mut c, io, move |key| {
+                context_env.get(key).cloned().ok_or(std::env::VarError::NotPresent)
+            });
 
             assert_eq!(ctx.io.get_pager(), t.want_pager, "test: {}", t.name);
 
