@@ -36,10 +36,12 @@ pub struct Context<'a> {
     pub debug: bool,
     // If set, override the host used when commands don't specify one.
     pub(crate) override_host: Option<String>,
+    /// Overrides retry behavior for KCL execution tests.
     #[cfg(test)]
     pub(crate) kcl_retry_config: Option<RetryConfig>,
 }
 
+/// Controls how retryable KCL execution failures are retried.
 #[derive(Debug, Clone)]
 pub(crate) struct RetryConfig {
     retries: usize,
@@ -47,6 +49,8 @@ pub(crate) struct RetryConfig {
 }
 
 impl RetryConfig {
+    /// Returns retry settings that make each KCL execution attempt run only
+    /// once.
     fn no_retries() -> Self {
         Self {
             retries: 0,
@@ -57,6 +61,7 @@ impl RetryConfig {
 
 #[cfg(test)]
 impl Default for RetryConfig {
+    /// Returns the retry settings used by tests that exercise retry handling.
     fn default() -> Self {
         Self {
             retries: 2,
@@ -65,19 +70,25 @@ impl Default for RetryConfig {
     }
 }
 
+/// Result data captured from a single KCL program execution attempt.
 struct KclProgramRun {
     exec_ctx: kcl_lib::ExecutorContext,
     exec_state: kcl_lib::ExecState,
     session_data: Option<ModelingSessionData>,
 }
 
+/// Error type used to preserve KCL diagnostics across retry attempts.
 enum KclExecError {
+    /// A KCL error that should be formatted with filename and source context.
     Err(Box<kcl_lib::KclError>),
+    /// A KCL execution error that already includes command outputs.
     WithOutputs(Box<kcl_lib::KclErrorWithOutputs>),
+    /// Any non-KCL error from setup or issue checking.
     Other(anyhow::Error),
 }
 
 impl KclExecError {
+    /// Converts the stored error into the diagnostic form expected by callers.
     fn into_anyhow(self, filename: &str, code: &str) -> anyhow::Error {
         match self {
             Self::Err(err) => kcl_error_fmt::into_miette_for_parse(filename, code, *err),
@@ -107,6 +118,8 @@ impl kcl_lib::IsRetryable for KclExecError {
     }
 }
 
+/// Runs an async operation until it succeeds, fails fatally, or exhausts
+/// retries.
 #[cfg(test)]
 async fn execute_with_retries<F, Fut, T, E>(config: &RetryConfig, mut execute: F) -> std::result::Result<T, E>
 where
@@ -126,6 +139,8 @@ where
     }
 }
 
+/// Adjusts the retries remaining and returns whether a failed KCL attempt
+/// should be retried. This handles all the book-keeping of retrying.
 fn should_retry_kcl_attempt<T, E>(
     config: &RetryConfig,
     retries_remaining: &mut usize,
@@ -148,6 +163,8 @@ where
     }
 }
 
+/// Runs one KCL execution attempt and returns state needed for follow-up
+/// commands.
 async fn run_kcl_program_once_with_client(
     client: &kittycad::Client,
     program: &kcl_lib::Program,
@@ -156,20 +173,21 @@ async fn run_kcl_program_once_with_client(
     let ctx = kcl_lib::ExecutorContext::new(client, settings)
         .await
         .map_err(KclExecError::Other)?;
-    let mut state = kcl_lib::ExecState::new(&ctx);
+    let mut exec_state = kcl_lib::ExecState::new(&ctx);
     let session_data = ctx
-        .run(program, &mut state)
+        .run(program, &mut exec_state)
         .await
         .map_err(|err| KclExecError::WithOutputs(Box::new(err)))?
         .1;
     Ok(KclProgramRun {
         exec_ctx: ctx,
-        exec_state: state,
+        exec_state,
         session_data,
     })
 }
 
 impl<'a> Context<'a> {
+    /// Returns the retry settings to use for local KCL execution.
     fn kcl_retry_config(&self) -> RetryConfig {
         #[cfg(test)]
         {
@@ -608,6 +626,7 @@ impl<'a> Context<'a> {
 
                     let batch_context = kcl_lib::EngineBatchContext::new();
 
+                    // Zoom on the object.
                     run.exec_ctx
                         .engine
                         .send_modeling_cmd(
@@ -805,6 +824,7 @@ impl<'a> Context<'a> {
         }
     }
 
+    /// Runs KCL, checks execution issues, and exports the resulting files.
     pub(crate) async fn run_kcl_then_export(
         &mut self,
         filename: &str,
@@ -1629,9 +1649,12 @@ mod test {
 
     use super::*;
 
+    /// Test error used to verify retryable and fatal retry paths.
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     enum RetryTestError {
+        /// Error variant that should be retried.
         Retryable,
+        /// Error variant that should stop retrying.
         Fatal,
     }
 
@@ -1886,6 +1909,8 @@ mod test {
         assert_eq!(md, "Hello world");
     }
 
+    /// Verifies that retryable failures are retried until the operation
+    /// succeeds.
     #[tokio::test]
     async fn execute_with_retries_retries_retryable_errors() {
         let retry_config = RetryConfig {
@@ -1911,6 +1936,7 @@ mod test {
         assert_eq!(attempts, 3);
     }
 
+    /// Verifies that fatal failures are returned without retrying.
     #[tokio::test]
     async fn execute_with_retries_does_not_retry_fatal_errors() {
         let retry_config = RetryConfig {
@@ -1929,6 +1955,8 @@ mod test {
         assert_eq!(attempts, 1);
     }
 
+    /// Verifies that retryable failures are not retried when retries are
+    /// disabled.
     #[tokio::test]
     async fn execute_with_retries_no_retries_does_not_retry_retryable_errors() {
         let retry_config = RetryConfig::no_retries();
