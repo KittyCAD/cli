@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.181"
+version = "0.2.182"
 edition = "2024"
 rust-version = "1.95"
 build = "build.rs"
@@ -122,8 +122,3 @@ debug = 0
 incremental = true
 # Set this to 1 or 2 to get more useful backtraces in debugger.
 debug = 0
-
-[patch.crates-io]
-kcl-lib = { git = "https://github.com/KittyCAD/modeling-app", rev = "16dee6595e8585a4aeaddcde435cda2d85b489ed" }
-kcl-test-server = { git = "https://github.com/KittyCAD/modeling-app", rev = "16dee6595e8585a4aeaddcde435cda2d85b489ed" }
-kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", rev = "41eb579f216f8bd827fdb45b116de7719139597f" }

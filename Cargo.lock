@@ -3002,8 +3002,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.209"
-source = "git+https://github.com/KittyCAD/modeling-api?rev=41eb579f216f8bd827fdb45b116de7719139597f#41eb579f216f8bd827fdb45b116de7719139597f"
+version = "0.2.211"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb0aadfd54a7843e2dc5852c00dc5da84ae4c4292938fcb4e8f31c04a42b6422"
 dependencies = [
  "anyhow",
  "bon",
@@ -3033,7 +3034,8 @@ dependencies = [
 [[package]]
 name = "kittycad-modeling-cmds-macros"
 version = "0.1.13"
-source = "git+https://github.com/KittyCAD/modeling-api?rev=41eb579f216f8bd827fdb45b116de7719139597f#41eb579f216f8bd827fdb45b116de7719139597f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb4ba190f74f6d32f4607ecac4bdebd4a935d4943b8ca8369305e6e7a59b5976"
 dependencies = [
  "kittycad-modeling-cmds-macros-impl",
  "proc-macro2",
@@ -3044,7 +3046,8 @@ dependencies = [
 [[package]]
 name = "kittycad-modeling-cmds-macros-impl"
 version = "0.1.14"
-source = "git+https://github.com/KittyCAD/modeling-api?rev=41eb579f216f8bd827fdb45b116de7719139597f#41eb579f216f8bd827fdb45b116de7719139597f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "743b6533d1848de67e3455a28614a2b7896807ab0d3358ccd3ea1863de3c4e6b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7520,7 +7523,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.181"
+version = "0.2.182"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7616,13 +7619,3 @@ checksum = "dc6fb7703e32e9a07fb3f757360338b3a567a5054f21b5f52a666752e333d58e"
 dependencies = [
  "zune-core",
 ]
-
-[[patch.unused]]
-name = "kcl-lib"
-version = "0.2.167"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=16dee6595e8585a4aeaddcde435cda2d85b489ed#16dee6595e8585a4aeaddcde435cda2d85b489ed"
-
-[[patch.unused]]
-name = "kcl-test-server"
-version = "0.2.167"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=16dee6595e8585a4aeaddcde435cda2d85b489ed#16dee6595e8585a4aeaddcde435cda2d85b489ed"
