@@ -1,18 +1,34 @@
-use std::{io::Write, str::FromStr, time::Duration};
+use std::{io::Write, path::Path, str::FromStr, time::Duration};
 
 use anyhow::{Result, anyhow};
-use futures::StreamExt;
+use camino::Utf8Path;
+use futures::{SinkExt, StreamExt};
 use kcl_lib::engine_connection::EngineManager;
-use kcmc::{each_cmd as mcmd, websocket::OkWebSocketResponseData};
 use kittycad::types::{ApiCallStatus, AsyncApiCallOutput, TextToCad, TextToCadCreateBody, TextToCadMultiFileIteration};
 use kittycad_modeling_cmds::{
-    self as kcmc, ModelingCmd,
+    ModelingCmd, each_cmd as mcmd,
     output::TakeSnapshot,
-    websocket::{ModelingSessionData, RawFile},
+    websocket::{
+        FailureWebSocketResponse, ModelingCmdReq, ModelingSessionData, OkWebSocketResponseData, RawFile,
+        SuccessWebSocketResponse, WebSocketRequest, WebSocketResponse,
+    },
 };
-use tokio_tungstenite::{WebSocketStream, tungstenite::protocol::Role};
+use tokio_tungstenite::{
+    WebSocketStream,
+    tungstenite::{Message as WsMsg, protocol::Role},
+};
 
-use crate::{cmd_kcl, config::Config, config_file::get_env_var, kcl_error_fmt, types::FormatOutput};
+use crate::{
+    build_kcl_project::build_kcl_project, cmd_kcl, config::Config, config_file::get_env_var, kcl_error_fmt,
+    types::FormatOutput,
+};
+
+type DirectWs = WebSocketStream<reqwest::Upgraded>;
+type DirectWsRead = futures::stream::SplitStream<DirectWs>;
+type DirectWsWrite = futures::stream::SplitSink<DirectWs, WsMsg>;
+
+const ENGINE_EXECUTION_ENV: &str = "ENGINE_EXECUTION";
+const WS_RESPONSE_TIMEOUT_SECS: u64 = 600;
 
 pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
@@ -371,6 +387,168 @@ impl<'a> Context<'a> {
         Ok(engine)
     }
 
+    /// Should KCL be executed on the server (true)?
+    /// Or locally (false)?
+    pub(crate) fn use_server_kcl_execution() -> bool {
+        std::env::var(ENGINE_EXECUTION_ENV)
+            .map(|value| !value.is_empty())
+            .unwrap_or_default()
+    }
+
+    async fn engine_ws_with_settings(
+        &self,
+        hostname: &str,
+        settings: &kcl_lib::ExecutorSettings,
+    ) -> Result<reqwest::Upgraded> {
+        let client = self.api_client(hostname)?;
+        let pr = std::env::var("ZOO_ENGINE_PR").ok().and_then(|s| s.parse().ok());
+        let (ws, _headers) = client
+            .modeling()
+            .commands_ws(kittycad::modeling::CommandsWsParams {
+                api_call_id: None,
+                fps: None,
+                order_independent_transparency: None,
+                pool: None,
+                post_effect: if settings.enable_ssao {
+                    Some(kittycad::types::PostEffectType::Ssao)
+                } else {
+                    None
+                },
+                pr,
+                replay: settings.replay.clone(),
+                show_grid: if settings.show_grid { Some(true) } else { None },
+                unlocked_framerate: None,
+                video_res_height: None,
+                video_res_width: None,
+                webrtc: Some(false),
+            })
+            .await?;
+        Ok(ws)
+    }
+
+    /// Run this KCL on the server, then send some followup modeling commands
+    /// (e.g. snapshots, exports, physics analysis) and report their results.
+    pub(crate) async fn run_server_kcl_then_modeling_cmds(
+        &mut self,
+        hostname: &str,
+        filepath: &Path,
+        code: &str,
+        cmds: Vec<ModelingCmd>,
+        settings: kcl_lib::ExecutorSettings,
+        issue_check: kcl_error_fmt::KclIssueCheck,
+    ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
+        let Some(filepath) = Utf8Path::from_path(filepath) else {
+            anyhow::bail!("Invalid filepath {} (must be unicode)", filepath.display());
+        };
+        let project = build_kcl_project(filepath, code)?;
+        let ws = self.engine_ws_with_settings(hostname, &settings).await?;
+        let wsconfig = tokio_tungstenite::tungstenite::protocol::WebSocketConfig::default()
+            .max_message_size(Some(usize::MAX))
+            .max_frame_size(Some(usize::MAX));
+        let ws_stream = WebSocketStream::from_raw_socket(ws, Role::Client, Some(wsconfig)).await;
+        let (mut write, mut read) = ws_stream.split();
+        let mut session_data = None;
+        let mut heartbeat =
+            tokio::time::interval(Duration::from_secs(settings.heartbeats.unwrap_or(cmd_kcl::HEARTBEATS)));
+
+        let exec_request_id = uuid::Uuid::new_v4();
+        send_ws_request(
+            &mut write,
+            WebSocketRequest::ExecKclProject {
+                request_id: exec_request_id,
+                project,
+            },
+        )
+        .await?;
+
+        // Handle engine responses, looking for KCL execution response.
+        loop {
+            let resp = read_ws_response_with_heartbeat(&mut read, &mut write, &mut heartbeat)
+                .await
+                .map_err(|e| anyhow!("During KCL execution, failed to communicate with engine: {e}"))?;
+            if let Some(session) = update_session_data(&resp) {
+                session_data = Some(session);
+                continue;
+            }
+
+            let success_resp = match resp {
+                WebSocketResponse::Success(success) => success,
+                WebSocketResponse::Failure(FailureWebSocketResponse { errors, .. }) => {
+                    if errors.is_empty() {
+                        anyhow::bail!("Failed executing KCL on engine, but the engine returned no error details")
+                    } else {
+                        let all_errors = errors
+                            .into_iter()
+                            .map(|error| error.message)
+                            .collect::<Vec<_>>()
+                            .join("\n");
+                        anyhow::bail!("Failed executing KCL on engine, errors: {}", all_errors)
+                    }
+                }
+            };
+
+            if success_resp.request_id != Some(exec_request_id) {
+                continue;
+            }
+
+            let OkWebSocketResponseData::ExecKclProject { result } = success_resp.resp else {
+                anyhow::bail!(
+                    "Expected ExecKclProject response, but engine returned {:?}",
+                    success_resp.resp
+                )
+            };
+
+            match result {
+                Ok(_) => break,
+                Err(err) => {
+                    check_server_compilation_issues(&mut self.io.err_out, &err.non_fatal, issue_check)
+                        .map_err(|e| anyhow!("KCL execution had errors: {e}"))?;
+                    if let Some(error) = err.error {
+                        return Err(anyhow!("KCL execution failed: {}", error.get_message()));
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Send all follow-up commands, looking for each's response.
+        let mut responses = Vec::with_capacity(cmds.len());
+        for cmd in cmds {
+            let cmd_id = uuid::Uuid::new_v4();
+            send_ws_request(
+                &mut write,
+                WebSocketRequest::ModelingCmdReq(ModelingCmdReq {
+                    cmd,
+                    cmd_id: cmd_id.into(),
+                }),
+            )
+            .await?;
+
+            loop {
+                let resp = read_ws_response_with_heartbeat(&mut read, &mut write, &mut heartbeat).await?;
+                if let Some(session) = update_session_data(&resp) {
+                    session_data = Some(session);
+                    continue;
+                }
+
+                if response_request_id(&resp) != Some(cmd_id) {
+                    continue;
+                }
+
+                match resp {
+                    WebSocketResponse::Success(SuccessWebSocketResponse { resp, .. }) => {
+                        responses.push(resp);
+                        break;
+                    }
+                    WebSocketResponse::Failure(_) => return Err(websocket_failure_to_anyhow(resp)),
+                }
+            }
+        }
+
+        let _ = write.send(WsMsg::Close(None)).await;
+        Ok((responses, session_data))
+    }
+
     pub async fn send_kcl_modeling_cmd(
         &mut self,
         hostname: &str,
@@ -380,6 +558,32 @@ impl<'a> Context<'a> {
         settings: kcl_lib::ExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
+        if Self::use_server_kcl_execution() {
+            let (mut responses, session_data) = self
+                .run_server_kcl_then_modeling_cmds(
+                    hostname,
+                    Path::new(filename),
+                    code,
+                    vec![
+                        ModelingCmd::from(
+                            mcmd::ZoomToFit::builder()
+                                .animated(false)
+                                .object_ids(Default::default())
+                                .padding(0.1)
+                                .build(),
+                        ),
+                        cmd,
+                    ],
+                    settings,
+                    issue_check,
+                )
+                .await?;
+            let resp = responses
+                .pop()
+                .ok_or_else(|| anyhow!("Expected response from engine after executing KCL"))?;
+            return Ok((resp, session_data));
+        }
+
         let client = self.api_client(hostname)?;
 
         let program = kcl_lib::Program::parse_no_errs(code)
@@ -453,6 +657,12 @@ impl<'a> Context<'a> {
         settings: kcl_lib::ExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
+        if Self::use_server_kcl_execution() {
+            return self
+                .run_server_kcl_then_modeling_cmds(hostname, Path::new(filename), code, cmds, settings, issue_check)
+                .await;
+        }
+
         let client = self.api_client(hostname)?;
 
         let program = kcl_lib::Program::parse_no_errs(code)
@@ -517,6 +727,30 @@ impl<'a> Context<'a> {
         settings: kcl_lib::ExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<TakeSnapshot>, Option<ModelingSessionData>)> {
+        if Self::use_server_kcl_execution() {
+            let (responses, session_data) = self
+                .run_server_kcl_then_modeling_cmds(
+                    hostname,
+                    Path::new(filename),
+                    code,
+                    snapshot_cmds,
+                    settings,
+                    issue_check,
+                )
+                .await?;
+            let mut snapshot_resps = Vec::new();
+            for resp in responses {
+                if let OkWebSocketResponseData::Modeling {
+                    modeling_response: kittycad_modeling_cmds::ok_response::OkModelingCmdResponse::TakeSnapshot(snap),
+                } = resp
+                {
+                    snapshot_resps.push(snap);
+                }
+            }
+
+            return Ok((snapshot_resps, session_data));
+        }
+
         let client = self.api_client(hostname)?;
 
         let program = kcl_lib::Program::parse_no_errs(code)
@@ -970,7 +1204,7 @@ impl<'a> Context<'a> {
                     let path_display = file.display().to_string();
                     let contents = tokio::fs::read(&file)
                         .await
-                        .map_err(|err| anyhow::anyhow!("Failed to read file `{path_display}`: {err:?}"))?;
+                        .map_err(|err| anyhow!("Failed to read file `{path_display}`: {err:?}"))?;
 
                     Ok::<kittycad::types::multipart::Attachment, anyhow::Error>(
                         kittycad::types::multipart::Attachment {
@@ -1266,6 +1500,108 @@ pub(crate) fn reasoning_to_markdown(reason: &kittycad::types::ReasoningMessage) 
             md.push_str("\n```\n");
             md
         }
+    }
+}
+
+fn check_server_compilation_issues(
+    err_out: &mut impl std::io::Write,
+    issues: &[kcl_error::CompilationIssue],
+    issue_check: kcl_error_fmt::KclIssueCheck,
+) -> Result<()> {
+    if issue_check == kcl_error_fmt::KclIssueCheck::Ignore || issues.is_empty() {
+        return Ok(());
+    }
+
+    for issue in issues {
+        writeln!(err_out, "{:?}: {}", issue.severity, issue.message)?;
+    }
+
+    if issue_check == kcl_error_fmt::KclIssueCheck::DenyErrors && issues.iter().any(|issue| issue.is_err()) {
+        anyhow::bail!(
+            "KCL execution reported errors. Please fix your KCL program before continuing. If you really want to proceed anyway, rerun this command with `--allow-errors`."
+        );
+    }
+
+    Ok(())
+}
+
+async fn send_ws_request(write: &mut DirectWsWrite, request: WebSocketRequest) -> Result<()> {
+    let msg = serde_json::to_string(&request)?;
+    write
+        .send(WsMsg::Text(msg.into()))
+        .await
+        .map_err(|err| anyhow!("could not send request to engine websocket: {err}"))?;
+    Ok(())
+}
+
+async fn read_ws_response_with_heartbeat(
+    read: &mut DirectWsRead,
+    write: &mut DirectWsWrite,
+    heartbeat: &mut tokio::time::Interval,
+) -> Result<WebSocketResponse> {
+    let timeout = tokio::time::sleep(Duration::from_secs(WS_RESPONSE_TIMEOUT_SECS));
+    tokio::pin!(timeout);
+
+    loop {
+        tokio::select! {
+            maybe_msg = read.next() => {
+                let Some(msg) = maybe_msg else {
+                    anyhow::bail!("engine websocket closed before sending a response");
+                };
+                return parse_ws_msg(msg?);
+            }
+            _ = heartbeat.tick() => {
+                send_ws_request(write, WebSocketRequest::Ping {}).await?;
+            }
+            _ = &mut timeout => {
+                anyhow::bail!("engine websocket response timed out after {WS_RESPONSE_TIMEOUT_SECS}s");
+            }
+        }
+    }
+}
+
+fn parse_ws_msg(msg: WsMsg) -> Result<WebSocketResponse> {
+    match msg {
+        WsMsg::Text(text) => Ok(serde_json::from_str(&text)?),
+        WsMsg::Binary(bin) => Ok(rmp_serde::from_slice(&bin)?),
+        other => anyhow::bail!("unexpected engine websocket message: {other}"),
+    }
+}
+
+fn update_session_data(response: &WebSocketResponse) -> Option<ModelingSessionData> {
+    match response {
+        WebSocketResponse::Success(SuccessWebSocketResponse {
+            resp: OkWebSocketResponseData::ModelingSessionData { session },
+            ..
+        }) => Some(session.clone()),
+        _ => None,
+    }
+}
+
+fn response_request_id(response: &WebSocketResponse) -> Option<uuid::Uuid> {
+    match response {
+        WebSocketResponse::Success(SuccessWebSocketResponse { request_id, .. }) => *request_id,
+        WebSocketResponse::Failure(FailureWebSocketResponse { request_id, .. }) => *request_id,
+    }
+}
+
+fn websocket_failure_to_anyhow(response: WebSocketResponse) -> anyhow::Error {
+    match response {
+        WebSocketResponse::Failure(FailureWebSocketResponse { errors, .. }) => {
+            if errors.is_empty() {
+                anyhow!("engine websocket request failed with no error details")
+            } else {
+                anyhow!(
+                    "{}",
+                    errors
+                        .into_iter()
+                        .map(|error| error.message)
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                )
+            }
+        }
+        other => anyhow!("unexpected engine websocket response: {other:?}"),
     }
 }
 

@@ -159,8 +159,26 @@ impl crate::cmd::Command for CmdKclExport {
         let units: UnitLength = meta_settings.default_length_units.to_kcmc();
         let output_format = get_output_format(&self.output_format, units, self.deterministic);
 
-        let (files, session_data) = ctx
-            .run_kcl_then_export(
+        let (files, session_data) = if crate::context::Context::use_server_kcl_execution() {
+            let (mut responses, session_data) = ctx
+                .run_server_kcl_then_modeling_cmds(
+                    "",
+                    &filepath,
+                    &code,
+                    vec![kcmc::ModelingCmd::Export(
+                        kcmc::Export::builder().entity_ids(vec![]).format(output_format).build(),
+                    )],
+                    settings,
+                    self.run_options.issue_check(),
+                )
+                .await?;
+            let Some(kcmc::websocket::OkWebSocketResponseData::Export { files }) = responses.pop() else {
+                anyhow::bail!("Expected Export response from engine");
+            };
+
+            (files, session_data)
+        } else {
+            ctx.run_kcl_then_export(
                 &filepath.display().to_string(),
                 &code,
                 &program,
@@ -168,7 +186,8 @@ impl crate::cmd::Command for CmdKclExport {
                 self.run_options.issue_check(),
                 output_format,
             )
-            .await?;
+            .await?
+        };
 
         // Save the files to our export directory.
         for file in files {
@@ -498,11 +517,17 @@ impl crate::cmd::Command for CmdKclSnapshot {
         };
         let output_file_display = self.output_file.display().to_string();
 
+        let from_engine = if crate::context::Context::use_server_kcl_execution() {
+            "from engine "
+        } else {
+            ""
+        };
+
         // Is there just 1 PNG?
         match <[_; 1]>::try_from(many_pngs) {
             Ok([single]) => {
                 std::fs::write(&self.output_file, single)?;
-                writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+                writeln!(ctx.io.out, "Snapshot {from_engine}saved to `{output_file_display}`")?;
             }
             // If not, maybe there's 4 PNGs?
             Err(output_file_contents) => match <[_; 4]>::try_from(output_file_contents) {
@@ -522,7 +547,7 @@ impl crate::cmd::Command for CmdKclSnapshot {
                         &self.output_file,
                         output_format,
                     )?;
-                    writeln!(ctx.io.out, "Snapshot saved to `{output_file_display}`")?;
+                    writeln!(ctx.io.out, "Snapshot {from_engine}saved to `{output_file_display}`")?;
                 }
                 // If not 4, error.
                 Err(vec) => {

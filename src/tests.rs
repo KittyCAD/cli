@@ -36,6 +36,7 @@ struct TestItem {
     want_code: i32,
     current_directory: Option<PathBuf>,
     setup: Option<SetupFn>,
+    env: Vec<(String, String)>,
 }
 
 impl TestItem {
@@ -49,7 +50,13 @@ impl TestItem {
             want_code: 0,
             current_directory: None,
             setup: None,
+            env: Default::default(),
         }
+    }
+
+    fn set_env(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.env.push((key.into(), value.into()));
+        self
     }
 
     fn stdin(mut self, stdin: impl Into<String>) -> Self {
@@ -287,6 +294,13 @@ async fn run_test_item_with_config(config: &mut TestConfig, item: TestItem) {
     io.set_color_enabled(false);
     if let Some(stdin) = item.stdin {
         io.stdin = Box::new(std::io::Cursor::new(stdin));
+    }
+
+    for (key, value) in &item.env {
+        // SAFETY: Tests run in serial.
+        unsafe {
+            std::env::set_var(key, value);
+        }
     }
 
     let mut command_ctx = crate::context::Context {
@@ -742,6 +756,16 @@ cli_tests! {
         .setup(setup_authenticated)
         .stdout_contains("Snapshot saved to `tests/gear.png`")
         .stderr_contains("Prefer to use explicit units for angles")
+    }
+
+    snapshot_via_engine(_ctx) => {
+        TestItem::new(
+            "run KCL on engine and snapshot",
+            svec!["zoo", "kcl", "snapshot", "tests/gear.kcl", "tests/gear.png"],
+        )
+        .setup(setup_authenticated)
+        .stdout_contains("Snapshot from engine saved to `tests/gear.png`")
+        .set_env("ENGINE_EXECUTION", "1")
     }
 
     snapshot_a_kcl_file_with_a_project_toml_as_png(_ctx) => {
