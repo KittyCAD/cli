@@ -79,6 +79,7 @@
 
         cargoLock = {
           lockFile = ./Cargo.lock;
+          allowBuiltinFetchGit = true;
           outputHashes = {
             "openapitor-0.0.9" = "sha256-YRLglTUCrXyoajZK2v9FpHUVsD3ugPQwliwFGs/47Z0=";
           };
