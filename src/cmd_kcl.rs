@@ -1900,7 +1900,7 @@ fn four_sides_view(camera_style: CameraStyle, padding: f32, format: kcmc::ImageF
         zoom.clone(),
         snap.clone(),
         camera_angles::iso(),
-        zoom.clone(),
+        zoom,
         snap,
     ]
 }
@@ -1933,7 +1933,7 @@ fn one_sided_view(
         }
     };
 
-    vec![camera_style, angle, zoom.clone(), snap.clone()]
+    vec![camera_style, angle, zoom, snap]
 }
 
 fn combine_quadrants(
