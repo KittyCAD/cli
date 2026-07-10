@@ -308,6 +308,7 @@ async fn run_test_item_with_config(config: &mut TestConfig, item: TestItem) {
         io,
         debug: false,
         override_host: None,
+        kcl_retry_config: Some(crate::context::RetryConfig::default()),
     };
 
     let _cwd_guard = CurrentDirGuard::change_to(item.current_directory.as_deref())
