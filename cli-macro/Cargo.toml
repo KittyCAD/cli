@@ -11,3 +11,5 @@ proc-macro = true
 [dependencies]
 cli-macro-impl = { path = "../cli-macro-impl" }
 
+[lints]
+workspace = true
