@@ -139,6 +139,7 @@ mod test {
                 io,
                 debug: false,
                 override_host: None,
+                kcl_retry_config: None,
             };
 
             cmd.run(&mut ctx).await.unwrap();

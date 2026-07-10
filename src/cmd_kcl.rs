@@ -159,7 +159,7 @@ impl crate::cmd::Command for CmdKclExport {
         let units: UnitLength = meta_settings.default_length_units.to_kcmc();
         let output_format = get_output_format(&self.output_format, units, self.deterministic);
 
-        if crate::context::Context::use_server_kcl_execution() {
+        let (files, session_data) = if crate::context::Context::use_server_kcl_execution() {
             let (mut responses, session_data) = ctx
                 .run_server_kcl_then_modeling_cmds(
                     "",
@@ -176,37 +176,18 @@ impl crate::cmd::Command for CmdKclExport {
                 anyhow::bail!("Expected Export response from engine");
             };
 
-            for file in files {
-                let path = self.output_dir.join(file.name);
-                std::fs::write(&path, file.contents)?;
-
-                writeln!(ctx.io.out, "Wrote file: {}", path.display())?;
-            }
-
-            if self.show_trace {
-                print_trace_link(&mut ctx.io, &session_data)
-            }
-
-            return Ok(());
-        }
-
-        let client = ctx.api_client("")?;
-        let ectx = kcl_lib::ExecutorContext::new(&client, settings).await?;
-        let mut state = kcl_lib::ExecState::new(&ectx);
-        let session_data = ectx
-            .run(&program, &mut state)
-            .await
-            .map_err(|err| kcl_error_fmt::into_miette(err, &code))?
-            .1;
-        kcl_error_fmt::check_exec_state_issues(
-            &mut ctx.io.err_out,
-            &filepath.display().to_string(),
-            &code,
-            &state,
-            self.run_options.issue_check(),
-        )?;
-
-        let files = ectx.export(output_format).await?;
+            (files, session_data)
+        } else {
+            ctx.run_kcl_then_export(
+                &filepath.display().to_string(),
+                &code,
+                &program,
+                settings,
+                self.run_options.issue_check(),
+                output_format,
+            )
+            .await?
+        };
 
         // Save the files to our export directory.
         for file in files {
