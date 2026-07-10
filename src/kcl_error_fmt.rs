@@ -21,7 +21,7 @@ fn is_nonsense_source_range(error: &kcl_lib::KclError) -> bool {
 pub(crate) fn into_miette_for_parse(filename: &str, input: &str, error: kcl_lib::KclError) -> anyhow::Error {
     let report = kcl_lib::Report {
         kcl_source: input.to_string(),
-        error: error.clone(),
+        error,
         filename: filename.to_string(),
     };
     let report = miette::Report::new(report);

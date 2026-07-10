@@ -682,7 +682,7 @@ mod tests {
 
         let queued = app.on_scan_done().expect("queued prompt");
         assert_eq!(queued.content, "queued");
-        assert_eq!(queued.forced_tools, vec![tool.clone()]);
+        assert_eq!(queued.forced_tools, vec![tool]);
     }
 
     #[test]

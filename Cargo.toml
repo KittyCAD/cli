@@ -113,6 +113,12 @@ serial_test = "3.5.0"
 tempfile = "3.27.0"
 test-context = "0.5.8"
 
+[workspace.lints.clippy]
+redundant_clone = "warn"
+
+[lints]
+workspace = true
+
 [profile.dev]
 # Disabling debug info speeds up builds a bunch,
 # and we don't rely on it for debugging that much.

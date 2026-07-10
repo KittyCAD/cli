@@ -21,3 +21,6 @@ syn = { version = "2.0", features = [ "derive", "parsing", "printing" ] }
 
 [dev-dependencies]
 expectorate = "1"
+
+[lints]
+workspace = true
