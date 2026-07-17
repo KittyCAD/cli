@@ -10,6 +10,7 @@ on:
       - Cargo.toml
       - Cargo.lock
       - .github/workflows/cargo-test.yml
+      - .config/nextest.toml
       - 'rust-toolchain.toml'
       - 'Makefile'
       - 'spec.json'
@@ -26,8 +27,13 @@ concurrency:
 
 jobs:
   cargotest:
-    name: cargo test
+    name: cargo test (shard ${{ matrix.partitionIndex }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        partitionIndex: [1, 2, 3, 4, 5]
+        partitionTotal: [5]
     steps:
       - uses: actions/checkout@master
       - name: Install latest rust
@@ -63,7 +69,8 @@ jobs:
       - name: Run tests with coverage
         run: |-
           cargo llvm-cov nextest \
-            --workspace --lcov --output-path lcov.info --no-fail-fast \
+            --workspace --lcov --output-path=lcov.info \
+            --partition=count:${{ matrix.partitionIndex }}/${{ matrix.partitionTotal }} \
             --profile=ci || true  # let TAB determine failure
           .github/workflows/lib/upload-results.sh
         env:
