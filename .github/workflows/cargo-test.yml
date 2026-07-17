@@ -1,3 +1,5 @@
+name: cargo test
+
 on:
   push:
     branches:
@@ -13,11 +15,15 @@ on:
       - 'spec.json'
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: 0 * * * * # hourly
+
 permissions: read-all
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
-name: cargo test
+
 jobs:
   cargotest:
     name: cargo test
@@ -55,11 +61,19 @@ jobs:
       - uses: taiki-e/install-action@nextest
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Run tests with coverage
-        run: cargo llvm-cov nextest --workspace --lcov --output-path lcov.info --no-fail-fast
+        run: |-
+          cargo llvm-cov nextest \
+            --workspace --lcov --output-path lcov.info --no-fail-fast \
+            --profile=ci || true  # let TAB determine failure
+          .github/workflows/lib/upload-results.sh
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           RUST_BACKTRACE: 1
+          TAB_API_URL: ${{ vars.TAB_API_URL }}
+          TAB_API_KEY: ${{ secrets.TAB_API_KEY }}
+          CI_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          CI_PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v7
