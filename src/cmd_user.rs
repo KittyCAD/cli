@@ -85,6 +85,7 @@ mod test {
                 io,
                 debug: false,
                 override_host: None,
+                kcl_retry_config: None,
             };
 
             let cmd_user = crate::cmd_user::CmdUser { subcmd: t.cmd };

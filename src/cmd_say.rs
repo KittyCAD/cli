@@ -116,6 +116,7 @@ mod test {
                 io,
                 debug: false,
                 override_host: None,
+                kcl_retry_config: None,
             };
 
             let cmd_say = crate::cmd_say::CmdSay { input: t.cmd.input };

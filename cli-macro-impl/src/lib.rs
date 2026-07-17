@@ -612,7 +612,7 @@ impl Operation {
             "Create a new {}.\n\nTo create a {} interactively, use `zoo {} create` with no arguments.",
             singular_tag_str,
             singular_tag_str,
-            &singular(tag)
+            singular(tag)
         );
 
         let struct_inner_name_doc = format!("The name of the {singular_tag_str} to create.");

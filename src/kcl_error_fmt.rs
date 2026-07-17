@@ -1,13 +1,27 @@
 pub(crate) fn into_miette(error: kcl_lib::KclErrorWithOutputs, code: &str) -> anyhow::Error {
+    let inner_err = &error.error;
+    if is_nonsense_source_range(inner_err) {
+        return anyhow::anyhow!("{}", inner_err.get_message());
+    }
     let report = error.clone().into_miette_report_with_outputs(code).unwrap();
     let report = miette::Report::new(report);
     anyhow::anyhow!("{report:?}")
 }
 
+/// Sometimes the KCL runtime doesn't have a good source range, because some error
+/// is not really about a single KCL function. For example, missing auth or not
+/// being able to connect to the engine at all.
+///
+/// This detects those circumstances. If true, you probably shouldn't format the error
+/// with miette + KCL source, because the error isn't really about any particular KCL line.
+fn is_nonsense_source_range(error: &kcl_lib::KclError) -> bool {
+    error.source_ranges().is_empty() || error.source_ranges() == vec![Default::default()]
+}
+
 pub(crate) fn into_miette_for_parse(filename: &str, input: &str, error: kcl_lib::KclError) -> anyhow::Error {
     let report = kcl_lib::Report {
         kcl_source: input.to_string(),
-        error: error.clone(),
+        error,
         filename: filename.to_string(),
     };
     let report = miette::Report::new(report);
@@ -38,6 +52,7 @@ pub(crate) fn check_exec_state_issues(
     state: &kcl_lib::ExecState,
     issue_check: KclIssueCheck,
 ) -> anyhow::Result<()> {
+    dbg!();
     check_compilation_issues(err_out, filename, code, state.issues(), issue_check)
 }
 
@@ -48,6 +63,7 @@ pub(crate) fn check_compilation_issues(
     issues: &[kcl_lib::CompilationIssue],
     issue_check: KclIssueCheck,
 ) -> anyhow::Result<()> {
+    dbg!();
     if issue_check == KclIssueCheck::Ignore || issues.is_empty() {
         return Ok(());
     }

@@ -705,9 +705,9 @@ dependencies = [
 
 [[package]]
 name = "clap_complete"
-version = "4.6.5"
+version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0a7a9bfdb35811f9e59832f0f05975114d2251b415fb534108e6f34060fd772"
+checksum = "db8b397918185f0161ff3d6fcaa9e4bfc09b8367caf6e1d4a2848e5477ed027b"
 dependencies = [
  "clap",
 ]
@@ -2516,9 +2516,9 @@ dependencies = [
 
 [[package]]
 name = "ignore"
-version = "0.4.26"
+version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b915661dd01db3f05050265b2477bcc6527b3792388e2749b41623cc592be67d"
+checksum = "fe112b004901c62c2faa11f4f75e9864e0cc5af8da71c9115d184a3aa888749f"
 dependencies = [
  "crossbeam-deque",
  "globset",
@@ -2806,9 +2806,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.168"
+version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2e3f7d33e50ce9605d542f3245477bc1827b8a78c00a5ebc3281089e40ea855"
+checksum = "bdb65570215273ccd05162c2b55c53bfb8bf7d5adae3c832fcd8d45af8fcbb57"
 dependencies = [
  "indexmap 2.14.0",
  "kcl-error",
@@ -2824,9 +2824,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.168"
+version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81e642576ad9da0b4cbff0095624ff9b44b53507290d81ee9b02724968c88403"
+checksum = "363a93dd6a0f39e2b3449805a37ca9dee9030104d470b72c9ead6cb2d31ef565"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2835,9 +2835,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.168"
+version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d588cb20a684680750287aea376875d89fa55feb31177cdd4f94b6973fadbeab"
+checksum = "9b5a1ff4c0d1144670357aa7fdc8b4a8ae32f570a9580904d7850c7ec0ad05d4"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2849,9 +2849,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.168"
+version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a8385236cd0a871045355bc07b45a6751855306f0c4d82698ee016e28d15981"
+checksum = "0721b9e0d6014cb0a77486636a271094cd70f73d9e52b79d990d9cc35bb84473"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2927,18 +2927,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.168"
+version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a4c003e81f7b7f6aa32aba0846c4691b2027a5c4821122c8b406076c8d33507"
+checksum = "c7efecd39dcda7f7de029a75316807979ac37324ad790e08dbc9384f33802084"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.168"
+version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ee4e396eb8b338c4227f7094919ea8a92b30921fb48011ea33505dfcd0a94ce"
+checksum = "c8dc017153be3ea22a831a3b982807dd5d990be7222e9b10724e18f5676a71d8"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -3002,8 +3002,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.209"
-source = "git+https://github.com/KittyCAD/modeling-api?rev=41eb579f216f8bd827fdb45b116de7719139597f#41eb579f216f8bd827fdb45b116de7719139597f"
+version = "0.2.211"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb0aadfd54a7843e2dc5852c00dc5da84ae4c4292938fcb4e8f31c04a42b6422"
 dependencies = [
  "anyhow",
  "bon",
@@ -3033,7 +3034,8 @@ dependencies = [
 [[package]]
 name = "kittycad-modeling-cmds-macros"
 version = "0.1.13"
-source = "git+https://github.com/KittyCAD/modeling-api?rev=41eb579f216f8bd827fdb45b116de7719139597f#41eb579f216f8bd827fdb45b116de7719139597f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb4ba190f74f6d32f4607ecac4bdebd4a935d4943b8ca8369305e6e7a59b5976"
 dependencies = [
  "kittycad-modeling-cmds-macros-impl",
  "proc-macro2",
@@ -3044,7 +3046,8 @@ dependencies = [
 [[package]]
 name = "kittycad-modeling-cmds-macros-impl"
 version = "0.1.14"
-source = "git+https://github.com/KittyCAD/modeling-api?rev=41eb579f216f8bd827fdb45b116de7719139597f#41eb579f216f8bd827fdb45b116de7719139597f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "743b6533d1848de67e3455a28614a2b7896807ab0d3358ccd3ea1863de3c4e6b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3679,19 +3682,18 @@ checksum = "44d11de466f4a3006fe8a5e7ec84e93b79c70cb992ae0aa0eb631ad2df8abfe2"
 
 [[package]]
 name = "open"
-version = "5.3.5"
+version = "5.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fbaa89d2ddc8473c78a3adf69eea8cffa28c483b8e02a971ef31527cd0fc92c"
+checksum = "cd8d3b65c44123a56e0133d2cd06ce4361bd3ca99d41198b2f25e3c3db9b8b4a"
 dependencies = [
  "is-wsl",
  "libc",
- "pathdiff",
 ]
 
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#176a515a68cdf3ac939856afbae62f02620b491e"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#c3451f6125d71930d20b318dc4692abe77def44c"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -3925,12 +3927,6 @@ name = "pastey"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35fb2e5f958ec131621fdd531e9fc186ed768cbe395337403ae56c17a74c68ec"
-
-[[package]]
-name = "pathdiff"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "percent-encoding"
@@ -7546,7 +7542,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.181"
+version = "0.2.183"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7642,13 +7638,3 @@ checksum = "dc6fb7703e32e9a07fb3f757360338b3a567a5054f21b5f52a666752e333d58e"
 dependencies = [
  "zune-core",
 ]
-
-[[patch.unused]]
-name = "kcl-lib"
-version = "0.2.167"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=16dee6595e8585a4aeaddcde435cda2d85b489ed#16dee6595e8585a4aeaddcde435cda2d85b489ed"
-
-[[patch.unused]]
-name = "kcl-test-server"
-version = "0.2.167"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=16dee6595e8585a4aeaddcde435cda2d85b489ed#16dee6595e8585a4aeaddcde435cda2d85b489ed"
