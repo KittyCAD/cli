@@ -10,6 +10,7 @@ osxcross
 generated_docs
 # While running release github actions.
 releases
+/test-results/
 # IDE folders
 .vscode
 .idea

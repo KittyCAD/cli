@@ -80,7 +80,7 @@
         cargoLock = {
           lockFile = ./Cargo.lock;
           outputHashes = {
-            "openapitor-0.0.9" = "sha256-YRLglTUCrXyoajZK2v9FpHUVsD3ugPQwliwFGs/47Z0=";
+            "openapitor-0.0.9" = "sha256-UpyQzk4VnqNKwS2DUz9tM+v5YKEVoNkd9GyzaGX1uzk=";
           };
         };
 

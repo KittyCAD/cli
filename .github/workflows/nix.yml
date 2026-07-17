@@ -53,3 +53,39 @@ jobs:
       - name: nix build . for x86_64-darwin
         run: nix build .
 
+  nix-fix-hashes:
+    needs: nix-build-linux
+    if: ${{ always() && !cancelled() && needs.nix-build-linux.result == 'failure' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.0
+        with:
+          submodules: recursive
+          ref: ${{ github.head_ref }}
+
+      - uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Build and collect hash mismatches
+        id: nix_build
+        continue-on-error: true
+        run: nix build .#default -L --keep-going
+
+      - name: Fix hash mismatches
+        if: ${{ steps.nix_build.outcome == 'failure' }}
+        env:
+          PR_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          determinate-nixd fix hashes --auto-apply
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --update --ignore-removal .
+          if ! git diff --cached --quiet; then
+            git commit -m "[dependabot skip] Automatically fix Nix hashes"
+            git push origin "HEAD:${PR_HEAD_REF}"
+          else
+            echo "No Nix hash changes were produced."
+            exit 1
+          fi
