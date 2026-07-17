@@ -308,7 +308,9 @@ async fn run_test_item_with_config(config: &mut TestConfig, item: TestItem) {
         io,
         debug: false,
         override_host: None,
-        kcl_retry_config: Some(crate::context::RetryConfig::default()),
+        // TODO: Restore retries once the investigation into engine disconnects is complete.
+        // kcl_retry_config: Some(crate::context::RetryConfig::default()),
+        kcl_retry_config: None,
     };
 
     let _cwd_guard = CurrentDirGuard::change_to(item.current_directory.as_deref())
