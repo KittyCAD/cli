@@ -52,7 +52,6 @@ pub(crate) fn check_exec_state_issues(
     state: &kcl_lib::ExecState,
     issue_check: KclIssueCheck,
 ) -> anyhow::Result<()> {
-    dbg!();
     check_compilation_issues(err_out, filename, code, state.issues(), issue_check)
 }
 
@@ -63,7 +62,6 @@ pub(crate) fn check_compilation_issues(
     issues: &[kcl_lib::CompilationIssue],
     issue_check: KclIssueCheck,
 ) -> anyhow::Result<()> {
-    dbg!();
     if issue_check == KclIssueCheck::Ignore || issues.is_empty() {
         return Ok(());
     }
