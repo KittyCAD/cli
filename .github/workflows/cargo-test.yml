@@ -1,3 +1,5 @@
+name: cargo test
+
 on:
   push:
     branches:
@@ -8,20 +10,30 @@ on:
       - Cargo.toml
       - Cargo.lock
       - .github/workflows/cargo-test.yml
+      - .config/nextest.toml
       - 'rust-toolchain.toml'
       - 'Makefile'
       - 'spec.json'
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: 0 * * * * # hourly
+
 permissions: read-all
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
-name: cargo test
+
 jobs:
   cargotest:
-    name: cargo test
+    name: cargo test (shard ${{ matrix.partitionIndex }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        partitionIndex: [1, 2, 3, 4, 5]
+        partitionTotal: [5]
     steps:
       - uses: actions/checkout@master
       - name: Install latest rust
@@ -55,17 +67,45 @@ jobs:
       - uses: taiki-e/install-action@nextest
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Run tests with coverage
-        run: cargo llvm-cov nextest --workspace --lcov --output-path lcov.info --no-fail-fast
+        run: |-
+          cargo llvm-cov nextest \
+            --workspace --lcov --output-path=lcov.info \
+            --partition=count:${{ matrix.partitionIndex }}/${{ matrix.partitionTotal }} \
+            --profile=ci || true  # let TAB determine failure
+          .github/workflows/lib/upload-results.sh
         env:
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           RUST_BACKTRACE: 1
+          TAB_API_URL: ${{ vars.TAB_API_URL }}
+          TAB_API_KEY: ${{ secrets.TAB_API_KEY }}
+          CI_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          CI_PR_NUMBER: ${{ github.event.pull_request.number }}
 
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov-${{ matrix.partitionIndex }}
+          path: lcov.info
+
+  codecov:
+    name: Upload coverage to codecov
+    needs: cargotest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lcov-*
+          path: coverage
+          merge-multiple: false
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v7
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
           flags: unittests
-          files: lcov.info
+          directory: coverage
           verbose: true
