@@ -82,11 +82,30 @@ jobs:
           CI_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           CI_PR_NUMBER: ${{ github.event.pull_request.number }}
 
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov-${{ matrix.partitionIndex }}
+          path: lcov.info
+
+  codecov:
+    name: Upload coverage to codecov
+    needs: cargotest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lcov-*
+          path: coverage
+          merge-multiple: false
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v7
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
           flags: unittests
-          files: lcov.info
+          directory: coverage
           verbose: true
