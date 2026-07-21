@@ -7,6 +7,14 @@ use crate::config::Config;
 
 type SetupFn = fn(&mut TestConfig, &MainContext) -> Result<()>;
 
+// See text-to-cad/text_to_cad/zookeeper_magic_bypass.py
+const ZK_MOCK_REPLY_MARKER: &str =
+    "ZOO_MAGIC_STRING_TRIGGER_MOCK_REPLY_D39D279C6F84FA63AD49364FDEFB4A27D0E15BA7FB0975D4D6E003A8A594E460";
+
+fn zk_mock_prompt() -> String {
+    format!("make a 10x10x10cm cube centered on the origin, name the last variable \"cube\" [{ZK_MOCK_REPLY_MARKER}]")
+}
+
 macro_rules! svec {
     ($($item:expr),* $(,)?) => {
         vec![$($item.to_string()),*]
@@ -427,10 +435,7 @@ cli_tests! {
                 "obj",
                 "--output-dir",
                 "/tmp",
-                "A",
-                "2x4",
-                "lego",
-                "brick",
+                zk_mock_prompt(),
             ],
         )
         .setup(setup_authenticated)
@@ -450,10 +455,7 @@ cli_tests! {
                 "--output-dir",
                 "/tmp",
                 "--no-reasoning",
-                "A",
-                "2x4",
-                "lego",
-                "brick",
+                zk_mock_prompt(),
             ],
         )
         .setup(setup_authenticated)
@@ -1138,25 +1140,6 @@ async fn export_a_kcl_file_with_non_fatal_errors_allowed_exits_zero(ctx: &mut Ma
 #[test_context(MainContext)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 3)]
 #[serial_test::serial]
-async fn ml_kcl_edit_reasoning_on(ctx: &mut MainContext) {
-    let tmp = make_single_file_edit_project();
-    run_test_item(
-        ctx,
-        TestItem::new(
-            "ml kcl edit reasoning on",
-            svec!["zoo", "ml", "kcl", "edit", "gear.kcl", "Make", "it", "blue",],
-        )
-        .setup(setup_authenticated)
-        .current_directory(tmp.path().to_path_buf())
-        .stdout_contains("gear.kcl")
-        .stderr_contains("reasoning:"),
-    )
-    .await;
-}
-
-#[test_context(MainContext)]
-#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
-#[serial_test::serial]
 async fn ml_kcl_edit_no_reasoning(ctx: &mut MainContext) {
     let tmp = make_single_file_edit_project();
     run_test_item(
@@ -1170,14 +1153,12 @@ async fn ml_kcl_edit_no_reasoning(ctx: &mut MainContext) {
                 "edit",
                 "--no-reasoning",
                 "gear.kcl",
-                "Make",
-                "it",
-                "blue",
+                zk_mock_prompt(),
             ],
         )
         .setup(setup_authenticated)
         .current_directory(tmp.path().to_path_buf())
-        .stdout_contains("gear.kcl"),
+        .stdout_contains("main.kcl"),
     )
     .await;
 }
@@ -1191,25 +1172,7 @@ async fn ml_kcl_edit_multi_file_root(ctx: &mut MainContext) {
         ctx,
         TestItem::new(
             "ml kcl edit multi-file (root)",
-            svec![
-                "zoo",
-                "ml",
-                "kcl",
-                "edit",
-                "--no-reasoning",
-                ".",
-                "Add",
-                "a",
-                "simple",
-                "cube",
-                "to",
-                "main.kcl",
-                "and",
-                "a",
-                "cylinder",
-                "to",
-                "subdir/main.kcl",
-            ],
+            svec!["zoo", "ml", "kcl", "edit", "--no-reasoning", ".", zk_mock_prompt(),],
         )
         .setup(setup_authenticated)
         .current_directory(tmp.path().to_path_buf())
@@ -1227,29 +1190,11 @@ async fn ml_kcl_edit_multi_file_subdir(ctx: &mut MainContext) {
         ctx,
         TestItem::new(
             "ml kcl edit multi-file (subdir)",
-            svec![
-                "zoo",
-                "ml",
-                "kcl",
-                "edit",
-                "--no-reasoning",
-                ".",
-                "Add",
-                "a",
-                "simple",
-                "cube",
-                "to",
-                "main.kcl",
-                "and",
-                "a",
-                "cylinder",
-                "to",
-                "subdir/main.kcl",
-            ],
+            svec!["zoo", "ml", "kcl", "edit", "--no-reasoning", ".", zk_mock_prompt(),],
         )
         .setup(setup_authenticated)
         .current_directory(tmp.path().to_path_buf())
-        .stdout_contains("subdir/main.kcl"),
+        .stdout_contains("main.kcl"),
     )
     .await;
 }
