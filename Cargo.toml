@@ -2,7 +2,7 @@
 name = "zoo"
 version = "0.2.184"
 edition = "2024"
-rust-version = "1.95"
+rust-version = "1.96"
 build = "build.rs"
 
 [workspace]
