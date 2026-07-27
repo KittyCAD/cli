@@ -13,7 +13,7 @@ jobs:
   nix-flake-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
 
@@ -28,7 +28,7 @@ jobs:
   nix-build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
 
@@ -42,7 +42,7 @@ jobs:
   nix-build-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
 
@@ -60,12 +60,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           ref: ${{ github.head_ref }}
 
-      - uses: DeterminateSystems/determinate-nix-action@v3.21.5
+      - uses: DeterminateSystems/determinate-nix-action@v3.21.7
 
       - name: Build and collect hash mismatches
         id: nix_build
