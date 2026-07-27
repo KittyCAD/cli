@@ -10,10 +10,10 @@ jobs:
       id-token: "write"
       contents: "read"
     steps:
-      - uses: "actions/checkout@v7.0.0"
+      - uses: "actions/checkout@v7.0.1"
         with:
           persist-credentials: false
-      - uses: "DeterminateSystems/determinate-nix-action@v3.21.5"
+      - uses: "DeterminateSystems/determinate-nix-action@v3.21.7"
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           name: "Zoo/cli"
