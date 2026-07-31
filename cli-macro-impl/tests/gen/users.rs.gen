@@ -40,6 +40,9 @@ impl crate::cmd::Command for CmdUserView {
 #[derive(clap :: Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdUserEdit {
+    #[doc = "Whether the user has opted into pay-as-you-go charges after using their included credits."]
+    #[clap(long = "allow-pay-as-you-go", short = 'a', required = false)]
+    pub new_allow_pay_as_you_go: Option<bool>,
     #[doc = "The user's company."]
     #[clap(long = "company", short = 'c', required = false)]
     pub new_company: Option<String>,
@@ -72,7 +75,8 @@ pub struct CmdUserEdit {
 # [async_trait :: async_trait (? Send)]
 impl crate::cmd::Command for CmdUserEdit {
     async fn run(&self, ctx: &mut crate::context::Context) -> anyhow::Result<()> {
-        if self.new_company.is_none()
+        if self.new_allow_pay_as_you_go.is_none()
+            && self.new_company.is_none()
             && self.new_discord.is_none()
             && self.new_first_name.is_none()
             && self.new_github.is_none()
@@ -89,6 +93,7 @@ impl crate::cmd::Command for CmdUserEdit {
         let result = client
             .users()
             .update_self(&kittycad::types::UpdateUser {
+                allow_pay_as_you_go: self.new_allow_pay_as_you_go.clone(),
                 company: self.new_company.clone(),
                 discord: self.new_discord.clone(),
                 first_name: self.new_first_name.clone(),

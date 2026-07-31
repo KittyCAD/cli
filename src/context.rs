@@ -1434,7 +1434,51 @@ pub(crate) fn format_reasoning(reason: kittycad::types::ReasoningMessage, use_co
         kittycad::types::ReasoningMessage::DeletedKclFile { file_name } => {
             vec![format!("{} {}", lbl("deleted file:", Color::Red), file_name)]
         }
+        kittycad::types::ReasoningMessage::CreatedProjectFile { file_name, content } => {
+            let mut v = vec![format!("{} {}", lbl("created project file:", Color::Green), file_name)];
+            if !content.trim().is_empty() {
+                v.push(indent_block(&content));
+            }
+            v
+        }
+        kittycad::types::ReasoningMessage::UpdatedProjectFile { file_name, content } => {
+            let mut v = vec![format!("{} {}", lbl("updated project file:", Color::Yellow), file_name)];
+            if !content.trim().is_empty() {
+                v.push(indent_block(&content));
+            }
+            v
+        }
+        kittycad::types::ReasoningMessage::DeletedProjectFile { file_name } => {
+            vec![format!("{} {}", lbl("deleted project file:", Color::Red), file_name)]
+        }
     }
+}
+
+#[derive(serde::Serialize)]
+struct FileReasoningMetadata<'a> {
+    action: &'static str,
+    file: &'a str,
+}
+
+fn file_reasoning_to_markdown(
+    title: &str,
+    action: &'static str,
+    file_name: &str,
+    content: Option<(&str, &str)>,
+) -> String {
+    let metadata = FileReasoningMetadata {
+        action,
+        file: file_name,
+    };
+    let Ok(metadata) = serde_json::to_string_pretty(&metadata) else {
+        return format!("**{title}**\n\n{action} `{file_name}`");
+    };
+
+    let mut markdown = format!("**{title}**\n\n```json\n{metadata}\n```\n");
+    if let Some((language, content)) = content.filter(|(_, content)| !content.trim().is_empty()) {
+        markdown.push_str(&format!("\n```{language}\n{content}\n```\n"));
+    }
+    markdown
 }
 
 /// Render a ReasoningMessage as Markdown with a bold header and
@@ -1484,38 +1528,22 @@ pub(crate) fn reasoning_to_markdown(reason: &kittycad::types::ReasoningMessage) 
             md
         }
         kittycad::types::ReasoningMessage::CreatedKclFile { file_name, content } => {
-            let meta = json!({ "action": "created", "file": file_name });
-            let mut md = String::from("**Created File**\n\n");
-            md.push_str("```json\n");
-            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
-            md.push_str("\n```\n");
-            if !content.trim().is_empty() {
-                md.push_str("\n```kcl\n");
-                md.push_str(content);
-                md.push_str("\n```\n");
-            }
-            md
+            file_reasoning_to_markdown("Created File", "created", file_name, Some(("kcl", content)))
         }
         kittycad::types::ReasoningMessage::UpdatedKclFile { file_name, content } => {
-            let meta = json!({ "action": "updated", "file": file_name });
-            let mut md = String::from("**Updated File**\n\n");
-            md.push_str("```json\n");
-            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
-            md.push_str("\n```\n");
-            if !content.trim().is_empty() {
-                md.push_str("\n```kcl\n");
-                md.push_str(content);
-                md.push_str("\n```\n");
-            }
-            md
+            file_reasoning_to_markdown("Updated File", "updated", file_name, Some(("kcl", content)))
         }
         kittycad::types::ReasoningMessage::DeletedKclFile { file_name } => {
-            let meta = json!({ "action": "deleted", "file": file_name });
-            let mut md = String::from("**Deleted File**\n\n");
-            md.push_str("```json\n");
-            md.push_str(&serde_json::to_string_pretty(&meta).unwrap_or_else(|_| meta.to_string()));
-            md.push_str("\n```\n");
-            md
+            file_reasoning_to_markdown("Deleted File", "deleted", file_name, None)
+        }
+        kittycad::types::ReasoningMessage::CreatedProjectFile { file_name, content } => {
+            file_reasoning_to_markdown("Created Project File", "created", file_name, Some(("text", content)))
+        }
+        kittycad::types::ReasoningMessage::UpdatedProjectFile { file_name, content } => {
+            file_reasoning_to_markdown("Updated Project File", "updated", file_name, Some(("text", content)))
+        }
+        kittycad::types::ReasoningMessage::DeletedProjectFile { file_name } => {
+            file_reasoning_to_markdown("Deleted Project File", "deleted", file_name, None)
         }
     }
 }
@@ -1907,6 +1935,26 @@ mod test {
             content: "Hello world".into(),
         });
         assert_eq!(md, "Hello world");
+    }
+
+    #[test]
+    fn project_file_reasoning_is_rendered() {
+        let lines = super::format_reasoning(
+            kittycad::types::ReasoningMessage::CreatedProjectFile {
+                content: "project notes".into(),
+                file_name: "notes.txt".into(),
+            },
+            false,
+        );
+        assert_eq!(lines, ["created project file: notes.txt", "    project notes\n"]);
+
+        let md = super::reasoning_to_markdown(&kittycad::types::ReasoningMessage::UpdatedProjectFile {
+            content: "updated notes".into(),
+            file_name: "notes.txt".into(),
+        });
+        assert!(md.contains("**Updated Project File**"));
+        assert!(md.contains("\"file\": \"notes.txt\""));
+        assert!(md.contains("```text\nupdated notes\n```"));
     }
 
     /// Verifies that retryable failures are retried until the operation

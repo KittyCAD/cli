@@ -221,6 +221,13 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     push_assistant_block(&mut lines, rows, Some(Style::default().fg(Color::Red)), None);
                 }
                 kittycad::types::MlCopilotServerMessage::Files { .. } => {}
+                kittycad::types::MlCopilotServerMessage::ModesResponse { .. }
+                | kittycad::types::MlCopilotServerMessage::RequestAttachments { .. }
+                | kittycad::types::MlCopilotServerMessage::AttachmentsLoaded { .. }
+                | kittycad::types::MlCopilotServerMessage::ZookeeperAutoRouterMetadata { .. }
+                | kittycad::types::MlCopilotServerMessage::ZookeeperRecoveryToolOutput { .. } => {
+                    // Protocol metadata and backend-only control messages are not chat content.
+                }
             },
         }
     }
