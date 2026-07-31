@@ -227,7 +227,9 @@ impl crate::cmd::Command for CmdOrgDatasetCreate {
         )?;
 
         let body = kittycad::types::CreateOrgDataset {
+            description: None,
             name: self.name.clone(),
+            require_raw_kcl_similarity_score_for_success: false,
             source: kittycad::types::OrgDatasetSource {
                 access_role_arn: self.access_role_arn.clone(),
                 provider: self.provider.into(),
@@ -334,7 +336,9 @@ impl crate::cmd::Command for CmdOrgDatasetUpdate {
         }
 
         let body = kittycad::types::UpdateOrgDataset {
+            description: None,
             name: self.name.clone(),
+            require_raw_kcl_similarity_score_for_success: None,
             source: if source_changed {
                 Some(kittycad::types::UpdateOrgDatasetSource {
                     access_role_arn: self.access_role_arn.clone(),

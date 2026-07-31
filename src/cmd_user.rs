@@ -54,6 +54,7 @@ mod test {
         let tests: Vec<TestItem> = vec![TestItem {
             name: "volume: input file does not exist".to_string(),
             cmd: crate::cmd_user::SubCommand::Edit(crate::cmd_user::CmdUserEdit {
+                new_allow_pay_as_you_go: Default::default(),
                 new_is_onboarded: Default::default(),
                 new_company: Default::default(),
                 new_discord: Default::default(),
