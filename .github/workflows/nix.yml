@@ -65,7 +65,7 @@ jobs:
           submodules: recursive
           ref: ${{ github.head_ref }}
 
-      - uses: DeterminateSystems/determinate-nix-action@v3.21.7
+      - uses: DeterminateSystems/determinate-nix-action@v3.21.8
 
       - name: Build and collect hash mismatches
         id: nix_build
