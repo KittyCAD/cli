@@ -36217,6 +36217,13 @@
             ]
           },
           {
+            "description": "The user exhausted their included credits without opting into pay-as-you-go charges.",
+            "type": "string",
+            "enum": [
+              "pay_as_you_go_disabled"
+            ]
+          },
+          {
             "description": "The user repeatedly upgraded and downgraded to recycle free-plan credits.",
             "type": "string",
             "enum": [
@@ -38033,6 +38040,13 @@
           "created_at": {
             "title": "DateTime",
             "description": "The date and time the balance was created.",
+            "type": "string",
+            "format": "date-time"
+          },
+          "monthly_api_credits_refresh_at": {
+            "nullable": true,
+            "title": "DateTime",
+            "description": "The date and time the monthly API credits are next scheduled to refresh.\n\nWhen a refresh is due but has not been applied yet, this is the due timestamp in the past. Clients can use that to show the refresh as pending rather than incorrectly advancing by a month.\n\nThis is `null` when the customer does not have an active standard billing schedule, such as before their billing account is established or while a contract owns billing.",
             "type": "string",
             "format": "date-time"
           },
