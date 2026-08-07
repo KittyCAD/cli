@@ -74,6 +74,7 @@ jobs:
             --profile=ci || true  # let TAB determine failure
           .github/workflows/lib/upload-results.sh
         env:
+          ZOO_LOG: '1' # Temporary verbose kcl-lib logging.
           ZOO_TEST_TOKEN: ${{secrets.KITTYCAD_TOKEN}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           RUST_BACKTRACE: 1
