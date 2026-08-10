@@ -1,10 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
+grep --quiet '<testsuite' test-results/junit.xml || {
+  echo "ERROR: missing or malformed test-results/junit.xml"
+  exit 1
+}
+
 if [ -z "${TAB_API_URL:-}" ] || [ -z "${TAB_API_KEY:-}" ]; then
     echo "WARNING: TAB_API_URL and TAB_API_KEY must be set to analyze results"
-    grep --quiet 'failures="0"' test-results/junit.xml
-    exit 0
+    grep --quiet --extended-regexp 'failures="[1-9]' test-results/junit.xml && exit 1 || exit 0
 fi
 
 project="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
@@ -38,8 +42,7 @@ echo
 
 if ! grep --quiet "block" test-results/tab.json; then
   echo "ERROR: Invalid response from TAB_API_URL"
-  grep --quiet 'failures="0"' test-results/junit.xml
-  exit 0
+  grep --quiet --extended-regexp 'failures="[1-9]' test-results/junit.xml && exit 1 || exit 0
 fi
 
 echo "Sharing updated report:"
