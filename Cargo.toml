@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.187"
+version = "0.2.188"
 edition = "2024"
 rust-version = "1.96"
 build = "build.rs"
@@ -40,9 +40,9 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.15.0"
-kcl-error = "=0.2.175"
-kcl-lib = { version = "=0.2.175", features = ["disable-println"] }
-kcl-test-server = "=0.2.175"
+kcl-error = "=0.2.176"
+kcl-lib = { version = "=0.2.176", features = ["disable-println"] }
+kcl-test-server = "=0.2.176"
 kittycad = { version = "0.4.14", features = [
   "clap",
   "tabled",
