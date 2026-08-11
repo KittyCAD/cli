@@ -2826,9 +2826,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.175"
+version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b9cdc65d84e531677fe5f5d69afe494399f4678d4b005ef199f8b1a5fed8a3b"
+checksum = "75a30ce12d41ec532a1916f040b954a7f569c52a1cf654165462afa6211a1936"
 dependencies = [
  "indexmap 2.14.0",
  "kcl-error",
@@ -2844,9 +2844,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.175"
+version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40d1345cb5fb6d605509ac32c3760be23eb4b82525b7be6dbbf84f1886d9400e"
+checksum = "a5636c6277b838daaa32ff87d15801ffd41782f196dda7b02237086cdaf570fa"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2855,9 +2855,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.175"
+version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdcade2d6c1720bf8dc4637d947250812c86fcf574546047cac96ed03b14d4b2"
+checksum = "73ba05d03ed4396e89b0669dc56681db857df4d59306ab4ccbb8f8f33c747602"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2869,9 +2869,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.175"
+version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8dd77c4bf811c0549af0f174620bd994338b29ab31754e460f70290fe4602b42"
+checksum = "0cc2d906db1db8f3d3a9a5c10d9d565f7d8611f8bee2fb02816c2f1ef30a81f7"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2948,18 +2948,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.175"
+version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2d172e8e87706e99a61b5c51953aaea5d970bd8454f0ad0c1a6aa4a245afdef"
+checksum = "045e63c8b4e9f455b91413e096ce9888e6f36525268b922506ef824184fd92f1"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.175"
+version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6dfb2701a68e90b160af3239b256c558adb641cb529128c8db824313c2e492e"
+checksum = "0b13687f7ec67c1a3512aeab575b66ef54643ec16279a2f491cfdf5bd77f8b7b"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -7550,7 +7550,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.187"
+version = "0.2.188"
 dependencies = [
  "anyhow",
  "async-trait",
