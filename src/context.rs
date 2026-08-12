@@ -295,9 +295,12 @@ impl<'a> Context<'a> {
     /// Should KCL be executed on the server (true)?
     /// Or locally (false)?
     pub(crate) fn use_server_kcl_execution() -> bool {
-        std::env::var(ENGINE_EXECUTION_ENV)
-            .map(|value| !value.is_empty())
-            .unwrap_or_default()
+        // Default to true.
+        let Ok(engine_exec) = std::env::var(ENGINE_EXECUTION_ENV) else {
+            return true;
+        };
+        // Opt out if set to 0.
+        engine_exec != "0"
     }
 
     async fn engine_ws_with_settings(
