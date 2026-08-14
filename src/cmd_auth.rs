@@ -614,7 +614,6 @@ mod test {
                 io,
                 debug: false,
                 override_host: None,
-                kcl_retry_config: None,
             };
             if let Some(h) = &t.host {
                 ctx.override_host = Some(h.clone());

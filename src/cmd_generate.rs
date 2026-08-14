@@ -163,7 +163,6 @@ mod test {
             io,
             debug: false,
             override_host: None,
-            kcl_retry_config: None,
         };
 
         let cmd = crate::cmd_generate::CmdGenerateMarkdown { dir: "".to_string() };
@@ -193,7 +192,6 @@ mod test {
             io,
             debug: false,
             override_host: None,
-            kcl_retry_config: None,
         };
 
         let cmd = crate::cmd_generate::CmdGenerateMarkdown { dir: "".to_string() };
