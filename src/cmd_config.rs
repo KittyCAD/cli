@@ -265,7 +265,6 @@ mod test {
                 io,
                 debug: false,
                 override_host: None,
-                kcl_retry_config: None,
             };
 
             let cmd_config = crate::cmd_config::CmdConfig { subcmd: t.cmd };
@@ -302,7 +301,6 @@ mod test {
             io,
             debug: false,
             override_host: None,
-            kcl_retry_config: None,
         };
 
         let mut cmd_config = crate::cmd_config::CmdConfig {
