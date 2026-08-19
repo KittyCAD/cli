@@ -33,7 +33,7 @@ const PAYLOAD_LOG_LIMIT: usize = 10_000;
 // Strongly-typed outbound messages permitted for the WebSocket writer.
 enum WsSend {
     Client {
-        msg: kittycad::types::MlCopilotClientMessage,
+        msg: Box<kittycad::types::MlCopilotClientMessage>,
     },
     Ping,
     Close,
@@ -59,6 +59,8 @@ fn build_user_message(
         additional_files: None,
         content,
         current_files: Some(files),
+        correlation_id: None,
+        engine_api_call_id: None,
         forced_tools,
         project_name: project_name.clone(),
         source_ranges: None,
@@ -436,7 +438,9 @@ pub async fn run_copilot_tui(
                                         }
                                     }
                                     state::SlashCommand::System(command) => {
-                                        let _ = tx_out.send(WsSend::Client { msg: kittycad::types::MlCopilotClientMessage::System { command } });
+                                        let _ = tx_out.send(WsSend::Client {
+                                            msg: Box::new(kittycad::types::MlCopilotClientMessage::System { command }),
+                                        });
                                     }
                                     state::SlashCommand::ForceTool(tool) => {
                                         match app.toggle_forced_tool(tool.clone()) {
@@ -477,7 +481,7 @@ pub async fn run_copilot_tui(
                                     let state::QueuedPrompt { content, forced_tools } = prompt;
                                     let (msg, _len) =
                                         build_user_message(content, files, &project_name, forced_tools);
-                                    let _ = tx_out.send(WsSend::Client { msg });
+                                    let _ = tx_out.send(WsSend::Client { msg: Box::new(msg) });
                                 }
                         }
                         KeyAction::Inserted | KeyAction::None => {}
@@ -491,7 +495,7 @@ pub async fn run_copilot_tui(
                             let state::QueuedPrompt { content, forced_tools } = next;
                             let (msg, _len) =
                                 build_user_message(content, files, &project_name, forced_tools);
-                            let _ = tx_out.send(WsSend::Client { msg });
+                            let _ = tx_out.send(WsSend::Client { msg: Box::new(msg) });
                         }
                     } else {
                         let _ = app.on_end_of_stream(false);
@@ -513,7 +517,7 @@ pub async fn run_copilot_tui(
                                 let state::QueuedPrompt { content, forced_tools } = next;
                                 let (msg, _len) =
                                     build_user_message(content, files, &project_name, forced_tools);
-                                let _ = tx_out.send(WsSend::Client { msg });
+                                let _ = tx_out.send(WsSend::Client { msg: Box::new(msg) });
                             }
                     }
                     ScanEvent::Error(e) => { app.events.push(ChatEvent::Server(kittycad::types::MlCopilotServerMessage::Error{ detail: e })); }

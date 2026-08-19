@@ -18,6 +18,7 @@ pub struct App {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum ChatEvent {
     User(String),
     Server(kittycad::types::MlCopilotServerMessage),

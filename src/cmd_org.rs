@@ -146,7 +146,7 @@ impl crate::cmd::Command for CmdOrgDatasetList {
 
         let page = client
             .orgs()
-            .list_datasets(self.limit, self.page_token.clone(), self.sort_by.clone())
+            .list_datasets(self.limit, None, self.page_token.clone(), self.sort_by.clone())
             .await?;
         write_dataset_page_output(ctx, &format, &page)?;
         Ok(())
@@ -728,13 +728,15 @@ impl crate::cmd::Command for CmdOrgDatasetConversionsSearch {
 
         let page = client
             .orgs()
-            .search_dataset_conversions(
-                self.dataset_id,
-                self.limit,
-                self.page_token.clone(),
-                Some(self.query.clone()),
-                self.sort_by.clone(),
-            )
+            .search_dataset_conversions(kittycad::orgs::SearchDatasetConversionsParams {
+                filter: None,
+                id: self.dataset_id,
+                limit: self.limit,
+                page_token: self.page_token.clone(),
+                phase: None,
+                q: Some(self.query.clone()),
+                sort_by: self.sort_by.clone(),
+            })
             .await?;
         write_conversion_page_output(ctx, &format, &page)?;
         Ok(())
@@ -1130,7 +1132,7 @@ async fn collect_all_datasets(
     loop {
         let page = client
             .orgs()
-            .list_datasets(limit, page_token.take(), sort_by.clone())
+            .list_datasets(limit, None, page_token.take(), sort_by.clone())
             .await?;
         datasets.extend(page.items);
         page_token = page.next_page;
@@ -1164,7 +1166,15 @@ async fn list_conversions(ctx: &mut crate::context::Context<'_>, args: Conversio
 
     let page = client
         .orgs()
-        .list_dataset_conversions(filter, args.dataset_id, args.limit, args.page_token, args.sort_by)
+        .list_dataset_conversions(kittycad::orgs::ListDatasetConversionsParams {
+            filter,
+            id: args.dataset_id,
+            limit: args.limit,
+            page_token: args.page_token,
+            phase: None,
+            q: None,
+            sort_by: args.sort_by,
+        })
         .await?;
     write_conversion_page_output(ctx, &format, &page)?;
     Ok(())
@@ -1182,7 +1192,15 @@ async fn collect_all_conversions(
     loop {
         let page = client
             .orgs()
-            .list_dataset_conversions(filter.clone(), dataset_id, limit, page_token.take(), sort_by.clone())
+            .list_dataset_conversions(kittycad::orgs::ListDatasetConversionsParams {
+                filter: filter.clone(),
+                id: dataset_id,
+                limit,
+                page_token: page_token.take(),
+                phase: None,
+                q: None,
+                sort_by: sort_by.clone(),
+            })
             .await?;
         conversions.extend(page.items);
         page_token = page.next_page;
@@ -1205,13 +1223,15 @@ async fn collect_all_conversion_search_matches(
     loop {
         let page = client
             .orgs()
-            .search_dataset_conversions(
-                dataset_id,
+            .search_dataset_conversions(kittycad::orgs::SearchDatasetConversionsParams {
+                filter: None,
+                id: dataset_id,
                 limit,
-                page_token.take(),
-                Some(query.clone()),
-                sort_by.clone(),
-            )
+                page_token: page_token.take(),
+                phase: None,
+                q: Some(query.clone()),
+                sort_by: sort_by.clone(),
+            })
             .await?;
         conversions.extend(page.items);
         page_token = page.next_page;

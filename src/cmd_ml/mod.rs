@@ -3,8 +3,6 @@ use clap::Parser;
 
 /// Kcl commands.
 mod cmd_kcl;
-/// Text-to-CAD commands.
-mod cmd_text_to_cad;
 
 /// Perform machine learning (ML-Ephant) commands.
 #[derive(Parser, Debug, Clone)]
@@ -16,8 +14,6 @@ pub struct CmdMl {
 
 #[derive(Parser, Debug, Clone)]
 enum SubCommand {
-    #[clap(name = "text-to-cad")]
-    TextToCad(crate::cmd_ml::cmd_text_to_cad::CmdTextToCad),
     Kcl(crate::cmd_ml::cmd_kcl::CmdKcl),
 }
 
@@ -25,7 +21,6 @@ enum SubCommand {
 impl crate::cmd::Command for CmdMl {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         match &self.subcmd {
-            SubCommand::TextToCad(cmd) => cmd.run(ctx).await,
             SubCommand::Kcl(cmd) => cmd.run(ctx).await,
         }
     }
