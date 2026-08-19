@@ -46,7 +46,7 @@ struct KclProgramRun {
 
 /// Runs a KCL program and returns state needed for follow-up commands.
 async fn run_kcl_program(
-    client: &kittycad::Client,
+    client: &kittycad_v04::Client,
     program: &kcl_lib::Program,
     settings: kcl_lib::ExecutorSettings,
     code: &str,
@@ -159,6 +159,23 @@ impl<'a> Context<'a> {
 
         // Create the client.
         let mut client = kittycad::Client::new_from_reqwest(token, http_client, ws_client);
+
+        if baseurl != crate::DEFAULT_HOST {
+            client.set_base_url(&baseurl);
+        }
+
+        Ok(client)
+    }
+
+    fn kcl_api_client(&self, hostname: &str) -> Result<kittycad_v04::Client> {
+        let (host, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
+        let http_client = self.http_client_builder();
+        let ws_client = self
+            .http_client_builder()
+            .tcp_keepalive(std::time::Duration::from_secs(600))
+            .http1_only();
+        let token = self.config.get(&host, "token")?;
+        let mut client = kittycad_v04::Client::new_from_reqwest(token, http_client, ws_client);
 
         if baseurl != crate::DEFAULT_HOST {
             client.set_base_url(&baseurl);
@@ -467,7 +484,7 @@ impl<'a> Context<'a> {
             return Ok((resp, session_data));
         }
 
-        let client = self.api_client(hostname)?;
+        let client = self.kcl_api_client(hostname)?;
 
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
@@ -526,7 +543,7 @@ impl<'a> Context<'a> {
                 .await;
         }
 
-        let client = self.api_client(hostname)?;
+        let client = self.kcl_api_client(hostname)?;
 
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
@@ -591,7 +608,7 @@ impl<'a> Context<'a> {
             return Ok((snapshot_resps, session_data));
         }
 
-        let client = self.api_client(hostname)?;
+        let client = self.kcl_api_client(hostname)?;
 
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
@@ -636,7 +653,7 @@ impl<'a> Context<'a> {
         issue_check: kcl_error_fmt::KclIssueCheck,
         output_format: kittycad_modeling_cmds::format::OutputFormat3d,
     ) -> Result<(Vec<RawFile>, Option<ModelingSessionData>)> {
-        let client = self.api_client("")?;
+        let client = self.kcl_api_client("")?;
         let run = run_kcl_program(&client, program, settings, code).await?;
 
         kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;

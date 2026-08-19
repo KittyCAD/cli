@@ -81,7 +81,6 @@
         cargoLock = {
           lockFile = ./Cargo.lock;
           outputHashes = {
-            "kittycad-0.4.14" = "sha256-fkA4rl6MTZgzFtmDQRvkAKARoOhjmEcZMyRw+cNmYxA=";
             "openapitor-0.0.9" = "sha256-XdcR9KzUY1IIgJ5YSlLeV1XVValS22WMxUbz0qUKX14=";
           };
         };
