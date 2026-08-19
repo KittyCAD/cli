@@ -9,9 +9,6 @@ build = "build.rs"
 members = ["cli-macro", "cli-macro-impl"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[patch.crates-io]
-kittycad = { git = "https://github.com/KittyCAD/kittycad.rs", rev = "168d8553a8ecb9c7d54ea8ee46a8b70d1e466c32" }
-
 [dependencies]
 anyhow = { version = "1", features = ["backtrace"] }
 async-trait = "0.1.88"
@@ -46,11 +43,15 @@ itertools = "0.15.0"
 kcl-error = "=0.2.177"
 kcl-lib = { version = "=0.2.177", features = ["disable-println"] }
 kcl-test-server = "=0.2.177"
-kittycad = { version = "0.4.14", features = [
+kittycad = { version = "0.5.0", features = [
   "clap",
   "tabled",
   "requests",
   "retry",
+] }
+# kcl-lib 0.2.177 exposes kittycad 0.4's Client in its executor API.
+kittycad-v04 = { package = "kittycad", version = "0.4.14", default-features = false, features = [
+  "requests",
 ] }
 kittycad-modeling-cmds = { version = "0.2.220", features = [
   "websocket",

@@ -2903,7 +2903,7 @@ dependencies = [
  "kcl-derive-docs",
  "kcl-error",
  "kcl-syntax",
- "kittycad",
+ "kittycad 0.4.14",
  "kittycad-modeling-cmds",
  "lazy_static",
  "libm",
@@ -2973,7 +2973,45 @@ dependencies = [
 [[package]]
 name = "kittycad"
 version = "0.4.14"
-source = "git+https://github.com/KittyCAD/kittycad.rs?rev=168d8553a8ecb9c7d54ea8ee46a8b70d1e466c32#168d8553a8ecb9c7d54ea8ee46a8b70d1e466c32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7973e7ac46b7d00b4cce721d6c414a602447ddff305126ddea8cf43144832d97"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bigdecimal",
+ "bytes",
+ "chrono",
+ "clap",
+ "data-encoding",
+ "format_serde_error",
+ "futures",
+ "getrandom 0.3.2",
+ "http 1.5.0",
+ "itertools 0.14.0",
+ "log",
+ "mime_guess",
+ "parse-display",
+ "phonenumber",
+ "rand 0.9.4",
+ "reqwest 0.12.28",
+ "schemars 0.8.22",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_urlencoded",
+ "thiserror 2.0.20",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "kittycad"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09e616688e500d5d2273d98a80bdbeb2b9c783e217efb693e83ebfb70def7209"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7576,7 +7614,8 @@ dependencies = [
  "kcl-error",
  "kcl-lib",
  "kcl-test-server",
- "kittycad",
+ "kittycad 0.4.14",
+ "kittycad 0.5.0",
  "kittycad-modeling-cmds",
  "log",
  "miette",
