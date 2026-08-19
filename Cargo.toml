@@ -9,6 +9,9 @@ build = "build.rs"
 members = ["cli-macro", "cli-macro-impl"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[patch.crates-io]
+kittycad = { git = "https://github.com/KittyCAD/kittycad.rs", rev = "168d8553a8ecb9c7d54ea8ee46a8b70d1e466c32" }
+
 [dependencies]
 anyhow = { version = "1", features = ["backtrace"] }
 async-trait = "0.1.88"

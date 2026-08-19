@@ -59,6 +59,8 @@ fn build_user_message(
         additional_files: None,
         content,
         current_files: Some(files),
+        correlation_id: None,
+        engine_api_call_id: None,
         forced_tools,
         project_name: project_name.clone(),
         source_ranges: None,

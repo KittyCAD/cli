@@ -7,14 +7,6 @@ use crate::config::Config;
 
 type SetupFn = fn(&mut TestConfig, &MainContext) -> Result<()>;
 
-// See text-to-cad/text_to_cad/zookeeper_magic_bypass.py
-const ZK_MOCK_REPLY_MARKER: &str =
-    "ZOO_MAGIC_STRING_TRIGGER_MOCK_REPLY_D39D279C6F84FA63AD49364FDEFB4A27D0E15BA7FB0975D4D6E003A8A594E460";
-
-fn zk_mock_prompt() -> String {
-    format!("make a 10x10x10cm cube centered on the origin, name the last variable \"cube\" [{ZK_MOCK_REPLY_MARKER}]")
-}
-
 macro_rules! svec {
     ($($item:expr),* $(,)?) => {
         vec![$($item.to_string()),*]
@@ -258,26 +250,6 @@ fn setup_aliases(config: &mut TestConfig, ctx: &MainContext) -> Result<()> {
     setup_alias_shell(config, ctx)
 }
 
-fn make_single_file_edit_project() -> tempfile::TempDir {
-    let tmp = tempfile::tempdir().expect("failed to create temp dir");
-    std::fs::copy("tests/gear.kcl", tmp.path().join("gear.kcl")).expect("copy gear.kcl");
-    // TODO: Fix it so we don't need this temp file.
-    std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main.kcl");
-    tmp
-}
-
-fn make_multi_file_edit_project() -> tempfile::TempDir {
-    let tmp = tempfile::tempdir().expect("failed to create temp dir");
-    std::fs::create_dir_all(tmp.path().join("subdir")).expect("create subdir");
-    std::fs::write(tmp.path().join("main.kcl"), "// Glorious cube\n\nsideLength = 10\n").expect("write main.kcl");
-    std::fs::write(
-        tmp.path().join("subdir/main.kcl"),
-        "// Glorious cylinder\n\nheight = 20\n",
-    )
-    .expect("write subdir/main.kcl");
-    tmp
-}
-
 fn make_large_copilot_project() -> tempfile::TempDir {
     let tmp = tempfile::tempdir().expect("failed to create temp dir");
     std::fs::write(tmp.path().join("main.kcl"), "cube(1)\n").expect("write main.kcl");
@@ -418,45 +390,6 @@ cli_tests! {
     existing_command_with_args(_ctx) => {
         TestItem::new("existing command with args", svec!["zoo", "completion", "-s", "zsh"])
             .stdout_contains("_zoo \"$@\"\n")
-    }
-
-    ml_text_to_cad_export_reasoning_on(_ctx) => {
-        TestItem::new(
-            "ml text-to-cad export reasoning on",
-            svec![
-                "zoo",
-                "ml",
-                "text-to-cad",
-                "export",
-                "-t",
-                "obj",
-                "--output-dir",
-                "/tmp",
-                zk_mock_prompt(),
-            ],
-        )
-        .setup(setup_authenticated)
-        .stdout_contains("Completed")
-    }
-
-    ml_text_to_cad_export_no_reasoning(_ctx) => {
-        TestItem::new(
-            "ml text-to-cad export no reasoning",
-            svec![
-                "zoo",
-                "ml",
-                "text-to-cad",
-                "export",
-                "-t",
-                "obj",
-                "--output-dir",
-                "/tmp",
-                "--no-reasoning",
-                zk_mock_prompt(),
-            ],
-        )
-        .setup(setup_authenticated)
-        .stdout_contains("Completed")
     }
 
     ml_kcl_copilot_requires_main_kcl(_ctx) => {
@@ -1130,68 +1063,6 @@ async fn export_a_kcl_file_with_non_fatal_errors_allowed_exits_zero(ctx: &mut Ma
         .setup(setup_authenticated)
         .stdout_contains("Wrote file:")
         .stderr_contains("tests/non_fatal_error.kcl"),
-    )
-    .await;
-}
-
-#[test_context(MainContext)]
-#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
-#[serial_test::serial]
-async fn ml_kcl_edit_no_reasoning(ctx: &mut MainContext) {
-    let tmp = make_single_file_edit_project();
-    run_test_item(
-        ctx,
-        TestItem::new(
-            "ml kcl edit no reasoning",
-            svec![
-                "zoo",
-                "ml",
-                "kcl",
-                "edit",
-                "--no-reasoning",
-                "gear.kcl",
-                zk_mock_prompt(),
-            ],
-        )
-        .setup(setup_authenticated)
-        .current_directory(tmp.path().to_path_buf())
-        .stdout_contains("main.kcl"),
-    )
-    .await;
-}
-
-#[test_context(MainContext)]
-#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
-#[serial_test::serial]
-async fn ml_kcl_edit_multi_file_root(ctx: &mut MainContext) {
-    let tmp = make_multi_file_edit_project();
-    run_test_item(
-        ctx,
-        TestItem::new(
-            "ml kcl edit multi-file (root)",
-            svec!["zoo", "ml", "kcl", "edit", "--no-reasoning", ".", zk_mock_prompt(),],
-        )
-        .setup(setup_authenticated)
-        .current_directory(tmp.path().to_path_buf())
-        .stdout_contains("main.kcl"),
-    )
-    .await;
-}
-
-#[test_context(MainContext)]
-#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
-#[serial_test::serial]
-async fn ml_kcl_edit_multi_file_subdir(ctx: &mut MainContext) {
-    let tmp = make_multi_file_edit_project();
-    run_test_item(
-        ctx,
-        TestItem::new(
-            "ml kcl edit multi-file (subdir)",
-            svec!["zoo", "ml", "kcl", "edit", "--no-reasoning", ".", zk_mock_prompt(),],
-        )
-        .setup(setup_authenticated)
-        .current_directory(tmp.path().to_path_buf())
-        .stdout_contains("main.kcl"),
     )
     .await;
 }

@@ -225,7 +225,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 | kittycad::types::MlCopilotServerMessage::RequestAttachments { .. }
                 | kittycad::types::MlCopilotServerMessage::AttachmentsLoaded { .. }
                 | kittycad::types::MlCopilotServerMessage::ZookeeperAutoRouterMetadata { .. }
-                | kittycad::types::MlCopilotServerMessage::ZookeeperRecoveryToolOutput { .. } => {
+                | kittycad::types::MlCopilotServerMessage::ZookeeperOpenAiResponseCheckpoint { .. }
+                | kittycad::types::MlCopilotServerMessage::ZookeeperRecoveryToolOutput { .. }
+                | kittycad::types::MlCopilotServerMessage::ZookeeperTurnUsage { .. } => {
                     // Protocol metadata and backend-only control messages are not chat content.
                 }
             },
