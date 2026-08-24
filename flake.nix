@@ -14,11 +14,10 @@
     overlays = [
       (import rust-overlay)
       (self: super: {
-        rustToolchain =
-          (super.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml).override {
-            targets = ["wasm32-unknown-unknown"];
-            extensions = ["rustfmt" "llvm-tools-preview" "rust-src"];
-          };
+        rustToolchain = (super.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml).override {
+          targets = ["wasm32-unknown-unknown"];
+          extensions = ["rustfmt" "llvm-tools-preview" "rust-src"];
+        };
 
         # stand-alone nightly formatter so we get the fancy unstable flags
         nightlyRustfmt = super.rust-bin.selectLatestNightlyWith (toolchain:
@@ -78,13 +77,7 @@
         version = cargoToml.package.version;
         src = ./.;
 
-        cargoLock = {
-          lockFile = ./Cargo.lock;
-          outputHashes = {
-            "kittycad-0.4.14" = "sha256-fkA4rl6MTZgzFtmDQRvkAKARoOhjmEcZMyRw+cNmYxA=";
-            "openapitor-0.0.9" = "sha256-XdcR9KzUY1IIgJ5YSlLeV1XVValS22WMxUbz0qUKX14=";
-          };
-        };
+        cargoHash = "sha256-wnE6S9BderCCPE6HKizvvnUwQknswuy6+G7XHXcZ6/o=";
 
         doCheck = false;
         nativeBuildInputs = [pkgs.pkg-config];
