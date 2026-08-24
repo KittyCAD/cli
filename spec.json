@@ -32185,8 +32185,8 @@
         "tags": [
           "modeling"
         ],
-        "summary": "Open a websocket which accepts modeling commands.",
-        "description": "Pass those commands to the engine via websocket, and pass responses back to the client. Basically, this is a websocket proxy between the frontend/client and the engine.",
+        "summary": "Opens a WebSocket to a Zoo KittyCAD engine instance.",
+        "description": "**Note**: Currently it's recommended to set `webrtc=true` in the WebSocket query string, otherwise some features, such as opacity setting, will cause the engine to fail.\n\nDue to the long-lived nature of the instances, it's possible the resources on have been used and not freed entirely, or the instance is in a bad state. Thus it's good practice to expect to have to potentially reconnect at any moment -even almost immediately after the first connection!\n\nAuthorization happens via a pseudo HTTP header over the WebSocket: `{ type: \"headers\", headers: { \"Authorization\": \"Bearer xxxxxxxxx\" }}`\n\nThe very next thing recommended is to setup a ping-pong interval. The current timeout is 10s and has no documented guarantee, so use a conservative number below that. 5s should be sufficient. A ping-pong interval is sending `{ type: 'ping\" }` when `{ request_id, success, resp: { type: \"pong\", data: {} } }` message is received.\n\nYou're ready to start sending modeling commands!\n\nIf you want to understand how to connect to the WebRTC video stream, https://github.com/KittyCAD/kittycad.ts/blob/main/src/webrtc.ts is a nice example to learn from.",
         "operationId": "modeling_commands_ws",
         "parameters": [
           {
@@ -42765,6 +42765,53 @@
           }
         ]
       },
+      "MlCopilotAccessDeniedCode": {
+        "description": "Stable machine-readable reasons that an account cannot open a Copilot websocket until its billing or support state changes.",
+        "oneOf": [
+          {
+            "description": "The account has no payment method on file.",
+            "type": "string",
+            "enum": [
+              "missing_payment_method"
+            ]
+          },
+          {
+            "description": "The account's payment method failed.",
+            "type": "string",
+            "enum": [
+              "payment_method_failed"
+            ]
+          },
+          {
+            "description": "The account reached its configured billing threshold.",
+            "type": "string",
+            "enum": [
+              "billing_threshold_reached"
+            ]
+          },
+          {
+            "description": "The account exhausted its credits without enabling pay-as-you-go.",
+            "type": "string",
+            "enum": [
+              "pay_as_you_go_disabled"
+            ]
+          },
+          {
+            "description": "The account was blocked after repeated plan changes recycled credits.",
+            "type": "string",
+            "enum": [
+              "upgrade_downgrade_abuse"
+            ]
+          },
+          {
+            "description": "Zoo support explicitly blocked the account.",
+            "type": "string",
+            "enum": [
+              "admin"
+            ]
+          }
+        ]
+      },
       "MlCopilotClientMessage": {
         "description": "The types of messages that can be sent by the client to the server.",
         "oneOf": [
@@ -42825,6 +42872,20 @@
             "description": "Updates the active project context without creating a new prompt.",
             "type": "object",
             "properties": {
+              "active_file": {
+                "nullable": true,
+                "description": "The project-relative file open in the client's active editor, if any.",
+                "type": "string"
+              },
+              "correlation_id": {
+                "nullable": true,
+                "description": "Stable identifier used to correlate this project context update across services.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Uuid"
+                  }
+                ]
+              },
               "current_files": {
                 "description": "The current files in the project, if any. This can be used to provide context for the AI. This should be sent in binary format if the files are not text files, like an imported binary file.",
                 "type": "object",
@@ -42836,6 +42897,15 @@
                     "minimum": 0
                   }
                 }
+              },
+              "engine_api_call_id": {
+                "nullable": true,
+                "description": "API call ID for the active Engine modeling session, when available.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Uuid"
+                  }
+                ]
               },
               "project_name": {
                 "nullable": true,
@@ -42857,6 +42927,11 @@
             "description": "The user message, which contains the content of the user's input.",
             "type": "object",
             "properties": {
+              "active_file": {
+                "nullable": true,
+                "description": "The project-relative file open in the client's active editor, if any.",
+                "type": "string"
+              },
               "additional_files": {
                 "description": "The user can send additional files like images or PDFs to provide more context.",
                 "type": "array",
@@ -42907,12 +42982,8 @@
               },
               "mode": {
                 "nullable": true,
-                "description": "Pick a mode for the agent to operate in. Defaults to a fast mode.",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/MlCopilotMode"
-                  }
-                ]
+                "description": "Pick a mode for the agent to operate in. Defaults to the service's configured mode. Mode identifiers are discovered at runtime through `list_modes`, so this stays open to backend-configured values that may not yet exist in the generated client enum.",
+                "type": "string"
               },
               "model": {
                 "nullable": true,
@@ -43068,46 +43139,6 @@
           "data",
           "mimetype",
           "name"
-        ]
-      },
-      "MlCopilotMode": {
-        "description": "The mode to have the agent work in.",
-        "oneOf": [
-          {
-            "description": "Use a combination of models and reasoning effort for fast results.",
-            "type": "string",
-            "enum": [
-              "fast"
-            ]
-          },
-          {
-            "description": "Use a model and effort that results in thoughtful responses.",
-            "type": "string",
-            "enum": [
-              "thoughtful"
-            ]
-          },
-          {
-            "description": "Let the system automatically choose the model and reasoning effort.",
-            "type": "string",
-            "enum": [
-              "auto"
-            ]
-          },
-          {
-            "description": "Use the private Zoo Pro model for internal Zookeeper workflows.",
-            "type": "string",
-            "enum": [
-              "zookeeper_pro"
-            ]
-          },
-          {
-            "description": "Use the Zoo Ultra model for internal Zookeeper workflows.",
-            "type": "string",
-            "enum": [
-              "zookeeper_ultra"
-            ]
-          }
         ]
       },
       "MlCopilotModeOption": {
@@ -43270,6 +43301,42 @@
             },
             "required": [
               "error"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "description": "A permanent account or billing denial that must be resolved outside this websocket before retrying.",
+            "type": "object",
+            "properties": {
+              "access_denied": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "description": "Stable machine-readable denial code.",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/MlCopilotAccessDeniedCode"
+                      }
+                    ]
+                  },
+                  "detail": {
+                    "description": "Human-readable explanation suitable for display to the user.",
+                    "type": "string"
+                  },
+                  "retryable": {
+                    "description": "Whether reconnecting without an external account change can help.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code",
+                  "detail",
+                  "retryable"
+                ]
+              }
+            },
+            "required": [
+              "access_denied"
             ],
             "additionalProperties": false
           },
