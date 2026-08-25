@@ -59,6 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -75,7 +76,9 @@ jobs:
       - name: Fix hash mismatches
         if: ${{ steps.nix_build.outcome == 'failure' }}
         env:
+          GH_TOKEN: ${{ github.token }}
           PR_HEAD_REF: ${{ github.head_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           determinate-nixd fix hashes --auto-apply
 
@@ -85,6 +88,9 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "[dependabot skip] Automatically fix Nix hashes"
             git push origin "HEAD:${PR_HEAD_REF}"
+
+            gh pr edit "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --add-reviewer jessfraz || echo "Failed to add reviewer, but hash fixes were applied successfully"
+
           else
             echo "No Nix hash changes were produced."
             exit 1
