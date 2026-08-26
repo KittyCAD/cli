@@ -23,6 +23,7 @@ pub(crate) fn into_miette_for_parse(filename: &str, input: &str, error: kcl_lib:
         kcl_source: input.to_string(),
         error,
         filename: filename.to_string(),
+        label: filename.to_owned(),
     };
     let report = miette::Report::new(report);
     anyhow::anyhow!("{report:?}")

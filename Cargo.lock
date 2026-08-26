@@ -801,7 +801,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2826,29 +2826,12 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.178"
+version = "0.2.179"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "121e0f94800837d597ee156880d03fe72cb16ea66114e22382f8fa28960757bd"
+checksum = "e8cfd957d69ac1ad94a5e16965fa4dd16ab6e931caa0f213b504975bf2f069b6"
 dependencies = [
  "indexmap 2.14.0",
- "kcl-error 0.2.178 (registry+https://github.com/rust-lang/crates.io-index)",
- "kittycad-measurements",
- "kittycad-unit-conversion-derive",
- "parse-display",
- "parse-display-derive",
- "schemars 0.8.22",
- "serde",
- "ts-rs",
- "uuid",
-]
-
-[[package]]
-name = "kcl-api"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
-dependencies = [
- "indexmap 2.14.0",
- "kcl-error 0.2.178 (git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b)",
+ "kcl-error",
  "kittycad-measurements",
  "kittycad-unit-conversion-derive",
  "parse-display",
@@ -2861,8 +2844,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
+version = "0.2.179"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f18afd24b4052dbe370e2ea8f30b71497c66906c9a54c2fc2d0cc4bfef538e1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2871,22 +2855,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.178"
+version = "0.2.179"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3a2d35a4d3a095904b3a27d1990070aeb1e383ea72a3fd653c8ac962ca55af4"
-dependencies = [
- "miette",
- "schemars 0.8.22",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "ts-rs",
-]
-
-[[package]]
-name = "kcl-error"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
+checksum = "fcbc8201d2b139f9c4bbc0246a8e5299557253046ae30d0f6f969f88404d05e1"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2898,8 +2869,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
+version = "0.2.179"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d5eec59b027b36acccce86a99c41e24c1e37137d7a1fbaeb8b571172d7be095"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2927,9 +2899,9 @@ dependencies = [
  "indexmap 2.14.0",
  "itertools 0.15.0",
  "js-sys",
- "kcl-api 0.2.178 (git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b)",
+ "kcl-api",
  "kcl-derive-docs",
- "kcl-error 0.2.178 (git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b)",
+ "kcl-error",
  "kcl-syntax",
  "kittycad",
  "kittycad-modeling-cmds",
@@ -2976,16 +2948,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
+version = "0.2.179"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3ca7d93b05a7cbebd692c429beef63a81c6c2b263e4b2537475d50537cbb872"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
+version = "0.2.179"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b49889a036a65cfebb2afb747b4cfaa5de24a05df3f9c79d84aaefe00c3231c1"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -3061,8 +3035,8 @@ dependencies = [
  "enum-iterator-derive",
  "euler",
  "http 1.5.0",
- "kcl-api 0.2.178 (registry+https://github.com/rust-lang/crates.io-index)",
- "kcl-error 0.2.178 (registry+https://github.com/rust-lang/crates.io-index)",
+ "kcl-api",
+ "kcl-error",
  "kittycad-measurements",
  "kittycad-modeling-cmds-macros",
  "kittycad-unit-conversion-derive",
@@ -6975,7 +6949,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7576,7 +7550,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.190"
+version = "0.2.191"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7600,7 +7574,7 @@ dependencies = [
  "ignore",
  "image",
  "itertools 0.15.0",
- "kcl-error 0.2.178 (registry+https://github.com/rust-lang/crates.io-index)",
+ "kcl-error",
  "kcl-lib",
  "kcl-test-server",
  "kittycad",
