@@ -1,9 +1,9 @@
 use std::{path::Path, str::FromStr, time::Duration};
 
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use camino::Utf8Path;
 use futures::{SinkExt, StreamExt};
-use kcl_lib::engine_connection::EngineManager;
+use kcl_lib::{KclRuntimeFlags, RuntimeFlag, engine_connection::EngineManager};
 use kittycad_modeling_cmds::{
     ModelingCmd, each_cmd as mcmd,
     output::TakeSnapshot,
@@ -27,6 +27,7 @@ type DirectWsRead = futures::stream::SplitStream<DirectWs>;
 type DirectWsWrite = futures::stream::SplitSink<DirectWs, WsMsg>;
 
 const ENGINE_EXECUTION_ENV: &str = "ENGINE_EXECUTION";
+const KCL_EXECUTOR_ENV_VAR: &str = "KCL_EXECUTOR";
 const WS_RESPONSE_TIMEOUT_SECS: u64 = 600;
 
 pub struct Context<'a> {
@@ -51,6 +52,23 @@ async fn run_kcl_program(
     settings: kcl_lib::ExecutorSettings,
     code: &str,
 ) -> Result<KclProgramRun> {
+    // Allow the user to override the default with an env var.
+    let executor_env = match std::env::var(KCL_EXECUTOR_ENV_VAR) {
+        Ok(value) => Some(value),
+        Err(std::env::VarError::NotPresent) => None,
+        Err(std::env::VarError::NotUnicode(_)) => {
+            bail!("Value of environment variable {KCL_EXECUTOR_ENV_VAR} must be valid unicode");
+        }
+    };
+    kcl_lib::set_kcl_runtime_flags(KclRuntimeFlags {
+        // Default is on.
+        use_cek_executor: if executor_env.is_some_and(|v| v.eq_ignore_ascii_case("recursive")) {
+            RuntimeFlag::Off
+        } else {
+            RuntimeFlag::On
+        },
+        use_new_lexer_parser: RuntimeFlag::On,
+    });
     let exec_ctx = kcl_lib::ExecutorContext::new(client, settings).await?;
     let mut exec_state = kcl_lib::ExecState::new(&exec_ctx);
     let session_data = exec_ctx
