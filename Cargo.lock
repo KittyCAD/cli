@@ -7646,13 +7646,3 @@ checksum = "dc6fb7703e32e9a07fb3f757360338b3a567a5054f21b5f52a666752e333d58e"
 dependencies = [
  "zune-core",
 ]
-
-[[patch.unused]]
-name = "kcl-lib"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
-
-[[patch.unused]]
-name = "kcl-test-server"
-version = "0.2.178"
-source = "git+https://github.com/KittyCAD/modeling-app?rev=771bd5f71b#771bd5f71b7d4d2a2170b0aed719e09c1c4654cf"
