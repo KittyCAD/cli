@@ -41,7 +41,7 @@ pub struct Context<'a> {
 /// Result data captured from a KCL program execution.
 struct KclProgramRun {
     exec_ctx: kcl_lib::ExecutorContext,
-    exec_state: kcl_lib::ExecState,
+    exec_outcome: kcl_lib::ExecOutcome,
     session_data: Option<ModelingSessionData>,
 }
 
@@ -50,6 +50,7 @@ async fn run_kcl_program(
     client: &kittycad::Client,
     program: &kcl_lib::Program,
     settings: kcl_lib::ExecutorSettings,
+    filename: &str,
     code: &str,
 ) -> Result<KclProgramRun> {
     // Allow the user to override the default with an env var.
@@ -71,14 +72,17 @@ async fn run_kcl_program(
     });
     let exec_ctx = kcl_lib::ExecutorContext::new(client, settings).await?;
     let mut exec_state = kcl_lib::ExecState::new(&exec_ctx);
-    let session_data = exec_ctx
+    let (main_ref, session_data) = exec_ctx
         .run(program, &mut exec_state)
         .await
-        .map_err(|err| kcl_error_fmt::into_miette(err, code))?
-        .1;
+        .map_err(|err| kcl_error_fmt::into_miette(err, code))?;
+    let exec_outcome = exec_state
+        .into_exec_outcome(main_ref, &exec_ctx)
+        .await
+        .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
     Ok(KclProgramRun {
         exec_ctx,
-        exec_state,
+        exec_outcome,
         session_data,
     })
 }
@@ -491,9 +495,9 @@ impl<'a> Context<'a> {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
         let settings = cmd_kcl::with_heartbeats(settings);
-        let run = run_kcl_program(&client, &program, settings, code).await?;
+        let run = run_kcl_program(&client, &program, settings, filename, code).await?;
 
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
+        kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
 
@@ -550,9 +554,9 @@ impl<'a> Context<'a> {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
         let settings = cmd_kcl::with_heartbeats(settings);
-        let run = run_kcl_program(&client, &program, settings, code).await?;
+        let run = run_kcl_program(&client, &program, settings, filename, code).await?;
 
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
+        kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
         let mut responses = Vec::with_capacity(cmds.len());
@@ -615,9 +619,9 @@ impl<'a> Context<'a> {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
         let settings = cmd_kcl::with_heartbeats(settings);
-        let run = run_kcl_program(&client, &program, settings, code).await?;
+        let run = run_kcl_program(&client, &program, settings, filename, code).await?;
 
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
+        kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
         let mut snapshot_resps = Vec::new();
@@ -655,9 +659,9 @@ impl<'a> Context<'a> {
         output_format: kittycad_modeling_cmds::format::OutputFormat3d,
     ) -> Result<(Vec<RawFile>, Option<ModelingSessionData>)> {
         let client = self.api_client("")?;
-        let run = run_kcl_program(&client, program, settings, code).await?;
+        let run = run_kcl_program(&client, program, settings, filename, code).await?;
 
-        kcl_error_fmt::check_exec_state_issues(&mut self.io.err_out, filename, code, &run.exec_state, issue_check)?;
+        kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
         let files = run
             .exec_ctx
