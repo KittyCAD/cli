@@ -46,22 +46,23 @@ impl KclIssueCheck {
     }
 }
 
-pub(crate) fn check_exec_state_issues(
+pub(crate) fn check_exec_outcome_issues(
     err_out: &mut impl std::io::Write,
     filename: &str,
     code: &str,
-    state: &kcl_lib::ExecState,
+    outcome: &kcl_lib::ExecOutcome,
     issue_check: KclIssueCheck,
 ) -> anyhow::Result<()> {
-    check_compilation_issues(err_out, filename, code, state.issues(), issue_check)
+    check_compilation_issues(err_out, &outcome.issues, issue_check, |issue| {
+        kcl_lib::render_compilation_issue_miette(filename, code, &outcome.source_files, issue.clone())
+    })
 }
 
 pub(crate) fn check_compilation_issues(
     err_out: &mut impl std::io::Write,
-    filename: &str,
-    code: &str,
     issues: &[kcl_lib::CompilationIssue],
     issue_check: KclIssueCheck,
+    render_issue: impl Fn(&kcl_lib::CompilationIssue) -> String,
 ) -> anyhow::Result<()> {
     if issue_check == KclIssueCheck::Ignore || issues.is_empty() {
         return Ok(());
@@ -71,11 +72,7 @@ pub(crate) fn check_compilation_issues(
         if i > 0 {
             writeln!(err_out)?;
         }
-        writeln!(
-            err_out,
-            "{}",
-            kcl_lib::render_compilation_issue_miette(filename, code, issue.clone())
-        )?;
+        writeln!(err_out, "{}", render_issue(issue))?;
     }
 
     if issue_check == KclIssueCheck::DenyErrors && issues.iter().any(|issue| issue.is_err()) {
@@ -99,8 +96,10 @@ mod tests {
         ];
         let mut err_out = Vec::new();
 
-        let err = check_compilation_issues(&mut err_out, "main.kcl", "x = 1\n", &issues, KclIssueCheck::DenyErrors)
-            .unwrap_err();
+        let err = check_compilation_issues(&mut err_out, &issues, KclIssueCheck::DenyErrors, |issue| {
+            kcl_lib::render_compilation_issue_miette("main.kcl", "x = 1\n", &Default::default(), issue.clone())
+        })
+        .unwrap_err();
         let stderr = String::from_utf8(err_out).unwrap();
 
         assert!(stderr.contains("first issue"), "{stderr}");
@@ -116,7 +115,10 @@ mod tests {
         )];
         let mut err_out = Vec::new();
 
-        check_compilation_issues(&mut err_out, "main.kcl", "x = 1\n", &issues, KclIssueCheck::AllowErrors).unwrap();
+        check_compilation_issues(&mut err_out, &issues, KclIssueCheck::AllowErrors, |issue| {
+            kcl_lib::render_compilation_issue_miette("main.kcl", "x = 1\n", &Default::default(), issue.clone())
+        })
+        .unwrap();
         let stderr = String::from_utf8(err_out).unwrap();
 
         assert!(stderr.contains("bad but allowed"), "{stderr}");
