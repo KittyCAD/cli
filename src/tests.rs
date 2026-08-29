@@ -682,6 +682,15 @@ cli_tests! {
         .stdout_contains(r#""mass": 0.000858"#)
     }
 
+    format_kcl_rejects_unsupported_output(_ctx) => {
+        TestItem::new(
+            "format kcl rejects unsupported output",
+            svec!["zoo", "kcl", "format", "tests/gear.kcl", "--format", "yaml"],
+        )
+        .stderr_contains("the `yaml` output format is not supported for `zoo kcl format`")
+        .exit_code(1)
+    }
+
     snapshot_a_kcl_file_as_png(_ctx) => {
         TestItem::new(
             "snapshot a kcl file as png",
