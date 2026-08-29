@@ -409,8 +409,14 @@ impl<'a> Context<'a> {
             match result {
                 Ok(_) => break,
                 Err(err) => {
-                    check_server_compilation_issues(&mut self.io.err_out, &err.non_fatal, issue_check)
-                        .map_err(|e| anyhow!("KCL execution had errors: {e}"))?;
+                    check_server_compilation_issues(
+                        &mut self.io.err_out,
+                        filepath.as_str(),
+                        code,
+                        &err.non_fatal,
+                        issue_check,
+                    )
+                    .map_err(|e| anyhow!("KCL execution had errors: {e}"))?;
                     if let Some(error) = err.error {
                         return Err(anyhow!("KCL execution failed: {}", error.get_message()));
                     }
@@ -872,6 +878,8 @@ pub(crate) fn reasoning_to_markdown(reason: &kittycad::types::ReasoningMessage) 
 
 fn check_server_compilation_issues(
     err_out: &mut impl std::io::Write,
+    filename: &str,
+    code: &str,
     issues: &[kcl_error::CompilationIssue],
     issue_check: kcl_error_fmt::KclIssueCheck,
 ) -> Result<()> {
@@ -879,8 +887,15 @@ fn check_server_compilation_issues(
         return Ok(());
     }
 
-    for issue in issues {
-        writeln!(err_out, "{:?}: {}", issue.severity, issue.message)?;
+    for (i, issue) in issues.iter().enumerate() {
+        if i > 0 {
+            writeln!(err_out)?;
+        }
+        writeln!(
+            err_out,
+            "{}",
+            kcl_lib::render_compilation_issue_miette(filename, code, &Default::default(), issue.clone())
+        )?;
     }
 
     if issue_check == kcl_error_fmt::KclIssueCheck::DenyErrors && issues.iter().any(|issue| issue.is_err()) {
