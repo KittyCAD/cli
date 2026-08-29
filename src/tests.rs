@@ -688,8 +688,7 @@ cli_tests! {
             svec!["zoo", "kcl", "snapshot", "tests/gear.kcl", "tests/gear.png"],
         )
         .setup(setup_authenticated)
-        .stdout_contains("Snapshot saved to `tests/gear.png`")
-        .stderr_contains("Prefer to use explicit units for angles")
+        .stdout_contains("Snapshot from engine saved to `tests/gear.png`")
     }
 
     snapshot_via_engine(_ctx) => {
@@ -714,8 +713,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("Snapshot saved to `tests/with-settings/gear.png`")
-        .stderr_contains("Prefer to use explicit units for angles")
+        .stdout_contains("Snapshot from engine saved to `tests/with-settings/gear.png`")
     }
 
     snapshot_a_kcl_file_with_a_nested_project_toml_as_png(_ctx) => {
@@ -730,8 +728,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("Snapshot saved to `tests/nested-settings/subdir/gear.png`")
-        .stderr_contains("Prefer to use explicit units for angles")
+        .stdout_contains("Snapshot from engine saved to `tests/nested-settings/subdir/gear.png`")
     }
 
     snapshot_a_kcl_assembly_as_png(_ctx) => {
@@ -740,7 +737,7 @@ cli_tests! {
             svec!["zoo", "kcl", "snapshot", "tests/walkie-talkie", "tests/walkie-talkie.png"],
         )
         .setup(setup_authenticated)
-        .stdout_contains("Snapshot saved to `tests/walkie-talkie.png`")
+        .stdout_contains("Snapshot from engine saved to `tests/walkie-talkie.png`")
     }
 
     snapshot_a_kcl_assembly_as_png_with_dot(_ctx) => {
@@ -750,7 +747,7 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .current_directory(std::env::current_dir().unwrap().join("tests/walkie-talkie"))
-        .stdout_contains("Snapshot saved to `walkie-talkie.png`")
+        .stdout_contains("Snapshot from engine saved to `walkie-talkie.png`")
     }
 
     get_the_mass_of_a_kcl_file(_ctx) => {
@@ -772,7 +769,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("1268.234")
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     get_the_mass_of_a_kcl_file_but_use_project_toml(_ctx) => {
@@ -794,7 +790,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("74.023")
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     get_the_mass_of_a_kcl_file_with_nested_dirs_and_a_project_toml(_ctx) => {
@@ -816,7 +811,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("74.023")
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_as_table(_ctx) => {
@@ -841,7 +835,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("center_of_mass")
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_as_json(_ctx) => {
@@ -867,7 +860,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains(r#""center_of_mass""#)
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_as_json_with_default_metric_units(_ctx) => {
@@ -885,7 +877,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains(r#""output_unit": "kg:m3""#)
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_and_use_project_toml(_ctx) => {
@@ -911,7 +902,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains(r#""mass""#)
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 
     analyze_a_kcl_file_with_invalid_density(_ctx) => {
@@ -957,7 +947,6 @@ cli_tests! {
         )
         .setup(setup_authenticated)
         .stdout_contains("0.0007")
-        .stderr_contains("Prefer to use explicit units for angles")
     }
 }
 
