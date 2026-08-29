@@ -189,7 +189,12 @@ impl crate::cmd::Command for CmdApi {
             }
 
             if !status.is_success() {
-                return Err(anyhow!("{} {}", status, status.canonical_reason().unwrap_or("")));
+                let body = resp.text().await?;
+                return Err(if body.is_empty() {
+                    anyhow!("{status}")
+                } else {
+                    anyhow!("{status}: {body}")
+                });
             }
 
             if self.paginate {

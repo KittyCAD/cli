@@ -520,7 +520,7 @@ cli_tests! {
             svec!["zoo", "api", "foo/bar"],
         )
         .setup(setup_authenticated)
-        .stderr_contains("404 Not Found Not Found")
+        .stderr_contains("404 Not Found:")
         .exit_code(1)
     }
 
