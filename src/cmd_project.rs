@@ -370,7 +370,7 @@ impl crate::cmd::Command for CmdProjectPublish {
             crate::project::persist_cloud_project_id(&local.project_toml, &environment, project.id)?;
         }
         writeln!(
-            ctx.io.out,
+            ctx.io.err_out,
             "{} Submitted Zoo cloud project {} for publication review",
             ctx.io.color_scheme().success_icon(),
             project.id
@@ -444,7 +444,7 @@ impl crate::cmd::Command for CmdProjectUpload {
 
         crate::project::persist_cloud_project_id(&local.project_toml, &environment, project.id)?;
         writeln!(
-            ctx.io.out,
+            ctx.io.err_out,
             "{} {} Zoo cloud project id {} in {}",
             ctx.io.color_scheme().success_icon(),
             if existing_id.is_some() { "Updated" } else { "Stored" },

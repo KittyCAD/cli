@@ -138,7 +138,7 @@ impl crate::cmd::Command for CmdFileConvert {
                         std::fs::write(&path, data)?;
                     }
                     writeln!(
-                        ctx.io.out,
+                        ctx.io.err_out,
                         "wrote file `{}` to {}",
                         filename,
                         path.to_str().unwrap_or("")
