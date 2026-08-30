@@ -1,0 +1,5 @@
+@settings(defaultLengthUnit = mm)
+
+cylinder = startSketchOn(XY)
+  |> circle(center = [0, 0], radius = 5)
+  |> extrude(length = 10)

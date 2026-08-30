@@ -886,7 +886,7 @@ cli_tests! {
                 "zoo",
                 "kcl",
                 "analyze",
-                "tests/with-settings/gear.kcl",
+                "tests/with-settings/cylinder.kcl",
                 "--format=json",
                 "--volume-output-unit",
                 "cm3",
