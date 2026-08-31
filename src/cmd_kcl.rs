@@ -285,6 +285,8 @@ impl crate::cmd::Command for CmdKclFormat {
             if format == &FormatOutput::Json {
                 // Print the formatted file to stdout as json.
                 writeln!(ctx.io.out, "{}", serde_json::to_string_pretty(&program)?)?;
+            } else {
+                anyhow::bail!("the `{format}` output format is not supported for `zoo kcl format`");
             }
         } else {
             // Print the formatted file to stdout.
