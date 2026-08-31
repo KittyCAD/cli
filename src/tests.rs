@@ -570,6 +570,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
+        .stderr_contains("wrote file `source.stl`")
         .stdout_contains("Completed")
     }
 
