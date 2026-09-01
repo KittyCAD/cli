@@ -1,5 +1,9 @@
-@settings(defaultLengthUnit = mm)
+@settings(defaultLengthUnit = mm, kclVersion = 2.0)
 
-cylinder = startSketchOn(XY)
-  |> circle(center = [0, 0], radius = 5)
-  |> extrude(length = 10)
+cylinderSketch = sketch(on = XY) {
+  circle1 = circle(start = [var 5mm, var 0mm], center = [var 0mm, var 0mm])
+  coincident([circle1.center, ORIGIN])
+  radius(circle1) == 5mm
+}
+cylinderRegion = region(segments = [cylinderSketch.circle1])
+cylinder = extrude(cylinderRegion, length = 10mm)
