@@ -32081,6 +32081,14 @@
           },
           {
             "in": "query",
+            "name": "replay_attachment_mode",
+            "description": "Controls whether replayed attachment payloads are sent in full or replaced with metadata that can be used with `FetchAttachments`.",
+            "schema": {
+              "$ref": "#/components/schemas/MlCopilotReplayAttachmentMode"
+            }
+          },
+          {
+            "in": "query",
             "name": "pr",
             "description": "Optional Pull Request number to route traffic.",
             "schema": {
@@ -34828,6 +34836,41 @@
               "user_id"
             ]
           }
+        ]
+      },
+      "AttachmentRef": {
+        "description": "Coordinates for fetching a persisted attachment on demand.",
+        "type": "object",
+        "properties": {
+          "content_hash": {
+            "nullable": true,
+            "description": "Stable digest of the attachment bytes, formatted as `sha256:<lowercase hex>`.",
+            "type": "string"
+          },
+          "index": {
+            "description": "Position of this attachment in the message's attachment array.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          },
+          "prompt_id": {
+            "description": "Prompt containing the persisted message row.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
+          },
+          "seq": {
+            "description": "Sequence number of the persisted message row.",
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "index",
+          "prompt_id",
+          "seq"
         ]
       },
       "AuthApiKeyResponse": {
@@ -40000,6 +40043,13 @@
             ]
           },
           {
+            "description": "Route non-WebRTC modeling sessions to the CPU-only engine pool.",
+            "type": "string",
+            "enum": [
+              "cpu_engine_pool"
+            ]
+          },
+          {
             "description": "Disable signup through email or OAuth.",
             "type": "string",
             "enum": [
@@ -40102,6 +40152,13 @@
             "type": "string",
             "enum": [
               "validate_tax_info"
+            ]
+          },
+          {
+            "description": "Enables drawing features across Zoo applications.",
+            "type": "string",
+            "enum": [
+              "drawings"
             ]
           },
           {
@@ -43042,6 +43099,46 @@
             ]
           },
           {
+            "description": "Request persisted attachments from conversation history over the active websocket.",
+            "type": "object",
+            "properties": {
+              "indices": {
+                "description": "In-row attachment indices to retrieve.",
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                }
+              },
+              "prompt_id": {
+                "description": "Prompt containing the persisted message row.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Uuid"
+                  }
+                ]
+              },
+              "seq": {
+                "description": "Sequence number of the persisted message row.",
+                "type": "integer",
+                "format": "int32"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "fetch_attachments"
+                ]
+              }
+            },
+            "required": [
+              "indices",
+              "prompt_id",
+              "seq",
+              "type"
+            ]
+          },
+          {
             "description": "The system message, which can be used to set the context or instructions for the AI.",
             "type": "object",
             "properties": {
@@ -43118,6 +43215,15 @@
         "description": "A file that can be transferred between the client and server.",
         "type": "object",
         "properties": {
+          "attachment_ref": {
+            "nullable": true,
+            "description": "Reference for fetching this attachment on demand.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentRef"
+              }
+            ]
+          },
           "data": {
             "description": "The file contents as binary data.",
             "type": "array",
@@ -43186,6 +43292,25 @@
           "icon",
           "id",
           "label"
+        ]
+      },
+      "MlCopilotReplayAttachmentMode": {
+        "description": "Controls whether replayed attachments are sent inline or fetched on demand.",
+        "oneOf": [
+          {
+            "description": "Include full attachment bytes in replayed files.",
+            "type": "string",
+            "enum": [
+              "full"
+            ]
+          },
+          {
+            "description": "Omit attachment bytes and include only socket fetch metadata.",
+            "type": "string",
+            "enum": [
+              "metadata_only"
+            ]
+          }
         ]
       },
       "MlCopilotServerMessage": {
@@ -43671,7 +43796,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Replay containing raw bytes for previously-saved messages for a conversation. Includes server messages and client `User` messages.\n\nInvariants: - Client replay includes server messages: `Info`, `Error`, `Reasoning(..)`, `ToolOutput { .. }`, `Files { .. }`, `ProjectUpdated { .. }`, and `EndOfStream { .. }`. - Client replay also includes client `User` messages. - Backend replay includes client `User` messages plus selected reasoning, edit metadata, recovery output, and final responses. - The following are NEVER included from persisted chat rows: `SessionData`, `ConversationId`, `Delta`, `BackendShutdown`, `ZookeeperAutoRouterMetadata`, `ZookeeperOpenAiResponseCheckpoint`, `ZookeeperOpenAiIntermediateResponseCheckpoint`, or `ZookeeperTurnUsage`. - `ZookeeperRecoveryToolOutput` is included only in replay sent to the text-to-CAD backend and is filtered from client replay. - The latest completed `ZookeeperOpenAiResponseCheckpoint` is synthesized from prompt metadata only for replay sent to the text-to-CAD backend. - The active unfinished prompt's latest `ZookeeperOpenAiIntermediateResponseCheckpoint` is synthesized only for replay sent to the text-to-CAD backend. - Ordering is stable: messages are ordered by prompt creation time within the conversation, then by the per-prompt `seq` value (monotonically increasing as seen in the original stream).\n\nWire format: - Each element is canonical serialized bytes (typically JSON) for either a `MlCopilotServerMessage` or a `MlCopilotClientMessage::User`. - When delivered as an initial replay over the websocket (upon `?replay=true&conversation_id=<uuid>`), the server sends a single WebSocket Binary frame containing a MsgPack-encoded document of this enum: `Replay { messages }`.",
+            "description": "Replay containing raw bytes for previously-saved messages for a conversation. Includes server messages and client `User` messages.\n\nInvariants: - Client replay includes server messages: `Info`, `Error`, `Reasoning(..)`, `ToolOutput { .. }`, `Files { .. }`, `ProjectUpdated { .. }`, and `EndOfStream { .. }`. - Client replay also includes client `User` messages. - Backend replay includes client `User` messages plus selected reasoning, edit metadata, recovery output, and final responses. - The following are NEVER included from persisted chat rows: `SessionData`, `ConversationId`, `Delta`, `BackendShutdown`, `ZookeeperAutoRouterMetadata`, `ZookeeperOpenAiResponseCheckpoint`, `ZookeeperOpenAiIntermediateResponseCheckpoint`, or `ZookeeperTurnUsage`. - `ZookeeperRecoveryToolOutput` is included only in replay sent to the text-to-CAD backend and is filtered from client replay. - The latest completed `ZookeeperOpenAiResponseCheckpoint` is synthesized from prompt metadata only for replay sent to the text-to-CAD backend. - The active unfinished prompt's latest `ZookeeperOpenAiIntermediateResponseCheckpoint` is synthesized only for replay sent to the text-to-CAD backend. - Ordering is stable: messages are ordered by prompt creation time within the conversation, then by the per-prompt `seq` value (monotonically increasing as seen in the original stream).\n\nWire format: - Each element is canonical serialized bytes (typically JSON) for either a `MlCopilotServerMessage` or a `MlCopilotClientMessage::User`. - Client-facing replays may omit large attachment bytes and instead place socket fetch metadata in `MlCopilotFile.metadata`. - When delivered as an initial replay over the websocket (upon `?replay=true&conversation_id=<uuid>`), the server sends a single WebSocket Binary frame containing a MsgPack-encoded document of this enum: `Replay { messages }`.",
             "type": "object",
             "properties": {
               "replay": {
@@ -43768,6 +43893,55 @@
             },
             "required": [
               "files"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "description": "Persisted attachments fetched over the websocket on demand.",
+            "type": "object",
+            "properties": {
+              "attachments": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "description": "Fetched files, in the same order as the requested indices.",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/MlCopilotFile"
+                    }
+                  },
+                  "prompt_id": {
+                    "description": "Prompt containing the persisted message row.",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Uuid"
+                      }
+                    ]
+                  },
+                  "role": {
+                    "description": "Authoritative role that owns the file attachment, read from the stored row.",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/MlMessageRole"
+                      }
+                    ]
+                  },
+                  "seq": {
+                    "description": "Sequence number of the persisted message row.",
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                },
+                "required": [
+                  "files",
+                  "prompt_id",
+                  "role",
+                  "seq"
+                ]
+              }
+            },
+            "required": [
+              "attachments"
             ],
             "additionalProperties": false
           }
@@ -43943,6 +44117,25 @@
             "type": "string",
             "enum": [
               "rejected"
+            ]
+          }
+        ]
+      },
+      "MlMessageRole": {
+        "description": "The role of the author of a chat message.",
+        "oneOf": [
+          {
+            "description": "Client-authored input.",
+            "type": "string",
+            "enum": [
+              "client"
+            ]
+          },
+          {
+            "description": "Server-authored message.",
+            "type": "string",
+            "enum": [
+              "server"
             ]
           }
         ]
