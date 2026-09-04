@@ -1,4 +1,4 @@
-use std::{path::Path, str::FromStr, time::Duration};
+use std::{collections::HashMap, path::Path, str::FromStr, time::Duration};
 
 use anyhow::{Result, anyhow, bail};
 use camino::Utf8Path;
@@ -8,7 +8,7 @@ use kittycad_modeling_cmds::{
     ModelingCmd, each_cmd as mcmd,
     output::TakeSnapshot,
     websocket::{
-        FailureWebSocketResponse, ModelingCmdReq, ModelingSessionData, OkWebSocketResponseData, RawFile,
+        ErrorCode, FailureWebSocketResponse, ModelingCmdReq, ModelingSessionData, OkWebSocketResponseData, RawFile,
         SuccessWebSocketResponse, WebSocketRequest, WebSocketResponse,
     },
 };
@@ -29,6 +29,7 @@ type DirectWsWrite = futures::stream::SplitSink<DirectWs, WsMsg>;
 const ENGINE_EXECUTION_ENV: &str = "ENGINE_EXECUTION";
 const KCL_EXECUTOR_ENV_VAR: &str = "KCL_EXECUTOR";
 const WS_RESPONSE_TIMEOUT_SECS: u64 = 600;
+const MAX_TRANSIENT_AUTH_MISSING_RESPONSES: usize = 8;
 
 pub struct Context<'a> {
     pub config: &'a mut (dyn Config + Send + Sync + 'a),
@@ -164,9 +165,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    /// This function returns an API client for Zoo that is based on the configured
-    /// user.
-    pub fn api_client(&self, hostname: &str) -> Result<kittycad::Client> {
+    fn api_client_and_token(&self, hostname: &str) -> Result<(kittycad::Client, String)> {
         let (host, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
 
         let http_client = self.http_client_builder();
@@ -180,13 +179,19 @@ impl<'a> Context<'a> {
         let token = self.config.get(&host, "token")?;
 
         // Create the client.
-        let mut client = kittycad::Client::new_from_reqwest(token, http_client, ws_client);
+        let mut client = kittycad::Client::new_from_reqwest(token.clone(), http_client, ws_client);
 
         if baseurl != crate::DEFAULT_HOST {
             client.set_base_url(&baseurl);
         }
 
-        Ok(client)
+        Ok((client, token))
+    }
+
+    /// This function returns an API client for Zoo that is based on the configured
+    /// user.
+    pub fn api_client(&self, hostname: &str) -> Result<kittycad::Client> {
+        Ok(self.api_client_and_token(hostname)?.0)
     }
 
     pub fn raw_http_request(
@@ -307,8 +312,8 @@ impl<'a> Context<'a> {
         &self,
         hostname: &str,
         settings: &kcl_lib::ExecutorSettings,
-    ) -> Result<reqwest::Upgraded> {
-        let client = self.api_client(hostname)?;
+    ) -> Result<(reqwest::Upgraded, String)> {
+        let (client, token) = self.api_client_and_token(hostname)?;
         let pr = std::env::var("ZOO_ENGINE_PR").ok().and_then(|s| s.parse().ok());
         let (ws, _headers) = client
             .modeling()
@@ -331,7 +336,7 @@ impl<'a> Context<'a> {
                 webrtc: Some(false),
             })
             .await?;
-        Ok(ws)
+        Ok((ws, token))
     }
 
     /// Run this KCL on the server, then send some followup modeling commands
@@ -349,7 +354,7 @@ impl<'a> Context<'a> {
             anyhow::bail!("Invalid filepath {} (must be unicode)", filepath.display());
         };
         let project = build_kcl_project(filepath, code)?;
-        let ws = self.engine_ws_with_settings(hostname, &settings).await?;
+        let (ws, token) = self.engine_ws_with_settings(hostname, &settings).await?;
         let wsconfig = tokio_tungstenite::tungstenite::protocol::WebSocketConfig::default()
             .max_message_size(Some(usize::MAX))
             .max_frame_size(Some(usize::MAX));
@@ -358,6 +363,14 @@ impl<'a> Context<'a> {
         let mut session_data = None;
         let mut heartbeat =
             tokio::time::interval(Duration::from_secs(settings.heartbeats.unwrap_or(cmd_kcl::HEARTBEATS)));
+        let mut auth_missing_grace = MAX_TRANSIENT_AUTH_MISSING_RESPONSES;
+
+        // Some Zoo credentials (including OAuth login tokens) must be forwarded
+        // in-band after the websocket upgrade. API tokens can authenticate the
+        // HTTP upgrade directly, but sending this request is valid for both
+        // credential types and keeps server-side execution consistent with the
+        // authentication already resolved by the CLI.
+        send_ws_request(&mut write, websocket_auth_request(&token)).await?;
 
         let exec_request_id = uuid::Uuid::new_v4();
         send_ws_request(
@@ -376,6 +389,9 @@ impl<'a> Context<'a> {
                 .map_err(|e| anyhow!("During KCL execution, failed to communicate with engine: {e}"))?;
             if let Some(session) = update_session_data(&resp) {
                 session_data = Some(session);
+                continue;
+            }
+            if take_transient_auth_token_missing(&resp, &mut auth_missing_grace) {
                 continue;
             }
 
@@ -908,12 +924,48 @@ fn check_server_compilation_issues(
 }
 
 async fn send_ws_request(write: &mut DirectWsWrite, request: WebSocketRequest) -> Result<()> {
-    let msg = serde_json::to_string(&request)?;
+    let msg = encode_ws_request(&request)?;
     write
-        .send(WsMsg::Text(msg.into()))
+        .send(msg)
         .await
         .map_err(|err| anyhow!("could not send request to engine websocket: {err}"))?;
     Ok(())
+}
+
+fn encode_ws_request(request: &WebSocketRequest) -> Result<WsMsg> {
+    if matches!(request, WebSocketRequest::ExecKclProject { .. }) {
+        Ok(WsMsg::Binary(rmp_serde::to_vec_named(request)?.into()))
+    } else {
+        Ok(WsMsg::Text(serde_json::to_string(request)?.into()))
+    }
+}
+
+fn websocket_auth_request(token: &str) -> WebSocketRequest {
+    let mut headers = HashMap::new();
+    headers.insert("Authorization".to_owned(), format!("Bearer {token}"));
+    WebSocketRequest::Headers { headers }
+}
+
+fn is_transient_auth_token_missing(response: &WebSocketResponse) -> bool {
+    matches!(
+        response,
+        WebSocketResponse::Failure(FailureWebSocketResponse {
+            request_id: None,
+            errors,
+            ..
+        }) if !errors.is_empty()
+            && errors
+                .iter()
+                .all(|error| error.error_code == ErrorCode::AuthTokenMissing)
+    )
+}
+
+fn take_transient_auth_token_missing(response: &WebSocketResponse, remaining: &mut usize) -> bool {
+    if *remaining == 0 || !is_transient_auth_token_missing(response) {
+        return false;
+    }
+    *remaining -= 1;
+    true
 }
 
 async fn read_ws_response_with_heartbeat(
@@ -1221,6 +1273,106 @@ mod test {
                 );
             }
         }
+    }
+
+    #[test]
+    fn only_uncorrelated_auth_token_missing_is_treated_as_transient() {
+        use kittycad_modeling_cmds::websocket::ApiError;
+
+        let missing = ApiError {
+            error_code: ErrorCode::AuthTokenMissing,
+            message: "send authentication headers".to_owned(),
+        };
+        let invalid = ApiError {
+            error_code: ErrorCode::AuthTokenInvalid,
+            message: "invalid authentication token".to_owned(),
+        };
+
+        let missing_response = WebSocketResponse::failure(None, vec![missing.clone()]);
+        let mut remaining = MAX_TRANSIENT_AUTH_MISSING_RESPONSES;
+        for _ in 0..MAX_TRANSIENT_AUTH_MISSING_RESPONSES {
+            assert!(take_transient_auth_token_missing(&missing_response, &mut remaining));
+        }
+        assert!(!take_transient_auth_token_missing(&missing_response, &mut remaining));
+        assert!(!is_transient_auth_token_missing(&WebSocketResponse::failure(
+            Some(uuid::Uuid::new_v4()),
+            vec![missing.clone()],
+        )));
+        assert!(!is_transient_auth_token_missing(&WebSocketResponse::failure(
+            None,
+            vec![invalid.clone()],
+        )));
+        assert!(!is_transient_auth_token_missing(&WebSocketResponse::failure(
+            None,
+            vec![missing, invalid],
+        )));
+        assert!(!is_transient_auth_token_missing(&WebSocketResponse::failure(
+            None,
+            Vec::new(),
+        )));
+    }
+
+    #[test]
+    fn configured_token_becomes_text_websocket_auth_header_without_environment_override() {
+        let host = crate::cmd_auth::parse_host(crate::DEFAULT_HOST).unwrap().to_string();
+        let mut config = crate::config::new_blank_config().unwrap();
+        config.set(&host, "token", Some("configured-oauth-token")).unwrap();
+        config.set(&host, "default", Some("true")).unwrap();
+        let mut c = TestEnvConfig {
+            config: &mut config,
+            env: Arc::new(HashMap::new()),
+        };
+        let (io, _stdout_path, _stderr_path) = crate::iostreams::IoStreams::test();
+        let ctx = Context {
+            config: &mut c,
+            io,
+            debug: false,
+            override_host: None,
+        };
+
+        let (_client, token) = ctx.api_client_and_token("").unwrap();
+        let request = websocket_auth_request(&token);
+        let WsMsg::Text(encoded) = encode_ws_request(&request).unwrap() else {
+            panic!("websocket authentication must be sent as JSON text");
+        };
+
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(encoded.as_ref()).unwrap(),
+            serde_json::json!({
+                "type": "headers",
+                "headers": {
+                    "Authorization": "Bearer configured-oauth-token",
+                },
+            })
+        );
+    }
+
+    #[test]
+    fn exec_kcl_project_is_sent_as_named_messagepack() {
+        use kittycad_modeling_cmds::{
+            exec_kcl::{KclFile, KclProject},
+            shared::safe_filepath::SafeFilepath,
+        };
+
+        let entrypoint = SafeFilepath::validate("main.kcl").unwrap();
+        let project = KclProject::new(vec![KclFile::new(entrypoint.clone(), b"cube = 1".to_vec())], entrypoint);
+        let expected_project = project.clone();
+        let expected_request_id = uuid::Uuid::new_v4();
+        let request = WebSocketRequest::ExecKclProject {
+            request_id: expected_request_id,
+            project,
+        };
+
+        let WsMsg::Binary(encoded) = encode_ws_request(&request).unwrap() else {
+            panic!("ExecKclProject must be sent as MessagePack binary");
+        };
+        let decoded: WebSocketRequest = rmp_serde::from_slice(encoded.as_ref()).unwrap();
+
+        let WebSocketRequest::ExecKclProject { request_id, project } = decoded else {
+            panic!("decoded request was not ExecKclProject");
+        };
+        assert_eq!(request_id, expected_request_id);
+        assert_eq!(project, expected_project);
     }
 
     #[test]
