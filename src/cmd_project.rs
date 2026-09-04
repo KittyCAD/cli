@@ -354,6 +354,10 @@ pub struct CmdProjectPublish {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<FormatOutput>,
+
+    /// Output JSON to stdout, with human-readable status messages on stderr.
+    #[clap(long, conflicts_with = "format")]
+    pub json: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -369,14 +373,23 @@ impl crate::cmd::Command for CmdProjectPublish {
         if let ProjectTarget::Local { local, .. } = target {
             crate::project::persist_cloud_project_id(&local.project_toml, &environment, project.id)?;
         }
-        writeln!(
-            ctx.io.out,
+
+        let format = if self.json {
+            FormatOutput::Json
+        } else {
+            ctx.format(&self.format)?
+        };
+        let message = format!(
             "{} Submitted Zoo cloud project {} for publication review",
             ctx.io.color_scheme().success_icon(),
             project.id
-        )?;
+        );
+        if format == FormatOutput::Table {
+            writeln!(ctx.io.out, "{message}")?;
+        } else {
+            writeln!(ctx.io.err_out, "{message}")?;
+        }
 
-        let format = ctx.format(&self.format)?;
         write_project_output(ctx, &format, &project)?;
         Ok(())
     }
@@ -412,6 +425,10 @@ pub struct CmdProjectUpload {
     /// Command output format.
     #[clap(long, short, value_enum)]
     pub format: Option<FormatOutput>,
+
+    /// Output JSON to stdout, with human-readable status messages on stderr.
+    #[clap(long, conflicts_with = "format")]
+    pub json: bool,
 }
 
 #[async_trait::async_trait(?Send)]
@@ -443,16 +460,24 @@ impl crate::cmd::Command for CmdProjectUpload {
         };
 
         crate::project::persist_cloud_project_id(&local.project_toml, &environment, project.id)?;
-        writeln!(
-            ctx.io.out,
+        let format = if self.json {
+            FormatOutput::Json
+        } else {
+            ctx.format(&self.format)?
+        };
+        let message = format!(
             "{} {} Zoo cloud project id {} in {}",
             ctx.io.color_scheme().success_icon(),
             if existing_id.is_some() { "Updated" } else { "Stored" },
             project.id,
             local.project_toml.display()
-        )?;
+        );
+        if format == FormatOutput::Table {
+            writeln!(ctx.io.out, "{message}")?;
+        } else {
+            writeln!(ctx.io.err_out, "{message}")?;
+        }
 
-        let format = ctx.format(&self.format)?;
         write_project_output(ctx, &format, &project)?;
         Ok(())
     }
