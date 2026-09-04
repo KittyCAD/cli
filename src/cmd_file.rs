@@ -11,7 +11,7 @@ use kittycad_modeling_cmds::{
     websocket::OkWebSocketResponseData,
 };
 
-use crate::cmd_kcl::write_deterministic_export;
+use crate::{cmd_kcl::write_deterministic_export, types::FormatOutput};
 
 /// Perform operations on CAD files.
 ///
@@ -89,6 +89,10 @@ pub struct CmdFileConvert {
     #[clap(long, short, value_enum)]
     pub format: Option<crate::types::FormatOutput>,
 
+    /// Output JSON to stdout, with human-readable status messages on stderr.
+    #[clap(long, conflicts_with = "format")]
+    pub json: bool,
+
     /// If true, the output file should be deterministic, meaning any date or time information
     /// will be replaced with a fixed value.
     /// This is useful for when pushing to version control.
@@ -126,6 +130,12 @@ impl crate::cmd::Command for CmdFileConvert {
             .create_conversion(self.output_format.clone(), src_format, &input.into())
             .await?;
 
+        let format = if self.json {
+            FormatOutput::Json
+        } else {
+            ctx.format(&self.format)?
+        };
+
         // If they specified an output file, save the output to that file.
         if file_conversion.status == kittycad::types::ApiCallStatus::Completed {
             if let Some(outputs) = file_conversion.outputs {
@@ -137,12 +147,21 @@ impl crate::cmd::Command for CmdFileConvert {
                     } else {
                         std::fs::write(&path, data)?;
                     }
-                    writeln!(
-                        ctx.io.err_out,
-                        "wrote file `{}` to {}",
-                        filename,
-                        path.to_str().unwrap_or("")
-                    )?;
+                    if format == FormatOutput::Table {
+                        writeln!(
+                            ctx.io.out,
+                            "wrote file `{}` to {}",
+                            filename,
+                            path.to_str().unwrap_or("")
+                        )?;
+                    } else {
+                        writeln!(
+                            ctx.io.err_out,
+                            "wrote file `{}` to {}",
+                            filename,
+                            path.to_str().unwrap_or("")
+                        )?;
+                    }
                 }
             } else {
                 anyhow::bail!(
@@ -156,7 +175,6 @@ impl crate::cmd::Command for CmdFileConvert {
         file_conversion.outputs = None;
 
         // Print the output of the conversion.
-        let format = ctx.format(&self.format)?;
         ctx.io.write_output(&format, &file_conversion)?;
 
         Ok(())
@@ -803,6 +821,7 @@ mod test {
                         output_format: kittycad::types::FileExportFormat::Obj,
                         src_format: None,
                         format: None,
+                        json: false,
                         deterministic:false,
 
                     }),
@@ -818,6 +837,7 @@ mod test {
                         output_format: kittycad::types::FileExportFormat::Obj,
                         src_format: None,
                         format: None,
+                        json: false,
                         deterministic:false,
                     }),
                     stdin: "".to_string(),

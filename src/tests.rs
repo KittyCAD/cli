@@ -570,8 +570,26 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
+        .stdout_contains("wrote file `source.stl`")
+    }
+
+    convert_a_file_as_json(_ctx) => {
+        TestItem::new(
+            "convert a file as json",
+            svec![
+                "zoo",
+                "file",
+                "convert",
+                "assets/in_obj.obj",
+                "/tmp/",
+                "--output-format",
+                "stl",
+                "--json",
+            ],
+        )
+        .setup(setup_authenticated)
         .stderr_contains("wrote file `source.stl`")
-        .stdout_contains("Completed")
+        .stdout_contains(r#""status": "completed""#)
     }
 
     get_the_file_volume(_ctx) => {
