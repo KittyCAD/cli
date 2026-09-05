@@ -54,7 +54,7 @@
             postgresql
             pkg-config
           ])
-          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
+          ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin (with pkgs; [
             ]);
 
         RUSTFMT = "${pkgs.nightlyRustfmt}/bin/rustfmt";
