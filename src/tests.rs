@@ -13,20 +13,31 @@ macro_rules! svec {
     };
 }
 
+/// Tests that we don't write natural language status messages
+/// if the CLI is supposed to output json/yaml.
 #[test]
 fn status_output_respects_format() -> Result<()> {
     use crate::types::FormatOutput::{Json, Table, Yaml};
 
-    for (configured, explicit, expect_stderr) in [
-        (None, None, false),
-        (None, Some(Table), false),
-        (None, Some(Json), true),
-        (None, Some(Yaml), true),
-        (Some("json"), None, true),
-        (Some("yaml"), None, true),
-        (Some("json"), Some(Table), false),
-        (Some("table"), Some(Json), true),
-    ] {
+    enum WrittenTo {
+        Stdout,
+        Stderr,
+    }
+
+    #[rustfmt::skip]
+    let tests = [
+        // configured,  explicit,    expected
+        (None,          None,        WrittenTo::Stdout ),
+        (None,          Some(Table), WrittenTo::Stdout ),
+        (None,          Some(Json),  WrittenTo::Stderr ),
+        (None,          Some(Yaml),  WrittenTo::Stderr ),
+        (Some("json"),  None,        WrittenTo::Stderr ),
+        (Some("yaml"),  None,        WrittenTo::Stderr ),
+        (Some("json"),  Some(Table), WrittenTo::Stdout ),
+        (Some("table"), Some(Json),  WrittenTo::Stderr ),
+    ];
+    for (configured, explicit, expected) in tests {
+        // Set up context for this test.
         let mut config = TestConfig::new()?;
         if let Some(format) = configured {
             config.set("", "format", Some(format))?;
@@ -38,19 +49,32 @@ fn status_output_respects_format() -> Result<()> {
             debug: false,
             override_host: None,
         };
+
+        // Action: Write a status message wherever the context is configured.
         let format = ctx.format(&explicit)?;
         ctx.io.write_status(&format, format_args!("processed {} files", 4))?;
         drop(ctx);
 
-        let stdout = std::fs::read_to_string(&stdout_path)?;
-        let stderr = std::fs::read_to_string(&stderr_path)?;
+        // Validate that the status message was written where we expect.
+        let actual_stdout = std::fs::read_to_string(&stdout_path)?;
+        let actual_stderr = std::fs::read_to_string(&stderr_path)?;
         std::fs::remove_file(stdout_path)?;
         std::fs::remove_file(stderr_path)?;
         let status = "processed 4 files\n";
-        let expected = if expect_stderr { ("", status) } else { (status, "") };
+        let expected_stderr = match expected {
+            WrittenTo::Stdout => "",
+            WrittenTo::Stderr => status,
+        };
+        let expected_stdout = match expected {
+            WrittenTo::Stdout => status,
+            WrittenTo::Stderr => "",
+        };
         assert_eq!(
-            (stdout.as_str(), stderr.as_str()),
-            expected,
+            expected_stdout, actual_stdout,
+            "configured={configured:?}, explicit={explicit:?}"
+        );
+        assert_eq!(
+            expected_stderr, actual_stderr,
             "configured={configured:?}, explicit={explicit:?}"
         );
     }
