@@ -9,6 +9,7 @@ pub enum FormatOutput {
     Yaml,
     #[default]
     Table,
+    // If you add another variant, add it to the `variants()` method below too.
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, FromStr, Display, clap::ValueEnum, Copy)]
@@ -26,6 +27,16 @@ pub enum CameraView {
 impl FormatOutput {
     pub const fn variants() -> &'static [&'static str] {
         &["table", "json", "yaml"]
+    }
+
+    /// Whether stdout must be reserved for machine-readable output.
+    /// Human-readable status messages belong on stderr for these formats.
+    pub const fn is_machine_friendly_output(&self) -> bool {
+        match self {
+            FormatOutput::Json => true,
+            FormatOutput::Yaml => true,
+            FormatOutput::Table => false,
+        }
     }
 }
 

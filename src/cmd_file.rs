@@ -99,6 +99,7 @@ pub struct CmdFileConvert {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdFileConvert {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let format = ctx.format(&self.format)?;
         // Make sure the output dir is a directory.
         if !self.output_dir.is_dir() {
             anyhow::bail!(
@@ -137,11 +138,9 @@ impl crate::cmd::Command for CmdFileConvert {
                     } else {
                         std::fs::write(&path, data)?;
                     }
-                    writeln!(
-                        ctx.io.out,
-                        "wrote file `{}` to {}",
-                        filename,
-                        path.to_str().unwrap_or("")
+                    ctx.io.write_status(
+                        &format,
+                        format_args!("wrote file `{}` to {}", filename, path.to_str().unwrap_or("")),
                     )?;
                 }
             } else {
@@ -156,7 +155,6 @@ impl crate::cmd::Command for CmdFileConvert {
         file_conversion.outputs = None;
 
         // Print the output of the conversion.
-        let format = ctx.format(&self.format)?;
         ctx.io.write_output(&format, &file_conversion)?;
 
         Ok(())
