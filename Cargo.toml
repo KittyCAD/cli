@@ -2,7 +2,6 @@
 name = "zoo"
 version = "0.2.194"
 edition = "2024"
-rust-version = "1.96"
 build = "build.rs"
 
 [workspace]
@@ -58,7 +57,7 @@ log = "0.4.30"
 miette = { version = "7.5.0", features = ["fancy"] }
 nu-ansi-term = "0.50.3"
 num-traits = "0.2.19"
-oauth2 = "4.4.2"
+oauth2 = "5.0.0"
 open = "5.3.5"
 parse-display = "0.11.0"
 pulldown-cmark = "0.13.4"
