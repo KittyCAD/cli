@@ -226,6 +226,22 @@ impl IoStreams {
         crate::colors::ColorScheme::new(self.color_enabled(), self.color_support_256(), self.has_true_color())
     }
 
+    /// Write a status line without mixing prose into structured stdout.
+    /// The format must be resolved through `Context::format` to honor configuration.
+    pub fn write_status(
+        &mut self,
+        format: &crate::types::FormatOutput,
+        message: std::fmt::Arguments<'_>,
+    ) -> Result<()> {
+        let out = if format.is_machine_friendly_output() {
+            &mut self.err_out
+        } else {
+            &mut self.out
+        };
+        writeln!(out, "{message}")?;
+        Ok(())
+    }
+
     #[allow(dead_code)]
     pub fn write_output_for_vec<T: serde::Serialize + tabled::Tabled>(
         &mut self,

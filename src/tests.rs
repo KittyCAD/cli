@@ -13,6 +13,8 @@ macro_rules! svec {
     };
 }
 
+mod structured_output;
+
 macro_rules! cli_tests {
     ($($name:ident($ctx:ident) => $body:block)+) => {
         $(
