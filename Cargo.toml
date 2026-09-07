@@ -131,6 +131,7 @@ incremental = true
 debug = 0
 
 # Use the same modeling-command types in the CLI and its KCL dependencies.
-# modeling-api#1369 plus the companion fix preserving existing unit spellings.
+# v0.2.229 omits the unit spellings and volume Clap support fixed by modeling-api#1370.
+# Remove this patch once a crates.io release includes those fixes.
 [patch.crates-io]
 kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", rev = "52ecdb59580435964776ad458e2036b73a4ef7d7" }
