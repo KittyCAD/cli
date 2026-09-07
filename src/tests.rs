@@ -13,7 +13,49 @@ macro_rules! svec {
     };
 }
 
-mod structured_output;
+#[test]
+fn status_output_respects_format() -> Result<()> {
+    use crate::types::FormatOutput::{Json, Table, Yaml};
+
+    for (configured, explicit, expect_stderr) in [
+        (None, None, false),
+        (None, Some(Table), false),
+        (None, Some(Json), true),
+        (None, Some(Yaml), true),
+        (Some("json"), None, true),
+        (Some("yaml"), None, true),
+        (Some("json"), Some(Table), false),
+        (Some("table"), Some(Json), true),
+    ] {
+        let mut config = TestConfig::new()?;
+        if let Some(format) = configured {
+            config.set("", "format", Some(format))?;
+        }
+        let (io, stdout_path, stderr_path) = crate::iostreams::IoStreams::test();
+        let mut ctx = crate::context::Context {
+            config: &mut config,
+            io,
+            debug: false,
+            override_host: None,
+        };
+        let format = ctx.format(&explicit)?;
+        ctx.io.write_status(&format, format_args!("processed {} files", 4))?;
+        drop(ctx);
+
+        let stdout = std::fs::read_to_string(&stdout_path)?;
+        let stderr = std::fs::read_to_string(&stderr_path)?;
+        std::fs::remove_file(stdout_path)?;
+        std::fs::remove_file(stderr_path)?;
+        let status = "processed 4 files\n";
+        let expected = if expect_stderr { ("", status) } else { (status, "") };
+        assert_eq!(
+            (stdout.as_str(), stderr.as_str()),
+            expected,
+            "configured={configured:?}, explicit={explicit:?}"
+        );
+    }
+    Ok(())
+}
 
 macro_rules! cli_tests {
     ($($name:ident($ctx:ident) => $body:block)+) => {
