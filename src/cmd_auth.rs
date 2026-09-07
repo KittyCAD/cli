@@ -201,20 +201,18 @@ impl crate::cmd::Command for CmdAuthLogin {
                 // This value is safe to be embedded in version control.
                 // This is the client ID of the cli.
                 let client_id = "6bd9f64f-0ed6-40c2-ada0-87e1fc699227".to_string();
-                let auth_client = oauth2::basic::BasicClient::new(
-                    oauth2::ClientId::new(client_id),
-                    None,
-                    oauth2::AuthUrl::new(format!("{host}authorize"))?,
-                    Some(oauth2::TokenUrl::new(format!("{host}oauth2/device/token"))?),
-                )
-                .set_auth_type(oauth2::AuthType::RequestBody)
-                .set_device_authorization_url(device_auth_url);
+                let auth_client = oauth2::basic::BasicClient::new(oauth2::ClientId::new(client_id))
+                    .set_token_uri(oauth2::TokenUrl::new(format!("{host}oauth2/device/token"))?)
+                    .set_auth_type(oauth2::AuthType::RequestBody)
+                    .set_device_authorization_url(device_auth_url);
+                let http_client = reqwest::Client::builder()
+                    // OAuth requests must not follow redirects to prevent SSRF.
+                    .redirect(reqwest::redirect::Policy::none())
+                    .build()?;
                 writeln!(ctx.io.err_out, "Tip: you can generate an API Token here {host}account")?;
 
-                let details: oauth2::devicecode::StandardDeviceAuthorizationResponse = auth_client
-                    .exchange_device_code()?
-                    .request_async(oauth2::reqwest::async_http_client)
-                    .await?;
+                let details: oauth2::StandardDeviceAuthorizationResponse =
+                    auth_client.exchange_device_code().request_async(&http_client).await?;
 
                 if let Some(uri) = details.verification_uri_complete() {
                     writeln!(
@@ -237,7 +235,7 @@ impl crate::cmd::Command for CmdAuthLogin {
 
                 auth_client
                     .exchange_device_access_token(&details)
-                    .request_async(oauth2::reqwest::async_http_client, tokio::time::sleep, None)
+                    .request_async(&http_client, tokio::time::sleep, None)
                     .await?
                     .access_token()
                     .secret()
