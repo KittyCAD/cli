@@ -20,21 +20,6 @@ mod camera_angles;
 /// Send a heartbeat every N seconds.
 pub const HEARTBEATS: u64 = 3;
 
-fn modeling_volume_unit(unit: &kt::UnitVolume) -> kcmc::units::UnitVolume {
-    match unit {
-        kt::UnitVolume::Mm3 => kcmc::units::UnitVolume::CubicMillimeters,
-        kt::UnitVolume::Cm3 => kcmc::units::UnitVolume::CubicCentimeters,
-        kt::UnitVolume::Ft3 => kcmc::units::UnitVolume::CubicFeet,
-        kt::UnitVolume::In3 => kcmc::units::UnitVolume::CubicInches,
-        kt::UnitVolume::M3 => kcmc::units::UnitVolume::CubicMeters,
-        kt::UnitVolume::Yd3 => kcmc::units::UnitVolume::CubicYards,
-        kt::UnitVolume::Usfloz => kcmc::units::UnitVolume::FluidOunces,
-        kt::UnitVolume::Usgal => kcmc::units::UnitVolume::Gallons,
-        kt::UnitVolume::L => kcmc::units::UnitVolume::Liters,
-        kt::UnitVolume::Ml => kcmc::units::UnitVolume::Milliliters,
-    }
-}
-
 pub(crate) fn with_heartbeats(mut settings: kcl_lib::ExecutorSettings) -> kcl_lib::ExecutorSettings {
     if settings.heartbeats.is_none() {
         settings.heartbeats = Some(HEARTBEATS);
@@ -1007,7 +992,7 @@ pub struct CmdKclAnalyze {
 
     /// What units do you want volumes shown in?
     #[clap(long = "volume-output-unit", value_enum, default_value = "m3")]
-    pub volume_output_unit: kt::UnitVolume,
+    pub volume_output_unit: kcmc::units::UnitVolume,
 
     /// What units do you want masses shown in?
     #[clap(long = "mass-output-unit", value_enum, default_value = "kg")]
@@ -1052,11 +1037,7 @@ impl crate::cmd::Command for CmdKclAnalyze {
                 &filepath.display().to_string(),
                 &code,
                 vec![
-                    kcmc::ModelingCmd::Volume(
-                        kcmc::Volume::builder()
-                            .output_unit(modeling_volume_unit(&self.volume_output_unit))
-                            .build(),
-                    ),
+                    kcmc::ModelingCmd::Volume(kcmc::Volume::builder().output_unit(self.volume_output_unit).build()),
                     kcmc::ModelingCmd::Mass(
                         kcmc::Mass::builder()
                             .material_density(self.material_density.into())
@@ -1179,7 +1160,7 @@ pub struct CmdKclVolume {
 
     /// Output unit.
     #[clap(long = "output-unit", short = 'u', value_enum)]
-    pub output_unit: kt::UnitVolume,
+    pub output_unit: kcmc::units::UnitVolume,
 
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
@@ -1238,7 +1219,7 @@ impl crate::cmd::Command for CmdKclVolume {
                 kittycad_modeling_cmds::ModelingCmd::Volume(
                     kittycad_modeling_cmds::Volume::builder()
                         .entity_ids(vec![]) // get whole model
-                        .output_unit(modeling_volume_unit(&self.output_unit))
+                        .output_unit(self.output_unit)
                         .build(),
                 ),
                 executor_settings,
@@ -2029,7 +2010,7 @@ mod tests {
         let kcl = CmdKclVolume::try_parse_from(["volume", "part.kcl", "--output-unit", "mm3"]).unwrap();
 
         assert_eq!(file.output_unit, kt::UnitVolume::Mm3);
-        assert_eq!(kcl.output_unit, kt::UnitVolume::Mm3);
+        assert_eq!(kcl.output_unit, kcmc::units::UnitVolume::CubicMillimeters);
     }
 
     #[test]
@@ -2045,11 +2026,38 @@ mod tests {
     }
 
     #[test]
-    fn api_volume_units_map_to_the_same_modeling_spelling() {
+    fn file_and_kcl_volume_accept_the_same_unit_spellings() {
         for unit in kt::UnitVolume::value_variants() {
             let cli_spelling = unit.to_possible_value().unwrap().get_name().to_owned();
 
-            assert_eq!(modeling_volume_unit(unit).to_string(), cli_spelling);
+            let volume = CmdKclVolume::try_parse_from(["volume", "part.kcl", "--output-unit", &cli_spelling]).unwrap();
+            let analyze =
+                CmdKclAnalyze::try_parse_from(["analyze", "part.kcl", "--volume-output-unit", &cli_spelling]).unwrap();
+
+            assert_eq!(volume.output_unit.to_string(), cli_spelling);
+            assert_eq!(analyze.volume_output_unit, volume.output_unit);
+        }
+    }
+
+    #[test]
+    fn kcl_analyze_accepts_default_units_and_density_aliases() {
+        let analyze = CmdKclAnalyze::try_parse_from(["analyze", "part.kcl"]).unwrap();
+        assert_eq!(analyze.volume_output_unit, kcmc::units::UnitVolume::CubicMeters);
+        assert_eq!(analyze.mass_output_unit, kcmc::units::UnitMass::Kilograms);
+        assert_eq!(
+            analyze.density_output_unit,
+            kcmc::units::UnitDensity::KilogramsPerCubicMeter
+        );
+        assert_eq!(analyze.surface_area_output_unit, kcmc::units::UnitArea::SquareMeters);
+        assert_eq!(analyze.center_of_mass_output_unit, kcmc::units::UnitLength::Meters);
+
+        for spelling in ["lbft3", "lb:ft3", "lb-ft3", "kgm3", "kg:m3", "kg-m3"] {
+            let analyze =
+                CmdKclAnalyze::try_parse_from(["analyze", "part.kcl", "--material-density-unit", spelling]).unwrap();
+            assert_eq!(
+                analyze.material_density_unit,
+                <kcmc::units::UnitDensity as std::str::FromStr>::from_str(spelling).unwrap()
+            );
         }
     }
 

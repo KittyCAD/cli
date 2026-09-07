@@ -48,7 +48,8 @@ kittycad = { version = "0.5", features = [
   "requests",
   "retry",
 ] }
-kittycad-modeling-cmds = { version = "0.2.224", features = [
+kittycad-modeling-cmds = { version = "0.2.228", features = [
+  "clap",
   "exec-kcl",
   "websocket",
   "tabled",
@@ -128,3 +129,8 @@ debug = 0
 incremental = true
 # Set this to 1 or 2 to get more useful backtraces in debugger.
 debug = 0
+
+# Use the same modeling-command types in the CLI and its KCL dependencies.
+# modeling-api#1369 plus the companion fix preserving existing unit spellings.
+[patch.crates-io]
+kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", rev = "52ecdb59580435964776ad458e2036b73a4ef7d7" }
