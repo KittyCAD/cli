@@ -118,10 +118,6 @@ pub struct CmdKclExport {
     #[clap(short = 't', long = "output-format", value_enum)]
     output_format: kittycad::types::FileExportFormat,
 
-    /// Command output format.
-    #[clap(long, short, value_enum)]
-    pub format: Option<FormatOutput>,
-
     /// If true, print a link to this request's tracing data.
     #[clap(long, default_value = "false")]
     pub show_trace: bool,
@@ -323,13 +319,10 @@ pub struct CmdKclSnapshot {
     #[clap(short = 't', long = "output-format", value_enum)]
     output_format: Option<kittycad::types::ImageFormat>,
 
-    /// Command output format.
-    #[clap(long, short, value_enum)]
-    pub format: Option<FormatOutput>,
-
     /// If given, this command will reuse an existing KittyCAD modeling session.
-    /// You can start the session via `zoo session-start --listen-on 0.0.0.0:3333` in this CLI.
-    #[clap(long, default_value = None)]
+    /// You can start the session via `zoo start-session 0.0.0.0:3333` in this CLI.
+    /// Sessions return PNG using the server's fixed rendering settings.
+    #[clap(long, conflicts_with_all = ["angle", "camera_style", "camera_padding", "replay", "allow_errors", "show_trace"])]
     pub session: Option<SocketAddr>,
 
     /// If true, print a link to this request's tracing data.
@@ -384,6 +377,12 @@ impl crate::cmd::Command for CmdKclSnapshot {
             get_image_format_from_extension_kcmc(&crate::cmd_file::get_extension(self.output_file.clone()))?
         };
 
+        if self.session.is_some() && output_format != kcmc::ImageFormat::Png {
+            anyhow::bail!(
+                "--session only supports PNG snapshots; use --output-format png or omit --session for other formats"
+            );
+        }
+
         // Get the contents of the input file.
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
@@ -395,7 +394,6 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
         let (many_pngs, session_data) = match self.session {
             Some(addr) => {
-                // TODO
                 let client = reqwest::ClientBuilder::new().build()?;
                 let url = Url::parse(&format!("http://{addr}"))?;
                 let resp = client
@@ -601,10 +599,6 @@ pub struct CmdKclView {
     /// If you pass `-` as the path, the file will be read from stdin.
     #[clap(name = "input", required = true)]
     pub input: std::path::PathBuf,
-
-    /// Command output format.
-    #[clap(long, short, value_enum)]
-    pub format: Option<FormatOutput>,
 
     /// Which angle to take the snapshot from.
     /// Defaults to "front".
@@ -1248,6 +1242,8 @@ impl crate::cmd::Command for CmdKclVolume {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdKclBoundingBox {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let format = ctx.format(&self.format)?;
+
         // Get the contents of the input file.
         let (code, filepath) = ctx.get_code_and_file_path(&self.input).await?;
 
@@ -1276,9 +1272,8 @@ impl crate::cmd::Command for CmdKclBoundingBox {
         } = &resp
         {
             // Print the output.
-            let output_unit = self.output_unit;
-            let printable_box = bounding_box_rows(data, output_unit);
-            ctx.io.write_output_table_for_vec(&printable_box)?;
+            let printable_box = bounding_box_rows(data, self.output_unit);
+            ctx.io.write_output_for_vec(&format, printable_box)?;
         } else {
             anyhow::bail!("Unexpected response from engine: {resp:?}");
         }
