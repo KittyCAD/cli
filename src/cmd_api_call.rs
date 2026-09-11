@@ -46,9 +46,10 @@ pub struct CmdApiCallStatus {
 #[async_trait::async_trait(?Send)]
 impl crate::cmd::Command for CmdApiCallStatus {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
+        let format = ctx.format(&self.format)?;
         let client = ctx.api_client("")?;
 
-        let api_call = client.api_calls().get_async_operation(self.id).await?;
+        let mut api_call = client.api_calls().get_async_operation(self.id).await?;
 
         // If it is a file conversion and there is output, we need to save that output to a file
         // for them.
@@ -66,12 +67,12 @@ impl crate::cmd::Command for CmdApiCallStatus {
             status,
             updated_at: _,
             user_id: _,
-        } = &api_call
+        } = &mut api_call
             && *status == kittycad::types::ApiCallStatus::Completed
-            && let Some(outputs) = &outputs
+            && let Some(files) = outputs
         {
             let path = std::env::current_dir()?;
-            for (name, output) in outputs {
+            for (name, output) in files.iter() {
                 if output.is_empty() {
                     anyhow::bail!(
                         "no output was generated for the file conversion! (this is probably a bug in the API) you should report it to support@zoo.dev"
@@ -81,22 +82,46 @@ impl crate::cmd::Command for CmdApiCallStatus {
                 std::fs::write(&path, &output.0)?;
             }
 
-            let paths = outputs
+            let paths = files
                 .keys()
                 .map(|k| path.join(k))
                 .map(|p| p.to_string_lossy().to_string())
                 .collect_vec();
             // Tell them where we saved the file.
-            writeln!(ctx.io.out, "Saved file conversion output(s) to: {}", paths.join(", "))?;
+            ctx.io.write_status(
+                &format,
+                format_args!("Saved file conversion output(s) to: {}", paths.join(", ")),
+            )?;
 
-            // Return early.
-            return Ok(());
+            // The files are on disk; avoid printing their base64 contents as well.
+            *outputs = None;
         }
 
-        // Print the output of the conversion.
-        // TODO: make this work as a table.
-        ctx.io.write_output(&crate::types::FormatOutput::Json, &api_call)?;
+        match format {
+            crate::types::FormatOutput::Json => ctx.io.write_output_json(&serde_json::to_value(&api_call)?)?,
+            crate::types::FormatOutput::Yaml => ctx.io.write_output_yaml(&api_call)?,
+            crate::types::FormatOutput::Table => {
+                let serde_json::Value::Object(fields) = serde_json::to_value(&api_call)? else {
+                    anyhow::bail!("Expected an object for the API call status");
+                };
+                ctx.io
+                    .write_output_table_for_vec(fields.into_iter().map(|(property, value)| ApiCallStatusRow {
+                        property,
+                        value: match value {
+                            serde_json::Value::String(value) => value,
+                            value => value.to_string(),
+                        },
+                    }))?;
+            }
+        }
 
         Ok(())
     }
+}
+
+#[derive(tabled::Tabled)]
+#[tabled(rename_all = "PascalCase")]
+struct ApiCallStatusRow {
+    property: String,
+    value: String,
 }
