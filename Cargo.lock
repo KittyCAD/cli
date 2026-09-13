@@ -2957,6 +2957,7 @@ dependencies = [
  "anyhow",
  "bon",
  "chrono",
+ "clap",
  "data-encoding",
  "enum-iterator",
  "enum-iterator-derive",

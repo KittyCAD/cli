@@ -1997,7 +1997,148 @@ fn combine_quadrants(
 
 #[cfg(test)]
 mod tests {
+    use clap::{ValueEnum, error::ErrorKind};
+
     use super::*;
+
+    #[test]
+    fn file_and_kcl_volume_accept_mm3() {
+        let file =
+            crate::cmd_file::CmdFileVolume::try_parse_from(["volume", "part.step", "--output-unit", "mm3"]).unwrap();
+        let kcl = CmdKclVolume::try_parse_from(["volume", "part.kcl", "--output-unit", "mm3"]).unwrap();
+
+        assert_eq!(file.output_unit, kt::UnitVolume::Mm3);
+        assert_eq!(kcl.output_unit, kcmc::units::UnitVolume::CubicMillimeters);
+    }
+
+    #[test]
+    fn file_and_kcl_volume_accept_the_same_unit_spellings() {
+        for unit in kt::UnitVolume::value_variants() {
+            let cli_spelling = unit.to_possible_value().unwrap().get_name().to_owned();
+
+            let volume = CmdKclVolume::try_parse_from(["volume", "part.kcl", "--output-unit", &cli_spelling]).unwrap();
+            let analyze =
+                CmdKclAnalyze::try_parse_from(["analyze", "part.kcl", "--volume-output-unit", &cli_spelling]).unwrap();
+
+            assert_eq!(volume.output_unit.to_string(), cli_spelling);
+            assert_eq!(analyze.volume_output_unit, volume.output_unit);
+        }
+    }
+
+    // Exercise the actual command parsers: enabling ValueEnum must preserve the
+    // public abbreviations and list them when a user supplies an invalid unit.
+    fn assert_kcl_unit_choices(command: &str, flag: &str, units: &[&str]) {
+        let mut args = vec!["kcl", command, "part.kcl"];
+        let required = match command {
+            "mass" => vec![
+                ("--material-density", "1"),
+                ("--material-density-unit", "kg:m3"),
+                ("--output-unit", "kg"),
+            ],
+            "density" => vec![
+                ("--material-mass", "1"),
+                ("--material-mass-unit", "kg"),
+                ("--output-unit", "kg:m3"),
+            ],
+            _ => vec![],
+        };
+        for (required_flag, value) in required {
+            if required_flag != flag {
+                args.extend([required_flag, value]);
+            }
+        }
+        args.push(flag);
+
+        for unit in units {
+            let parsed = CmdKcl::try_parse_from(args.iter().copied().chain([*unit]));
+            assert!(parsed.is_ok(), "{command} {flag} {unit}: {parsed:?}");
+        }
+
+        let error = CmdKcl::try_parse_from(args.iter().copied().chain(["bogus"])).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::InvalidValue, "{command} {flag}: {error}");
+        let choices = format!("[possible values: {}]", units.join(", "));
+        assert!(error.to_string().contains(&choices), "{command} {flag}: {error}");
+    }
+
+    #[test]
+    fn all_kcl_measurement_flags_preserve_unit_choices() {
+        let length = ["cm", "ft", "in", "m", "mm", "yd"];
+        let area = ["cm2", "dm2", "ft2", "in2", "km2", "m2", "mm2", "yd2"];
+        let mass = ["g", "kg", "lb"];
+        let density = ["lb:ft3", "kg:m3"];
+        let volume = ["mm3", "cm3", "ft3", "in3", "m3", "yd3", "usfloz", "usgal", "l", "ml"];
+        let cases: &[(&str, &str, &[&str])] = &[
+            ("volume", "--output-unit", &volume),
+            ("mass", "--output-unit", &mass),
+            ("mass", "--material-density-unit", &density),
+            ("density", "--output-unit", &density),
+            ("density", "--material-mass-unit", &mass),
+            ("surface-area", "--output-unit", &area),
+            ("center-of-mass", "--output-unit", &length),
+            ("bounding-box", "--output-unit", &length),
+            ("analyze", "--volume-output-unit", &volume),
+            ("analyze", "--mass-output-unit", &mass),
+            ("analyze", "--density-output-unit", &density),
+            ("analyze", "--material-density-unit", &density),
+            ("analyze", "--surface-area-output-unit", &area),
+            ("analyze", "--center-of-mass-output-unit", &length),
+        ];
+        for (command, flag, units) in cases {
+            assert_kcl_unit_choices(command, flag, units);
+        }
+    }
+
+    #[test]
+    fn kcl_measurements_preserve_defaults_and_density_aliases() {
+        let analyze = CmdKclAnalyze::try_parse_from(["analyze", "part.kcl"]).unwrap();
+        assert_eq!(analyze.volume_output_unit, kcmc::units::UnitVolume::CubicMeters);
+        assert_eq!(analyze.mass_output_unit, kcmc::units::UnitMass::Kilograms);
+        assert_eq!(
+            analyze.density_output_unit,
+            kcmc::units::UnitDensity::KilogramsPerCubicMeter
+        );
+        assert_eq!(analyze.surface_area_output_unit, kcmc::units::UnitArea::SquareMeters);
+        assert_eq!(analyze.center_of_mass_output_unit, kcmc::units::UnitLength::Meters);
+
+        for spelling in ["lbft3", "lb:ft3", "lb-ft3", "kgm3", "kg:m3", "kg-m3"] {
+            let analyze = CmdKclAnalyze::try_parse_from([
+                "analyze",
+                "part.kcl",
+                "--material-density-unit",
+                spelling,
+                "--density-output-unit",
+                spelling,
+            ])
+            .unwrap();
+            let mass = CmdKclMass::try_parse_from([
+                "mass",
+                "part.kcl",
+                "--material-density",
+                "1",
+                "--material-density-unit",
+                spelling,
+                "--output-unit",
+                "kg",
+            ])
+            .unwrap();
+            let density = CmdKclDensity::try_parse_from([
+                "density",
+                "part.kcl",
+                "--material-mass",
+                "1",
+                "--material-mass-unit",
+                "kg",
+                "--output-unit",
+                spelling,
+            ])
+            .unwrap();
+            let expected = <kcmc::units::UnitDensity as std::str::FromStr>::from_str(spelling).unwrap();
+            assert_eq!(analyze.material_density_unit, expected);
+            assert_eq!(analyze.density_output_unit, expected);
+            assert_eq!(mass.material_density_unit, expected);
+            assert_eq!(density.output_unit, expected);
+        }
+    }
 
     #[test]
     fn with_heartbeats_adds_cli_default() {
