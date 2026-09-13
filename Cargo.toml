@@ -48,7 +48,7 @@ kittycad = { version = "0.5", features = [
   "requests",
   "retry",
 ] }
-kittycad-modeling-cmds = { version = "0.2.228", features = [
+kittycad-modeling-cmds = { version = "0.2.230", features = [
   "clap",
   "exec-kcl",
   "websocket",
@@ -129,9 +129,3 @@ debug = 0
 incremental = true
 # Set this to 1 or 2 to get more useful backtraces in debugger.
 debug = 0
-
-# Use the same modeling-command types in the CLI and its KCL dependencies.
-# v0.2.229 omits the unit spellings and volume Clap support fixed by modeling-api#1370.
-# Remove this patch once a crates.io release includes those fixes.
-[patch.crates-io]
-kittycad-modeling-cmds = { git = "https://github.com/KittyCAD/modeling-api", rev = "52ecdb59580435964776ad458e2036b73a4ef7d7" }
