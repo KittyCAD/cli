@@ -2002,16 +2002,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn file_and_kcl_volume_accept_mm3() {
-        let file =
-            crate::cmd_file::CmdFileVolume::try_parse_from(["volume", "part.step", "--output-unit", "mm3"]).unwrap();
-        let kcl = CmdKclVolume::try_parse_from(["volume", "part.kcl", "--output-unit", "mm3"]).unwrap();
-
-        assert_eq!(file.output_unit, kt::UnitVolume::Mm3);
-        assert_eq!(kcl.output_unit, kcmc::units::UnitVolume::CubicMillimeters);
-    }
-
-    #[test]
     fn file_and_kcl_volume_accept_the_same_unit_spellings() {
         for unit in kt::UnitVolume::value_variants() {
             let cli_spelling = unit.to_possible_value().unwrap().get_name().to_owned();
@@ -2025,8 +2015,6 @@ mod tests {
         }
     }
 
-    // Exercise the actual command parsers: enabling ValueEnum must preserve the
-    // public abbreviations and list them when a user supplies an invalid unit.
     fn assert_kcl_unit_choices(command: &str, flag: &str, units: &[&str]) {
         let mut args = vec!["kcl", command, "part.kcl"];
         let required = match command {
