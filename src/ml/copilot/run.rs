@@ -135,7 +135,7 @@ pub async fn run_copilot_tui(
     let param_replay = None;
     let (upgraded, _headers) = client
         .ml()
-        .copilot_ws(param_conversation_id, param_pr, param_replay)
+        .copilot_ws(param_conversation_id, param_pr, param_replay, None)
         .await?;
     let ws = WebSocketStream::from_raw_socket(upgraded, Role::Client, None).await;
     let (mut write, mut read) = ws.split();
