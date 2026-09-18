@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.196"
+version = "0.2.197"
 edition = "2024"
 build = "build.rs"
 
@@ -39,17 +39,19 @@ image = { version = "0.25", default-features = false, features = [
   "jpeg",
 ] }
 itertools = "0.15.0"
-kcl-error = "=0.2.184"
-kcl-lib = { version = "=0.2.184", features = ["disable-println"] }
-kcl-test-server = "=0.2.184"
-kittycad = { version = "0.5", features = [
+kcl-error = "=0.2.185"
+kcl-lib = { version = "=0.2.185", features = ["disable-println"] }
+kcl-test-server = "=0.2.185"
+# Keep pinned until KCL and the CLI migrate to reqwest 0.13.
+kittycad = { version = "=0.5.1", features = [
   "clap",
   "tabled",
   "requests",
   "retry",
 ] }
-kittycad-modeling-cmds = { version = "0.2.230", features = [
+kittycad-modeling-cmds = { version = "0.2.232", features = [
   "clap",
+
   "exec-kcl",
   "websocket",
   "tabled",
