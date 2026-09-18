@@ -2830,7 +2830,7 @@ dependencies = [
  "parse-display",
  "rayon",
  "regex",
- "reqwest",
+ "reqwest 0.12.28",
  "rgba_simple",
  "schemars 0.8.22",
  "serde",
@@ -2905,9 +2905,9 @@ dependencies = [
  "parse-display",
  "phonenumber",
  "rand 0.9.4",
- "reqwest",
+ "reqwest 0.12.28",
  "reqwest-conditional-middleware",
- "reqwest-middleware",
+ "reqwest-middleware 0.4.2",
  "reqwest-retry",
  "reqwest-tracing",
  "schemars 0.8.22",
@@ -3559,7 +3559,7 @@ dependencies = [
  "getrandom 0.2.16",
  "http 1.5.0",
  "rand 0.8.7",
- "reqwest",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "serde_path_to_error",
@@ -3602,7 +3602,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#9484292b980d65625abfc661f417ee5b29abe6fb"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#b404af0f52819d648350df85c453af6d8b7a24a8"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -3624,8 +3624,8 @@ dependencies = [
  "quote",
  "rand 0.9.4",
  "regex",
- "reqwest",
- "reqwest-middleware",
+ "reqwest 0.13.5",
+ "reqwest-middleware 0.5.2",
  "rustfmt-wrapper",
  "schemars 0.8.22",
  "serde",
@@ -4629,6 +4629,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "reqwest"
+version = "0.13.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029"
+dependencies = [
+ "base64 0.23.1",
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "http 1.5.0",
+ "http-body 1.0.1",
+ "http-body-util",
+ "hyper 1.6.0",
+ "hyper-util",
+ "js-sys",
+ "log",
+ "mime_guess",
+ "percent-encoding",
+ "pin-project-lite",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "sync_wrapper",
+ "tokio",
+ "tower 0.5.2",
+ "tower-http",
+ "tower-service",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "reqwest-conditional-middleware"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4636,8 +4670,8 @@ checksum = "f67ad7fdf5c0a015763fcd164bee294b13fb7b6f89f1b55961d40f00c3e32d6b"
 dependencies = [
  "async-trait",
  "http 1.5.0",
- "reqwest",
- "reqwest-middleware",
+ "reqwest 0.12.28",
+ "reqwest-middleware 0.4.2",
 ]
 
 [[package]]
@@ -4649,9 +4683,23 @@ dependencies = [
  "anyhow",
  "async-trait",
  "http 1.5.0",
- "reqwest",
+ "reqwest 0.12.28",
  "serde",
  "thiserror 1.0.69",
+ "tower-service",
+]
+
+[[package]]
+name = "reqwest-middleware"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07bc3f1384cffa4f274dad2d4ddd73aed32fed8f786d96c6be8aa4e5fd3c3b58"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "http 1.5.0",
+ "reqwest 0.13.5",
+ "thiserror 2.0.20",
  "tower-service",
 ]
 
@@ -4668,8 +4716,8 @@ dependencies = [
  "http 1.5.0",
  "hyper 1.6.0",
  "parking_lot 0.11.2",
- "reqwest",
- "reqwest-middleware",
+ "reqwest 0.12.28",
+ "reqwest-middleware 0.4.2",
  "retry-policies",
  "thiserror 1.0.69",
  "tokio",
@@ -4688,8 +4736,8 @@ dependencies = [
  "getrandom 0.2.16",
  "http 1.5.0",
  "matchit",
- "reqwest",
- "reqwest-middleware",
+ "reqwest 0.12.28",
+ "reqwest-middleware 0.4.2",
  "tracing",
 ]
 
@@ -7092,7 +7140,7 @@ dependencies = [
  "pulldown-cmark-to-cmark",
  "ratatui",
  "regex",
- "reqwest",
+ "reqwest 0.12.28",
  "ring",
  "rmp-serde",
  "serde",
