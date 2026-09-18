@@ -205,10 +205,12 @@ impl crate::cmd::Command for CmdAuthLogin {
                     .set_token_uri(oauth2::TokenUrl::new(format!("{host}oauth2/device/token"))?)
                     .set_auth_type(oauth2::AuthType::RequestBody)
                     .set_device_authorization_url(device_auth_url);
-                let http_client = reqwest::Client::builder()
-                    // OAuth requests must not follow redirects to prevent SSRF.
-                    .redirect(reqwest::redirect::Policy::none())
-                    .build()?;
+                let http_client = oauth2_reqwest::ReqwestClient::from(
+                    reqwest::Client::builder()
+                        // OAuth requests must not follow redirects to prevent SSRF.
+                        .redirect(reqwest::redirect::Policy::none())
+                        .build()?,
+                );
                 writeln!(ctx.io.err_out, "Tip: you can generate an API Token here {host}account")?;
 
                 let details: oauth2::StandardDeviceAuthorizationResponse =
