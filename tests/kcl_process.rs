@@ -89,13 +89,13 @@ fn assert_success(output: &Output, args: &[&str]) {
     }
 }
 
-#[test]
-fn kcl_analyze_child_process_returns_expected_json_sections() {
+fn analyze_cube(extra_args: &[&str]) -> serde_json::Value {
     let project_dir = tempfile::tempdir().expect("create project temp dir");
     let config_dir = tempfile::tempdir().expect("create config temp dir");
     std::fs::write(project_dir.path().join("main.kcl"), ANALYZE_CUBE_KCL).expect("write main.kcl");
 
-    let args = ["kcl", "analyze", "main.kcl", "--format", "json"];
+    let mut args = vec!["kcl", "analyze", "main.kcl", "--format", "json"];
+    args.extend_from_slice(extra_args);
     let output = run_zoo(&args, project_dir.path(), config_dir.path());
     assert_success(&output, &args);
 
@@ -120,4 +120,65 @@ fn kcl_analyze_child_process_returns_expected_json_sections() {
             "zoo {args:?} JSON output missing `{key}`\nstdout:\n{stdout}"
         );
     }
+    json
+}
+
+#[test]
+fn kcl_analyze_child_process_returns_expected_default_properties() {
+    let json = analyze_cube(&[]);
+    assert_quantity(&json["volume"], "volume", 2e-9, "m3");
+    assert_quantity(&json["mass"], "mass", 2e-9, "kg");
+    assert_quantity(&json["density"], "density", 1.0, "kg:m3");
+    assert_quantity(&json["surface_area"], "surface_area", 1e-5, "m2");
+    assert_eq!(json["center_of_mass"]["output_unit"], "m");
+    assert_point(&json["center_of_mass"]["center_of_mass"], [0.00297, 0.00346, 0.001]);
+    assert_point(&json["bounding_box"]["center"], [0.00297, 0.00346, 0.001]);
+    assert_point(&json["bounding_box"]["dimensions"], [0.001, 0.001, 0.002]);
+}
+
+#[test]
+fn kcl_analyze_child_process_preserves_density_and_custom_units() {
+    let json = analyze_cube(&[
+        "--material-density",
+        "2",
+        "--material-density-unit",
+        "lb-ft3",
+        "--density-output-unit",
+        "kg:m3",
+        "--volume-output-unit",
+        "mm3",
+        "--mass-output-unit",
+        "g",
+        "--surface-area-output-unit",
+        "mm2",
+        "--center-of-mass-output-unit",
+        "mm",
+    ]);
+    assert_quantity(&json["volume"], "volume", 2.0, "mm3");
+    assert_quantity(&json["mass"], "mass", 6.40738535e-5, "g");
+    assert_quantity(&json["density"], "density", 32.03692675, "kg:m3");
+    assert_quantity(&json["surface_area"], "surface_area", 10.0, "mm2");
+    assert_eq!(json["center_of_mass"]["output_unit"], "mm");
+    assert_point(&json["center_of_mass"]["center_of_mass"], [2.97, 3.46, 1.0]);
+    assert_point(&json["bounding_box"]["center"], [2.97, 3.46, 1.0]);
+    assert_point(&json["bounding_box"]["dimensions"], [1.0, 1.0, 2.0]);
+}
+
+fn assert_quantity(value: &serde_json::Value, property: &str, expected: f64, unit: &str) {
+    assert_close(&value[property], expected);
+    assert_eq!(value["output_unit"], unit);
+}
+
+fn assert_point(value: &serde_json::Value, expected: [f64; 3]) {
+    for (axis, expected) in ["x", "y", "z"].into_iter().zip(expected) {
+        assert_close(&value[axis], expected);
+    }
+}
+
+fn assert_close(value: &serde_json::Value, expected: f64) {
+    let actual = value.as_f64().expect("numeric property");
+    assert!(
+        (actual - expected).abs() <= expected.abs() * 1e-5,
+        "expected {expected}, got {actual}"
+    );
 }
