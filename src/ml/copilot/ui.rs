@@ -201,7 +201,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     let rows = render_markdown_to_lines(text);
                     push_assistant_block(&mut lines, rows, None, None);
                 }
-                kittycad::types::MlCopilotServerMessage::Error { detail } => {
+                kittycad::types::MlCopilotServerMessage::Error { detail }
+                | kittycad::types::MlCopilotServerMessage::AccessDenied { detail, .. } => {
                     let rows: Vec<String> = detail.split('\n').map(|s| s.to_string()).collect();
                     push_assistant_block(&mut lines, rows, Some(Style::default().fg(Color::Red)), None);
                 }
@@ -211,7 +212,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     let prefix = Span::styled("tool output → ", Style::default().fg(Color::Yellow));
                     push_assistant_block(&mut lines, rows, None, Some(prefix));
                 }
-                kittycad::types::MlCopilotServerMessage::ProjectUpdated { files: _ } => {}
+                kittycad::types::MlCopilotServerMessage::ProjectUpdated { .. }
+                | kittycad::types::MlCopilotServerMessage::ProjectRevisionUpdated { .. }
+                | kittycad::types::MlCopilotServerMessage::ProjectSnapshotResult { .. } => {}
                 kittycad::types::MlCopilotServerMessage::BackendShutdown { reason } => {
                     let msg = reason
                         .as_ref()
@@ -220,12 +223,15 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     let rows: Vec<String> = msg.split('\n').map(|s| s.to_string()).collect();
                     push_assistant_block(&mut lines, rows, Some(Style::default().fg(Color::Red)), None);
                 }
-                kittycad::types::MlCopilotServerMessage::Files { .. } => {}
+                kittycad::types::MlCopilotServerMessage::Files { .. }
+                | kittycad::types::MlCopilotServerMessage::Attachments { .. } => {}
                 kittycad::types::MlCopilotServerMessage::ModesResponse { .. }
+                | kittycad::types::MlCopilotServerMessage::ClientCommandRequest { .. }
                 | kittycad::types::MlCopilotServerMessage::RequestAttachments { .. }
                 | kittycad::types::MlCopilotServerMessage::AttachmentsLoaded { .. }
                 | kittycad::types::MlCopilotServerMessage::ZookeeperAutoRouterMetadata { .. }
                 | kittycad::types::MlCopilotServerMessage::ZookeeperOpenAiResponseCheckpoint { .. }
+                | kittycad::types::MlCopilotServerMessage::ZookeeperOpenAiIntermediateResponseCheckpoint { .. }
                 | kittycad::types::MlCopilotServerMessage::ZookeeperRecoveryToolOutput { .. }
                 | kittycad::types::MlCopilotServerMessage::ZookeeperTurnUsage { .. } => {
                     // Protocol metadata and backend-only control messages are not chat content.
