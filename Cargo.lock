@@ -2292,12 +2292,10 @@ dependencies = [
  "hyper 1.6.0",
  "hyper-util",
  "rustls",
- "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots 0.26.9",
 ]
 
 [[package]]
@@ -2822,9 +2820,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be1ee3f0d0f64abc47d15478662092e6926365bcb220eeb8771f8a0ec1be3bc7"
+checksum = "d47dce1cbf279d3042155b5ff6b63d568bc0e5174085a808d356694481d40599"
 dependencies = [
  "euler",
  "indexmap 2.14.0",
@@ -2842,9 +2840,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-derive-docs"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f02b6ff724b8c80cd1f8c5307b0949165be834c67d05a139fb83fc3c839663ca"
+checksum = "a80fa817efbb2805e0f426c9337db22e8f2ad2c32bd5a1c0c669abb6c6c7904d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2853,9 +2851,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-engine-codec"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "225f3f93464bced6880919d8ecb704fce262cafea2542658b8d09c7e01f48ecd"
+checksum = "c48c4d0faad83f45d824ef044adf8a0fa0d320c9556b66e3f10886833d882203"
 dependencies = [
  "kittycad-modeling-cmds",
  "rmp-serde",
@@ -2864,9 +2862,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cf0d9b56409b2bbcc32e71f2b60f968eef9b0f21fd6cdd4537d5021978479f0"
+checksum = "5e20632461bdb87df80c68f540b653b12ea324a5e5b199bbb0ef1900f23356a9"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2878,9 +2876,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f911d4e43c5c389f49bea51a7c91562c959004da0c88291e530d3bce2b246178"
+checksum = "1d38c6766538d367e83bfd33bda431e77fe53722868da723acf9822adcb92ff4"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2921,7 +2919,7 @@ dependencies = [
  "parse-display",
  "rayon",
  "regex",
- "reqwest 0.12.28",
+ "reqwest",
  "rgba_simple",
  "schemars 0.8.22",
  "serde",
@@ -2950,18 +2948,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9158ca2aa53140dd3eb4a68f877266257619143047ff60d7b41427c83d917871"
+checksum = "4adf73ba3d22b042a1d3fe73af5a74a0ea8406160f0c76ff9500849f6aa26a17"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdde1de32ae89c5adb000f17bf03d7ad171d4ed7f8781d54c4af5598e1b092f0"
+checksum = "9cb8bd5ffd6547ca60975646f49fa0d44817263eb512d1dd00604aff792d7df1"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2997,7 +2995,7 @@ dependencies = [
  "parse-display",
  "phonenumber",
  "rand 0.9.4",
- "reqwest 0.13.5",
+ "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
  "reqwest-tracing",
@@ -3665,7 +3663,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "234fb5c965bbce983ee5de636a7a51d6a3223da8067ea02f9ab2d2d78ac08be2"
 dependencies = [
  "oauth2",
- "reqwest 0.13.5",
+ "reqwest",
 ]
 
 [[package]]
@@ -3724,7 +3722,7 @@ dependencies = [
  "quote",
  "rand 0.9.4",
  "regex",
- "reqwest 0.13.5",
+ "reqwest",
  "reqwest-middleware",
  "rustfmt-wrapper",
  "schemars 0.8.22",
@@ -4659,48 +4657,6 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "reqwest"
-version = "0.12.28"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "futures-core",
- "futures-util",
- "http 1.5.0",
- "http-body 1.0.1",
- "http-body-util",
- "hyper 1.6.0",
- "hyper-rustls",
- "hyper-util",
- "js-sys",
- "log",
- "percent-encoding",
- "pin-project-lite",
- "quinn",
- "rustls",
- "rustls-native-certs",
- "rustls-pki-types",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "sync_wrapper",
- "tokio",
- "tokio-rustls",
- "tokio-util",
- "tower 0.5.2",
- "tower-http",
- "tower-service",
- "url",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "wasm-streams",
- "web-sys",
- "webpki-roots 1.0.2",
-]
-
-[[package]]
-name = "reqwest"
 version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029"
@@ -4731,12 +4687,14 @@ dependencies = [
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
+ "tokio-util",
  "tower 0.5.2",
  "tower-http",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-streams",
  "web-sys",
 ]
 
@@ -4749,7 +4707,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "http 1.5.0",
- "reqwest 0.13.5",
+ "reqwest",
  "serde",
  "thiserror 2.0.20",
  "tower-service",
@@ -4767,7 +4725,7 @@ dependencies = [
  "getrandom 0.2.16",
  "http 1.5.0",
  "hyper 1.6.0",
- "reqwest 0.13.5",
+ "reqwest",
  "reqwest-middleware",
  "retry-policies",
  "thiserror 2.0.20",
@@ -4787,7 +4745,7 @@ dependencies = [
  "getrandom 0.2.16",
  "http 1.5.0",
  "matchit",
- "reqwest 0.13.5",
+ "reqwest",
  "reqwest-middleware",
  "tracing",
 ]
@@ -4919,7 +4877,6 @@ checksum = "7160e3e10bf4535308537f3c4e1641468cd0e485175d6163087c0393c7d46643"
 dependencies = [
  "aws-lc-rs",
  "once_cell",
- "ring",
  "rustls-pki-types",
  "rustls-webpki",
  "subtle",
@@ -6671,9 +6628,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-streams"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15053d8d85c7eccdbefef60f06769760a563c7f0a9d6902a13d35c7800b0ad65"
+checksum = "9d1ec4f6517c9e11ae630e200b2b65d193279042e28edd4a2cda233e46670bbb"
 dependencies = [
  "futures-util",
  "js-sys",
@@ -6721,24 +6678,6 @@ name = "webpki-root-certs"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b96554aa2acc8ccdb7e1c9a58a7a68dd5d13bccc69cd124cb09406db612a1c9b"
-dependencies = [
- "rustls-pki-types",
-]
-
-[[package]]
-name = "webpki-roots"
-version = "0.26.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29aad86cec885cafd03e8305fd727c418e970a521322c91688414d5b8efba16b"
-dependencies = [
- "rustls-pki-types",
-]
-
-[[package]]
-name = "webpki-roots"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e8983c3ab33d6fb807cfcdad2491c4ea8cbc8ed839181c7dfd9c67c83e261b2"
 dependencies = [
  "rustls-pki-types",
 ]
@@ -7245,7 +7184,7 @@ dependencies = [
  "pulldown-cmark-to-cmark",
  "ratatui",
  "regex",
- "reqwest 0.13.5",
+ "reqwest",
  "ring",
  "rmp-serde",
  "serde",
@@ -7300,23 +7239,3 @@ checksum = "dc6fb7703e32e9a07fb3f757360338b3a567a5054f21b5f52a666752e333d58e"
 dependencies = [
  "zune-core",
 ]
-
-[[patch.unused]]
-name = "kcl-api"
-version = "0.2.186"
-source = "git+https://github.com/KittyCAD/modeling-app?branch=main#dacd00afe55bab9bd640fdf5f372bda11d947143"
-
-[[patch.unused]]
-name = "kcl-error"
-version = "0.2.186"
-source = "git+https://github.com/KittyCAD/modeling-app?branch=main#dacd00afe55bab9bd640fdf5f372bda11d947143"
-
-[[patch.unused]]
-name = "kcl-lib"
-version = "0.2.186"
-source = "git+https://github.com/KittyCAD/modeling-app?branch=main#dacd00afe55bab9bd640fdf5f372bda11d947143"
-
-[[patch.unused]]
-name = "kcl-test-server"
-version = "0.2.186"
-source = "git+https://github.com/KittyCAD/modeling-app?branch=main#dacd00afe55bab9bd640fdf5f372bda11d947143"
