@@ -1,6 +1,6 @@
 [package]
 name = "zoo"
-version = "0.2.197"
+version = "0.2.198"
 edition = "2024"
 build = "build.rs"
 
