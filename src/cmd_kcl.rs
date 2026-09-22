@@ -1030,73 +1030,34 @@ impl crate::cmd::Command for CmdKclAnalyze {
                 "",
                 &filepath.display().to_string(),
                 &code,
-                vec![
-                    kcmc::ModelingCmd::Volume(kcmc::Volume::builder().output_unit(self.volume_output_unit).build()),
-                    kcmc::ModelingCmd::Mass(
-                        kcmc::Mass::builder()
-                            .material_density(self.material_density.into())
-                            .material_density_unit(self.material_density_unit)
-                            .output_unit(self.mass_output_unit)
-                            .build(),
-                    ),
-                    kcmc::ModelingCmd::SurfaceArea(
-                        kcmc::SurfaceArea::builder()
-                            .output_unit(self.surface_area_output_unit)
-                            .build(),
-                    ),
-                    kcmc::ModelingCmd::CenterOfMass(
-                        kcmc::CenterOfMass::builder()
-                            .output_unit(self.center_of_mass_output_unit)
-                            .build(),
-                    ),
-                    kcmc::ModelingCmd::BoundingBox(
-                        kcmc::BoundingBox::builder()
-                            .output_unit(self.center_of_mass_output_unit)
-                            .entity_ids(Default::default()) // everything
-                            .build(),
-                    ),
-                ],
+                vec![kcmc::ModelingCmd::PhysicalProperties(
+                    kcmc::PhysicalProperties::builder()
+                        .material_density(self.material_density.into())
+                        .material_density_unit(self.material_density_unit)
+                        // Analyze reports the supplied density, converted below. The engine's
+                        // independent density calculation still requires a material mass.
+                        .material_mass(1.0)
+                        .material_mass_unit(kcmc::units::UnitMass::Kilograms)
+                        .mass_output_unit(self.mass_output_unit)
+                        .density_output_unit(self.density_output_unit)
+                        .volume_output_unit(self.volume_output_unit)
+                        .surface_area_output_unit(self.surface_area_output_unit)
+                        .center_of_mass_output_unit(self.center_of_mass_output_unit)
+                        .bounding_box_output_unit(self.center_of_mass_output_unit)
+                        .build(),
+                )],
                 executor_settings,
                 self.run_options.issue_check(),
             )
             .await?;
 
-        let mut responses = responses.into_iter();
         use kcmc::websocket::OkWebSocketResponseData::Modeling;
-        let volume = match responses.next() {
+        let properties = match responses.into_iter().next() {
             Some(Modeling {
-                modeling_response: OkModelingCmdResponse::Volume(data),
+                modeling_response: OkModelingCmdResponse::PhysicalProperties(data),
             }) => data,
             Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
-            None => anyhow::bail!("Expected volume response from engine"),
-        };
-        let mass = match responses.next() {
-            Some(Modeling {
-                modeling_response: OkModelingCmdResponse::Mass(data),
-            }) => data,
-            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
-            None => anyhow::bail!("Expected mass response from engine"),
-        };
-        let surface_area = match responses.next() {
-            Some(Modeling {
-                modeling_response: OkModelingCmdResponse::SurfaceArea(data),
-            }) => data,
-            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
-            None => anyhow::bail!("Expected surface area response from engine"),
-        };
-        let center_of_mass = match responses.next() {
-            Some(Modeling {
-                modeling_response: OkModelingCmdResponse::CenterOfMass(data),
-            }) => data,
-            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
-            None => anyhow::bail!("Expected center of mass response from engine"),
-        };
-        let bounding_box = match responses.next() {
-            Some(Modeling {
-                modeling_response: OkModelingCmdResponse::BoundingBox(data),
-            }) => data,
-            Some(resp) => anyhow::bail!("Unexpected response from engine: {resp:?}"),
-            None => anyhow::bail!("Expected bounding box response from engine"),
+            None => anyhow::bail!("Expected physical properties response from engine"),
         };
 
         let density_value = self
@@ -1108,12 +1069,12 @@ impl crate::cmd::Command for CmdKclAnalyze {
         };
 
         let output = KclAnalyzeOutput {
-            volume,
-            mass,
+            volume: properties.volume,
+            mass: properties.mass,
             density,
-            surface_area,
-            center_of_mass,
-            bounding_box,
+            surface_area: properties.surface_area,
+            center_of_mass: properties.center_of_mass,
+            bounding_box: properties.bounding_box,
         };
 
         let format = ctx.format(&self.format)?;

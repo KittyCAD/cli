@@ -195,6 +195,15 @@ checksum = "08abcc3b4e9339e33a3d0a5ed15d84a687350c05689d825e0f6655eef9e76a94"
 
 [[package]]
 name = "approx"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f2a05fd1bd10b2527e20a2cd32d8873d115b8b39fe219ee25f42a8aca6ba278"
+dependencies = [
+ "num-traits 0.2.19",
+]
+
+[[package]]
+name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
@@ -680,6 +689,17 @@ dependencies = [
  "mint",
  "num-traits 0.1.43",
  "rand 0.4.6",
+]
+
+[[package]]
+name = "cgmath"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a98d30140e3296250832bbaaff83b27dcd6fa3cc70fb6f1f3e5c9c0023b5317"
+dependencies = [
+ "approx 0.4.0",
+ "mint",
+ "num-traits 0.2.19",
 ]
 
 [[package]]
@@ -1472,7 +1492,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f19d11568a4a46aee488bdab3a2963e5e2c3cfd6091aa0abceaddcea82c0bc1"
 dependencies = [
  "approx 0.1.1",
- "cgmath",
+ "cgmath 0.16.1",
+]
+
+[[package]]
+name = "euler"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b12915a9b399434cddb6c36145895e71d2ba1511ed390fe6b2f7a0383140f21c"
+dependencies = [
+ "approx 0.4.0",
+ "cgmath 0.18.0",
 ]
 
 [[package]]
@@ -2824,7 +2854,7 @@ version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d47dce1cbf279d3042155b5ff6b63d568bc0e5174085a808d356694481d40599"
 dependencies = [
- "euler",
+ "euler 0.4.1",
  "indexmap 2.14.0",
  "kcl-error",
  "kittycad-measurements",
@@ -3023,9 +3053,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.232"
+version = "0.2.235"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34dbb766dcf2e5363a405f8b5abe43dd20e6e2741e6e5029926e3c822c9097d8"
+checksum = "f8158bbce6cacac401459a4103a2e6d44e84055b6f159a1fb1ba597b73d025a6"
 dependencies = [
  "anyhow",
  "bon",
@@ -3033,7 +3063,7 @@ dependencies = [
  "data-encoding",
  "enum-iterator",
  "enum-iterator-derive",
- "euler",
+ "euler 0.5.0",
  "http 1.5.0",
  "kcl-api",
  "kcl-error",
@@ -3689,9 +3719,9 @@ checksum = "44d11de466f4a3006fe8a5e7ec84e93b79c70cb992ae0aa0eb631ad2df8abfe2"
 
 [[package]]
 name = "open"
-version = "5.4.4"
+version = "5.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa576c76302b7b808eecc68061e67336c47833ef9d22caa74dda10fa9675eebc"
+checksum = "7c603ab8300cf18bc3b14146b19fe3dfcc4843ae5a400cd0e7a30b95aa366634"
 dependencies = [
  "is-wsl",
  "libc",
@@ -3700,7 +3730,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#3526bd38738279e04fca0db21fccfb7ab0ae4783"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#b404af0f52819d648350df85c453af6d8b7a24a8"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -6449,9 +6479,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.26.1"
+version = "1.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ef6dac1e96601b4fb3acccccff2139741fcb757cb9a36089bf5be91cfb285ce"
+checksum = "b5772d71c9be8a8a6ac2117d949c5b224c1b72241bb611d9a3012edcf8af7812"
 dependencies = [
  "getrandom 0.4.3",
  "js-sys",
