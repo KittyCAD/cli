@@ -390,7 +390,7 @@ impl<'a> Context<'a> {
                     } else {
                         let all_errors = errors
                             .into_iter()
-                            .map(|error| error.message)
+                            .map(|error| format!("{} {}", error.error_code, error.message))
                             .collect::<Vec<_>>()
                             .join("\n");
                         anyhow::bail!("Failed executing KCL on engine, errors: {}", all_errors)
