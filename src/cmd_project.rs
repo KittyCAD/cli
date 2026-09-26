@@ -603,7 +603,7 @@ mod tests {
 
     async fn run_list_command(
         command: &CmdProject,
-        responses: Vec<(u16, String)>,
+        responses: Vec<Option<(u16, String)>>,
     ) -> (Result<()>, String, Vec<String>) {
         use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 
@@ -613,7 +613,8 @@ mod tests {
         let host = format!("http://{}/custom-api", listener.local_addr().unwrap());
         let (requests_tx, requests_rx) = std::sync::mpsc::channel();
         let server = tokio::spawn(async move {
-            for (status, body) in responses {
+            let mut responses = responses.into_iter();
+            loop {
                 let (stream, _) = listener.accept().await.unwrap();
                 let mut reader = tokio::io::BufReader::new(stream);
                 let mut request = String::new();
@@ -626,6 +627,9 @@ mod tests {
                     }
                 }
                 requests_tx.send(request).unwrap();
+                let Some((status, body)) = responses.next().unwrap_or(Some((418, String::new()))) else {
+                    continue;
+                };
                 let response = format!(
                     "HTTP/1.1 {status} Test\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
                     body.len()
@@ -679,7 +683,8 @@ mod tests {
             vec![(200, first_page.clone()), (200, empty_page), (200, last_page)],
         ] {
             let page_count = responses.len();
-            let (result, stdout, requests) = run_list_command(&command, responses).await;
+            let (result, stdout, requests) =
+                run_list_command(&command, responses.into_iter().map(Some).collect()).await;
             result.unwrap();
             let output: Vec<ListOutput> = serde_json::from_str(&stdout).unwrap();
             assert_eq!(
@@ -711,6 +716,12 @@ mod tests {
         })
         .unwrap();
         for (responses, expected_error) in [
+            (vec![(401, "unauthorized".into())], "401"),
+            (vec![(403, "permission denied".into())], "403"),
+            (vec![(404, "not found".into())], "404"),
+            // Keep the configured SDK retry behavior without ever printing partial results.
+            (vec![(503, "unavailable".into()); 4], "503"),
+            (vec![(200, first_page.clone()), (404, "not found".into())], "404"),
             (
                 vec![(200, first_page.clone()), (403, "permission denied".into())],
                 "403",
@@ -726,11 +737,31 @@ mod tests {
             ),
         ] {
             let page_count = responses.len();
-            let (result, stdout, requests) = run_list_command(&command, responses).await;
-            assert!(result.unwrap_err().to_string().contains(expected_error));
+            let (result, stdout, requests) =
+                run_list_command(&command, responses.into_iter().map(Some).collect()).await;
+            let error = result.unwrap_err();
+            assert!(
+                format!("{error:#}").contains(expected_error),
+                "unexpected error: {error:#}"
+            );
             assert_eq!(requests.len(), page_count);
+            assert!(
+                requests
+                    .iter()
+                    .all(|request| { request.starts_with(&format!("GET /custom-api{endpoint}")) })
+            );
             assert!(stdout.is_empty(), "a failed traversal must not print partial results");
         }
+        // A dropped connection is retried by the SDK and still leaves stdout empty.
+        let (result, stdout, requests) = run_list_command(&command, vec![None; 4]).await;
+        assert!(result.is_err());
+        assert!(stdout.is_empty());
+        assert_eq!(requests.len(), 4);
+        assert!(
+            requests
+                .iter()
+                .all(|request| { request.starts_with(&format!("GET /custom-api{endpoint} ")) })
+        );
     }
 
     #[tokio::test]
