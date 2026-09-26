@@ -16,7 +16,11 @@ const PROJECT_ARCHIVE_ACCEPT: &str = "application/x-tar";
 #[serde(untagged)]
 enum ProjectListResponse<T> {
     Legacy(Vec<T>),
-    Page { items: Vec<T>, next_page: Option<String> },
+    Page {
+        items: Vec<T>,
+        #[serde(deserialize_with = "serde::Deserialize::deserialize")]
+        next_page: Option<String>,
+    },
 }
 
 async fn fetch_project_list<T: serde::de::DeserializeOwned>(
@@ -596,6 +600,11 @@ mod tests {
         next_page: Option<&'a str>,
     }
 
+    #[derive(serde::Serialize)]
+    struct IncompletePage<'a, T> {
+        items: &'a [T],
+    }
+
     #[derive(serde::Deserialize)]
     struct ListOutput {
         description: String,
@@ -715,7 +724,12 @@ mod tests {
             next_page: Some(""),
         })
         .unwrap();
+        let incomplete_page = serde_json::to_string(&IncompletePage { items: &items[1..] }).unwrap();
         for (responses, expected_error) in [
+            (
+                vec![(200, first_page.clone()), (200, incomplete_page)],
+                "did not match any variant",
+            ),
             (vec![(401, "unauthorized".into())], "401"),
             (vec![(403, "permission denied".into())], "403"),
             (vec![(404, "not found".into())], "404"),
