@@ -92,7 +92,12 @@ async fn serve_bounding_box(listener: TcpListener) {
                 (
                     request_id,
                     OkWebSocketResponseData::ExecKclProject {
-                        result: Ok(ExecKclProjectOk::builder().artifact_graph(Default::default()).build()),
+                        result: Ok(ExecKclProjectOk::builder()
+                            .issues(Default::default())
+                            .operations(Default::default())
+                            .variables(Default::default())
+                            .artifact_graph(Default::default())
+                            .build()),
                     },
                 )
             }
