@@ -71,7 +71,8 @@ async fn run_kcl_program(
         },
         use_new_lexer_parser: RuntimeFlag::On,
     });
-    let exec_ctx = kcl_lib::ExecutorContext::new(client, settings).await?;
+    let kcl_version = program.language_version()?;
+    let exec_ctx = kcl_lib::ExecutorContext::new(client, settings, kcl_version).await?;
     let mut exec_state = kcl_lib::ExecState::new(&exec_ctx);
     let (main_ref, session_data) = exec_ctx
         .run(program, &mut exec_state)
