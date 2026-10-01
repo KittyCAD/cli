@@ -35,12 +35,16 @@ async fn fetch_project_list<T: serde::de::DeserializeOwned>(
         if let Some(token) = &page_token {
             request = request.query(&[("page_token", token)]);
         }
-        let response = request
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<ProjectListResponse<T>>()
-            .await?;
+        let response = request.send().await?;
+        let status = response.status();
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .with_context(|| format!("failed to read {status} response body"))?;
+            anyhow::bail!("{status} {body}");
+        }
+        let response = response.json::<ProjectListResponse<T>>().await?;
         let (page, next_page) = match response {
             ProjectListResponse::Legacy(items) => {
                 anyhow::ensure!(
@@ -730,15 +734,24 @@ mod tests {
                 vec![(200, first_page.clone()), (200, incomplete_page)],
                 "did not match any variant",
             ),
-            (vec![(401, "unauthorized".into())], "401"),
-            (vec![(403, "permission denied".into())], "403"),
-            (vec![(404, "not found".into())], "404"),
+            (vec![(401, "unauthorized".into())], "401 Unauthorized unauthorized"),
+            (
+                vec![(403, "permission denied".into())],
+                "403 Forbidden permission denied",
+            ),
+            (vec![(404, "not found".into())], "404 Not Found not found"),
             // Keep the configured SDK retry behavior without ever printing partial results.
-            (vec![(503, "unavailable".into()); 4], "503"),
-            (vec![(200, first_page.clone()), (404, "not found".into())], "404"),
+            (
+                vec![(503, "unavailable".into()); 4],
+                "503 Service Unavailable unavailable",
+            ),
+            (
+                vec![(200, first_page.clone()), (404, "not found".into())],
+                "404 Not Found not found",
+            ),
             (
                 vec![(200, first_page.clone()), (403, "permission denied".into())],
-                "403",
+                "403 Forbidden permission denied",
             ),
             (vec![(200, empty_cursor_page)], "empty or repeated page token"),
             (
