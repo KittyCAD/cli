@@ -62,7 +62,6 @@ async fn run_kcl_program(
         }
     };
     kcl_lib::set_kcl_runtime_flags(KclRuntimeFlags {
-        enable_z0006_lint: RuntimeFlag::Unset,
         // Default is on.
         use_cek_executor: if executor_env.is_some_and(|v| v.eq_ignore_ascii_case("recursive")) {
             RuntimeFlag::Off
