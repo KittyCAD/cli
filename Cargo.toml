@@ -42,7 +42,7 @@ itertools = "0.15.0"
 kcl-error = "=0.2.190"
 kcl-lib = { version = "=0.2.190", features = ["disable-println"] }
 kcl-test-server = "=0.2.190"
-kittycad = { version = "0.5.2", features = [
+kittycad = { version = "0.5.4", features = [
   "clap",
   "tabled",
   "requests",
