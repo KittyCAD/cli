@@ -202,6 +202,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
                     push_assistant_block(&mut lines, rows, None, None);
                 }
                 kittycad::types::MlCopilotServerMessage::Error { detail }
+                | kittycad::types::MlCopilotServerMessage::AttachmentsError { detail, .. }
                 | kittycad::types::MlCopilotServerMessage::AccessDenied { detail, .. } => {
                     let rows: Vec<String> = detail.split('\n').map(|s| s.to_string()).collect();
                     push_assistant_block(&mut lines, rows, Some(Style::default().fg(Color::Red)), None);
