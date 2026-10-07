@@ -1024,7 +1024,7 @@ impl Operation {
                     let result = client.#tag_ident().#fn_name_ident(#(#api_call_params),*).await?;
 
                     let format = ctx.format(&self.format)?;
-                    ctx.io.write_output(&format, &result)?;
+                    ctx.io.write_sdk_output(&format, &result)?;
                     Ok(())
                 }
             }
