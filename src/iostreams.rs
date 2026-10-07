@@ -7,6 +7,23 @@ use crate::config_file::get_env_var;
 
 const DEFAULT_WIDTH: i32 = 80;
 
+// SDK responses use a newer table trait; keep the existing renderer and modeling types.
+#[derive(serde::Serialize)]
+#[serde(transparent)]
+struct SdkOutput<'a, T>(&'a T);
+
+impl<T: sdk_tabled::Tabled> tabled::Tabled for SdkOutput<'_, T> {
+    const LENGTH: usize = T::LENGTH;
+
+    fn fields(&self) -> Vec<std::borrow::Cow<'_, str>> {
+        self.0.fields()
+    }
+
+    fn headers() -> Vec<std::borrow::Cow<'static, str>> {
+        T::headers()
+    }
+}
+
 pub struct IoStreams {
     pub stdin: Box<dyn std::io::Read + Send + Sync>,
     pub out: Box<dyn std::io::Write + Send + Sync>,
@@ -267,6 +284,14 @@ impl IoStreams {
         }
     }
 
+    pub fn write_sdk_output<T: serde::Serialize + sdk_tabled::Tabled>(
+        &mut self,
+        format: &crate::types::FormatOutput,
+        value: &T,
+    ) -> Result<()> {
+        self.write_output(format, &SdkOutput(value))
+    }
+
     pub fn write_output_json(&mut self, json: &serde_json::Value) -> Result<()> {
         if self.color_enabled() {
             // Print the response body.
@@ -425,6 +450,78 @@ mod test {
 
     fn measure_width_fails_fn() -> Result<(i32, i32)> {
         Err(anyhow!("Failed to get terminal size"))
+    }
+
+    #[test]
+    fn sdk_output_preserves_table_json_and_yaml() {
+        use crate::types::FormatOutput;
+
+        let epoch = chrono::DateTime::from_timestamp(0, 0).unwrap();
+        let volume = kittycad::types::FileVolume {
+            completed_at: None,
+            created_at: epoch,
+            error: None,
+            id: uuid::Uuid::nil(),
+            output_unit: kittycad::types::UnitVolume::Mm3,
+            src_format: kittycad::types::FileImportFormat::Step,
+            started_at: None,
+            status: kittycad::types::ApiCallStatus::Completed,
+            updated_at: epoch,
+            user_id: uuid::Uuid::nil(),
+            volume: Some(1.5),
+        };
+        for format in [FormatOutput::Table, FormatOutput::Json, FormatOutput::Yaml] {
+            let (mut io, stdout_path, stderr_path) = IoStreams::test();
+            io.set_color_enabled(false);
+            io.write_sdk_output(&format, &volume).unwrap();
+            drop(io);
+            let stdout = std::fs::read_to_string(&stdout_path).unwrap();
+            assert!(std::fs::read_to_string(&stderr_path).unwrap().is_empty());
+            std::fs::remove_file(stdout_path).unwrap();
+            std::fs::remove_file(stderr_path).unwrap();
+            match format {
+                FormatOutput::Json => {
+                    assert_eq!(
+                        serde_json::from_str::<kittycad::types::FileVolume>(&stdout).unwrap(),
+                        volume
+                    );
+                    assert_eq!(stdout, format!("{}\n", serde_json::to_string_pretty(&volume).unwrap()));
+                }
+                FormatOutput::Yaml => {
+                    assert_eq!(
+                        serde_yaml::from_str::<kittycad::types::FileVolume>(&stdout).unwrap(),
+                        volume
+                    );
+                    assert!(serde_json::from_str::<kittycad::types::FileVolume>(&stdout).is_err());
+                }
+                FormatOutput::Table => {
+                    assert!(stdout.starts_with('┌'));
+                    let rows = stdout
+                        .lines()
+                        .filter_map(|line| {
+                            let cells = line.split('│').collect::<Vec<_>>();
+                            (cells.len() == 4).then(|| (cells[1].trim(), cells[2].trim()))
+                        })
+                        .collect::<Vec<_>>();
+                    assert_eq!(
+                        rows,
+                        [
+                            ("volume", "1.5"),
+                            ("user_id", "00000000-0000-0000-0000-000000000000"),
+                            ("updated_at", "1970-01-01T00:00:00Z"),
+                            ("status", "Completed"),
+                            ("started_at", ""),
+                            ("src_format", "Step"),
+                            ("output_unit", "Mm3"),
+                            ("id", "00000000-0000-0000-0000-000000000000"),
+                            ("error", ""),
+                            ("created_at", "1970-01-01T00:00:00Z"),
+                            ("completed_at", ""),
+                        ]
+                    );
+                }
+            }
+        }
     }
 
     #[test]

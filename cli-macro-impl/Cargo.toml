@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 Inflector = "^0.11.4"
 anyhow = "1"
-openapitor = { git = "https://github.com/KittyCAD/kittycad.rs", branch = "main" }
+openapitor = { git = "https://github.com/KittyCAD/kittycad.rs", rev = "c5623bf22fba5d1fea6db48fb1af5b9841a4b188" }
 openapiv3 = "2"
 proc-macro2 = "1"
 quote = "1"
