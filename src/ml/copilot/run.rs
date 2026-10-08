@@ -670,6 +670,7 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::R
     let mut settings: kcl_lib::ExecutorSettings = Default::default();
     let typed = TypedPath::from(input.display().to_string().as_str());
     settings.with_current_file(typed);
+    settings.geometry_only = true;
 
     if input.to_str() == Some("-") {
         return Ok(settings);
@@ -688,6 +689,7 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::R
         let mut derived: kcl_lib::ExecutorSettings = project.into();
         let typed = TypedPath::from(input.display().to_string().as_str());
         derived.with_current_file(typed);
+        derived.geometry_only = true;
         Ok(derived)
     } else {
         Ok(settings)

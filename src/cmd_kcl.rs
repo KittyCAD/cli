@@ -1749,6 +1749,7 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
     let mut default_settings: kcl_lib::ExecutorSettings = Default::default();
     let typed_path = TypedPath::from(input.display().to_string().as_str());
     default_settings.with_current_file(typed_path);
+    default_settings.geometry_only = true;
 
     // Check if the path was stdin.
     if input.to_str() == Some("-") {
@@ -1782,6 +1783,7 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
         let mut settings: kcl_lib::ExecutorSettings = project_toml.into();
         let typed_path = TypedPath::from(input.display().to_string().as_str());
         settings.with_current_file(typed_path);
+        settings.geometry_only = true;
         Ok(with_heartbeats(settings))
     } else {
         Ok(with_heartbeats(default_settings))
