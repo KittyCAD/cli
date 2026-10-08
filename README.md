@@ -32,7 +32,13 @@ repo as well since that is where the API client comes from.
 
 ### Running the tests
 
-The tests use the `ZOO_TEST_TOKEN`  variables for knowing how to authenticate.
+Authenticated tests use `ZOO_TEST_TOKEN` and `ZOO_TEST_HOST`. Set these according the deployment you want to test against.
+
+```sh
+export ZOO_TEST_TOKEN=$ZOO_API_TOKEN # dev or prod
+export ZOO_TEST_HOST=$ZOO_HOST # dev or prod
+cargo nextest run --no-fail-fast
+```
 
 ### Releasing a new version
 
