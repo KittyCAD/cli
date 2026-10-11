@@ -2986,7 +2986,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "serde_urlencoded",
- "tabled",
+ "tabled 0.22.0",
  "thiserror 2.0.21",
  "tokio",
  "tracing",
@@ -3031,7 +3031,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "serde_with",
- "tabled",
+ "tabled 0.20.0",
  "ts-rs",
  "typed-path",
  "uuid",
@@ -3696,7 +3696,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#ca27cef31732d36417ed1423d3b22f24b66e44dc"
+source = "git+https://github.com/KittyCAD/kittycad.rs?rev=c5623bf22fba5d1fea6db48fb1af5b9841a4b188#c5623bf22fba5d1fea6db48fb1af5b9841a4b188"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -3787,6 +3787,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "papergrid"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0984e668274d34691bc2b262ef0d115de5fa9973bcdee7ae32213f93099153e"
+dependencies = [
+ "ansi-str",
+ "ansitok",
+ "bytecount",
+ "fnv",
+ "unicode-width 0.2.2",
 ]
 
 [[package]]
@@ -5711,9 +5724,34 @@ checksum = "2d2596a104db1900b943f97d793a6c99addca918c4525c999f751a0f17d472eb"
 dependencies = [
  "ansi-str",
  "ansitok",
- "papergrid",
- "tabled_derive",
+ "papergrid 0.17.0",
+ "tabled_derive 0.11.0",
  "testing_table",
+]
+
+[[package]]
+name = "tabled"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d2596a104db1900b943f97d793a6c99addca918c4525c999f751a0f17d472eb"
+dependencies = [
+ "ansi-str",
+ "ansitok",
+ "papergrid 0.18.0",
+ "tabled_derive 0.12.0",
+ "testing_table",
+]
+
+[[package]]
+name = "tabled_derive"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dca1937322a1e892b1a65f6a6736183bb0a29d3b4234d1d53bc436dff9beb76"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -7183,7 +7221,8 @@ dependencies = [
  "slog-scope",
  "slog-stdlog",
  "slog-term",
- "tabled",
+ "tabled 0.20.0",
+ "tabled 0.22.0",
  "tabwriter",
  "tar",
  "tempfile",

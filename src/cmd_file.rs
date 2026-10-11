@@ -155,7 +155,7 @@ impl crate::cmd::Command for CmdFileConvert {
         file_conversion.outputs = None;
 
         // Print the output of the conversion.
-        ctx.io.write_output(&format, &file_conversion)?;
+        ctx.io.write_sdk_output(&format, &file_conversion)?;
 
         Ok(())
     }
@@ -410,7 +410,7 @@ impl crate::cmd::Command for CmdFileVolume {
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
-        ctx.io.write_output(&format, &file_volume)?;
+        ctx.io.write_sdk_output(&format, &file_volume)?;
 
         Ok(())
     }
@@ -489,7 +489,7 @@ impl crate::cmd::Command for CmdFileMass {
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
-        ctx.io.write_output(&format, &file_mass)?;
+        ctx.io.write_sdk_output(&format, &file_mass)?;
 
         Ok(())
     }
@@ -550,7 +550,7 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
-        ctx.io.write_output(&format, &file_center_of_mass)?;
+        ctx.io.write_sdk_output(&format, &file_center_of_mass)?;
 
         Ok(())
     }
@@ -629,7 +629,7 @@ impl crate::cmd::Command for CmdFileDensity {
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
-        ctx.io.write_output(&format, &file_density)?;
+        ctx.io.write_sdk_output(&format, &file_density)?;
 
         Ok(())
     }
@@ -690,7 +690,7 @@ impl crate::cmd::Command for CmdFileSurfaceArea {
 
         // Print the output of the conversion.
         let format = ctx.format(&self.format)?;
-        ctx.io.write_output(&format, &file_surface_area)?;
+        ctx.io.write_sdk_output(&format, &file_surface_area)?;
 
         Ok(())
     }

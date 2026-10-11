@@ -283,7 +283,7 @@ impl crate::cmd::Command for CmdOrgDatasetUpload {
         let client = ctx.api_client("")?;
         let response = client.orgs().upload_dataset_files(attachments, self.dataset_id).await?;
         let format = ctx.format(&self.format)?;
-        ctx.io.write_output(&format, &response)?;
+        ctx.io.write_sdk_output(&format, &response)?;
         Ok(())
     }
 }
@@ -1532,7 +1532,7 @@ fn write_dataset_create_output(
         FormatOutput::Table => {
             ctx.io.write_output_for_vec(format, vec![dataset_row(&dataset)])?;
             if let Some(upload) = upload {
-                ctx.io.write_output(format, &upload)?;
+                ctx.io.write_sdk_output(format, &upload)?;
             }
         }
     }
