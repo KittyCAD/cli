@@ -1084,9 +1084,9 @@ dependencies = [
 
 [[package]]
 name = "csscolorparser"
-version = "0.8.3"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "199f851bd3cb5004c09474252c7f74e7c047441ed0979bf3688a7106a13da952"
+checksum = "75c9db70df93ea049adaa5ef1a727079ada6ccb33d4b358f262923aef4fcac8c"
 dependencies = [
  "num-traits",
  "phf",
@@ -2800,9 +2800,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.191"
+version = "0.2.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "706a64d2eee8e1352f768d7f0b720adad3dbf30635179801d511b9885178aec5"
+checksum = "f686362cc0bfa733c00a3ba587a922a1e4e2e86c70c88fc862b4be293ecd592e"
 dependencies = [
  "euler",
  "indexmap 2.14.0",
@@ -2820,21 +2820,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "kcl-derive-docs"
-version = "0.2.191"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43d297ebc776b0ed07a1cb7c0329da0490927280350d7e1c49454842a690bb28"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.6",
-]
-
-[[package]]
 name = "kcl-engine-codec"
-version = "0.2.191"
+version = "0.2.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "054f68ab64ddd2badc8df120e8f1c5e34f51eb0427f7f507e00e352b76d29d7a"
+checksum = "ea8291d45672569f156ddba231b7c51ce4c423ad0c3a8049ac1ceda623929661"
 dependencies = [
  "kittycad-modeling-cmds",
  "rmp-serde",
@@ -2843,9 +2832,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.191"
+version = "0.2.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f94651a8605dc1bb420779d5a2eaf865cabab7241477c8765160d39f5c81a913"
+checksum = "cb3b814c9588b41bee841bf292fa63cd2367384e3ccf056199b464e19be217f5"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2857,9 +2846,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.191"
+version = "0.2.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0247471e68d928616d6ccb8cd6d3527e5f30f717b517f9128ff3531bda6f576"
+checksum = "ee7c58856f0b4c5a72c66daba80f1a4525fff951954cde2fcad0d5250ac75a1c"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2886,7 +2875,6 @@ dependencies = [
  "itertools 0.15.0",
  "js-sys",
  "kcl-api",
- "kcl-derive-docs",
  "kcl-engine-codec",
  "kcl-error",
  "kcl-syntax",
@@ -2907,7 +2895,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.11.0",
- "tempfile",
  "thiserror 2.0.21",
  "tokio",
  "tokio-tungstenite",
@@ -2919,7 +2906,6 @@ dependencies = [
  "url",
  "uuid",
  "validator",
- "walkdir",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2930,18 +2916,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.191"
+version = "0.2.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e46bcea3824499ebd5b012864fc8685e788db20d3f8bf4df25c8ed75a47178fe"
+checksum = "a658451de2bd4a80787320e844d551e555294002af63e59c457d9f5971a7f463"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.191"
+version = "0.2.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ed4de2028af70990bdb54b0cae0e231413e6bd4ded67df5d31c8411ec465b3"
+checksum = "817e35acff071147b5958fc6f03d499633d43da4c3545d875382d2fd94eac813"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2954,9 +2940,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.5.6"
+version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14566500feea711ad374f3525bd3372afa7c5d915e34a3457274ca228ba0df86"
+checksum = "b3dbe3157584108d4769845ae50980d692726de21ac3a8379f94b522b99e0679"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3005,9 +2991,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.250"
+version = "0.2.251"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06412005b5b2b40b6a2e039ba7baff82276d6b5a47ac45bd4379fe4ab4043995"
+checksum = "85bda8c8d6aef55cdf6cfb7306bc34889eb1440b8b98aff9d36f700f9c39115d"
 dependencies = [
  "anyhow",
  "bon",
@@ -3876,9 +3862,9 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
 name = "phf"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf"
+checksum = "010378780309880b08997fae13be7834dba947d36393bd372f2b1556deb2a2f6"
 dependencies = [
  "phf_macros",
  "phf_shared",
@@ -3887,9 +3873,9 @@ dependencies = [
 
 [[package]]
 name = "phf_generator"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "135ace3a761e564ec88c03a77317a7c6b80bb7f7135ef2544dbe054243b89737"
+checksum = "aeb62e0959d5a1bebc965f4d15d9e2b7cea002b6b0f5ba8cde6cc26738467100"
 dependencies = [
  "fastrand",
  "phf_shared",
@@ -3897,9 +3883,9 @@ dependencies = [
 
 [[package]]
 name = "phf_macros"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "812f032b54b1e759ccd5f8b6677695d5268c588701effba24601f6932f8269ef"
+checksum = "5fa8d0ca26d424d27630da600c6624696e7dec8bf7b3b492b383c5dc49e5e085"
 dependencies = [
  "phf_generator",
  "phf_shared",
@@ -3911,9 +3897,9 @@ dependencies = [
 
 [[package]]
 name = "phf_shared"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
+checksum = "c6fd9027e2d9319be6349febd1db4e8d02aa544921200c9b777720ac34a3aa89"
 dependencies = [
  "siphasher",
  "uncased",
@@ -7127,7 +7113,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.203"
+version = "0.2.204"
 dependencies = [
  "anyhow",
  "async-trait",
