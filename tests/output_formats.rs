@@ -103,6 +103,7 @@ async fn serve_bounding_box(listener: TcpListener) {
             }
             WebSocketRequest::ModelingCmdReq(request) => {
                 let response = match request.cmd {
+                    ModelingCmd::ToggleGraphics(_) => continue,
                     ModelingCmd::ZoomToFit(_) => json!({
                         "type": "zoom_to_fit", "data": {"settings": {
                             "pos": {"x": 0, "y": -100, "z": 0},

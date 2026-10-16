@@ -5,7 +5,8 @@ use camino::Utf8Path;
 use futures::{SinkExt, StreamExt};
 use kcl_lib::{KclRuntimeFlags, RuntimeFlag, engine_connection::EngineManager};
 use kittycad_modeling_cmds::{
-    ModelingCmd, each_cmd as mcmd,
+    ModelingCmd, ToggleGraphics, each_cmd as mcmd,
+    id::ModelingCmdId,
     output::TakeSnapshot,
     websocket::{
         FailureWebSocketResponse, ModelingCmdReq, ModelingSessionData, OkWebSocketResponseData, RawFile,
@@ -45,7 +46,7 @@ struct KclProgramRun {
 }
 
 /// Runs a KCL program and returns state needed for follow-up commands.
-async fn run_kcl_program(
+async fn run_kcl_program_locally_with_graphics(
     client: &kittycad::Client,
     program: &kcl_lib::Program,
     settings: kcl_lib::ExecutorSettings,
@@ -58,6 +59,10 @@ async fn run_kcl_program(
     let kcl_version = program.language_version()?;
     let exec_ctx = kcl_lib::ExecutorContext::new(client, settings, kcl_version).await?;
     let mut exec_state = kcl_lib::ExecState::new(&exec_ctx);
+    // not all KCL commands run successfully without a graphics context (looking at you, PlaneSetColor).
+    // so for an arbitrary KCL file we always have to enable graphics.
+    exec_ctx.enable_engine_graphics_settings(&mut exec_state).await?;
+    exec_ctx.enable_engine_graphics(&mut exec_state).await?;
     let (main_ref, session_data) = exec_ctx
         .run(program, &mut exec_state)
         .await
@@ -303,7 +308,7 @@ impl<'a> Context<'a> {
                 api_call_id: None,
                 fps: None,
                 order_independent_transparency: None,
-                pool: None,
+                pool: settings.geometry_only.then(|| "cpu".to_string()),
                 post_effect: if settings.enable_ssao {
                     Some(kittycad::types::PostEffectType::Ssao)
                 } else {
@@ -346,6 +351,17 @@ impl<'a> Context<'a> {
         let mut session_data = None;
         let mut heartbeat =
             tokio::time::interval(Duration::from_secs(settings.heartbeats.unwrap_or(cmd_kcl::HEARTBEATS)));
+
+        // for arbitrary KCL we must always have graphics enabled because some KCL demands it.
+        let graphics_on_request_id = ModelingCmdId(uuid::Uuid::new_v4());
+        send_ws_request(
+            &mut write,
+            WebSocketRequest::ModelingCmdReq(ModelingCmdReq {
+                cmd: ModelingCmd::ToggleGraphics(ToggleGraphics::enabled(true)),
+                cmd_id: graphics_on_request_id,
+            }),
+        )
+        .await?;
 
         let exec_request_id = uuid::Uuid::new_v4();
         send_ws_request(
@@ -492,7 +508,7 @@ impl<'a> Context<'a> {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
         let settings = cmd_kcl::with_heartbeats(settings);
-        let run = run_kcl_program(&client, &program, settings, filename, code).await?;
+        let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
@@ -551,7 +567,7 @@ impl<'a> Context<'a> {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
         let settings = cmd_kcl::with_heartbeats(settings);
-        let run = run_kcl_program(&client, &program, settings, filename, code).await?;
+        let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
@@ -616,7 +632,7 @@ impl<'a> Context<'a> {
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
         let settings = cmd_kcl::with_heartbeats(settings);
-        let run = run_kcl_program(&client, &program, settings, filename, code).await?;
+        let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
@@ -656,7 +672,7 @@ impl<'a> Context<'a> {
         output_format: kittycad_modeling_cmds::format::OutputFormat3d,
     ) -> Result<(Vec<RawFile>, Option<ModelingSessionData>)> {
         let client = self.api_client("")?;
-        let run = run_kcl_program(&client, program, settings, filename, code).await?;
+        let run = run_kcl_program_locally_with_graphics(&client, program, settings, filename, code).await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
