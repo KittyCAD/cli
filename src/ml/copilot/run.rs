@@ -665,35 +665,6 @@ fn apply_pending_edits(edits: &[state::PendingFileEdit]) -> anyhow::Result<usize
     Ok(n)
 }
 
-fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> anyhow::Result<kcl_lib::ExecutorSettings> {
-    // Start with default settings, set current file
-    let mut settings: kcl_lib::ExecutorSettings = Default::default();
-    let typed = TypedPath::from(input.display().to_string().as_str());
-    settings.with_current_file(typed);
-
-    if input.to_str() == Some("-") {
-        return Ok(settings);
-    }
-    if !input.exists() {
-        let input_display = input.display().to_string();
-        anyhow::bail!("file `{input_display}` does not exist");
-    }
-    let dir = if input.is_dir() {
-        input.to_path_buf()
-    } else {
-        input.parent().unwrap().to_path_buf()
-    };
-    if let Some(p) = crate::cmd_kcl::find_project_toml(&dir)? {
-        let project = crate::project::read_project_configuration(&p)?;
-        let mut derived: kcl_lib::ExecutorSettings = project.into();
-        let typed = TypedPath::from(input.display().to_string().as_str());
-        derived.with_current_file(typed);
-        Ok(derived)
-    } else {
-        Ok(settings)
-    }
-}
-
 fn preview_image_terminal(ctx: &mut crate::context::Context<'_>, path: &std::path::Path) -> anyhow::Result<()> {
     let (w, h) = (ctx.io.tty_size)()?;
     let cfg = viuer::Config {
@@ -732,7 +703,7 @@ async fn render_side_by_side(
     use kittycad_modeling_cmds::{ImageFormat, ModelingCmd, TakeSnapshot};
     // Determine old code and path from current directory
     let (old_code, old_main_path) = ctx.get_code_and_file_path(&std::path::PathBuf::from(".")).await?;
-    let old_settings = get_modeling_settings_from_project_toml(&old_main_path)?;
+    let old_settings = crate::cmd_kcl::get_modeling_settings_from_project_toml(&old_main_path)?;
     let (old_resp, _sd_old) = ctx
         .send_kcl_modeling_cmd(
             host,
