@@ -1989,8 +1989,10 @@ mod tests {
 
     #[test]
     fn geo_only_executor_settings_enforces_geo_only() {
-        let mut settings = ExecutorSettings::default();
-        settings.geometry_only = false;
+        let settings = ExecutorSettings {
+            geometry_only: false,
+            ..Default::default()
+        };
         let geo_only_settings = CliExecutorSettings::new(settings);
         assert!(
             geo_only_settings.inner().geometry_only,
@@ -2000,8 +2002,10 @@ mod tests {
 
     #[test]
     fn geo_only_executor_settings_adds_missing_heartbeats() {
-        let mut settings = ExecutorSettings::default();
-        settings.heartbeats = None;
+        let settings = ExecutorSettings {
+            heartbeats: None,
+            ..Default::default()
+        };
         let geo_only_settings = CliExecutorSettings::new(settings);
         assert_eq!(
             geo_only_settings.inner().heartbeats,
@@ -2011,8 +2015,10 @@ mod tests {
 
     #[test]
     fn geo_only_executor_settings_respects_existing_heartbeats() {
-        let mut settings = ExecutorSettings::default();
-        settings.heartbeats = Some(17);
+        let settings = ExecutorSettings {
+            heartbeats: Some(17),
+            ..Default::default()
+        };
         let geo_only_settings = CliExecutorSettings::new(settings);
         assert_eq!(geo_only_settings.inner().heartbeats, Some(17));
     }
