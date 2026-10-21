@@ -17,16 +17,6 @@ use crate::{
 
 mod camera_angles;
 
-/// Send a heartbeat every N seconds.
-pub const HEARTBEATS: u64 = 3;
-
-pub(crate) fn with_heartbeats(mut settings: kcl_lib::ExecutorSettings) -> kcl_lib::ExecutorSettings {
-    if settings.heartbeats.is_none() {
-        settings.heartbeats = Some(HEARTBEATS);
-    }
-    settings
-}
-
 /// Perform actions on `kcl` files.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -388,9 +378,9 @@ impl crate::cmd::Command for CmdKclSnapshot {
 
         // Get the modeling settings from the project.toml if exists.
         let mut executor_settings = get_modeling_settings_from_project_toml(&filepath)?;
-        executor_settings.replay = self.replay.then_some(filepath.to_string_lossy().to_string());
+        executor_settings.with_replay(self.replay.then_some(filepath.to_string_lossy().to_string()));
         // Required for transparent solids (e.g. with `appearance(opacity = 40)`).
-        executor_settings.enable_ssao = true;
+        executor_settings.with_ssao();
 
         let (many_pngs, session_data) = match self.session {
             Some(addr) => {
@@ -749,7 +739,7 @@ impl CmdKclView {
         filepath: &Path,
         output_format: kcmc::ImageFormat,
         tmp_file: &Path,
-        executor_settings: kcl_lib::ExecutorSettings,
+        executor_settings: GeoOnlyExecutorSettings,
     ) -> Result<()> {
         let (responses, _session_data) = ctx
             .run_kcl_then_snapshots(
@@ -1742,18 +1732,57 @@ fn print_trace_link(io: &mut IoStreams, session_data: &Option<ModelingSessionDat
     );
 }
 
+#[derive(Clone, Debug)]
+/// selectively mutable wrapper around executor settings.
+/// enforces heartbeats and geo only settings in "parse don't validate" style
+pub struct GeoOnlyExecutorSettings(kcl_lib::ExecutorSettings);
+
+impl GeoOnlyExecutorSettings {
+    fn new(mut settings: kcl_lib::ExecutorSettings) -> Self {
+        settings.geometry_only = true;
+        Self(Self::with_heartbeats(settings))
+    }
+
+    /// Send a heartbeat every N seconds.
+    pub const HEARTBEATS: u64 = 3;
+
+    fn with_heartbeats(mut settings: kcl_lib::ExecutorSettings) -> kcl_lib::ExecutorSettings {
+        if settings.heartbeats.is_none() {
+            settings.heartbeats = Some(Self::HEARTBEATS);
+        }
+        settings
+    }
+
+    /// consume to produce settings when ready to use
+    pub fn inner(self) -> kcl_lib::ExecutorSettings {
+        self.0
+    }
+
+    /// add the current file path to the ExecutorSettings
+    pub fn with_current_file(&mut self, path: TypedPath) {
+        self.0.with_current_file(path);
+    }
+
+    fn with_ssao(&mut self) {
+        self.0.enable_ssao = true;
+    }
+
+    fn with_replay(&mut self, replay: Option<String>) {
+        self.0.replay = replay;
+    }
+}
+
 /// Look for a `project.toml` file the same directory as the input file.
 /// Use that for the engine settings.
-fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kcl_lib::ExecutorSettings> {
+pub fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<GeoOnlyExecutorSettings> {
     // Create the default settings from the src unit if given.
     let mut default_settings: kcl_lib::ExecutorSettings = Default::default();
     let typed_path = TypedPath::from(input.display().to_string().as_str());
     default_settings.with_current_file(typed_path);
-    default_settings.geometry_only = true;
 
     // Check if the path was stdin.
     if input.to_str() == Some("-") {
-        return Ok(with_heartbeats(default_settings));
+        return Ok(GeoOnlyExecutorSettings::new(default_settings));
     }
 
     // Make it a path.
@@ -1783,10 +1812,9 @@ fn get_modeling_settings_from_project_toml(input: &std::path::Path) -> Result<kc
         let mut settings: kcl_lib::ExecutorSettings = project_toml.into();
         let typed_path = TypedPath::from(input.display().to_string().as_str());
         settings.with_current_file(typed_path);
-        settings.geometry_only = true;
-        Ok(with_heartbeats(settings))
+        Ok(GeoOnlyExecutorSettings::new(settings))
     } else {
-        Ok(with_heartbeats(default_settings))
+        Ok(GeoOnlyExecutorSettings::new(default_settings))
     }
 }
 
@@ -1955,13 +1983,45 @@ fn combine_quadrants(
 
 #[cfg(test)]
 mod tests {
+    use kcl_lib::ExecutorSettings;
+
     use super::*;
 
     #[test]
-    fn with_heartbeats_adds_cli_default() {
-        let settings = with_heartbeats(kcl_lib::ExecutorSettings::default());
+    fn geo_only_executor_settings_enforces_geo_only() {
+        let mut settings = ExecutorSettings::default();
+        settings.geometry_only = false;
+        let geo_only_settings = GeoOnlyExecutorSettings::new(settings);
+        assert!(
+            geo_only_settings.inner().geometry_only,
+            "expected geometry_only to be true"
+        );
+    }
 
-        assert_eq!(settings.heartbeats, Some(HEARTBEATS));
+    #[test]
+    fn geo_only_executor_settings_adds_missing_heartbeats() {
+        let mut settings = ExecutorSettings::default();
+        settings.heartbeats = None;
+        let geo_only_settings = GeoOnlyExecutorSettings::new(settings);
+        assert_eq!(
+            geo_only_settings.inner().heartbeats,
+            Some(GeoOnlyExecutorSettings::HEARTBEATS)
+        );
+    }
+
+    #[test]
+    fn geo_only_executor_settings_respects_existing_heartbeats() {
+        let mut settings = ExecutorSettings::default();
+        settings.heartbeats = Some(17);
+        let geo_only_settings = GeoOnlyExecutorSettings::new(settings);
+        assert_eq!(geo_only_settings.inner().heartbeats, Some(17));
+    }
+
+    #[test]
+    fn with_heartbeats_adds_cli_default() {
+        let settings = GeoOnlyExecutorSettings::with_heartbeats(kcl_lib::ExecutorSettings::default());
+
+        assert_eq!(settings.heartbeats, Some(GeoOnlyExecutorSettings::HEARTBEATS));
     }
 
     #[test]
@@ -1971,7 +2031,7 @@ mod tests {
             ..Default::default()
         };
 
-        let settings = with_heartbeats(settings);
+        let settings = GeoOnlyExecutorSettings::with_heartbeats(settings);
 
         assert_eq!(settings.heartbeats, Some(17));
     }
@@ -1984,6 +2044,6 @@ mod tests {
 
         let settings = get_modeling_settings_from_project_toml(&input).unwrap();
 
-        assert_eq!(settings.heartbeats, Some(HEARTBEATS));
+        assert_eq!(settings.inner().heartbeats, Some(GeoOnlyExecutorSettings::HEARTBEATS));
     }
 }
