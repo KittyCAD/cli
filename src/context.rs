@@ -49,7 +49,7 @@ struct KclProgramRun {
 async fn run_kcl_program_locally_with_graphics(
     client: &kittycad::Client,
     program: &kcl_lib::Program,
-    settings: kcl_lib::ExecutorSettings,
+    settings: cmd_kcl::CliExecutorSettings,
     filename: &str,
     code: &str,
 ) -> Result<KclProgramRun> {
@@ -57,7 +57,7 @@ async fn run_kcl_program_locally_with_graphics(
         use_new_parser: RuntimeFlag::Unset,
     });
     let kcl_version = program.language_version()?;
-    let exec_ctx = kcl_lib::ExecutorContext::new(client, settings, kcl_version).await?;
+    let exec_ctx = kcl_lib::ExecutorContext::new(client, settings.inner(), kcl_version).await?;
     let mut exec_state = kcl_lib::ExecState::new(&exec_ctx);
     // not all KCL commands run successfully without a graphics context (looking at you, PlaneSetColor).
     // so for an arbitrary KCL file we always have to enable graphics.
@@ -279,7 +279,7 @@ impl<'a> Context<'a> {
     pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineManager> {
         let ws = self.engine_ws(hostname, replay).await?;
 
-        let engine = EngineManager::new_websocket_transport(ws, Some(cmd_kcl::HEARTBEATS)).await;
+        let engine = EngineManager::new_websocket_transport(ws, Some(cmd_kcl::CliExecutorSettings::HEARTBEATS)).await;
 
         Ok(engine)
     }
@@ -335,22 +335,26 @@ impl<'a> Context<'a> {
         filepath: &Path,
         code: &str,
         cmds: Vec<ModelingCmd>,
-        settings: kcl_lib::ExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
         let Some(filepath) = Utf8Path::from_path(filepath) else {
             anyhow::bail!("Invalid filepath {} (must be unicode)", filepath.display());
         };
         let project = build_kcl_project(filepath, code)?;
-        let ws = self.engine_ws_with_settings(hostname, &settings).await?;
+        let executor_settings = settings.inner();
+        let ws = self.engine_ws_with_settings(hostname, &executor_settings).await?;
         let wsconfig = tokio_tungstenite::tungstenite::protocol::WebSocketConfig::default()
             .max_message_size(Some(usize::MAX))
             .max_frame_size(Some(usize::MAX));
         let ws_stream = WebSocketStream::from_raw_socket(ws, Role::Client, Some(wsconfig)).await;
         let (mut write, mut read) = ws_stream.split();
         let mut session_data = None;
-        let mut heartbeat =
-            tokio::time::interval(Duration::from_secs(settings.heartbeats.unwrap_or(cmd_kcl::HEARTBEATS)));
+        let mut heartbeat = tokio::time::interval(Duration::from_secs(
+            executor_settings
+                .heartbeats
+                .unwrap_or(cmd_kcl::CliExecutorSettings::HEARTBEATS),
+        ));
 
         // for arbitrary KCL we must always have graphics enabled because some KCL demands it.
         let graphics_on_request_id = ModelingCmdId(uuid::Uuid::new_v4());
@@ -473,7 +477,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         cmd: kittycad_modeling_cmds::ModelingCmd,
-        settings: kcl_lib::ExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
         if Self::use_server_kcl_execution() {
@@ -507,7 +511,6 @@ impl<'a> Context<'a> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let settings = cmd_kcl::with_heartbeats(settings);
         let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
@@ -552,7 +555,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
-        settings: kcl_lib::ExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
         if Self::use_server_kcl_execution() {
@@ -566,7 +569,6 @@ impl<'a> Context<'a> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let settings = cmd_kcl::with_heartbeats(settings);
         let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
@@ -599,7 +601,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         snapshot_cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
-        settings: kcl_lib::ExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<TakeSnapshot>, Option<ModelingSessionData>)> {
         if Self::use_server_kcl_execution() {
@@ -631,7 +633,6 @@ impl<'a> Context<'a> {
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let settings = cmd_kcl::with_heartbeats(settings);
         let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
@@ -667,7 +668,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         program: &kcl_lib::Program,
-        settings: kcl_lib::ExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
         output_format: kittycad_modeling_cmds::format::OutputFormat3d,
     ) -> Result<(Vec<RawFile>, Option<ModelingSessionData>)> {
