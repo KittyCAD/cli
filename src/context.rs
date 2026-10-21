@@ -49,7 +49,7 @@ struct KclProgramRun {
 async fn run_kcl_program_locally_with_graphics(
     client: &kittycad::Client,
     program: &kcl_lib::Program,
-    settings: cmd_kcl::GeoOnlyExecutorSettings,
+    settings: cmd_kcl::CliExecutorSettings,
     filename: &str,
     code: &str,
 ) -> Result<KclProgramRun> {
@@ -279,8 +279,7 @@ impl<'a> Context<'a> {
     pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineManager> {
         let ws = self.engine_ws(hostname, replay).await?;
 
-        let engine =
-            EngineManager::new_websocket_transport(ws, Some(cmd_kcl::GeoOnlyExecutorSettings::HEARTBEATS)).await;
+        let engine = EngineManager::new_websocket_transport(ws, Some(cmd_kcl::CliExecutorSettings::HEARTBEATS)).await;
 
         Ok(engine)
     }
@@ -336,15 +335,15 @@ impl<'a> Context<'a> {
         filepath: &Path,
         code: &str,
         cmds: Vec<ModelingCmd>,
-        settings: cmd_kcl::GeoOnlyExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
         let Some(filepath) = Utf8Path::from_path(filepath) else {
             anyhow::bail!("Invalid filepath {} (must be unicode)", filepath.display());
         };
         let project = build_kcl_project(filepath, code)?;
-        let settings_inner = settings.inner();
-        let ws = self.engine_ws_with_settings(hostname, &settings_inner).await?;
+        let executor_settings = settings.inner();
+        let ws = self.engine_ws_with_settings(hostname, &executor_settings).await?;
         let wsconfig = tokio_tungstenite::tungstenite::protocol::WebSocketConfig::default()
             .max_message_size(Some(usize::MAX))
             .max_frame_size(Some(usize::MAX));
@@ -352,9 +351,9 @@ impl<'a> Context<'a> {
         let (mut write, mut read) = ws_stream.split();
         let mut session_data = None;
         let mut heartbeat = tokio::time::interval(Duration::from_secs(
-            settings_inner
+            executor_settings
                 .heartbeats
-                .unwrap_or(cmd_kcl::GeoOnlyExecutorSettings::HEARTBEATS),
+                .unwrap_or(cmd_kcl::CliExecutorSettings::HEARTBEATS),
         ));
 
         // for arbitrary KCL we must always have graphics enabled because some KCL demands it.
@@ -478,7 +477,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         cmd: kittycad_modeling_cmds::ModelingCmd,
-        settings: cmd_kcl::GeoOnlyExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(OkWebSocketResponseData, Option<ModelingSessionData>)> {
         if Self::use_server_kcl_execution() {
@@ -556,7 +555,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
-        settings: cmd_kcl::GeoOnlyExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<OkWebSocketResponseData>, Option<ModelingSessionData>)> {
         if Self::use_server_kcl_execution() {
@@ -602,7 +601,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         snapshot_cmds: Vec<kittycad_modeling_cmds::ModelingCmd>,
-        settings: cmd_kcl::GeoOnlyExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
     ) -> Result<(Vec<TakeSnapshot>, Option<ModelingSessionData>)> {
         if Self::use_server_kcl_execution() {
@@ -669,7 +668,7 @@ impl<'a> Context<'a> {
         filename: &str,
         code: &str,
         program: &kcl_lib::Program,
-        settings: cmd_kcl::GeoOnlyExecutorSettings,
+        settings: cmd_kcl::CliExecutorSettings,
         issue_check: kcl_error_fmt::KclIssueCheck,
         output_format: kittycad_modeling_cmds::format::OutputFormat3d,
     ) -> Result<(Vec<RawFile>, Option<ModelingSessionData>)> {
