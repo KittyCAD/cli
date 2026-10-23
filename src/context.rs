@@ -308,7 +308,7 @@ impl<'a> Context<'a> {
                 api_call_id: None,
                 fps: None,
                 order_independent_transparency: None,
-                pool: None,
+                pool: settings.pool.clone(),
                 post_effect: if settings.enable_ssao {
                     Some(kittycad::types::PostEffectType::Ssao)
                 } else {
