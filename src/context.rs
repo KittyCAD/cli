@@ -230,7 +230,7 @@ impl<'a> Context<'a> {
         cmd: ModelingCmd,
         replay: Option<String>,
     ) -> Result<OkWebSocketResponseData> {
-        let engine = self.engine(hostname, replay).await?;
+        let engine = self.engine(hostname, replay, false).await?;
 
         let batch_context = kcl_lib::EngineBatchContext::new();
         let resp = engine
@@ -244,7 +244,12 @@ impl<'a> Context<'a> {
         Ok(resp)
     }
 
-    async fn engine_ws(&self, hostname: &str, replay: Option<String>) -> Result<reqwest::Upgraded> {
+    async fn engine_ws(
+        &self,
+        hostname: &str,
+        replay: Option<String>,
+        geometry_only: bool,
+    ) -> Result<reqwest::Upgraded> {
         let client = self.api_client(hostname)?;
         let api_call_id = None;
         let fps = None;
@@ -260,6 +265,7 @@ impl<'a> Context<'a> {
             .commands_ws(kittycad::modeling::CommandsWsParams {
                 api_call_id,
                 fps,
+                geometry_only: Some(geometry_only),
                 order_independent_transparency: Some(false),
                 pool,
                 post_effect,
@@ -276,8 +282,8 @@ impl<'a> Context<'a> {
         Ok(ws)
     }
 
-    pub async fn engine(&self, hostname: &str, replay: Option<String>) -> Result<EngineManager> {
-        let ws = self.engine_ws(hostname, replay).await?;
+    pub async fn engine(&self, hostname: &str, replay: Option<String>, geometry_only: bool) -> Result<EngineManager> {
+        let ws = self.engine_ws(hostname, replay, geometry_only).await?;
 
         let engine = EngineManager::new_websocket_transport(ws, Some(cmd_kcl::CliExecutorSettings::HEARTBEATS)).await;
 

@@ -284,8 +284,17 @@ impl crate::cmd::Command for CmdFileSnapshot {
             }
         }
 
-        let engine = ctx.engine("", None).await?;
+        let engine = ctx.engine("", None, true).await?;
         let batch_context = kcl_lib::EngineBatchContext::new();
+
+        engine
+            .send_modeling_cmd(
+                &batch_context,
+                uuid::Uuid::new_v4(),
+                kcl_lib::SourceRange::default(),
+                &ModelingCmd::ToggleGraphics(kcmc::ToggleGraphics::enabled(true)),
+            )
+            .await?;
 
         // Send an import request to the engine.
         let resp = engine
