@@ -2274,7 +2274,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.9",
+ "socket2 0.6.5",
  "tokio",
  "tower-service",
  "tracing",
@@ -3683,7 +3683,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#ca27cef31732d36417ed1423d3b22f24b66e44dc"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#ae2c78526eb41a22072b9f8f919ada25499652c8"
 dependencies = [
  "Inflector",
  "anyhow",
