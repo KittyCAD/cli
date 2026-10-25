@@ -23,7 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
-      sources-key: ${{ steps.sources.outputs.cache-primary-key }}
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Install Rust
@@ -105,7 +104,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git/db
-          key: ${{ needs.prepare.outputs.sources-key }}
+          key: cross-sources-v1-${{ hashFiles('Cargo.lock') }}
       - name: Download Linux cross tool
         if: matrix.os == 'ubuntu-latest'
         uses: actions/download-artifact@v8
