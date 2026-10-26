@@ -22,7 +22,8 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3.0.1
         with:
           project_id: kittycadapi
-      - name: Install latest nightly
+      - name: Install Rust
+        id: rust
         uses: dtolnay/rust-toolchain@stable
       - if: ${{ matrix.os == 'ubuntu-latest' }}
         name: Install deps
@@ -51,8 +52,10 @@ jobs:
       - name: Cache cargo build
         uses: actions/cache@v6.1.0
         with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          path: target/release-builds
+          key: release-builds-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            release-builds-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-
       - name: Run make cross
         run: |
           export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"

@@ -136,7 +136,7 @@ jobs:
       - name: Cache cargo build
         uses: actions/cache@v6.1.0
         with:
-          path: target
+          path: target/release-builds/${{ matrix.target }}
           key: cross-build-${{ matrix.cache-version || 'v1' }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
           restore-keys: |
             cross-build-${{ matrix.cache-version || 'v1' }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-
