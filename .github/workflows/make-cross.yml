@@ -51,6 +51,7 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: ~/.cargo/bin/cross
+          # Keep this cache key, the install version below, and cross-deps.sh in sync.
           key: cross-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-0.2.5
       - name: Install cross once for Linux builds
         if: steps.tools.outputs.cache-hit != 'true'
