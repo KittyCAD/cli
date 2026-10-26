@@ -77,6 +77,8 @@ jobs:
             target: aarch64-apple-darwin
           - os: ubuntu-latest
             target: x86_64-pc-windows-gnu
+            # Start fresh when switching from host MinGW to the container toolchain.
+            cache-version: v2
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
           - os: ubuntu-latest
@@ -88,11 +90,6 @@ jobs:
       - name: Install Rust
         id: rust
         uses: dtolnay/rust-toolchain@stable
-      - if: ${{ matrix.os == 'ubuntu-latest' }}
-        name: Install deps
-        shell: bash
-        run: |
-          ./.github/workflows/cross-deps.sh --system-only
       - if: ${{ matrix.os == 'macos-latest' }}
         name: Install deps
         shell: bash
@@ -123,9 +120,9 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: target
-          key: cross-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          key: cross-build-${{ matrix.cache-version || 'v1' }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
           restore-keys: |
-            cross-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-
+            cross-build-${{ matrix.cache-version || 'v1' }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-
       - name: Run make cross
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}

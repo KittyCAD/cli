@@ -41,10 +41,10 @@ ifeq ($(GITCOMMIT),)
     GITCOMMIT := ${GITHUB_SHA}
 endif
 
-# cross supplies the musl C toolchains; other targets use the host toolchain.
+# Use cross's container toolchains for musl and Windows GNU targets.
 define buildrelease
 rustup target add $(1)
-if [[ "$(1)" == *-unknown-linux-musl ]]; then \
+if [[ "$(1)" == *-unknown-linux-musl || "$(1)" == *-pc-windows-gnu ]]; then \
 	cross build --release --target $(1); \
 else \
 	cargo build --release --target $(1); \
