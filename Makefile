@@ -12,9 +12,6 @@ BUILDDIR := ${PREFIX}/cross
 GENERATED_DOCS_DIR := ${PREFIX}/generated_docs
 DOWNLOAD_BASE_URL ?= https://dl.zoo.dev/releases/cli
 
-# Use cross's container toolchain directly when the host lacks a target's C compiler.
-RELEASE_USE_CROSS ?= false
-
 UNAME := $(shell uname)
 
 # These are chosen from: https://doc.rust-lang.org/nightly/rustc/platform-support.html
@@ -44,12 +41,13 @@ ifeq ($(GITCOMMIT),)
     GITCOMMIT := ${GITHUB_SHA}
 endif
 
+# cross supplies the musl C toolchains; other targets use the host toolchain.
 define buildrelease
 rustup target add $(1)
-if [ "$(RELEASE_USE_CROSS)" = true ]; then \
+if [[ "$(1)" == *-unknown-linux-musl ]]; then \
 	cross build --release --target $(1); \
 else \
-	cargo build --release --target $(1) || cross build --release --target $(1); \
+	cargo build --release --target $(1); \
 fi
 mv $(CURDIR)/target/$(1)/release/$(NAME) $(BUILDDIR)/$(NAME)-$(1) || mv $(CURDIR)/target/$(1)/release/$(NAME).exe $(BUILDDIR)/$(NAME)-$(1)
 md5sum $(BUILDDIR)/$(NAME)-$(1) > $(BUILDDIR)/$(NAME)-$(1).md5;
