@@ -22,8 +22,14 @@ sudo apt update -y && sudo apt install -y \
 	wget \
 	zlib1g-dev
 
-# We need this for the version.
-cargo install toml-cli
+# CI prepares the Cargo tools once before fanning out to target builds.
+# Keep installing them by default for local builds and the release workflow.
+if [[ "${1:-}" != "--system-only" ]]; then
+	# We need this for the version.
+	cargo install toml-cli --locked
 
-# Install cross.
-cargo install cross
+	# Install cross.
+	# Keep this version in sync with the cross install command and cache key
+	# in make-cross.yml.
+	cargo install cross@0.2.5 --locked
+fi

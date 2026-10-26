@@ -41,9 +41,14 @@ ifeq ($(GITCOMMIT),)
     GITCOMMIT := ${GITHUB_SHA}
 endif
 
+# cross supplies the musl C toolchains; other targets use the host toolchain.
 define buildrelease
 rustup target add $(1)
-cargo build --release --target $(1) || cross build --release --target $(1)
+if [[ "$(1)" == *-unknown-linux-musl ]]; then \
+	cross build --release --target $(1); \
+else \
+	cargo build --release --target $(1); \
+fi
 mv $(CURDIR)/target/$(1)/release/$(NAME) $(BUILDDIR)/$(NAME)-$(1) || mv $(CURDIR)/target/$(1)/release/$(NAME).exe $(BUILDDIR)/$(NAME)-$(1)
 md5sum $(BUILDDIR)/$(NAME)-$(1) > $(BUILDDIR)/$(NAME)-$(1).md5;
 sha256sum $(BUILDDIR)/$(NAME)-$(1) > $(BUILDDIR)/$(NAME)-$(1).sha256;
