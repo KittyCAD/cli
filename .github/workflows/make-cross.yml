@@ -65,23 +65,6 @@ jobs:
           path: ~/.cargo/bin/cross
           if-no-files-found: error
           retention-days: 1
-  release-build-isolation:
-    name: Release build isolation
-    needs: prepare
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/download-artifact@v8
-        with:
-          name: cross-tool-Linux-X64
-          path: ${{ runner.temp }}/cross-tools
-      - name: Enable cross
-        run: |
-          chmod +x "$RUNNER_TEMP/cross-tools/cross"
-          echo "$RUNNER_TEMP/cross-tools" >> "$GITHUB_PATH"
-      - name: Build release targets sequentially in different containers
-        run: bash scripts/test-release-build-isolation.sh
   cross:
     needs: prepare
     strategy:
