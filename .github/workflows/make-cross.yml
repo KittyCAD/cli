@@ -7,6 +7,7 @@ on:
       - Cargo.toml
       - Cargo.lock
       - .github/workflows/make-cross.yml
+      - .github/workflows/cross-deps.sh
       - Makefile
       - scripts/release-install-instructions.sh
       - 'rust-toolchain.toml'
@@ -17,46 +18,119 @@ concurrency:
   cancel-in-progress: true
 name: make cross
 jobs:
+  prepare:
+    name: Prepare cross builds
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install Rust
+        id: rust
+        uses: dtolnay/rust-toolchain@stable
+      # Only source downloads are portable across operating systems. This job is
+      # their sole cache writer; the build matrix only restores them.
+      - name: Cache cargo sources
+        id: sources
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git/db
+          key: cross-sources-v1-${{ hashFiles('Cargo.lock') }}
+      - name: Fetch dependencies once for all targets
+        if: steps.sources.outputs.cache-hit != 'true'
+        run: cargo fetch --locked
+      - name: Read release version
+        id: version
+        run: |
+          version=$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "zoo") | .version')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Cache Linux cross tool
+        id: tools
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cargo/bin/cross
+          # Keep this cache key, the install version below, and cross-deps.sh in sync.
+          key: cross-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-0.2.5
+      - name: Install cross once for Linux builds
+        if: steps.tools.outputs.cache-hit != 'true'
+        run: cargo install --locked cross --version 0.2.5
+      # Artifacts guarantee delivery within this run even if the cache is full
+      # or evicted. Only Linux runners consume this host executable.
+      - name: Share Linux cross tool
+        uses: actions/upload-artifact@v7
+        with:
+          name: cross-tool-Linux-X64
+          path: ~/.cargo/bin/cross
+          if-no-files-found: error
+          retention-days: 1
   cross:
+    needs: prepare
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
-    name: make cross
+        include:
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-pc-windows-gnu
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+    name: make cross (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@master
-      - name: Install latest nightly
+      - uses: actions/checkout@v7.0.1
+      - name: Install Rust
+        id: rust
         uses: dtolnay/rust-toolchain@stable
       - if: ${{ matrix.os == 'ubuntu-latest' }}
         name: Install deps
         shell: bash
         run: |
-          ./.github/workflows/cross-deps.sh
+          ./.github/workflows/cross-deps.sh --system-only
       - if: ${{ matrix.os == 'macos-latest' }}
         name: Install deps
         shell: bash
         run: |
-          brew install \
-            coreutils \
-            jq
-      - name: Cache cargo registry
-        uses: actions/cache@v6.1.0
+          brew install coreutils
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Restore shared cargo sources
+        uses: actions/cache/restore@v6.1.0
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v6.1.0
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git/db
+          key: cross-sources-v1-${{ hashFiles('Cargo.lock') }}
+      - name: Download Linux cross tool
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/download-artifact@v8
         with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          name: cross-tool-Linux-X64
+          path: ${{ runner.temp }}/cross-tools
+      - name: Enable Linux cross tool
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          chmod +x "$RUNNER_TEMP/cross-tools/cross"
+          echo "$RUNNER_TEMP/cross-tools" >> "$GITHUB_PATH"
+      # Include the host as well as the target: target/ also contains host-built
+      # proc macros and build scripts. Never fall back to another host/target.
       - name: Cache cargo build
         uses: actions/cache@v6.1.0
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          key: cross-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            cross-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-
       - name: Run make cross
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_TARGET: ${{ matrix.target }}
         run: |
-          export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
-          make release
+          make release CROSS_TARGETS="$RELEASE_TARGET" VERSION="$RELEASE_VERSION"
           ls -la cross
         shell: bash
