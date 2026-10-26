@@ -129,7 +129,9 @@ jobs:
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           RELEASE_TARGET: ${{ matrix.target }}
+          # These C compilers are supplied by cross's containers, not the host.
+          RELEASE_USE_CROSS: ${{ endsWith(matrix.target, '-linux-musl') }}
         run: |
-          make release CROSS_TARGETS="$RELEASE_TARGET" VERSION="$RELEASE_VERSION"
+          make release CROSS_TARGETS="$RELEASE_TARGET" VERSION="$RELEASE_VERSION" RELEASE_USE_CROSS="$RELEASE_USE_CROSS"
           ls -la cross
         shell: bash
