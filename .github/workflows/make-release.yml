@@ -1,4 +1,6 @@
 on:
+  # Temporary: exercise the real release graph without publishing.
+  pull_request:
   push:
     tags:
       - v*
@@ -133,25 +135,30 @@ jobs:
           mkdir -p "releases/cli/$VERSION"
           cp build/* "releases/cli/$VERSION/"
       - name: Authenticate to Google Cloud
+        if: github.event_name == 'push'
         uses: google-github-actions/auth@v3.0.0
         with:
           credentials_json: '${{ secrets.GOOGLE_CLOUD_DL_SA }}'
       - name: Set up Cloud SDK
+        if: github.event_name == 'push'
         uses: google-github-actions/setup-gcloud@v3.0.1
         with:
           project_id: kittycadapi
       - name: Upload binary files
+        if: github.event_name == 'push'
         uses: google-github-actions/upload-cloud-storage@v3.0.0
         with:
           path: releases
           destination: dl.kittycad.io
       - name: Create a Release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v3.0.3
         with:
           body_path: ${{ github.workspace }}/release.md
           prerelease: ${{ needs.prepare.outputs.prerelease }}
           files: ./build/zoo-*
   createhomebrew:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: [prepare, createrelease]
     name: createhomebrew
