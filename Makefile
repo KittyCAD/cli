@@ -9,6 +9,9 @@ NAME := zoo
 # Set the build dir, where built cross-compiled binaries will be output
 BUILDDIR := ${PREFIX}/cross
 
+# Host build scripts and proc macros must not cross container/libc boundaries.
+RELEASE_BUILD_DIR := $(CURDIR)/target/release-builds
+
 GENERATED_DOCS_DIR := ${PREFIX}/generated_docs
 DOWNLOAD_BASE_URL ?= https://dl.zoo.dev/releases/cli
 
@@ -45,11 +48,11 @@ endif
 define buildrelease
 rustup target add $(1)
 if [[ "$(1)" == *-unknown-linux-musl || "$(1)" == *-pc-windows-gnu ]]; then \
-	cross build --release --target $(1); \
+	CARGO_TARGET_DIR="$(RELEASE_BUILD_DIR)/$(1)" cross build --release --target $(1); \
 else \
-	cargo build --release --target $(1); \
+	CARGO_TARGET_DIR="$(RELEASE_BUILD_DIR)/$(1)" cargo build --release --target $(1); \
 fi
-mv $(CURDIR)/target/$(1)/release/$(NAME) $(BUILDDIR)/$(NAME)-$(1) || mv $(CURDIR)/target/$(1)/release/$(NAME).exe $(BUILDDIR)/$(NAME)-$(1)
+mv $(RELEASE_BUILD_DIR)/$(1)/$(1)/release/$(NAME) $(BUILDDIR)/$(NAME)-$(1) || mv $(RELEASE_BUILD_DIR)/$(1)/$(1)/release/$(NAME).exe $(BUILDDIR)/$(NAME)-$(1)
 md5sum $(BUILDDIR)/$(NAME)-$(1) > $(BUILDDIR)/$(NAME)-$(1).md5;
 sha256sum $(BUILDDIR)/$(NAME)-$(1) > $(BUILDDIR)/$(NAME)-$(1).sha256;
 bash $(CURDIR)/scripts/release-install-instructions.sh \
