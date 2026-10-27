@@ -313,6 +313,7 @@ impl<'a> Context<'a> {
             .commands_ws(kittycad::modeling::CommandsWsParams {
                 api_call_id: None,
                 fps: None,
+                geometry_only: Some(settings.geometry_only),
                 order_independent_transparency: None,
                 pool: settings.pool.clone(),
                 post_effect: if settings.enable_ssao {
