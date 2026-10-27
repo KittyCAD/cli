@@ -1,0 +1,60 @@
+name: Prepare cross builds
+description: Fetch portable Cargo sources and prepare the Linux cross tool once.
+outputs:
+  version:
+    description: CLI package version
+    value: ${{ steps.version.outputs.version }}
+  prerelease:
+    description: Whether the CLI version is a prerelease
+    value: ${{ steps.version.outputs.prerelease }}
+runs:
+  using: composite
+  steps:
+    - name: Install Rust
+      id: rust
+      uses: dtolnay/rust-toolchain@stable
+    # Only source downloads are portable across operating systems. This job is
+    # their sole cache writer; the build matrix only restores them.
+    - name: Cache cargo sources
+      id: sources
+      uses: actions/cache@v6.1.0
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git/db
+        key: cross-sources-v1-${{ hashFiles('Cargo.lock') }}
+    - name: Fetch dependencies once for all targets
+      if: steps.sources.outputs.cache-hit != 'true'
+      shell: bash
+      run: cargo fetch --locked
+    - name: Read release version
+      id: version
+      shell: bash
+      run: |
+        version=$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "zoo") | .version')
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        if [[ "$version" == *rc* || "$version" == *pre* ]]; then
+          echo "prerelease=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "prerelease=false" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Cache Linux cross tool
+      id: tools
+      uses: actions/cache@v6.1.0
+      with:
+        path: ~/.cargo/bin/cross
+        # Keep this cache key, the install version below, and cross-deps.sh in sync.
+        key: cross-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-0.2.5
+    - name: Install cross once for Linux builds
+      if: steps.tools.outputs.cache-hit != 'true'
+      shell: bash
+      run: cargo install --locked cross --version 0.2.5
+    # Artifacts guarantee delivery within this run even if the cache is full
+    # or evicted. Only Linux runners consume this host executable.
+    - name: Share Linux cross tool
+      uses: actions/upload-artifact@v7
+      with:
+        name: cross-tool-Linux-X64
+        path: ~/.cargo/bin/cross
+        if-no-files-found: error
+        retention-days: 1
