@@ -23,13 +23,13 @@ sudo apt update -y && sudo apt install -y \
 	zlib1g-dev
 
 # CI prepares the Cargo tools once before fanning out to target builds.
-# Keep installing them by default for local builds and the release workflow.
+# Keep installing them by default for local builds.
 if [[ "${1:-}" != "--system-only" ]]; then
 	# We need this for the version.
 	cargo install toml-cli --locked
 
 	# Install cross.
 	# Keep this version in sync with the cross install command and cache key
-	# in make-cross.yml.
+	# in .github/actions/prepare-cross/action.yml.
 	cargo install cross@0.2.5 --locked
 fi

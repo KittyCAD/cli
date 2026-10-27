@@ -7,6 +7,7 @@ on:
       - Cargo.toml
       - Cargo.lock
       - .github/workflows/make-cross.yml
+      - .github/actions/prepare-cross/action.yml
       - .github/workflows/cross-deps.sh
       - Makefile
       - scripts/release-install-instructions.sh
@@ -22,49 +23,12 @@ jobs:
     name: Prepare cross builds
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@v7.0.1
-      - name: Install Rust
-        id: rust
-        uses: dtolnay/rust-toolchain@stable
-      # Only source downloads are portable across operating systems. This job is
-      # their sole cache writer; the build matrix only restores them.
-      - name: Cache cargo sources
-        id: sources
-        uses: actions/cache@v6.1.0
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git/db
-          key: cross-sources-v1-${{ hashFiles('Cargo.lock') }}
-      - name: Fetch dependencies once for all targets
-        if: steps.sources.outputs.cache-hit != 'true'
-        run: cargo fetch --locked
-      - name: Read release version
-        id: version
-        run: |
-          version=$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "zoo") | .version')
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-      - name: Cache Linux cross tool
-        id: tools
-        uses: actions/cache@v6.1.0
-        with:
-          path: ~/.cargo/bin/cross
-          # Keep this cache key, the install version below, and cross-deps.sh in sync.
-          key: cross-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-0.2.5
-      - name: Install cross once for Linux builds
-        if: steps.tools.outputs.cache-hit != 'true'
-        run: cargo install --locked cross --version 0.2.5
-      # Artifacts guarantee delivery within this run even if the cache is full
-      # or evicted. Only Linux runners consume this host executable.
-      - name: Share Linux cross tool
-        uses: actions/upload-artifact@v7
-        with:
-          name: cross-tool-Linux-X64
-          path: ~/.cargo/bin/cross
-          if-no-files-found: error
-          retention-days: 1
+      - name: Prepare sources and tools
+        id: prepare
+        uses: ./.github/actions/prepare-cross
   cross:
     needs: prepare
     strategy:

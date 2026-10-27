@@ -6,145 +6,157 @@ permissions:
   contents: write
 name: make-release
 jobs:
+  prepare:
+    name: Prepare release builds
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.prepare.outputs.version }}
+      prerelease: ${{ steps.prepare.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Prepare sources and tools
+        id: prepare
+        uses: ./.github/actions/prepare-cross
   makerelease:
+    needs: prepare
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
-    name: make release
+        include:
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-pc-windows-gnu
+            # Start fresh when switching from host MinGW to the container toolchain.
+            cache-version: v2
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+    name: make release (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7.0.1
-      - name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v3.0.0'
+      - name: Install Rust
+        id: rust
+        uses: dtolnay/rust-toolchain@stable
+      - if: ${{ matrix.os == 'macos-latest' }}
+        name: Install deps
+        shell: bash
+        run: |
+          brew install coreutils
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Restore shared cargo sources
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git/db
+          key: cross-sources-v1-${{ hashFiles('Cargo.lock') }}
+      - name: Download Linux cross tool
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/download-artifact@v8
+        with:
+          name: cross-tool-Linux-X64
+          path: ${{ runner.temp }}/cross-tools
+      - name: Enable Linux cross tool
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          chmod +x "$RUNNER_TEMP/cross-tools/cross"
+          echo "$RUNNER_TEMP/cross-tools" >> "$GITHUB_PATH"
+      # Include the host as well as the target: target/ also contains host-built
+      # proc macros and build scripts. Never fall back to another host/target.
+      - name: Cache cargo build
+        uses: actions/cache@v6.1.0
+        with:
+          path: target/release-builds/${{ matrix.target }}
+          key: cross-build-${{ matrix.cache-version || 'v1' }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            cross-build-${{ matrix.cache-version || 'v1' }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.target }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-
+      - name: Run make release
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_TARGET: ${{ matrix.target }}
+        run: |
+          make release CROSS_TARGETS="$RELEASE_TARGET" VERSION="$RELEASE_VERSION"
+          ls -la cross
+        shell: bash
+      - name: Name target installation instructions
+        env:
+          RELEASE_TARGET: ${{ matrix.target }}
+        run: mv cross/README.md "cross/$RELEASE_TARGET-README.md"
+      - name: Upload target release files
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ matrix.target }}-${{ github.ref_name }}
+          path: cross
+          if-no-files-found: error
+  createrelease:
+    runs-on: ubuntu-latest
+    needs: [prepare, makerelease]
+    name: createrelease
+    env:
+      VERSION: v${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Download all target release files
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-*-${{ github.ref_name }}
+          path: build
+          merge-multiple: true
+      - name: Combine installation instructions and check artifacts
+        shell: bash
+        run: |
+          echo 'These instructions are meant as an easy way to install. Unix snippets use `sha256sum`; macOS users may need `coreutils` for that command.' > release.md
+          echo "" >> release.md
+          targets=(
+            x86_64-apple-darwin
+            aarch64-apple-darwin
+            x86_64-pc-windows-gnu
+            x86_64-unknown-linux-musl
+            aarch64-unknown-linux-musl
+          )
+          for target in "${targets[@]}"; do
+            test -s "build/zoo-$target"
+            for algorithm in md5 sha256; do
+              hash=$(awk '{print $1}' "build/zoo-$target.$algorithm")
+              echo "$hash  build/zoo-$target" | "${algorithm}sum" -c -
+            done
+            cat "build/$target-README.md" >> release.md
+            rm "build/$target-README.md"
+          done
+          # Keep the download site's combined README and GitHub release body identical.
+          cp release.md build/README.md
+          mkdir -p "releases/cli/$VERSION"
+          cp build/* "releases/cli/$VERSION/"
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3.0.0
         with:
           credentials_json: '${{ secrets.GOOGLE_CLOUD_DL_SA }}'
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v3.0.1
         with:
           project_id: kittycadapi
-      - name: Install Rust
-        id: rust
-        uses: dtolnay/rust-toolchain@stable
-      - if: ${{ matrix.os == 'ubuntu-latest' }}
-        name: Install deps
-        shell: bash
-        run: |
-          ./.github/workflows/cross-deps.sh
-      - if: ${{ matrix.os == 'macos-latest' }}
-        name: Install deps
-        shell: bash
-        run: |
-          brew install \
-            coreutils \
-            jq
-
-          cargo install toml-cli
-      - name: Cache cargo registry
-        uses: actions/cache@v6.1.0
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v6.1.0
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo build
-        uses: actions/cache@v6.1.0
-        with:
-          path: target/release-builds
-          key: release-builds-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
-          restore-keys: |
-            release-builds-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('Cargo.lock') }}-
-      - name: Run make cross
-        run: |
-          export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
-          make release
-          ls -la cross
-        shell: bash
-      - name: move files to dir for upload
-        shell: bash
-        run: |
-          export VERSION=v$(toml get Cargo.toml package.version | jq -r .)
-          mkdir -p releases/$(basename $(pwd))
-          cp -r cross releases/$(basename $(pwd))/${VERSION}
-          cp cross/README.md cross/${{matrix.os}}-${{github.ref_name}}-README.md
-      - name: 'upload binary files'
-        id: upload-files
+      - name: Upload binary files
         uses: google-github-actions/upload-cloud-storage@v3.0.0
         with:
           path: releases
           destination: dl.kittycad.io
-      # Store the binary artifacts for retrival later.
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-${{ matrix.os }}-${{github.ref_name}}
-          path: ./cross
-      # Store the readme as an artifact so we can combine the two.
-      - name: Archive the README.md data
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{matrix.os}}-${{github.ref_name}}-README.md
-          path: ${{github.workspace}}/cross/${{matrix.os}}-${{github.ref_name}}-README.md
-  createrelease:
-    runs-on: ubuntu-latest
-    needs: [makerelease]
-    name: createrelease
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - name: Install latest nightly
-        uses: dtolnay/rust-toolchain@stable
-      - uses: actions/download-artifact@v8
-        with:
-          name:  release-macos-latest-${{github.ref_name}}
-          path: build
-      - uses: actions/download-artifact@v8
-        with:
-          name:  release-ubuntu-latest-${{github.ref_name}}
-          path: build
-      - uses: actions/download-artifact@v8
-        with:
-          name:  ubuntu-latest-${{github.ref_name}}-README.md
-      - uses: actions/download-artifact@v8
-        with:
-          name:  macos-latest-${{github.ref_name}}-README.md
-      - name: combine readmes
-        shell: bash
-        run: |
-          ls -la
-          echo 'These instructions are meant as an easy way to install. Unix snippets use `sha256sum`; macOS users may need `coreutils` for that command.' > release.md
-          echo "" >> release.md
-          cat macos-latest-${{github.ref_name}}-README.md  \
-            ubuntu-latest-${{github.ref_name}}-README.md \
-              >> release.md
-          rm build/*-README.md
-          rm build/README.md
-      - name: Get if prerelease
-        shell: bash
-        id: extract_prerelease
-        run: |
-          cargo install toml-cli
-          export VERSION=v$(toml get Cargo.toml package.version | jq -r .)
-          if echo $VERSION | grep -q "rc"; then
-            echo "##[set-output name=prerelease;]$(echo true)";
-          else
-            if echo $VERSION | grep -q "pre"; then
-              echo "##[set-output name=prerelease;]$(echo true)";
-            else
-              echo "##[set-output name=prerelease;]$(echo false)";
-            fi
-          fi
       - name: Create a Release
         uses: softprops/action-gh-release@v3.0.3
         with:
-          body_path: ${{github.workspace}}/release.md
-          prerelease: ${{steps.extract_prerelease.outputs.prerelease}}
-          files: ./build/*
+          body_path: ${{ github.workspace }}/release.md
+          prerelease: ${{ needs.prepare.outputs.prerelease }}
+          files: ./build/zoo-*
   createhomebrew:
     runs-on: ubuntu-latest
-    needs: [makerelease]
+    needs: [prepare, createrelease]
     name: createhomebrew
+    env:
+      VERSION: v${{ needs.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@master
       - name: 'Authenticate to Google Cloud'
@@ -155,10 +167,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3.0.1
         with:
           project_id: kittycadapi
-      - name: Install deps
-        shell: bash
-        run: |
-          ./.github/workflows/cross-deps.sh
       - name: bundle binaries and make formula
         shell: bash
         run: |
@@ -179,7 +187,7 @@ jobs:
           )
 
           to_zip_files=""
-          version=v$(toml get Cargo.toml package.version | jq -r .)
+          version="$VERSION"
           sed -i "s#replace-semver#$version#g" "./homebrew/kittycad.rb"
 
           for i in "${!input_names[@]}"; do
@@ -215,7 +223,6 @@ jobs:
       - name: move files to dir for upload
         shell: bash
         run: |
-          export VERSION=v$(toml get Cargo.toml package.version | jq -r .)
           mkdir -p releases/$(basename $(pwd))
           cp -r homebrew releases/$(basename $(pwd))/${VERSION}
       - name: 'upload binary files'
