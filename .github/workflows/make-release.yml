@@ -1,6 +1,4 @@
 on:
-  # Temporary: exercise the real release graph without publishing.
-  pull_request:
   push:
     tags:
       - v*
@@ -136,23 +134,19 @@ jobs:
           mkdir -p "releases/cli/$VERSION"
           cp build/* "releases/cli/$VERSION/"
       - name: Authenticate to Google Cloud
-        if: github.event_name == 'push'
         uses: google-github-actions/auth@v3.0.0
         with:
           credentials_json: '${{ secrets.GOOGLE_CLOUD_DL_SA }}'
       - name: Set up Cloud SDK
-        if: github.event_name == 'push'
         uses: google-github-actions/setup-gcloud@v3.0.1
         with:
           project_id: kittycadapi
       - name: Upload binary files
-        if: github.event_name == 'push'
         uses: google-github-actions/upload-cloud-storage@v3.0.0
         with:
           path: releases
           destination: dl.kittycad.io
       - name: Create a Release
-        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v3.0.3
         with:
           body_path: ${{ github.workspace }}/release.md
@@ -166,6 +160,14 @@ jobs:
       VERSION: v${{ needs.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@master
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v3.0.0'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CLOUD_DL_SA }}'
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3.0.1
+        with:
+          project_id: kittycadapi
       - name: bundle binaries and make formula
         shell: bash
         run: |
@@ -224,7 +226,45 @@ jobs:
         run: |
           mkdir -p releases/$(basename $(pwd))
           cp -r homebrew releases/$(basename $(pwd))/${VERSION}
-      - name: Verify Homebrew bundle
+      - name: 'upload binary files'
+        id: upload-files
+        uses: google-github-actions/upload-cloud-storage@v3.0.0
+        with:
+          path: releases
+          destination: dl.kittycad.io
+      - uses: actions/create-github-app-token@v3.3.0
+        id: app-token
+        with:
+          # required
+          app-id: ${{ secrets.GH_ORG_APP_ID }}
+          private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: 'kittycad/homebrew-kittycad'
+          path: 'homebrew-kittycad'
+          token: ${{ steps.app-token.outputs.token }}
+      - name: 'replacing Formula/kittycad.rb with ./hombrew/kittycad.rb'
+        shell: bash
         run: |
-          ! grep -q 'replace-' homebrew/kittycad.rb
-          tar -tzf homebrew/kittycad-cli.tar.gz
+          cp ./homebrew/kittycad.rb homebrew-kittycad/Formula/kittycad.rb
+      - name: commit the changes in the repo
+        shell: bash
+        run: |
+          cd homebrew-kittycad
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -am "YOYO BREW FORMULAR! 🍻" || exit 0
+          git fetch origin
+          git rebase origin/main || exit 0
+          export NEW_BRANCH="update-tap-formula"
+          git checkout -b "$NEW_BRANCH"
+          git push -f origin "$NEW_BRANCH"
+          gh pr create --title "Update tap formula" \
+              --body "Updating the formula for our homebrew tap" \
+              --reviewer jessfraz \
+              --head "$NEW_BRANCH" \
+              --base main || true
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
