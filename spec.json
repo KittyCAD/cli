@@ -14622,6 +14622,201 @@
         "x-billable": false
       }
     },
+    "/org/projects/search/semantic": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Search current projects shared with the authenticated user's organization.",
+        "description": "Results are ranked by similarity to bounded project metadata: title, description, and a capped list of source filenames. Project source contents are not indexed. Projects become searchable asynchronously after saving or changing organization ownership. Personal projects and obsolete versions are excluded. Pass `library_id` to search one named organization library.",
+        "operationId": "search_org_projects_semantic",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSemanticSearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Content-Location": {
+                "description": "The Content-Location header for responses that are not the final destination. This is used to indicate where the resource can be found, when it is finished.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "The location header for redirects and letting users know if there is a websocket they can listen to for status updates on their operation.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "description": "Set-Cookie header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "X-Api-Call-Id": {
+                "description": "ID for this request. We return it so that users can report this to us and help us debug their problems.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array_of_ProjectSemanticSearchMatch",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectSemanticSearchMatch"
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "x-billable": false
+      },
+      "options": {
+        "tags": [
+          "hidden"
+        ],
+        "summary": "OPTIONS endpoint.",
+        "description": "This is necessary for some preflight requests, specifically POST, PUT, and DELETE.",
+        "operationId": "options_org_projects_semantic_search",
+        "responses": {
+          "204": {
+            "description": "resource updated",
+            "headers": {
+              "Access-Control-Allow-Credentials": {
+                "description": "Access-Control-Allow-Credentials header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "description": "Access-Control-Allow-Headers header. This is a comma-separated list of headers.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "description": "Access-Control-Allow-Methods header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "description": "Access-Control-Allow-Origin header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Content-Location": {
+                "description": "The Content-Location header for responses that are not the final destination. This is used to indicate where the resource can be found, when it is finished.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "The location header for redirects and letting users know if there is a websocket they can listen to for status updates on their operation.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "description": "Set-Cookie header.",
+                "style": "simple",
+                "schema": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "X-Api-Call-Id": {
+                "description": "ID for this request. We return it so that users can report this to us and help us debug their problems.",
+                "style": "simple",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "x-billable": false
+      }
+    },
     "/org/saml/idp": {
       "get": {
         "tags": [
@@ -40202,13 +40397,6 @@
             ]
           },
           {
-            "description": "Enables the named views user interface in Zoo Design Studio.",
-            "type": "string",
-            "enum": [
-              "named_views_ui"
-            ]
-          },
-          {
             "description": "Enables the Scene browser and model tree UI in Zoo Design Studio.",
             "type": "string",
             "enum": [
@@ -51526,6 +51714,67 @@
         "description": "The response from the `MovePathPen` endpoint.",
         "type": "object"
       },
+      "NamedView": {
+        "description": "Options for exporting glTF 2.0.",
+        "type": "object",
+        "properties": {
+          "baseline": {
+            "description": "Baseline visibility.\n\nDetermines whether entities are visible or by default.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Visibility"
+              }
+            ]
+          },
+          "except_ids": {
+            "description": "Exceptions to the baseline visibility.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelingCmdId"
+            }
+          },
+          "projection": {
+            "description": "Projection kind.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Projection"
+              }
+            ]
+          },
+          "target": {
+            "description": "Target point.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "up": {
+            "description": "Up direction.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          },
+          "vantage": {
+            "description": "Vantage point.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point3d"
+              }
+            ]
+          }
+        },
+        "required": [
+          "baseline",
+          "except_ids",
+          "projection",
+          "target",
+          "up",
+          "vantage"
+        ]
+      },
       "NewAnnotation": {
         "description": "The response from the `NewAnnotation` endpoint.",
         "type": "object"
@@ -56690,6 +56939,7 @@
               },
               "presentation": {
                 "description": "Specifies how the JSON will be presented.",
+                "default": "pretty",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/GltfPresentation"
@@ -56698,6 +56948,7 @@
               },
               "storage": {
                 "description": "Specifies which kind of glTF 2.0 will be exported.",
+                "default": "embedded",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/GltfStorage"
@@ -56709,11 +56960,16 @@
                 "enum": [
                   "gltf"
                 ]
+              },
+              "views": {
+                "description": "Named views in the scene.",
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/NamedView"
+                }
               }
             },
             "required": [
-              "presentation",
-              "storage",
               "type"
             ]
           },
@@ -56861,6 +57117,13 @@
                     "$ref": "#/components/schemas/UnitLength"
                   }
                 ]
+              },
+              "views": {
+                "description": "Named views in the scene.",
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/NamedView"
+                }
               }
             },
             "required": [
@@ -57791,15 +58054,15 @@
         "properties": {
           "x": {
             "type": "number",
-            "format": "float"
+            "format": "double"
           },
           "y": {
             "type": "number",
-            "format": "float"
+            "format": "double"
           },
           "z": {
             "type": "number",
-            "format": "float"
+            "format": "double"
           }
         },
         "required": [
@@ -58381,6 +58644,77 @@
           "updated_at"
         ]
       },
+      "ProjectSemanticSearchMatch": {
+        "description": "One matching current project, rather than one match for every source file.",
+        "type": "object",
+        "properties": {
+          "description": {
+            "description": "Bounded project description.",
+            "type": "string"
+          },
+          "project_id": {
+            "description": "Project in the caller's current organization library.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
+          },
+          "similarity": {
+            "description": "Cosine similarity to the embedded query.",
+            "type": "number",
+            "format": "double"
+          },
+          "title": {
+            "description": "Bounded project title.",
+            "type": "string"
+          },
+          "version_id": {
+            "description": "Current version represented by this match.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
+          }
+        },
+        "required": [
+          "description",
+          "project_id",
+          "similarity",
+          "title",
+          "version_id"
+        ]
+      },
+      "ProjectSemanticSearchRequest": {
+        "description": "Natural-language search within the caller's current organization library.",
+        "type": "object",
+        "properties": {
+          "library_id": {
+            "nullable": true,
+            "description": "Restrict results to this library in the authenticated organization.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
+          },
+          "limit": {
+            "nullable": true,
+            "description": "Maximum matching projects; defaults to 10 and must be between 1 and 100.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          },
+          "q": {
+            "description": "Search text, limited to 2,048 characters after trimming whitespace.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "q"
+        ]
+      },
       "ProjectShareLinkResponse": {
         "description": "Owner-visible share-link metadata for project downloads.",
         "type": "object",
@@ -58753,6 +59087,41 @@
         },
         "required": [
           "items"
+        ]
+      },
+      "Projection": {
+        "description": "Data item selection.",
+        "oneOf": [
+          {
+            "description": "Orthographic (parallel) projection.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "orthographic"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "description": "Perspective projection.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "perspective"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
         ]
       },
       "PublicEmailMarketingConsentRequest": {
@@ -64299,6 +64668,25 @@
         },
         "required": [
           "settings"
+        ]
+      },
+      "Visibility": {
+        "description": "Identifies the visibility of entities.",
+        "oneOf": [
+          {
+            "description": "The entity is visible.",
+            "type": "string",
+            "enum": [
+              "show"
+            ]
+          },
+          {
+            "description": "The entity is hidden.",
+            "type": "string",
+            "enum": [
+              "hide"
+            ]
+          }
         ]
       },
       "Volume": {
