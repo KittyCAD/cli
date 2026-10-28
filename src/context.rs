@@ -421,7 +421,7 @@ impl<'a> Context<'a> {
                 )
             };
 
-            match result {
+            match *result {
                 Ok(_) => break,
                 Err(err) => {
                     check_server_compilation_issues(
