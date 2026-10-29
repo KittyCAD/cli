@@ -1118,11 +1118,14 @@ pub struct CmdKclVolume {
 /// Get the bounding box that contains everything in a KCL file.
 ///
 ///     # get the volume of a file
-///     $ zoo kcl bounding-box my-file.kcl
+///     ```terminal
+///     zoo kcl bounding-box my-file.kcl
+///     ```
 ///
 ///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl bounding-box
-///
+///     ```terminal
+///     cat my-file.kcl | zoo kcl bounding-box
+///     ```
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
