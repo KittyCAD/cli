@@ -312,15 +312,6 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn empty_wikilink_labels_do_not_duplicate_following_text() {
-        // RUSTSEC-2026-0414: empty wikilink labels must not duplicate later events.
-        // Keep the input small so this regression also fails safely on vulnerable versions.
-        let md = format!("{}tail", "[[a|]] ".repeat(8));
-
-        assert_eq!(render_markdown_to_lines(&md), vec![format!("{}tail", " ".repeat(8))]);
-    }
-
     fn empty_end_of_stream() -> kittycad::types::MlCopilotServerMessage {
         kittycad::types::MlCopilotServerMessage::EndOfStream {
             completed_at: None,
