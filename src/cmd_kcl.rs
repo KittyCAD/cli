@@ -1117,12 +1117,12 @@ pub struct CmdKclVolume {
 
 /// Get the bounding box that contains everything in a KCL file.
 ///
-/// ```terminal
+/// ```shell
 /// # get the volume of a file
 /// zoo kcl bounding-box my-file.kcl
 /// ```
 ///
-/// ```terminal
+/// ```shell
 /// # pass a file from stdin
 /// cat my-file.kcl | zoo kcl bounding-box
 /// ```
