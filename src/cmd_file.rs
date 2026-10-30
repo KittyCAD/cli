@@ -15,8 +15,11 @@ use crate::cmd_kcl::write_deterministic_export;
 
 /// Perform operations on CAD files.
 ///
-///     # convert a step file to an obj file
-///     $ zoo file convert --output-format=obj ./input.step ./
+/// ```shell
+/// # convert a step file to an obj file
+/// zoo file convert --output-format=obj ./input.step ./
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFile {
@@ -54,17 +57,25 @@ impl crate::cmd::Command for CmdFile {
 ///
 /// If the file being converted is larger than a certain size it will be
 /// performed asynchronously, you can then check its status with the
-/// `zoo api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command. The status call will return
+/// 404 if the size is under 25MB, it will not be processed asynchronously.
 ///
-///     # convert step to obj
-///     $ zoo file convert --output-format=obj my-file.step output_dir
+/// ```shell
+/// # convert step to obj
+/// zoo file convert --output-format=obj my-file.step output_dir
+/// ```
 ///
-///     # convert obj to step
-///     $ zoo file convert --output-format=step my-obj.obj .
+/// ```shell
+/// # convert obj to step
+/// zoo file convert --output-format=step my-obj.obj .
+/// ```
 ///
-///     # pass a file to convert from stdin
-///     # when converting from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file convert --output-format=step - output_dir
+/// ```shell
+/// # pass a file to convert from stdin
+/// # when converting from stdin, the original file type is required
+/// cat my-obj.obj | zoo file convert --output-format=step --src-format=obj - output_dir
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileConvert {
