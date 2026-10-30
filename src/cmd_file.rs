@@ -174,11 +174,16 @@ impl crate::cmd::Command for CmdFileConvert {
 
 /// Snapshot a render of a CAD file as any supported image format.
 ///
-///     # snapshot as png
-///     $ zoo file snapshot my-file.obj my-file.png
+/// ```shell
+/// # snapshot as png
+/// zoo file snapshot my-file.obj my-file.png
+/// ```
+///     
+/// ```shell
+/// # pass a file to snapshot from stdin
+/// cat my-obj.obj | zoo file snapshot --output-format=png --src-format=obj - my-file.png
+/// ```
 ///
-///     # pass a file to snapshot from stdin
-///     $ cat my-obj.obj | zoo file snapshot --output-format=png - my-file.png
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileSnapshot {
