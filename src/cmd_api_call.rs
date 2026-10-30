@@ -4,8 +4,13 @@ use itertools::Itertools;
 
 /// Perform operations on CAD files.
 ///
-///     # convert a step file to an obj file
-///     $ zoo file convert ./input.step ./output.obj
+/// A file conversion under 25MB will not have a zoo api-call status. The requested id will return 404.
+///   
+/// ```shell
+/// # convert a step file to an obj file
+/// zoo file convert ~/Downloads/cube.step ~/Downloads --output-format obj
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApiCall {
@@ -29,8 +34,10 @@ impl crate::cmd::Command for CmdApiCall {
 
 /// Perform operations for API calls.
 ///
-///     # get the status of an async API call
-///    `$ zoo api-call status <id>`
+/// ```shell
+/// # get the status of an async API call
+/// zoo api-call status <id>
+/// ```
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApiCallStatus {

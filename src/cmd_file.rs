@@ -15,8 +15,11 @@ use crate::cmd_kcl::write_deterministic_export;
 
 /// Perform operations on CAD files.
 ///
-///     # convert a step file to an obj file
-///     $ zoo file convert --output-format=obj ./input.step ./
+/// ```shell
+/// # convert a step file to an obj file
+/// zoo file convert --output-format=obj ./input.step ./
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFile {
@@ -54,17 +57,25 @@ impl crate::cmd::Command for CmdFile {
 ///
 /// If the file being converted is larger than a certain size it will be
 /// performed asynchronously, you can then check its status with the
-/// `zoo api-call status <id_of_your_operation>` command.
+/// `zoo api-call status <id_of_your_operation>` command. The status call will return
+/// 404 if the size is under 25MB, it will not be processed asynchronously.
 ///
-///     # convert step to obj
-///     $ zoo file convert --output-format=obj my-file.step output_dir
+/// ```shell
+/// # convert step to obj
+/// zoo file convert --output-format=obj my-file.step output_dir
+/// ```
 ///
-///     # convert obj to step
-///     $ zoo file convert --output-format=step my-obj.obj .
+/// ```shell
+/// # convert obj to step
+/// zoo file convert --output-format=step my-obj.obj .
+/// ```
 ///
-///     # pass a file to convert from stdin
-///     # when converting from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file convert --output-format=step - output_dir
+/// ```shell
+/// # pass a file to convert from stdin
+/// # when converting from stdin, the original file type is required
+/// cat my-obj.obj | zoo file convert --output-format=step --src-format=obj - output_dir
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileConvert {
@@ -163,11 +174,16 @@ impl crate::cmd::Command for CmdFileConvert {
 
 /// Snapshot a render of a CAD file as any supported image format.
 ///
-///     # snapshot as png
-///     $ zoo file snapshot my-file.obj my-file.png
+/// ```shell
+/// # snapshot as png
+/// zoo file snapshot my-file.obj my-file.png
+/// ```
+///     
+/// ```shell
+/// # pass a file to snapshot from stdin
+/// cat my-obj.obj | zoo file snapshot --output-format=png --src-format=obj - my-file.png
+/// ```
 ///
-///     # pass a file to snapshot from stdin
-///     $ cat my-obj.obj | zoo file snapshot --output-format=png - my-file.png
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileSnapshot {
@@ -370,11 +386,16 @@ impl crate::cmd::Command for CmdFileSnapshot {
 /// performed asynchronously, you can then check the status with the
 /// `zoo api-call status <id_of_your_operation>` command.
 ///
-///     # get the volume of a file
-///     $ zoo file volume my-file.step
+/// ```shell
+/// # get the volume of a file
+/// zoo file volume my-file.step --output-unit=mm3
+/// ```
 ///
-///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file volume - --src-format=obj
+/// ```shell
+/// # pass a file from stdin, the original file type is required
+/// cat my-obj.obj | zoo file volume - --src-format=obj --output-unit=mm3
+/// ```
+///     
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileVolume {
@@ -431,11 +452,16 @@ impl crate::cmd::Command for CmdFileVolume {
 /// performed asynchronously, you can then check the status with the
 /// `zoo api-call status <id_of_your_operation>` command.
 ///
-///     # get the mass of a file
-///     $ zoo file mass my-file.step
+/// ```shell
+/// # get the mass of a file
+/// zoo file mass my-file.step --material-density 500 --material-density-unit=kg-m3 --output-unit=kg
+/// ```
 ///
-///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file mass - --src-format=obj
+/// ```shell
+/// # pass a file from stdin, the original file type is required
+/// cat my-obj.obj | zoo file mass - --src-format=obj --material-density 500 --material-density-unit=kg-m3 --output-unit=kg
+/// ```
+///     
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileMass {
@@ -510,11 +536,16 @@ impl crate::cmd::Command for CmdFileMass {
 /// performed asynchronously, you can then check the status with the
 /// `zoo api-call status <id_of_your_operation>` command.
 ///
-///     # get the mass of a file
-///     $ zoo file center-of-mass my-file.step
+/// ```shell
+/// # get the mass of a file
+/// zoo file center-of-mass my-file.step --output-unit=m
+/// ```
 ///
-///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file center-of-mass - --src-format=obj
+/// ```shell
+/// # pass a file from stdin, the original file type is required
+/// cat my-obj.obj | zoo file center-of-mass - --src-format=obj --output-unit=m
+/// ```
+///     
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileCenterOfMass {
