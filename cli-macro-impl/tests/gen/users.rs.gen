@@ -116,13 +116,10 @@ impl crate::cmd::Command for CmdUserEdit {
     }
 }
 
-#[doc = "Delete user."]
+#[doc = "Delete your authenticated user account."]
 #[derive(clap :: Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdUserDelete {
-    #[doc = "The user to delete. Can be an ID or name."]
-    #[clap(name = "user", required = true)]
-    pub user: String,
     #[doc = r" Confirm deletion without prompting."]
     #[clap(long)]
     pub confirm: bool,
@@ -140,9 +137,9 @@ impl crate::cmd::Command for CmdUserDelete {
         let client = ctx.api_client("")?;
         if !self.confirm {
             if let Err(err) = dialoguer::Input::<String>::new()
-                .with_prompt(format!("Type {} to confirm deletion:", self.user))
+                .with_prompt("Type delete to confirm deletion of your authenticated user account:")
                 .validate_with(|input: &String| -> Result<(), &str> {
-                    if input.trim() == self.user {
+                    if input.trim() == "delete" {
                         Ok(())
                     } else {
                         Err("mismatched confirmation")
@@ -158,10 +155,8 @@ impl crate::cmd::Command for CmdUserDelete {
         let cs = ctx.io.color_scheme();
         writeln!(
             ctx.io.out,
-            "{} Deleted {} {}",
-            cs.success_icon_with_color(nu_ansi_term::Color::Red),
-            "user",
-            self.user
+            "{} Deleted your authenticated user account",
+            cs.success_icon_with_color(nu_ansi_term::Color::Red)
         )?;
         Ok(())
     }
