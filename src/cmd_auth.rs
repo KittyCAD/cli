@@ -296,11 +296,17 @@ impl crate::cmd::Command for CmdAuthLogin {
 /// This command removes the authentication configuration for a host either specified
 /// interactively or via the global `--host` passed to `zoo`.
 ///
-///     $ zoo auth logout
-///     # => select what host to log out of via a prompt
 ///
-///     $ zoo --host api.zoo.dev auth logout
-///     # => log out of specified host
+/// ```shell
+/// zoo auth logout
+/// # => select what host to log out of via a prompt
+/// ```
+///
+/// ```shell
+/// zoo --host api.zoo.dev auth logout
+/// # => log out of specified host
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAuthLogout {}
