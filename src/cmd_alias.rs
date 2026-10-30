@@ -33,6 +33,11 @@ impl crate::cmd::Command for CmdAlias {
 }
 
 /// Delete an alias.
+///
+/// ```shell
+/// zoo alias delete aabb_mm
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAliasDelete {
@@ -88,6 +93,13 @@ impl crate::cmd::Command for CmdAliasDelete {
 /// If the expansion starts with "!" or if "--shell" was given, the expansion is a shell
 /// expression that will be evaluated through the "sh" interpreter when the alias is
 /// invoked. This allows for chaining multiple commands via piping and redirection.
+///
+///
+/// ```shell
+/// zoo alias set aabb_mm "kcl bounding-box $1 --output-unit mm"
+/// zoo aabb_mm my-file.kcl
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAliasSet {
@@ -168,6 +180,10 @@ impl crate::cmd::Command for CmdAliasSet {
 }
 
 /// List your aliases.
+///
+/// ```shell
+/// zoo alias list
+/// ```
 ///
 /// This command prints out all of the aliases `zoo` is configured to use.
 #[derive(Parser, Debug, Clone)]
