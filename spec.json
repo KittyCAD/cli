@@ -26148,7 +26148,7 @@
           "projects"
         ],
         "summary": "List personal libraries and libraries belonging to the active organization.",
-        "description": "Returns an object with `items` and `next_page`, ordered by library ID. Request the next page with `?page_token=<next_page>` until `next_page` is null. Keep the same authenticated user and active organization for every page; changing that context requires starting a new list request.\n\nEach library has a stable `id`, a display `name`, either `user_id` or `org_id`, an opaque `revision`, and `can_manage`. Use the ID to track a library across renames. `can_manage` allows renaming/deleting the library, not editing all of its projects. Organization members can discover libraries; only organization admins can manage them. Project permissions remain unchanged.\n\nProjects with `library_id: null` have no named library. They do not appear as a library record here. Use `GET /user/projects?scope=personal&unassigned=true` for the default personal group, or `scope=organization&unassigned=true` for the active organization's unassigned projects.\n\nEach library includes its creation source: `zds` or `factory_portal`. Libraries created before source tracking are returned as `zds`. Clients can filter the results by source; API permissions remain unchanged.",
+        "description": "Returns an object with `items` and `next_page`, ordered by library ID. Request the next page with `?page_token=<next_page>` until `next_page` is null. Keep the same authenticated user and active organization for every page; changing that context requires starting a new list request.\n\nEach library has a stable `id`, a display `name`, either `user_id` or `org_id`, an opaque `revision`, and `can_manage`. Use the ID to track a library across renames. `can_manage` allows renaming/deleting the library, not editing all of its projects. Organization members can discover libraries; only organization admins can manage them. Project permissions remain unchanged.\n\nProjects with `library_id: null` have no named library. They do not appear as a library record here. Use `GET /user/projects?scope=personal&unassigned=true` for the default personal group, or `scope=organization&unassigned=true` for the active organization's unassigned projects.\n\nEach library includes its creation source: `zds`, `factory_portal`, or `org_dataset`. Libraries created before source tracking are returned as `zds`. Clients can filter the results by source; API permissions remain unchanged.",
         "operationId": "list_project_libraries",
         "parameters": [
           {
@@ -26266,7 +26266,7 @@
           "projects"
         ],
         "summary": "Create a personal library or a library owned by the active organization.",
-        "description": "Send JSON with a name and explicit ownership scope:\n\n```json { \"name\": \"Designs\", \"scope\": \"personal\" } ```\n\nUse `scope: \"organization\"` to create a library for the request's active organization; this requires organization-admin access. There is no organization ID in this body. Personal scope always uses the authenticated user.\n\nNames are trimmed, must contain 1–255 characters, and are unique ignoring case within each user or organization. Display capitalization is preserved. Duplicate names return HTTP 409. The HTTP 201 response contains the library ID, ownership, revision, and `can_manage`. Creating a library does not move existing projects; select its ID when creating a project, or move an existing project with `PUT /user/projects/{id}/library`.\n\nInclude `source` to identify the application that created the library:\n\n```json { \"name\": \"Factory designs\", \"scope\": \"personal\", \"source\": \"factory_portal\" } ```\n\nAccepted sources are `zds` and `factory_portal`. Omitting source defaults to `zds`. Null and unsupported values return HTTP 400.\n\nSource is returned in library responses and cannot be changed after creation. Clients use it to decide how to display libraries; it does not change API permissions. No API source filter is provided at the moment.",
+        "description": "Send JSON with a name and explicit ownership scope:\n\n```json { \"name\": \"Designs\", \"scope\": \"personal\" } ```\n\nUse `scope: \"organization\"` to create a library for the request's active organization; this requires organization-admin access. There is no organization ID in this body. Personal scope always uses the authenticated user.\n\nNames are trimmed, must contain 1–255 characters, and are unique ignoring case within each user or organization. Display capitalization is preserved. Duplicate names return HTTP 409. The HTTP 201 response contains the library ID, ownership, revision, and `can_manage`. Creating a library does not move existing projects; select its ID when creating a project, or move an existing project with `PUT /user/projects/{id}/library`.\n\nInclude `source` to identify the application that created the library:\n\n```json { \"name\": \"Factory designs\", \"scope\": \"personal\", \"source\": \"factory_portal\" } ```\n\nAccepted sources are `zds`, `factory_portal`, and `org_dataset`. Omitting source defaults to `zds`. Null and unsupported values return HTTP 400.\n\nSource is returned in library responses and cannot be changed after creation. Clients use it to decide how to display libraries; it does not change API permissions. No API source filter is provided at the moment.",
         "operationId": "create_project_library",
         "requestBody": {
           "content": {
@@ -26457,7 +26457,7 @@
           "projects"
         ],
         "summary": "Delete an empty cloud project library.",
-        "description": "Supply the library's last-read `revision` as the required `expected_revision` query parameter. URL-encode this value. Only the personal owner or an admin of the active organization can delete the library.\n\nMove or unassign all projects first. A nonempty library or stale revision returns HTTP 409. Success returns HTTP 204 without deleting projects or history. Library revisions are separate from project `revision` and `metadata_revision`.",
+        "description": "Supply the library's last-read `revision` as the required `expected_revision` query parameter. URL-encode this value. Only the personal owner or an admin of the active organization can delete the library. Libraries managed by an organization dataset cannot be deleted independently; those requests return HTTP 409.\n\nMove or unassign all projects first. A nonempty library or stale revision returns HTTP 409. Success returns HTTP 204 without deleting projects or history. Library revisions are separate from project `revision` and `metadata_revision`.",
         "operationId": "delete_project_library",
         "parameters": [
           {
@@ -40331,6 +40331,13 @@
             ]
           },
           {
+            "description": "Store org dataset conversions in organization-shared cloud project libraries.",
+            "type": "string",
+            "enum": [
+              "org_dataset_cloud_projects"
+            ]
+          },
+          {
             "description": "KCL CEK machine executor.",
             "type": "string",
             "enum": [
@@ -43488,6 +43495,13 @@
             "type": "string",
             "enum": [
               "factory_portal"
+            ]
+          },
+          {
+            "description": "Created by organization dataset conversion automation.",
+            "type": "string",
+            "enum": [
+              "org_dataset"
             ]
           }
         ]
