@@ -52,6 +52,7 @@ kittycad-modeling-cmds = { version = "0.2.254", features = [
   "exec-kcl",
   "websocket",
   "tabled",
+  "clap",
 ] }
 log = "0.4.30"
 miette = { version = "7.5.0", features = ["fancy"] }
