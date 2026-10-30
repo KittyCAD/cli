@@ -91,17 +91,17 @@ pub fn parse_host(input: &str) -> Result<url::Url> {
 ///
 /// ```shell
 /// # authenticate against a specific Zoo instance by reading the token from a file
-/// zoo --host zoo.internal auth login --with-token < mytoken.txt
+/// zoo --host api.zoo.dev auth login --with-token < mytoken.txt
 /// ```
 ///
 /// ```shell
 /// # authenticate with a specific Zoo instance
-/// zoo --host zoo.internal auth login
+/// zoo --host api.zoo.dev auth login
 /// ```
 ///
 /// ```shell
 /// # authenticate with an insecure Zoo instance (not recommended)
-/// zoo --host http://zoo.internal auth login
+/// zoo --host http://api.zoo.dev auth login
 /// ```
 ///     
 #[derive(Parser, Debug, Clone)]
@@ -299,7 +299,7 @@ impl crate::cmd::Command for CmdAuthLogin {
 ///     $ zoo auth logout
 ///     # => select what host to log out of via a prompt
 ///
-///     $ zoo --host zoo.internal auth logout
+///     $ zoo --host api.zoo.dev auth logout
 ///     # => log out of specified host
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
