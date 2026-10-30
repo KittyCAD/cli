@@ -386,11 +386,16 @@ impl crate::cmd::Command for CmdFileSnapshot {
 /// performed asynchronously, you can then check the status with the
 /// `zoo api-call status <id_of_your_operation>` command.
 ///
-///     # get the volume of a file
-///     $ zoo file volume my-file.step
+/// ```shell
+/// # get the volume of a file
+/// zoo file volume my-file.step --output-unit=mm3
+/// ```
 ///
-///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file volume - --src-format=obj
+/// ```shell
+/// # pass a file from stdin, the original file type is required
+/// cat my-obj.obj | zoo file volume - --src-format=obj --output-unit=mm3
+/// ```
+///     
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileVolume {
