@@ -29,6 +29,36 @@ pub(crate) fn into_miette_for_parse(filename: &str, input: &str, error: kcl_lib:
     anyhow::anyhow!("{report:?}")
 }
 
+pub(crate) fn server_execution_error(
+    response: kittycad_modeling_cmds::exec_kcl::ExecKclProjectErr,
+    entrypoint: &str,
+    source_files: &[kittycad_modeling_cmds::exec_kcl::KclFile],
+) -> Option<anyhow::Error> {
+    let error = response.error?;
+    let located = || {
+        let range = *error.source_ranges().first()?;
+        if range == Default::default() {
+            return None;
+        }
+        let filename = if range.module_id().is_top_level() {
+            entrypoint.to_string()
+        } else {
+            response.filenames.get(&range.module_id())?.to_string()
+        };
+        let file = source_files.iter().find(|file| file.path.to_string() == filename)?;
+        let source = std::str::from_utf8(&file.contents).ok()?;
+        source.get(range.start()..range.end())?;
+        let prefix = &source[..range.start()];
+        let line = prefix.bytes().filter(|byte| *byte == b'\n').count() + 1;
+        let column = prefix.rsplit('\n').next()?.chars().count() + 1;
+        Some(format!("{filename}:{line}:{column}: {}", error.get_message()))
+    };
+    Some(anyhow::anyhow!(
+        "KCL execution failed: {}",
+        located().unwrap_or_else(|| error.get_message())
+    ))
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum KclIssueCheck {
     DenyErrors,
@@ -87,6 +117,69 @@ pub(crate) fn check_compilation_issues(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn server_execution_error_locates_the_entrypoint() {
+        let source = "// café\nx = \"é\" + missing()\n";
+        let start = source.find("missing").unwrap();
+        let range = kcl_lib::SourceRange::new(start, start + "missing()".len(), Default::default());
+        let error = kcl_lib::KclError::new_engine(kcl_error::KclErrorDetails::new("union failed".into(), vec![range]));
+        let response = kittycad_modeling_cmds::exec_kcl::ExecKclProjectErr::error_before_execution(error);
+        let files = [kittycad_modeling_cmds::exec_kcl::KclFile::new(
+            "main.kcl".parse().unwrap(),
+            source.as_bytes().to_vec(),
+        )];
+
+        let output = server_execution_error(response, "main.kcl", &files)
+            .unwrap()
+            .to_string();
+        assert_eq!(output, "KCL execution failed: main.kcl:2:11: engine: union failed");
+    }
+
+    #[test]
+    fn server_execution_error_locates_an_imported_file() {
+        let module = kcl_error::ModuleId::from_usize(1);
+        let range = kcl_lib::SourceRange::new(4, 13, module);
+        let caller = kcl_lib::SourceRange::new(0, 1, Default::default());
+        let error = kcl_lib::KclError::new_engine(kcl_error::KclErrorDetails::new(
+            "union failed".into(),
+            vec![range, caller],
+        ));
+        let mut response = kittycad_modeling_cmds::exec_kcl::ExecKclProjectErr::error_before_execution(error);
+        response.filenames.insert(
+            module,
+            serde_json::from_value(serde_json::json!({"type": "Local", "value": "sub/part.kcl"})).unwrap(),
+        );
+        let files = [kittycad_modeling_cmds::exec_kcl::KclFile::new(
+            "sub/part.kcl".parse().unwrap(),
+            b"x = missing()\n".to_vec(),
+        )];
+
+        let output = server_execution_error(response, "main.kcl", &files)
+            .unwrap()
+            .to_string();
+        assert_eq!(output, "KCL execution failed: sub/part.kcl:1:5: engine: union failed");
+    }
+
+    #[test]
+    fn server_execution_error_leaves_unknown_locations_unlabelled() {
+        for ranges in [
+            vec![],
+            vec![Default::default()],
+            vec![kcl_lib::SourceRange::new(0, 100, Default::default())],
+        ] {
+            let error = kcl_lib::KclError::new_engine(kcl_error::KclErrorDetails::new("union failed".into(), ranges));
+            let response = kittycad_modeling_cmds::exec_kcl::ExecKclProjectErr::error_before_execution(error);
+            let files = [kittycad_modeling_cmds::exec_kcl::KclFile::new(
+                "main.kcl".parse().unwrap(),
+                b"x = 1\n".to_vec(),
+            )];
+            let output = server_execution_error(response, "main.kcl", &files)
+                .unwrap()
+                .to_string();
+            assert_eq!(output, "KCL execution failed: engine: union failed");
+        }
+    }
 
     #[test]
     fn deny_errors_prints_all_issues_and_returns_guidance() {

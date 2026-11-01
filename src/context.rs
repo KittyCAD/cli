@@ -349,6 +349,13 @@ impl<'a> Context<'a> {
             anyhow::bail!("Invalid filepath {} (must be unicode)", filepath.display());
         };
         let project = build_kcl_project(filepath, code)?;
+        let entrypoint = project.entrypoint.to_string();
+        let source_files: Vec<_> = project
+            .files
+            .iter()
+            .filter(|file| file.path.to_string().ends_with(".kcl"))
+            .cloned()
+            .collect();
         let executor_settings = settings.inner();
         let ws = self.engine_ws_with_settings(hostname, &executor_settings).await?;
         let wsconfig = tokio_tungstenite::tungstenite::protocol::WebSocketConfig::default()
@@ -432,8 +439,8 @@ impl<'a> Context<'a> {
                         issue_check,
                     )
                     .map_err(|e| anyhow!("KCL execution had errors: {e}"))?;
-                    if let Some(error) = err.error {
-                        return Err(anyhow!("KCL execution failed: {}", error.get_message()));
+                    if let Some(error) = kcl_error_fmt::server_execution_error(err, &entrypoint, &source_files) {
+                        return Err(error);
                     }
                     break;
                 }
