@@ -439,8 +439,24 @@ impl<'a> Context<'a> {
                         issue_check,
                     )
                     .map_err(|e| anyhow!("KCL execution had errors: {e}"))?;
-                    if let Some(error) = kcl_error_fmt::server_execution_error(err, &entrypoint, &source_files) {
-                        return Err(error);
+                    if let Some(error) = err.error {
+                        let line = error
+                            .source_ranges()
+                            .first()
+                            .filter(|range| **range != Default::default())
+                            .and_then(|range| {
+                                let filename = if range.module_id().is_top_level() {
+                                    entrypoint.clone()
+                                } else {
+                                    err.filenames.get(&range.module_id())?.to_string()
+                                };
+                                let file = source_files.iter().find(|file| file.path.to_string() == filename)?;
+                                let source = std::str::from_utf8(&file.contents).ok()?;
+                                let prefix = source.get(..range.start())?;
+                                Some(prefix.bytes().filter(|byte| *byte == b'\n').count() + 1)
+                            });
+                        let location = line.map(|line| format!("line {line}: ")).unwrap_or_default();
+                        return Err(anyhow!("KCL execution failed: {location}{}", error.get_message()));
                     }
                     break;
                 }
