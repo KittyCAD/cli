@@ -81,14 +81,20 @@ impl crate::cmd::Command for CmdKcl {
 
 /// Export a `kcl` file as any other supported CAD file format.
 ///
-///     # convert kcl to obj
-///     $ zoo kcl export --output-format=obj my-file.kcl output_dir
+/// ```shell
+/// # convert kcl to obj
+/// zoo kcl export --output-format=obj my-file.kcl output_dir
+/// ```
 ///
-///     # convert kcl to step
-///     $ zoo kcl export --output-format=step my-obj.kcl .
-///
-///     # pass a file to convert from stdin
-///     $ cat my-obj.kcl | zoo kcl export --output-format=step - output_dir
+/// ```shell
+/// # convert kcl to step
+/// zoo kcl export --output-format=step my-obj.kcl .
+/// ```
+///    
+/// ```shell
+/// # pass a file to convert from stdin
+/// cat my-obj.kcl | zoo kcl export --output-format=step - output_dir
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]

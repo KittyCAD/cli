@@ -686,11 +686,16 @@ impl crate::cmd::Command for CmdFileDensity {
 /// performed asynchronously, you can then check the status with the
 /// `zoo api-call status <id_of_your_operation>` command.
 ///
-///     # get the surface-area of a file
-///     $ zoo file surface-area my-file.step
+/// ```shell
+/// # get the surface-area of a file
+/// zoo file surface-area my-file.step --output-unit m2
+/// ```
+///     
+/// ```shell
+/// # pass a file from stdin, the original file type is required
+/// cat my-obj.obj | zoo file surface-area - --src-format=obj --output-unit m2
+/// ```
 ///
-///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file surface-area - --src-format=obj
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileSurfaceArea {
