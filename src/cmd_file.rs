@@ -602,11 +602,16 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
 /// performed asynchronously, you can then check the status with the
 /// `zoo api-call status <id_of_your_operation>` command.
 ///
-///     # get the density of a file
-///     $ zoo file density my-file.step
+/// ```shell
+/// # get the density of a file
+/// zoo file density my-file.step --material-mass 212.2923 --material-mass-unit g --output-unit kg-m3
+/// ```
 ///
-///     # pass a file from stdin, the original file type is required
-///     $ cat my-obj.obj | zoo file density - --src-format=obj
+/// ```shell
+/// # pass a file from stdin, the original file type is required
+/// cat my-obj.obj | zoo file density - --src-format=obj -material-mass 212.2923 --material-mass-unit g --output-unit kg-m3
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileDensity {
