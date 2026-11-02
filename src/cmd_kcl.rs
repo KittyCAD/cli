@@ -592,10 +592,14 @@ fn four_readers(
 
 /// View a render of a `kcl` file in your terminal.
 ///
-///     $ zoo kcl view my-file.kcl
+/// ```shell
+/// zoo kcl view my-file.kcl --angle iso
+/// ```
 ///
-///     # pass a file to view from stdin
-///     $ cat my-obj.kcl | zoo kcl view -
+/// ```shell
+/// # pass a file to view from stdin
+/// cat my-obj.kcl | zoo kcl view - --angle iso
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
