@@ -1672,11 +1672,16 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
 
 /// Lint a KCL file for style issues.
 ///
-///     # check a file for issues
-///     $ zoo kcl lint my-file.kcl
+/// ```shell
+/// # check a file for issues
+/// zoo kcl lint my-file.kcl
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl lint -
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl lint -
+/// ```
+///     
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclLint {
