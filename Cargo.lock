@@ -2879,7 +2879,7 @@ dependencies = [
  "kcl-engine-codec",
  "kcl-error",
  "kcl-syntax",
- "kittycad",
+ "kittycad 0.5.8",
  "kittycad-modeling-cmds",
  "lazy_static",
  "libm",
@@ -2961,6 +2961,44 @@ dependencies = [
  "itertools 0.14.0",
  "log",
  "mime_guess",
+ "parse-display",
+ "phonenumber",
+ "rand 0.9.4",
+ "reqwest",
+ "schemars 0.8.22",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_urlencoded",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "kittycad"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4e5a9c78698eacffaaa08c5a42004249db84d8327c9276673223b4e5cb4b42a"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bigdecimal",
+ "bytes",
+ "chrono",
+ "clap",
+ "data-encoding",
+ "futures",
+ "getrandom 0.3.4",
+ "getrandom 0.4.3",
+ "http 1.5.0",
+ "itertools 0.14.0",
+ "log",
+ "mime_guess",
+ "openapitor-runtime",
  "parse-display",
  "phonenumber",
  "rand 0.9.4",
@@ -3722,6 +3760,17 @@ dependencies = [
  "thiserror 2.0.21",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "openapitor-runtime"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccdd1758ef6184029f095e6e1f3329de08d983f5ff37d28e8f57fd5c80862a0f"
+dependencies = [
+ "colored",
+ "serde_json",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -7068,7 +7117,7 @@ dependencies = [
  "kcl-error",
  "kcl-lib",
  "kcl-test-server",
- "kittycad",
+ "kittycad 0.6.0",
  "kittycad-modeling-cmds",
  "log",
  "miette",
