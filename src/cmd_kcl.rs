@@ -1589,11 +1589,15 @@ impl crate::cmd::Command for CmdKclDensity {
 
 /// Get the surface area of objects in a kcl file.
 ///
-///     # get the surface-area of a file
-///     $ zoo kcl surface-area my-file.kcl
+/// ```shell
+/// # get the surface-area of a file
+/// zoo kcl surface-area my-file.kcl --output-unit mm2
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl surface-area
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl surface-area - --output-unit mm2
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
