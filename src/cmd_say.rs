@@ -3,9 +3,12 @@ use clap::Parser;
 
 /// Prints your text in a text bubble with Zoo as ASCII art
 ///
-///     $ zoo say
-///     $ zoo say hello!
-///     $ zoo say Hello World!
+/// ```shell
+/// zoo say
+/// zoo say hello!
+/// zoo say Hello World!
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdSay {
