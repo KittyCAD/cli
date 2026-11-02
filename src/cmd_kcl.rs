@@ -1148,12 +1148,12 @@ pub struct CmdKclVolume {
 ///
 /// ```shell
 /// # get the volume of a file
-/// zoo kcl bounding-box my-file.kcl
+/// zoo kcl bounding-box my-file.kcl --output-unit mm
 /// ```
 ///
 /// ```shell
 /// # pass a file from stdin
-/// cat my-file.kcl | zoo kcl bounding-box
+/// cat my-file.kcl | zoo kcl bounding-box - --output-unit mm
 /// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
