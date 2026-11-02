@@ -81,14 +81,20 @@ impl crate::cmd::Command for CmdKcl {
 
 /// Export a `kcl` file as any other supported CAD file format.
 ///
-///     # convert kcl to obj
-///     $ zoo kcl export --output-format=obj my-file.kcl output_dir
+/// ```shell
+/// # convert kcl to obj
+/// zoo kcl export --output-format=obj my-file.kcl output_dir
+/// ```
 ///
-///     # convert kcl to step
-///     $ zoo kcl export --output-format=step my-obj.kcl .
-///
-///     # pass a file to convert from stdin
-///     $ cat my-obj.kcl | zoo kcl export --output-format=step - output_dir
+/// ```shell
+/// # convert kcl to step
+/// zoo kcl export --output-format=step my-obj.kcl .
+/// ```
+///    
+/// ```shell
+/// # pass a file to convert from stdin
+/// cat my-obj.kcl | zoo kcl export --output-format=step - output_dir
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
@@ -193,14 +199,21 @@ impl crate::cmd::Command for CmdKclExport {
 
 /// Format a `kcl` file.
 ///
-///     # Output to stdout by default
-///     $ zoo kcl fmt my-file.kcl
+/// ```shell
+/// # Output to stdout by default
+/// zoo kcl fmt my-file.kcl
+/// ```
 ///
-///     # Overwrite the file
-///     $ zoo kcl fmt -w my-file.kcl
+/// ```shell
+/// # Overwrite the file
+/// zoo kcl fmt -w my-file.kcl
+/// ```
 ///
-///     # Pass a file to format from stdin
-///     $ cat my-obj.kcl | zoo kcl fmt
+/// ```shell
+/// # Pass a file to format from stdin
+/// cat my-obj.kcl | zoo kcl fmt -
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclFormat {
@@ -285,11 +298,15 @@ impl crate::cmd::Command for CmdKclFormat {
 
 /// Snapshot a render of a `kcl` file as any supported image format.
 ///
-///     # snapshot as png
-///     $ zoo kcl snapshot my-file.kcl my-file.png
+/// ```shell
+/// # snapshot as png
+/// zoo kcl snapshot my-file.kcl my-file.png --angle iso
+/// ```
 ///
-///     # pass a file to snapshot from stdin
-///     $ cat my-obj.kcl | zoo kcl snapshot --output-format=png - my-file.png
+/// ```shell
+/// # pass a file to snapshot from stdin
+/// cat my-obj.kcl | zoo kcl snapshot --output-format=png - my-file.png --angle iso
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
@@ -575,10 +592,14 @@ fn four_readers(
 
 /// View a render of a `kcl` file in your terminal.
 ///
-///     $ zoo kcl view my-file.kcl
+/// ```shell
+/// zoo kcl view my-file.kcl --angle iso
+/// ```
 ///
-///     # pass a file to view from stdin
-///     $ cat my-obj.kcl | zoo kcl view -
+/// ```shell
+/// # pass a file to view from stdin
+/// cat my-obj.kcl | zoo kcl view - --angle iso
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
@@ -946,11 +967,15 @@ impl KclAnalyzeOutput {
 ///
 /// This runs KCL once and then returns all requested analyses from the same scene.
 ///
-///     # analyze a file and print a table
-///     $ zoo kcl analyze my-file.kcl --material-density 1.0 --material-density-unit lb-ft3
+/// ```shell
+/// # analyze a file and print a table
+/// zoo kcl analyze my-file.kcl --material-density 1.0 --material-density-unit lb-ft3
+/// ```
 ///
-///     # output for scripting
-///     $ zoo kcl analyze my-file.kcl --format json --material-density 1.0 --material-density-unit lb-ft3
+/// ```shell
+/// # output for scripting
+/// zoo kcl analyze my-file.kcl --format json --material-density 1.0 --material-density-unit lb-ft3
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
@@ -1083,12 +1108,16 @@ impl crate::cmd::Command for CmdKclAnalyze {
 
 /// Get the volume of an object in a kcl file.
 ///
-///     # get the volume of a file
-///     $ zoo kcl volume my-file.kcl
+/// ```shell
+/// # get the volume of a file
+/// zoo kcl volume my-file.kcl --output-unit mm3
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl volume
-///
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl volume - --output-unit m3
+/// ```
+///     
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -1119,12 +1148,12 @@ pub struct CmdKclVolume {
 ///
 /// ```shell
 /// # get the volume of a file
-/// zoo kcl bounding-box my-file.kcl
+/// zoo kcl bounding-box my-file.kcl --output-unit mm
 /// ```
 ///
 /// ```shell
 /// # pass a file from stdin
-/// cat my-file.kcl | zoo kcl bounding-box
+/// cat my-file.kcl | zoo kcl bounding-box - --output-unit mm
 /// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
@@ -1283,12 +1312,16 @@ fn bounding_box_rows(data: &kcmc::output::BoundingBox, output_unit: UnitLength) 
 
 /// Get the mass of objects in a kcl file.
 ///
-///     # get the mass of a file
-///     $ zoo kcl mass my-file.kcl
+/// ```shell
+/// # get the mass of a file
+/// zoo kcl mass my-file.kcl --material-density 1.0 --material-density-unit lb-ft3 --output-unit kg
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl mass
-///
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl mass - --material-density 1.0 --material-density-unit lb-ft3 --output-unit kg
+/// ```
+///     
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -1376,12 +1409,16 @@ impl crate::cmd::Command for CmdKclMass {
 
 /// Get the center of mass of objects in a kcl file.
 ///
-///     # get the mass of a file
-///     $ zoo kcl center-of-mass my-file.kcl
-///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl center-of-mass
-///
+/// ```shell
+/// # get the mass of a file
+/// zoo kcl center-of-mass my-file.kcl --output-unit mm
+/// ```
+///     
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl center-of-mass - --output-unit mm
+/// ```
+///     
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
@@ -1455,11 +1492,15 @@ impl crate::cmd::Command for CmdKclCenterOfMass {
 
 /// Get the density of objects in a kcl file.
 ///
-///     # get the density of a file
-///     $ zoo kcl density my-file.kcl
+/// ```shell
+/// # get the density of a file
+/// zoo kcl density my-file.kcl --material-mass 1 --material-mass-unit g --output-unit kg:m3
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl density
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl density - --material-mass 1 --material-mass-unit g --output-unit kg:m3
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
@@ -1548,11 +1589,15 @@ impl crate::cmd::Command for CmdKclDensity {
 
 /// Get the surface area of objects in a kcl file.
 ///
-///     # get the surface-area of a file
-///     $ zoo kcl surface-area my-file.kcl
+/// ```shell
+/// # get the surface-area of a file
+/// zoo kcl surface-area my-file.kcl --output-unit mm2
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl surface-area
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl surface-area - --output-unit mm2
+/// ```
 ///
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
@@ -1627,11 +1672,16 @@ impl crate::cmd::Command for CmdKclSurfaceArea {
 
 /// Lint a KCL file for style issues.
 ///
-///     # check a file for issues
-///     $ zoo kcl lint my-file.kcl
+/// ```shell
+/// # check a file for issues
+/// zoo kcl lint my-file.kcl
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl lint -
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl lint -
+/// ```
+///     
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclLint {
