@@ -1312,12 +1312,16 @@ fn bounding_box_rows(data: &kcmc::output::BoundingBox, output_unit: UnitLength) 
 
 /// Get the mass of objects in a kcl file.
 ///
-///     # get the mass of a file
-///     $ zoo kcl mass my-file.kcl
+/// ```shell
+/// # get the mass of a file
+/// zoo kcl mass my-file.kcl --material-density 1.0 --material-density-unit lb-ft3 --output-unit kg
+/// ```
 ///
-///     # pass a file from stdin
-///     $ cat my-file.kcl | zoo kcl mass
-///
+/// ```shell
+/// # pass a file from stdin
+/// cat my-file.kcl | zoo kcl mass - --material-density 1.0 --material-density-unit lb-ft3 --output-unit kg
+/// ```
+///     
 /// By default, this will search the input path for a `project.toml` file to determine any specific execution settings.
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
