@@ -31,9 +31,22 @@ impl crate::cmd::Command for CmdUser {
 
 #[cfg(test)]
 mod test {
+    use clap::Parser;
     use pretty_assertions::assert_eq;
 
     use crate::cmd::Command;
+
+    #[test]
+    fn test_delete_authenticated_user_args() {
+        let cmd = super::CmdUser::try_parse_from(["user", "delete", "--confirm"]).unwrap();
+        assert!(matches!(cmd.subcmd, super::SubCommand::Delete(cmd) if cmd.confirm));
+
+        let cmd = super::CmdUser::try_parse_from(["user", "delete"]).unwrap();
+        assert!(matches!(cmd.subcmd, super::SubCommand::Delete(cmd) if !cmd.confirm));
+
+        let err = super::CmdUser::try_parse_from(["user", "delete", "alice", "--confirm"]).unwrap_err();
+        assert_eq!(err.kind(), clap::error::ErrorKind::UnknownArgument);
+    }
 
     pub struct TestItem {
         name: String,

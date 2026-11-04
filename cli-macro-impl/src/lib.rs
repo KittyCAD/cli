@@ -1136,15 +1136,47 @@ impl Operation {
         let singular_tag_lc = format_ident!("{}", singular(tag));
         let struct_name = format_ident!("Cmd{}Delete", to_title_case(&singular(tag)));
 
-        let struct_doc = format!("Delete {singular_tag_str}.");
+        let struct_doc = if tag == "users" {
+            "Delete your authenticated user account.".to_string()
+        } else {
+            format!("Delete {singular_tag_str}.")
+        };
         let struct_inner_name_doc = format!("The {singular_tag_str} to delete. Can be an ID or name.");
+        let target_param = if tag == "users" {
+            quote! {}
+        } else {
+            quote! {
+                #[doc = #struct_inner_name_doc]
+                #[clap(name = #singular_tag_str, required = true)]
+                pub #singular_tag_lc: String,
+            }
+        };
+        let (confirmation_prompt, confirmation_value) = if tag == "users" {
+            (
+                quote!("Type delete to confirm deletion of your authenticated user account:"),
+                quote!("delete"),
+            )
+        } else {
+            (
+                quote!(format!("Type {} to confirm deletion:", self.#singular_tag_lc)),
+                quote!(self.#singular_tag_lc),
+            )
+        };
 
         let api_call_params = self.get_api_call_params(tag)?;
 
         let additional_struct_params = self.get_additional_struct_params(tag)?;
 
         // We need to form the output back to the client.
-        let output = if self.is_parameter("organization") && self.is_parameter("project") {
+        let output = if tag == "users" {
+            quote! {
+                writeln!(
+                    ctx.io.out,
+                    "{} Deleted your authenticated user account",
+                    cs.success_icon_with_color(nu_ansi_term::Color::Red)
+                )?;
+            }
+        } else if self.is_parameter("organization") && self.is_parameter("project") {
             let start = quote! {
                 let full_name = format!("{}/{}", self.organization, self.project);
             };
@@ -1189,9 +1221,7 @@ impl Operation {
             #[derive(clap::Parser, Debug, Clone)]
             #[clap(verbatim_doc_comment)]
             pub struct #struct_name {
-                #[doc = #struct_inner_name_doc]
-                #[clap(name = #singular_tag_str, required = true)]
-                pub #singular_tag_lc: String,
+                #target_param
 
                 #(#additional_struct_params)*
 
@@ -1213,9 +1243,9 @@ impl Operation {
                     // Confirm deletion.
                     if !self.confirm {
                         if let Err(err) = dialoguer::Input::<String>::new()
-                            .with_prompt(format!("Type {} to confirm deletion:", self.#singular_tag_lc))
+                            .with_prompt(#confirmation_prompt)
                             .validate_with(|input: &String| -> Result<(), &str> {
-                                if input.trim() == self.#singular_tag_lc {
+                                if input.trim() == #confirmation_value {
                                     Ok(())
                                 } else {
                                     Err("mismatched confirmation")
