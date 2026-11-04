@@ -2800,9 +2800,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6785f6f98f788883c1e91998fe2b0a635e5a15eed9771bfe616e6b1d7d1e4114"
+checksum = "c1f04e24ac7116ba28e929e518bdd2129dd7d991b950e0d4f0677cbc0670a48f"
 dependencies = [
  "euler",
  "indexmap 2.14.0",
@@ -2816,15 +2816,15 @@ dependencies = [
  "serde",
  "serde_json",
  "ts-rs",
- "typed-path",
+ "typed-path 0.13.0",
  "uuid",
 ]
 
 [[package]]
 name = "kcl-engine-codec"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e292e1439e31eb94e9bdf48cd6f4de717c5c6cd87c23af152a46e1daf8f7c948"
+checksum = "4d565b9623d7a692edfe78c0512713becc212f9a80028842d38543d6afc0653a"
 dependencies = [
  "kittycad-modeling-cmds",
  "rmp-serde",
@@ -2833,9 +2833,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3540e68a2aeec68e0d39d8ded348946a24840bb1a222b61a7ff4c2ac589a1340"
+checksum = "938fe7f4f7fd9ac49ec7e07ea86340eb87136eed76575b3b626812e2b4a1d705"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2847,9 +2847,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dc81b3116bef129b7d45b9b0c8af0bc1c0aafcd4cfc7f03401d13dc8cd529b8"
+checksum = "715c5cb13a978a56fdac2be210a749d1d9f53bd0e1c886f079ff830db6d17b51"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2902,7 +2902,7 @@ dependencies = [
  "toml 1.1.0+spec-1.1.0",
  "tower-lsp",
  "ts-rs",
- "typed-path",
+ "typed-path 0.13.0",
  "unicase",
  "url",
  "uuid",
@@ -2917,18 +2917,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c804809031993a05587b6deb773f64099f00a6bbb2124896dcde8792dfc42d2c"
+checksum = "3ffb88321280e2d6087ae854e50b52af02f6a0b15d6bb593bbd716db49b06342"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "131882cd3f03274faed4954db3ff2c51b5935a40e6de6068d5ab0eb066f746d3"
+checksum = "17861a8d4d8a639480126ce4637a0bb2baa85991b50b9886194310347b39e815"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2941,9 +2941,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.5.8"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ecbfd679578f1d3dc35d81e6e9fb0547d14f86203673460140f493f4fd3c22a"
+checksum = "d4e5a9c78698eacffaaa08c5a42004249db84d8327c9276673223b4e5cb4b42a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2953,7 +2953,6 @@ dependencies = [
  "chrono",
  "clap",
  "data-encoding",
- "format_serde_error",
  "futures",
  "getrandom 0.3.4",
  "getrandom 0.4.3",
@@ -2961,6 +2960,7 @@ dependencies = [
  "itertools 0.14.0",
  "log",
  "mime_guess",
+ "openapitor-runtime",
  "parse-display",
  "phonenumber",
  "rand 0.9.4",
@@ -2992,9 +2992,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.254"
+version = "0.2.256"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e3c73911b1c03a6979d48ab10e5460e367ccfec25301f8c0b6c861c24d2a07d"
+checksum = "352da7af6674aaa3c0bc4a61563e854de293b978002342cac9b6c07ae3139a74"
 dependencies = [
  "anyhow",
  "bon",
@@ -3021,7 +3021,7 @@ dependencies = [
  "serde_with",
  "tabled",
  "ts-rs",
- "typed-path",
+ "typed-path 0.12.3",
  "uuid",
 ]
 
@@ -3722,6 +3722,17 @@ dependencies = [
  "thiserror 2.0.21",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "openapitor-runtime"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccdd1758ef6184029f095e6e1f3329de08d983f5ff37d28e8f57fd5c80862a0f"
+dependencies = [
+ "colored",
+ "serde_json",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -6307,6 +6318,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e28f89b80c87b8fb0cf04ab448d5dd0dd0ade2f8891bae878de66a75a28600e"
 
 [[package]]
+name = "typed-path"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ce898823d8cd0f028662d2f349694b1af0a5cc9be83f1d213a00d3147445e1e"
+
+[[package]]
 name = "typenum"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7041,7 +7058,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.209"
+version = "0.2.210"
 dependencies = [
  "anyhow",
  "async-trait",

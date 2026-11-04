@@ -846,6 +846,7 @@ mod tests {
                 title: name.into(),
                 updated_at: chrono::Utc::now(),
                 library_id: Default::default(),
+                metadata_revision: Default::default(),
             })
             .to_vec();
         assert_list_compatibility(
