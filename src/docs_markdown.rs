@@ -450,6 +450,115 @@ mod test {
             };
             assert_eq!(actual, expected);
         }
+        #[test]
+        fn empty_block_without_language() {
+            assert_eq!(
+                language_and_code("\n"),
+                LanguageCodeBlock {
+                    language: String::new(),
+                    code: vec![String::new()],
+                }
+            );
+        }
+
+        #[test]
+        fn language_without_code() {
+            assert_eq!(
+                language_and_code("shell\n"),
+                LanguageCodeBlock {
+                    language: "shell".to_string(),
+                    code: vec![String::new()],
+                }
+            );
+        }
+
+        #[test]
+        fn code_without_language() {
+            assert_eq!(
+                language_and_code("\nhello\n"),
+                LanguageCodeBlock {
+                    language: String::new(),
+                    code: vec!["hello".to_string(), String::new()],
+                }
+            );
+        }
+
+        #[test]
+        fn multiple_code_lines() {
+            assert_eq!(
+                language_and_code("shell\nhello\nworld\n"),
+                LanguageCodeBlock {
+                    language: "shell".to_string(),
+                    code: vec!["hello".to_string(), "world".to_string(), String::new(),],
+                }
+            );
+        }
+
+        #[test]
+        fn preserves_indentation() {
+            assert_eq!(
+                language_and_code("python\n    first()\n    second()\n"),
+                LanguageCodeBlock {
+                    language: "python".to_string(),
+                    code: vec!["    first()".to_string(), "    second()".to_string(), String::new(),],
+                }
+            );
+        }
+
+        #[test]
+        fn preserves_trailing_spaces() {
+            assert_eq!(
+                language_and_code("text\nhello  \n"),
+                LanguageCodeBlock {
+                    language: "text".to_string(),
+                    code: vec!["hello  ".to_string(), String::new()],
+                }
+            );
+        }
+
+        #[test]
+        fn preserves_leading_blank_line() {
+            assert_eq!(
+                language_and_code("text\n\nhello\n"),
+                LanguageCodeBlock {
+                    language: "text".to_string(),
+                    code: vec![String::new(), "hello".to_string(), String::new(),],
+                }
+            );
+        }
+
+        #[test]
+        fn preserves_trailing_blank_line() {
+            assert_eq!(
+                language_and_code("text\nhello\n\n"),
+                LanguageCodeBlock {
+                    language: "text".to_string(),
+                    code: vec!["hello".to_string(), String::new(), String::new(),],
+                }
+            );
+        }
+
+        #[test]
+        fn preserves_internal_blank_line() {
+            assert_eq!(
+                language_and_code("text\nhello\n\nworld\n"),
+                LanguageCodeBlock {
+                    language: "text".to_string(),
+                    code: vec!["hello".to_string(), String::new(), "world".to_string(), String::new(),],
+                }
+            );
+        }
+
+        #[test]
+        fn preserves_backticks_in_code() {
+            assert_eq!(
+                language_and_code("python\nprint(\"```\")\n"),
+                LanguageCodeBlock {
+                    language: "python".to_string(),
+                    code: vec!["print(\"```\")".to_string(), String::new()],
+                }
+            );
+        }
     }
 
     mod code_blocks {
@@ -535,6 +644,67 @@ world
             let actual = cleanup_code_blocks(code).expect("to parse");
             let expected = "```python\n    first()\n    second()\n```";
             assert_eq!(actual, expected);
+        }
+        #[test]
+        fn empty_input() {
+            assert_eq!(cleanup_code_blocks("").expect("block to be cleaned up"), "");
+        }
+
+        #[test]
+        fn plain_text_is_unchanged() {
+            let input = "Hello\n\nworld\n";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        fn preserves_first_line_indentation() {
+            let input = "```python\n    first()\n    second()\n```";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        fn preserves_tabs() {
+            let input = "```makefile\n\tfirst\n\tsecond\n```";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        fn preserves_trailing_spaces() {
+            let input = "```text\nhello  \n```";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        fn preserves_blank_lines_inside_code() {
+            let input = "```text\n\nhello\n\nworld\n\n```";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        fn handles_multiple_blocks_and_surrounding_text() {
+            let input = "Before\n\n```shell\necho hello\n```\n\n\
+                 Between\n\n```rust\nlet x = 1;\n```\n\nAfter";
+
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        #[ignore = "We do not support this parse method yet."]
+        fn backticks_inside_a_string_do_not_close_the_block() {
+            let input = "```python\nprint(\"```\")\nprint(\"hello\")\n```";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        fn longer_fence_can_contain_shorter_fences() {
+            let input = "````markdown\n```shell\necho hello\n```\n````";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
+        }
+
+        #[test]
+        fn preserves_empty_fenced_block() {
+            let input = "```shell\n```";
+            assert_eq!(cleanup_code_blocks(input).expect("block to be cleaned up"), input);
         }
     }
 
