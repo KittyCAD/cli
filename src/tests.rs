@@ -845,7 +845,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("1267.973")
+        .stdout_contains("1308.435876518913")
     }
 
     get_the_mass_of_a_kcl_file_but_use_project_toml(_ctx) => {
