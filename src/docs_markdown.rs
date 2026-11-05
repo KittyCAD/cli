@@ -258,7 +258,7 @@ struct LanguageCodeBlock {
 }
 
 fn language_and_code(text: &str) -> LanguageCodeBlock {
-    let mut lines: Vec<&str> = text.split("\n").collect();
+    let lines: Vec<&str> = text.split("\n").collect();
 
     let code: Vec<String> = text.split("\n").skip(1).map(String::from).collect();
     let could_be_language = lines.first();
