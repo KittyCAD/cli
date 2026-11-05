@@ -2,6 +2,7 @@ use std::fmt::Write;
 
 use anyhow::Result;
 use clap::Command;
+use itertools::Itertools;
 use pulldown_cmark_to_cmark::cmark_with_options;
 
 use crate::ml::copilot::state::slash_command_documentation;
@@ -251,6 +252,32 @@ fn rustdoc_to_markdown_link(text: &str) -> Result<String> {
         .to_string())
 }
 
+#[derive(Debug, PartialEq, Eq)]
+struct LanguageCodeBlock {
+    language: String,
+    code: Vec<String>,
+}
+
+fn language_and_code(text: &str) -> LanguageCodeBlock {
+    let lines: Vec<&str> = text.split("\n").collect();
+    let code: Vec<String> = text.split("\n").skip(1).map(String::from).collect();
+    let could_be_language = lines.first();
+    let language = match could_be_language {
+        Some(l) => {
+            if lines.len() == 1 {
+                "".to_string()
+            } else {
+                l.to_string()
+            }
+        }
+        None => "".to_string(),
+    };
+    LanguageCodeBlock {
+        language: language,
+        code,
+    }
+}
+
 /// Cleanup the code blocks in the markdown.
 fn cleanup_code_blocks(text: &str) -> Result<String> {
     let regexes = vec![r#"(?s)```(.*?)```"#];
@@ -261,7 +288,12 @@ fn cleanup_code_blocks(text: &str) -> Result<String> {
         text = re
             .replace_all(&text, |caps: &regex::Captures| {
                 let lang = &caps[1];
-                format!("```\n{}\n```", lang.trim())
+                let lc = language_and_code(lang);
+                if lc.code.len() <= 0 {
+                    format!("```{}```", lang)
+                } else {
+                    format!("```{}\n{}\n```", lc.language, lc.code.join("\n").trim())
+                }
             })
             .to_string();
     }
@@ -289,6 +321,9 @@ pub fn app_to_markdown(app: &Command, title: &str) -> Result<String> {
 
 #[cfg(test)]
 mod test {
+    use super::LanguageCodeBlock;
+    use super::cleanup_code_blocks;
+    use super::language_and_code;
     use pretty_assertions::assert_eq;
 
     fn definition_descriptions(markdown: &str) -> Vec<&str> {
@@ -331,25 +366,139 @@ mod test {
     }
 
     #[test]
+    fn this_is_not_a_valid_markdown_code_block() {
+        let code = "```some code```";
+        let actual = cleanup_code_blocks(code).expect("to parse");
+        let expected = "```some code```";
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn test_cleanup_code_blocks() {
+        assert_eq!(cleanup_code_blocks("```\nsome code```").unwrap(), "```\nsome code\n```");
+
         assert_eq!(
-            super::cleanup_code_blocks("```\nsome code```").unwrap(),
+            cleanup_code_blocks("```\nsome code\n```").unwrap(),
             "```\nsome code\n```"
         );
 
+        // the first some code is actually the language
         assert_eq!(
-            super::cleanup_code_blocks("```\nsome code\n```").unwrap(),
-            "```\nsome code\n```"
+            cleanup_code_blocks("```some code\nsome other code```").unwrap(),
+            "```some code\nsome other code\n```"
         );
+    }
 
-        assert_eq!(
-            super::cleanup_code_blocks("```some code```").unwrap(),
-            "```\nsome code\n```"
-        );
-        assert_eq!(
-            super::cleanup_code_blocks("```some code\nsome other code```").unwrap(),
-            "```\nsome code\nsome other code\n```"
-        );
+    mod language_and_code {
+        use super::LanguageCodeBlock;
+        use super::language_and_code;
+
+        #[test]
+        fn no_language() {
+            let block = "\nhello\nworld\n";
+            let actual = language_and_code(block);
+            let expected = LanguageCodeBlock {
+                language: "".to_string(),
+                code: vec!["hello".to_string(), "world".to_string(), "".to_string()],
+            };
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn shell() {
+            let block = "shell\nhello\nworld\n";
+            let actual = language_and_code(block);
+            let expected = LanguageCodeBlock {
+                language: "shell".to_string(),
+                code: vec!["hello".to_string(), "world".to_string(), "".to_string()],
+            };
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn shell_no_code() {
+            let block = "shell\n";
+            let actual = language_and_code(block);
+            let expected = LanguageCodeBlock {
+                language: "shell".to_string(),
+                code: vec!["".to_string()],
+            };
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn huh() {
+            let block = "huh";
+            let actual = language_and_code(block);
+            let expected = LanguageCodeBlock {
+                language: "".to_string(),
+                code: vec![],
+            };
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn no_language_no_code() {
+            let block = "";
+            let actual = language_and_code(block);
+            let expected = LanguageCodeBlock {
+                language: "".to_string(),
+                code: vec![],
+            };
+            assert_eq!(actual, expected);
+        }
+    }
+
+    mod code_blocks {
+        use super::cleanup_code_blocks;
+        #[test]
+        fn basic_example() {
+            let code = "```
+hello
+world
+```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```\nhello\nworld\n```";
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn hello_world_with_language() {
+            let code = "```shell
+hello
+world
+```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```shell\nhello\nworld\n```";
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn only_language_many_lines() {
+            let code = "```shell
+
+
+
+
+```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```shell\n\n```";
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn only_language_many_one_newline() {
+            let code = "```shell
+```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```shell\n\n```";
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn not_a_code_block() {
+            let code = "```shell```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```shell```";
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
