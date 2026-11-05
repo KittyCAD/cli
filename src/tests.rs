@@ -787,21 +787,6 @@ cli_tests! {
         .set_env("ENGINE_EXECUTION", "1")
     }
 
-    snapshot_a_kcl_file_with_a_project_toml_as_png(_ctx) => {
-        TestItem::new(
-            "snapshot a kcl file with a project.toml as png",
-            svec![
-                "zoo",
-                "kcl",
-                "snapshot",
-                "tests/with-settings/gear.kcl",
-                "tests/with-settings/gear.png",
-            ],
-        )
-        .setup(setup_authenticated)
-        .stdout_contains("Snapshot from engine saved to `tests/with-settings/gear.png`")
-    }
-
     snapshot_a_kcl_file_with_a_nested_project_toml_as_png(_ctx) => {
         TestItem::new(
             "snapshot a kcl file with a nested project.toml as png",
@@ -916,7 +901,7 @@ cli_tests! {
                 "zoo",
                 "kcl",
                 "analyze",
-                "tests/gear.kcl",
+                "tests/with-settings/cylinder.kcl",
                 "--volume-output-unit",
                 "cm3",
                 "--mass-output-unit",
@@ -1044,6 +1029,33 @@ cli_tests! {
         .setup(setup_authenticated)
         .stdout_contains("0.0007")
     }
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn snapshot_a_kcl_file_with_a_project_toml_as_png(ctx: &mut MainContext) {
+    let output_dir = tempfile::tempdir().expect("failed to create snapshot output dir");
+    let output = output_dir.path().join("snapshot.png");
+
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "snapshot a kcl file with a project.toml as png",
+            svec![
+                "zoo",
+                "kcl",
+                "snapshot",
+                "tests/with-settings/cylinder.kcl",
+                output.display(),
+            ],
+        )
+        .setup(setup_authenticated)
+        .stdout_contains(format!("Snapshot from engine saved to `{}`", output.display())),
+    )
+    .await;
+
+    assert!(output.is_file(), "snapshot file was not created");
 }
 
 #[test_context(MainContext)]
