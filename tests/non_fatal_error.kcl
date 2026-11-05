@@ -82,7 +82,7 @@ hangerSideSketch = sketch(on = XZ) {
 }
 
 hangerRegion = region(point = [20mm, 50mm], sketch = hangerSideSketch)
-hangerBlank = extrude(sketches = hangerRegion, length = hangerWidth, symmetric = true)
+hangerBlank = extrude(hangerRegion, length = hangerWidth, symmetric = true)
 hide(hangerSideSketch)
 
 screwSeatPadSketch = sketch(on = YZ) {
@@ -104,7 +104,7 @@ screwSeatPadSketch = sketch(on = YZ) {
 }
 
 screwSeatPadRegion = region(point = screwSeatPadSketch.padCircle.center, sketch = screwSeatPadSketch)
-screwSeatPadRaw = extrude(sketches = screwSeatPadRegion, length = screwSeatPadThickness, symmetric = true)
+screwSeatPadRaw = extrude(screwSeatPadRegion, length = screwSeatPadThickness, symmetric = true)
 screwSeatPad = translate(screwSeatPadRaw, x = plateThickness + screwSeatPadThickness / 2 - screwSeatPadOverlap, global = true)
 hide(screwSeatPadSketch)
 
@@ -138,7 +138,7 @@ screwClearanceSketch = sketch(on = YZ) {
 }
 
 screwClearanceRegion = region(point = screwClearanceSketch.screwClearance.center, sketch = screwClearanceSketch)
-screwClearanceCutter = extrude(sketches = screwClearanceRegion, length = plateThickness + screwSeatPadThickness + 8mm, symmetric = true)
+screwClearanceCutter = extrude(screwClearanceRegion, length = plateThickness + screwSeatPadThickness + 8mm, symmetric = true)
 hide(screwClearanceSketch)
 
 screwSeatSketch = sketch(on = YZ) {
@@ -163,7 +163,7 @@ screwSeatSketch = sketch(on = YZ) {
 }
 
 screwSeatRegion = region(point = screwSeatSketch.screwSeat.center, sketch = screwSeatSketch)
-screwSeatCutterRaw = extrude(sketches = screwSeatRegion, length = screwSeatPadThickness + screwSeatDepth + 2mm, symmetric = true)
+screwSeatCutterRaw = extrude(screwSeatRegion, length = screwSeatPadThickness + screwSeatDepth + 2mm, symmetric = true)
 screwSeatCutter = translate(screwSeatCutterRaw, x = plateThickness + screwSeatPadThickness / 2, global = true)
 hide(screwSeatSketch)
 
