@@ -834,7 +834,7 @@ cli_tests! {
                 "zoo",
                 "kcl",
                 "mass",
-                "tests/gear.kcl",
+                "tests/with-settings/cylinder.kcl",
                 "--format=json",
                 "--output-unit",
                 "g",
@@ -845,7 +845,7 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("1308.435")
+        .stdout_contains("0.0125808")
     }
 
     get_the_mass_of_a_kcl_file_but_use_project_toml(_ctx) => {
