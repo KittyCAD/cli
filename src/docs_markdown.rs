@@ -2,7 +2,6 @@ use std::fmt::Write;
 
 use anyhow::Result;
 use clap::Command;
-use itertools::Itertools;
 use pulldown_cmark_to_cmark::cmark_with_options;
 
 use crate::ml::copilot::state::slash_command_documentation;
@@ -272,10 +271,7 @@ fn language_and_code(text: &str) -> LanguageCodeBlock {
         }
         None => "".to_string(),
     };
-    LanguageCodeBlock {
-        language: language,
-        code,
-    }
+    LanguageCodeBlock { language, code }
 }
 
 /// Cleanup the code blocks in the markdown.
@@ -289,7 +285,9 @@ fn cleanup_code_blocks(text: &str) -> Result<String> {
             .replace_all(&text, |caps: &regex::Captures| {
                 let lang = &caps[1];
                 let lc = language_and_code(lang);
-                if lc.code.len() <= 0 {
+                if lc.code.is_empty() {
+                    // ```cat file.txt``` is not a valid code block
+                    // return the text back as is without it being cleaned up.
                     format!("```{}```", lang)
                 } else {
                     format!("```{}\n{}\n```", lc.language, lc.code.join("\n").trim())
