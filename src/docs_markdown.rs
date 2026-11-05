@@ -258,7 +258,8 @@ struct LanguageCodeBlock {
 }
 
 fn language_and_code(text: &str) -> LanguageCodeBlock {
-    let lines: Vec<&str> = text.split("\n").collect();
+    let mut lines: Vec<&str> = text.split("\n").collect();
+
     let code: Vec<String> = text.split("\n").skip(1).map(String::from).collect();
     let could_be_language = lines.first();
     let language = match could_be_language {
@@ -284,13 +285,21 @@ fn cleanup_code_blocks(text: &str) -> Result<String> {
         text = re
             .replace_all(&text, |caps: &regex::Captures| {
                 let lang = &caps[1];
-                let lc = language_and_code(lang);
-                if lc.code.is_empty() {
+                let mut lc = language_and_code(lang);
+                if lc.code.is_empty() && lc.language.is_empty() {
                     // ```cat file.txt``` is not a valid code block
                     // return the text back as is without it being cleaned up.
                     format!("```{}```", lang)
                 } else {
-                    format!("```{}\n{}\n```", lc.language, lc.code.join("\n").trim())
+                    // a\n parses into ["a",""]
+                    if lc.code.last().is_some_and(|line| line.is_empty()) {
+                        lc.code.pop();
+                    }
+                    if lc.code.is_empty() {
+                        format!("```{}\n{}```", lc.language, lc.code.join("\n"))
+                    } else {
+                        format!("```{}\n{}\n```", lc.language, lc.code.join("\n"))
+                    }
                 }
             })
             .to_string();
@@ -477,7 +486,7 @@ world
 ```";
 
             let actual = cleanup_code_blocks(code).expect("to parse");
-            let expected = "```shell\n\n```";
+            let expected = "```shell\n\n\n\n\n```";
             assert_eq!(actual, expected);
         }
         #[test]
@@ -486,7 +495,7 @@ world
 ```";
 
             let actual = cleanup_code_blocks(code).expect("to parse");
-            let expected = "```shell\n\n```";
+            let expected = "```shell\n```";
             assert_eq!(actual, expected);
         }
         #[test]
@@ -495,6 +504,36 @@ world
 
             let actual = cleanup_code_blocks(code).expect("to parse");
             let expected = "```shell```";
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn format_kept() {
+            let code = "```
+        hello
+        world
+```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```\n        hello\n        world\n```";
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn one_with_new_lines() {
+            let code = "```\nhello\n```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```\nhello\n```";
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        fn python() {
+            let code = "```python
+    first()
+    second()
+```";
+
+            let actual = cleanup_code_blocks(code).expect("to parse");
+            let expected = "```python\n    first()\n    second()\n```";
             assert_eq!(actual, expected);
         }
     }
