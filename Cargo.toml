@@ -2,7 +2,6 @@
 name = "zoo"
 version = "0.2.210"
 edition = "2024"
-build = "build.rs"
 
 [workspace]
 members = ["cli-macro", "cli-macro-impl"]
@@ -102,9 +101,6 @@ url = "2.5.4"
 uuid = { version = "1.23.2", features = ["serde", "v4"] }
 version-compare = "0.2.1"
 viuer = { version = "0.11.0", features = ["print-file"] }
-
-[build-dependencies]
-built = "0.7"
 
 [dev-dependencies]
 expectorate = "1.2.0"

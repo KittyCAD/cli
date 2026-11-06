@@ -47,12 +47,6 @@ pub mod cmd_version;
 /// Formatting for `kcl` errors.
 pub mod kcl_error_fmt;
 
-// Use of a mod or pub mod is not actually necessary.
-mod built_info {
-    // The file has been placed there by the build script.
-    include!(concat!(env!("OUT_DIR"), "/built.rs"));
-}
-
 mod colors;
 mod config;
 mod config_alias;
