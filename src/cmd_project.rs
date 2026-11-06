@@ -1,5 +1,6 @@
 use std::{
     collections::HashSet,
+    future::Future,
     io::Write,
     path::{Path, PathBuf},
 };
@@ -11,52 +12,20 @@ use crate::types::FormatOutput;
 
 const PROJECT_ARCHIVE_ACCEPT: &str = "application/x-tar";
 
-// Keep accepting legacy arrays until all API deployments return Dropshot pages.
-#[derive(serde::Deserialize)]
-#[serde(untagged)]
-enum ProjectListResponse<T> {
-    Legacy(Vec<T>),
-    Page {
-        items: Vec<T>,
-        #[serde(deserialize_with = "serde::Deserialize::deserialize")]
-        next_page: Option<String>,
-    },
-}
-
-async fn fetch_project_list<T: serde::de::DeserializeOwned>(
-    client: &kittycad::Client,
-    endpoint: &str,
-) -> Result<Vec<T>> {
+async fn collect_project_pages<P, F, Fut>(mut fetch_page: F) -> Result<Vec<P::Item>>
+where
+    P: kittycad::types::paginate::Pagination,
+    F: FnMut(Option<String>) -> Fut,
+    Fut: Future<Output = std::result::Result<P, kittycad::types::error::Error>>,
+{
     let mut items = Vec::new();
     let mut page_token: Option<String> = None;
     let mut seen_tokens = HashSet::new();
     loop {
-        let mut request = client.request_raw(reqwest::Method::GET, endpoint, None).await?.0;
-        if let Some(token) = &page_token {
-            request = request.query(&[("page_token", token)]);
-        }
-        let response = request.send().await?;
-        let status = response.status();
-        if !status.is_success() {
-            let body = response
-                .text()
-                .await
-                .with_context(|| format!("failed to read {status} response body"))?;
-            anyhow::bail!("{status} {body}");
-        }
-        let response = response.json::<ProjectListResponse<T>>().await?;
-        let (page, next_page) = match response {
-            ProjectListResponse::Legacy(items) => {
-                anyhow::ensure!(
-                    page_token.is_none(),
-                    "unexpected legacy list after a paginated response"
-                );
-                return Ok(items);
-            }
-            ProjectListResponse::Page { items, next_page } => (items, next_page),
-        };
-        items.extend(page);
-        match next_page {
+        let page = fetch_page(page_token).await?;
+        items.extend(page.items());
+        // Empty pages can still advance the cursor. Never print a partial traversal.
+        match page.next_page_token() {
             Some(token) => {
                 anyhow::ensure!(
                     !token.is_empty() && seen_tokens.insert(token.clone()),
@@ -117,8 +86,8 @@ pub struct CmdProjectCategories {
 impl crate::cmd::Command for CmdProjectCategories {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let client = ctx.api_client("")?;
-        let categories =
-            fetch_project_list::<kittycad::types::ProjectCategoryResponse>(&client, "/projects/categories").await?;
+        let projects = client.projects();
+        let categories = collect_project_pages(|page_token| projects.list_categories(None, page_token)).await?;
         let categories = categories
             .into_iter()
             .map(project_category_output_row)
@@ -354,7 +323,8 @@ fn write_project_output(
 impl crate::cmd::Command for CmdProjectList {
     async fn run(&self, ctx: &mut crate::context::Context) -> Result<()> {
         let client = ctx.api_client("")?;
-        let projects = fetch_project_list::<kittycad::types::ProjectSummaryResponse>(&client, "/user/projects").await?;
+        let project_api = client.projects();
+        let projects = collect_project_pages(|page_token| project_api.list(None, page_token, None, None)).await?;
         let format = ctx.format(&self.format)?;
         match format {
             FormatOutput::Json => ctx.io.write_output_json(&serde_json::to_value(&projects)?)?,
@@ -605,7 +575,7 @@ mod tests {
     }
 
     #[derive(serde::Serialize)]
-    struct IncompletePage<'a, T> {
+    struct FinalPage<'a, T> {
         items: &'a [T],
     }
 
@@ -673,7 +643,7 @@ mod tests {
         (result, stdout, requests_rx.try_iter().collect())
     }
 
-    async fn assert_list_compatibility<T: serde::Serialize>(command: CmdProject, endpoint: &str, items: Vec<T>) {
+    async fn assert_list_pagination<T: serde::Serialize>(command: CmdProject, endpoint: &str, items: Vec<T>) {
         let first_cursor = "opaque +/=?&cursor";
         let second_cursor = "after-empty-page";
         let first_page = serde_json::to_string(&TestPage {
@@ -691,10 +661,9 @@ mod tests {
             next_page: None,
         })
         .unwrap();
-        for responses in [
-            vec![(200, serde_json::to_string(&items).unwrap())],
-            vec![(200, first_page.clone()), (200, empty_page), (200, last_page)],
-        ] {
+        let final_page_without_cursor = serde_json::to_string(&FinalPage { items: &items[1..] }).unwrap();
+        for last_page in [last_page, final_page_without_cursor] {
+            let responses = vec![(200, first_page.clone()), (200, empty_page.clone()), (200, last_page)];
             let page_count = responses.len();
             let (result, stdout, requests) =
                 run_list_command(&command, responses.into_iter().map(Some).collect()).await;
@@ -728,11 +697,11 @@ mod tests {
             next_page: Some(""),
         })
         .unwrap();
-        let incomplete_page = serde_json::to_string(&IncompletePage { items: &items[1..] }).unwrap();
         for (responses, expected_error) in [
+            (vec![(200, serde_json::to_string(&items).unwrap())], "Serde Error:"),
             (
-                vec![(200, first_page.clone()), (200, incomplete_page)],
-                "did not match any variant",
+                vec![(200, first_page.clone()), (200, r#"{"next_page":null}"#.into())],
+                "missing field `items`",
             ),
             (vec![(401, "unauthorized".into())], "401 Unauthorized unauthorized"),
             (
@@ -759,8 +728,12 @@ mod tests {
                 "empty or repeated page token",
             ),
             (
+                vec![(200, first_page.clone()), (200, empty_page), (200, first_page.clone())],
+                "empty or repeated page token",
+            ),
+            (
                 vec![(200, first_page), (200, serde_json::to_string(&items).unwrap())],
-                "unexpected legacy list after a paginated response",
+                "Serde Error:",
             ),
         ] {
             let page_count = responses.len();
@@ -792,7 +765,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn project_categories_accept_arrays_and_pages() {
+    async fn project_categories_collect_native_pages() {
         let categories = ["one", "two"]
             .map(|name| kittycad::types::ProjectCategoryResponse {
                 description: name.into(),
@@ -802,7 +775,7 @@ mod tests {
                 sort_order: 0,
             })
             .to_vec();
-        assert_list_compatibility(
+        assert_list_pagination(
             CmdProject {
                 subcmd: SubCommand::Categories(CmdProjectCategories {
                     format: Some(FormatOutput::Json),
@@ -815,7 +788,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn project_list_accepts_arrays_and_pages() {
+    async fn project_list_collects_native_pages() {
         use kittycad::types::*;
         let projects = ["one", "two"]
             .map(|name| ProjectSummaryResponse {
@@ -849,7 +822,7 @@ mod tests {
                 metadata_revision: Default::default(),
             })
             .to_vec();
-        assert_list_compatibility(
+        assert_list_pagination(
             CmdProject {
                 subcmd: SubCommand::List(CmdProjectList {
                     format: Some(FormatOutput::Json),
