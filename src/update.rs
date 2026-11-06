@@ -191,8 +191,6 @@ fn get_exe_download_url(version: &str, target: &str) -> String {
         version.to_string()
     };
 
-    // Linux releases use musl so they also run on GNU systems.
-    let target = target.replace("-unknown-linux-gnu", "-unknown-linux-musl");
     format!("https://github.com/KittyCAD/cli/releases/download/{version}/zoo-{target}")
 }
 
@@ -202,7 +200,18 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     let temp_dir = std::env::temp_dir();
     let temp_file = temp_dir.join("zoo");
 
-    let url = get_exe_download_url(version, crate::built_info::TARGET);
+    let platform = if cfg!(target_os = "linux") {
+        // Linux releases use musl so they also run on GNU systems.
+        "unknown-linux-musl"
+    } else if cfg!(target_os = "macos") {
+        "apple-darwin"
+    } else if cfg!(target_os = "windows") {
+        "pc-windows-gnu"
+    } else {
+        anyhow::bail!("no release binary available for {}", std::env::consts::OS);
+    };
+    let target = format!("{}-{platform}", std::env::consts::ARCH);
+    let url = get_exe_download_url(version, &target);
 
     // Get the contents of the binary.
     let resp = reqwest::get(&url).await?.error_for_status()?;
@@ -273,19 +282,17 @@ mod test {
 
     #[test]
     fn test_get_exe_download_url() {
-        for (target, asset) in [
-            ("x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"),
-            ("aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl"),
-            ("x86_64-unknown-linux-musl", "x86_64-unknown-linux-musl"),
-            ("aarch64-unknown-linux-musl", "aarch64-unknown-linux-musl"),
-            ("x86_64-apple-darwin", "x86_64-apple-darwin"),
-            ("aarch64-apple-darwin", "aarch64-apple-darwin"),
-            ("x86_64-pc-windows-gnu", "x86_64-pc-windows-gnu"),
+        for target in [
+            "x86_64-unknown-linux-musl",
+            "aarch64-unknown-linux-musl",
+            "x86_64-apple-darwin",
+            "aarch64-apple-darwin",
+            "x86_64-pc-windows-gnu",
         ] {
             for version in ["0.2.42", "v0.2.42"] {
                 assert_eq!(
                     super::get_exe_download_url(version, target),
-                    format!("https://github.com/KittyCAD/cli/releases/download/v0.2.42/zoo-{asset}")
+                    format!("https://github.com/KittyCAD/cli/releases/download/v0.2.42/zoo-{target}")
                 );
             }
         }
