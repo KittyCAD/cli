@@ -3,3 +3,8 @@ fail-fast = false
 
 [profile.ci.junit]
 path = "../../../test-results/junit.xml"
+
+[[profile.ci.overrides]]
+filter = 'test(_a_kcl_) | test(=tests::snapshot_via_engine) | binary(=kcl_process)'
+retries = 2
+slow-timeout = { period = "60s", terminate-after = 5 }

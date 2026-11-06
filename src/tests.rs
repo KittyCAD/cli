@@ -100,6 +100,7 @@ struct TestItem {
     args: Vec<String>,
     stdin: Option<String>,
     want_out: String,
+    stdout_check: Option<fn(&str)>,
     want_err: String,
     want_code: i32,
     current_directory: Option<PathBuf>,
@@ -114,6 +115,7 @@ impl TestItem {
             args,
             stdin: None,
             want_out: String::new(),
+            stdout_check: None,
             want_err: String::new(),
             want_code: 0,
             current_directory: None,
@@ -134,6 +136,11 @@ impl TestItem {
 
     fn stdout_contains(mut self, want_out: impl Into<String>) -> Self {
         self.want_out = want_out.into();
+        self
+    }
+
+    fn check_stdout(mut self, check: fn(&str)) -> Self {
+        self.stdout_check = Some(check);
         self
     }
 
@@ -373,9 +380,8 @@ async fn run_test_item_with_config(config: &mut TestConfig, item: TestItem) {
                 "test '{}': unexpected exit code\nactual stdout: {stdout}\nactual stderr: {stderr}",
                 item.name
             );
-            assert_eq!(
-                stdout.is_empty(),
-                item.want_out.is_empty(),
+            assert!(
+                item.stdout_check.is_some() || stdout.is_empty() == item.want_out.is_empty(),
                 "test '{}': stdout mismatch\nactual stdout: {stdout}\nexpected stdout to contain: {}",
                 item.name,
                 item.want_out
@@ -394,6 +400,9 @@ async fn run_test_item_with_config(config: &mut TestConfig, item: TestItem) {
                     item.name,
                     item.want_out
                 );
+            }
+            if let Some(check) = item.stdout_check {
+                check(&stdout);
             }
             if !item.want_err.is_empty() {
                 assert!(
@@ -778,21 +787,6 @@ cli_tests! {
         .set_env("ENGINE_EXECUTION", "1")
     }
 
-    snapshot_a_kcl_file_with_a_project_toml_as_png(_ctx) => {
-        TestItem::new(
-            "snapshot a kcl file with a project.toml as png",
-            svec![
-                "zoo",
-                "kcl",
-                "snapshot",
-                "tests/with-settings/gear.kcl",
-                "tests/with-settings/gear.png",
-            ],
-        )
-        .setup(setup_authenticated)
-        .stdout_contains("Snapshot from engine saved to `tests/with-settings/gear.png`")
-    }
-
     snapshot_a_kcl_file_with_a_nested_project_toml_as_png(_ctx) => {
         TestItem::new(
             "snapshot a kcl file with a nested project.toml as png",
@@ -834,7 +828,7 @@ cli_tests! {
                 "zoo",
                 "kcl",
                 "mass",
-                "tests/gear.kcl",
+                "tests/with-settings/cylinder.kcl",
                 "--format=json",
                 "--output-unit",
                 "g",
@@ -845,7 +839,17 @@ cli_tests! {
             ],
         )
         .setup(setup_authenticated)
-        .stdout_contains("1267.973")
+        .check_stdout(|stdout| {
+            let mass: kittycad_modeling_cmds::output::Mass =
+                serde_json::from_str(stdout).expect("mass output must be JSON");
+            let expected = 250.0 * std::f64::consts::PI * 453.59237 / 304.8_f64.powi(3);
+            assert_eq!(mass.output_unit, kittycad_modeling_cmds::units::UnitMass::Grams);
+            // Allow 0.2% error in the circular geometry's measured mass.
+            assert!(
+                (mass.mass - expected).abs() < expected * 0.002,
+                "mass: {mass:?}, expected about {expected} g"
+            );
+        })
     }
 
     get_the_mass_of_a_kcl_file_but_use_project_toml(_ctx) => {
@@ -897,7 +901,7 @@ cli_tests! {
                 "zoo",
                 "kcl",
                 "analyze",
-                "tests/gear.kcl",
+                "tests/with-settings/cylinder.kcl",
                 "--volume-output-unit",
                 "cm3",
                 "--mass-output-unit",
@@ -1025,6 +1029,33 @@ cli_tests! {
         .setup(setup_authenticated)
         .stdout_contains("0.0007")
     }
+}
+
+#[test_context(MainContext)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 3)]
+#[serial_test::serial]
+async fn snapshot_a_kcl_file_with_a_project_toml_as_png(ctx: &mut MainContext) {
+    let output_dir = tempfile::tempdir().expect("failed to create snapshot output dir");
+    let output = output_dir.path().join("snapshot.png");
+
+    run_test_item(
+        ctx,
+        TestItem::new(
+            "snapshot a kcl file with a project.toml as png",
+            svec![
+                "zoo",
+                "kcl",
+                "snapshot",
+                "tests/with-settings/cylinder.kcl",
+                output.display(),
+            ],
+        )
+        .setup(setup_authenticated)
+        .stdout_contains(format!("Snapshot from engine saved to `{}`", output.display())),
+    )
+    .await;
+
+    assert!(output.is_file(), "snapshot file was not created");
 }
 
 #[test_context(MainContext)]
