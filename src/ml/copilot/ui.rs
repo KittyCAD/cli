@@ -227,6 +227,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
                 kittycad::types::MlCopilotServerMessage::Files { .. }
                 | kittycad::types::MlCopilotServerMessage::Attachments { .. } => {}
                 kittycad::types::MlCopilotServerMessage::ModesResponse { .. }
+                | kittycad::types::MlCopilotServerMessage::KclMigrationOperation { .. }
+                | kittycad::types::MlCopilotServerMessage::KclMigrationApplication { .. }
                 | kittycad::types::MlCopilotServerMessage::ClientCommandRequest { .. }
                 | kittycad::types::MlCopilotServerMessage::RequestAttachments { .. }
                 | kittycad::types::MlCopilotServerMessage::AttachmentsLoaded { .. }

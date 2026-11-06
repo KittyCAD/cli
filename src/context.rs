@@ -27,6 +27,7 @@ type DirectWs = WebSocketStream<reqwest::Upgraded>;
 type DirectWsRead = futures::stream::SplitStream<DirectWs>;
 type DirectWsWrite = futures::stream::SplitSink<DirectWs, WsMsg>;
 
+const CLI_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"));
 const ENGINE_EXECUTION_ENV: &str = "ENGINE_EXECUTION";
 const WS_RESPONSE_TIMEOUT_SECS: u64 = 600;
 
@@ -45,40 +46,48 @@ struct KclProgramRun {
     session_data: Option<ModelingSessionData>,
 }
 
-/// Runs a KCL program and returns state needed for follow-up commands.
-async fn run_kcl_program_locally_with_graphics(
-    client: &kittycad::Client,
-    program: &kcl_lib::Program,
-    settings: cmd_kcl::CliExecutorSettings,
-    filename: &str,
-    code: &str,
-) -> Result<KclProgramRun> {
-    kcl_lib::set_kcl_runtime_flags(KclRuntimeFlags {
-        use_new_parser: RuntimeFlag::Unset,
-    });
-    let kcl_version = program.language_version()?;
-    let exec_ctx = kcl_lib::ExecutorContext::new(client, settings.inner(), kcl_version).await?;
-    let mut exec_state = kcl_lib::ExecState::new(&exec_ctx);
-    // not all KCL commands run successfully without a graphics context (looking at you, PlaneSetColor).
-    // so for an arbitrary KCL file we always have to enable graphics.
-    exec_ctx.enable_engine_graphics_settings(&mut exec_state).await?;
-    exec_ctx.enable_engine_graphics(&mut exec_state).await?;
-    let (main_ref, session_data) = exec_ctx
-        .run(program, &mut exec_state)
-        .await
-        .map_err(|err| kcl_error_fmt::into_miette(err, code))?;
-    let exec_outcome = exec_state
-        .into_exec_outcome(main_ref, &exec_ctx)
-        .await
-        .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
-    Ok(KclProgramRun {
-        exec_ctx,
-        exec_outcome,
-        session_data,
-    })
-}
-
 impl<'a> Context<'a> {
+    /// Runs a KCL program and returns state needed for follow-up commands.
+    async fn run_kcl_program_locally_with_graphics(
+        &self,
+        hostname: &str,
+        program: &kcl_lib::Program,
+        settings: cmd_kcl::CliExecutorSettings,
+        filename: &str,
+        code: &str,
+    ) -> Result<KclProgramRun> {
+        kcl_lib::set_kcl_runtime_flags(KclRuntimeFlags {
+            use_new_parser: RuntimeFlag::Unset,
+        });
+        let kcl_version = program.language_version()?;
+        let (host, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
+        let token = self.config.get(&host, "token")?;
+        let mut client =
+            kittycad_kcl::Client::new_from_reqwest(token, self.http_client_builder(), self.websocket_client_builder());
+        if baseurl != crate::DEFAULT_HOST {
+            client.set_base_url(&baseurl);
+        }
+        let exec_ctx = kcl_lib::ExecutorContext::new(&client, settings.inner(), kcl_version).await?;
+        let mut exec_state = kcl_lib::ExecState::new(&exec_ctx);
+        // not all KCL commands run successfully without a graphics context (looking at you, PlaneSetColor).
+        // so for an arbitrary KCL file we always have to enable graphics.
+        exec_ctx.enable_engine_graphics_settings(&mut exec_state).await?;
+        exec_ctx.enable_engine_graphics(&mut exec_state).await?;
+        let (main_ref, session_data) = exec_ctx
+            .run(program, &mut exec_state)
+            .await
+            .map_err(|err| kcl_error_fmt::into_miette(err, code))?;
+        let exec_outcome = exec_state
+            .into_exec_outcome(main_ref, &exec_ctx)
+            .await
+            .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
+        Ok(KclProgramRun {
+            exec_ctx,
+            exec_outcome,
+            session_data,
+        })
+    }
+
     fn resolve_api_host_and_baseurl(&self, hostname: &str) -> Result<(String, String)> {
         let host = if !hostname.is_empty() {
             hostname.to_string()
@@ -100,11 +109,16 @@ impl<'a> Context<'a> {
     }
 
     fn http_client_builder(&self) -> reqwest::ClientBuilder {
-        let user_agent = concat!(env!("CARGO_PKG_NAME"), ".rs/", env!("CARGO_PKG_VERSION"),);
         reqwest::Client::builder()
-            .user_agent(user_agent)
+            .user_agent(CLI_USER_AGENT)
             .timeout(std::time::Duration::from_secs(600))
             .connect_timeout(std::time::Duration::from_secs(60))
+    }
+
+    fn websocket_client_builder(&self) -> reqwest::ClientBuilder {
+        self.http_client_builder()
+            .tcp_keepalive(std::time::Duration::from_secs(600))
+            .http1_only()
     }
 
     pub fn new(config: &'a mut (dyn Config + Send + Sync)) -> Context<'a> {
@@ -161,11 +175,7 @@ impl<'a> Context<'a> {
         let (host, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
 
         let http_client = self.http_client_builder();
-        let ws_client = self
-            .http_client_builder()
-            // For file conversions we need this to be long.
-            .tcp_keepalive(std::time::Duration::from_secs(600))
-            .http1_only();
+        let ws_client = self.websocket_client_builder();
 
         // Get the token for that host.
         let token = self.config.get(&host, "token")?;
@@ -513,12 +523,12 @@ impl<'a> Context<'a> {
             return Ok((resp, session_data));
         }
 
-        let client = self.api_client(hostname)?;
-
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
+        let run = self
+            .run_kcl_program_locally_with_graphics(hostname, &program, settings, filename, code)
+            .await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
@@ -571,12 +581,12 @@ impl<'a> Context<'a> {
                 .await;
         }
 
-        let client = self.api_client(hostname)?;
-
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
+        let run = self
+            .run_kcl_program_locally_with_graphics(hostname, &program, settings, filename, code)
+            .await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
@@ -635,12 +645,12 @@ impl<'a> Context<'a> {
             return Ok((snapshot_resps, session_data));
         }
 
-        let client = self.api_client(hostname)?;
-
         let program = kcl_lib::Program::parse_no_errs(code)
             .map_err(|err| kcl_error_fmt::into_miette_for_parse(filename, code, err))?;
 
-        let run = run_kcl_program_locally_with_graphics(&client, &program, settings, filename, code).await?;
+        let run = self
+            .run_kcl_program_locally_with_graphics(hostname, &program, settings, filename, code)
+            .await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
@@ -679,8 +689,9 @@ impl<'a> Context<'a> {
         issue_check: kcl_error_fmt::KclIssueCheck,
         output_format: kittycad_modeling_cmds::format::OutputFormat3d,
     ) -> Result<(Vec<RawFile>, Option<ModelingSessionData>)> {
-        let client = self.api_client("")?;
-        let run = run_kcl_program_locally_with_graphics(&client, program, settings, filename, code).await?;
+        let run = self
+            .run_kcl_program_locally_with_graphics("", program, settings, filename, code)
+            .await?;
 
         kcl_error_fmt::check_exec_outcome_issues(&mut self.io.err_out, filename, code, &run.exec_outcome, issue_check)?;
 
@@ -1278,5 +1289,106 @@ mod test {
         // Explicit arg overrides global
         let h3 = ctx.resolve_host_for_tests("http://foo:1234").unwrap();
         assert_eq!(h3, "http://foo:1234");
+    }
+
+    async fn assert_local_kcl_handshake(host_source: &str, version: &str, statuses: Vec<u16>) {
+        use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+
+        let expected_requests = statuses.len();
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let host = format!("http://{}/custom-api", listener.local_addr().unwrap());
+        let mut server = tokio::task::JoinSet::new();
+        server.spawn(async move {
+            let mut requests = Vec::new();
+            for status in statuses {
+                let (stream, _) = listener.accept().await.unwrap();
+                let mut reader = tokio::io::BufReader::new(stream);
+                let mut request = String::new();
+                loop {
+                    let mut line = String::new();
+                    assert_ne!(reader.read_line(&mut line).await.unwrap(), 0);
+                    request.push_str(&line);
+                    if line == "\r\n" {
+                        break;
+                    }
+                }
+                let body = if status == 503 { "unavailable" } else { "unauthorized" };
+                let response = format!(
+                    "HTTP/1.1 {status} Test\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                    body.len()
+                );
+                reader.get_mut().write_all(response.as_bytes()).await.unwrap();
+                requests.push(request);
+            }
+            requests
+        });
+        let mut config = crate::config::new_blank_config().unwrap();
+        config.set(&host, "token", Some("local-kcl-test")).unwrap();
+        let unused_host = "http://127.0.0.1:1/unused";
+        let default_host = if host_source == "default" { &host } else { unused_host };
+        config.set(default_host, "default", Some("true")).unwrap();
+        let (io, stdout_path, stderr_path) = crate::iostreams::IoStreams::test();
+        let ctx = Context {
+            config: &mut config,
+            io,
+            debug: false,
+            override_host: match host_source {
+                "explicit" => Some(unused_host.into()),
+                "override" => Some(host.clone()),
+                _ => None,
+            },
+        };
+        let code = format!("@settings(kclVersion = {version})\nx = 1\n");
+        let program = kcl_lib::Program::parse_no_errs(&code).unwrap();
+        let settings = cmd_kcl::get_modeling_settings_from_project_toml(Path::new("-")).unwrap();
+        let result = tokio::time::timeout(
+            Duration::from_secs(5),
+            ctx.run_kcl_program_locally_with_graphics(
+                if host_source == "explicit" { &host } else { "" },
+                &program,
+                settings,
+                "test.kcl",
+                &code,
+            ),
+        )
+        .await
+        .expect("local KCL handshake should finish");
+        let error = result.err().expect("the test server rejects the engine handshake");
+        assert!(
+            format!("{error:#}").contains("401"),
+            "unexpected handshake error: {error:#}"
+        );
+        assert!(format!("{error:#}").contains("unauthorized"));
+        let requests = server.join_next().await.unwrap().unwrap();
+        assert_eq!(requests.len(), expected_requests);
+        for request in requests {
+            let lowercase_request = request.to_ascii_lowercase();
+            assert!(lowercase_request.contains("authorization: bearer local-kcl-test\r\n"));
+            assert!(lowercase_request.contains(&format!("user-agent: {CLI_USER_AGENT}\r\n")));
+            let target = request.lines().next().unwrap().split_whitespace().nth(1).unwrap();
+            let url = url::Url::parse(&format!("http://localhost{target}")).unwrap();
+            assert_eq!(url.path(), "/custom-api/ws/modeling/commands");
+            let query = url.query_pairs().collect::<HashMap<_, _>>();
+            assert_eq!(query.get("kcl_version").map(|value| value.as_ref()), Some(version));
+            assert_eq!(query.get("geometry_only").map(|value| value.as_ref()), Some("true"));
+            assert_eq!(query.get("webrtc").map(|value| value.as_ref()), Some("false"));
+        }
+        drop(ctx);
+        assert!(std::fs::read_to_string(&stdout_path).unwrap().is_empty());
+        assert!(std::fs::read_to_string(&stderr_path).unwrap().is_empty());
+        std::fs::remove_file(stdout_path).unwrap();
+        std::fs::remove_file(stderr_path).unwrap();
+    }
+
+    #[tokio::test]
+    async fn local_kcl_executor_uses_cli_host_credentials_and_version() {
+        for (host_source, version) in [("explicit", "3.0"), ("override", "2.0"), ("default", "1.0")] {
+            assert_local_kcl_handshake(host_source, version, vec![401]).await;
+        }
+    }
+
+    #[tokio::test]
+    async fn local_kcl_executor_retries_transient_handshake_failure() {
+        assert_local_kcl_handshake("explicit", "3.0", vec![503, 401]).await;
     }
 }

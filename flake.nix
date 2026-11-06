@@ -76,7 +76,7 @@
         version = cargoToml.package.version;
         src = ./.;
 
-        cargoHash = "sha256-yoifoo50cAj3w5KJEVxIjjay+W2EXOSMGGig/5EAsBE=";
+        cargoHash = "sha256-CTW4SjDCyL93UqWWanNKXjSyYCpGdi7DJMX48jXD+vE=";
 
         doCheck = false;
         nativeBuildInputs = [pkgs.pkg-config];

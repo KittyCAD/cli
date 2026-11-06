@@ -2860,7 +2860,7 @@ dependencies = [
  "kcl-engine-codec",
  "kcl-error",
  "kcl-syntax",
- "kittycad",
+ "kittycad 0.6.0",
  "kittycad-modeling-cmds",
  "lazy_static",
  "libm",
@@ -2925,6 +2925,47 @@ name = "kittycad"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4e5a9c78698eacffaaa08c5a42004249db84d8327c9276673223b4e5cb4b42a"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bigdecimal",
+ "bytes",
+ "chrono",
+ "clap",
+ "data-encoding",
+ "futures",
+ "getrandom 0.3.4",
+ "getrandom 0.4.3",
+ "http 1.5.0",
+ "itertools 0.14.0",
+ "log",
+ "mime_guess",
+ "openapitor-runtime",
+ "parse-display",
+ "phonenumber",
+ "rand 0.9.4",
+ "reqwest",
+ "reqwest-middleware",
+ "reqwest-retry",
+ "reqwest-tracing",
+ "schemars 0.8.22",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_urlencoded",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "kittycad"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff4da2d8330036b2f0c482ed4d207b075c05a63f1da597e69290d83ffc9fbf4a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3671,7 +3712,7 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#7267fac4b2f15df13ca2c79c45d9a9ceae5b77e7"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#b528fff06666faf7506139e11e089e63021d9391"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -7063,7 +7104,8 @@ dependencies = [
  "kcl-error",
  "kcl-lib",
  "kcl-test-server",
- "kittycad",
+ "kittycad 0.6.0",
+ "kittycad 0.7.0",
  "kittycad-modeling-cmds",
  "log",
  "miette",

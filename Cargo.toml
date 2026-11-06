@@ -41,12 +41,14 @@ itertools = "0.15.0"
 kcl-error = "=0.2.195"
 kcl-lib = { version = "=0.2.195", features = ["disable-println"] }
 kcl-test-server = "=0.2.195"
-kittycad = { version = "0.6.0", features = [
+kittycad = { version = "0.7.0", features = [
   "clap",
   "tabled",
   "requests",
   "retry",
 ] }
+# kcl-lib's public executor API still takes the 0.6 client, including its retry policy.
+kittycad-kcl = { package = "kittycad", version = "0.6.0" }
 kittycad-modeling-cmds = { version = "0.2.256", features = [
   "exec-kcl",
   "websocket",
