@@ -77,3 +77,17 @@ If you want to only build one of the cross targets, supply the `CROSS_TARGETS` e
 
 
 If you get an error about md5sum on mac when running `make release`, you probably need to `brew install coreutils`
+
+#### Generating
+
+We use [clap](https://docs.rs/clap/latest/clap/) crate to rust doc comments and generate the markdown files.
+
+This will generate gitignored markdown files under `generated_docs/`
+```
+make gen-md
+```
+
+Is the rust command to generate the markdown and see the stdout result.
+```
+cargo run generate markdown
+```
