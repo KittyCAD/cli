@@ -36776,6 +36776,32 @@
               "centroid"
             ],
             "additionalProperties": false
+          },
+          {
+            "description": "Used in dimension measurements for the to_entity_leader_pos field. Determines the position using the previous \"from\" position stepped back (projected) onto the planar entity (via planar projection or vector dot product)",
+            "type": "object",
+            "properties": {
+              "step_from": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "step_from"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "description": "Used in dimension measurements for the to_entity_leader_pos field. Automatically determines which type of leader position to use. If the entity is planar and this is a to_entity_leader_pos dimension field, then StepFrom is used. If the entity is circular or cylindrical, Centroid is used. If the entity is a linear edge NormalizedPos { 0.5, N/A } is used If no other cases apply, then NormalizedPos { 0.5, 0.5 } is used",
+            "type": "object",
+            "properties": {
+              "auto": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "auto"
+            ],
+            "additionalProperties": false
           }
         ]
       },
@@ -41807,8 +41833,29 @@
         }
       },
       "EntityReference": {
-        "description": "An edge/vertex can be defined by the faces that it is connected to.",
+        "description": "A reference identifying a selectable scene entity.",
         "oneOf": [
+          {
+            "description": "A uuid referencing an annotation.",
+            "type": "object",
+            "properties": {
+              "annotation_id": {
+                "description": "Id of the annotation object being referenced.",
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "annotation"
+                ]
+              }
+            },
+            "required": [
+              "annotation_id",
+              "type"
+            ]
+          },
           {
             "description": "A uuid referencing a plane.",
             "type": "object",
@@ -42156,7 +42203,8 @@
           "plane",
           "vertex",
           "region",
-          "patterngroup"
+          "patterngroup",
+          "annotation"
         ]
       },
       "Error": {
