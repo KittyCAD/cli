@@ -27,7 +27,10 @@ impl crate::cmd::Command for CmdKcl {
 ///
 /// Requires the current directory to contain a `main.kcl` file.
 ///
-///     $ zoo ml kcl copilot
+/// ```shell
+/// zoo ml kcl copilot
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclCopilot {

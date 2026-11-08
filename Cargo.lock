@@ -571,12 +571,6 @@ dependencies = [
 
 [[package]]
 name = "built"
-version = "0.7.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ed6191a7e78c36abdb16ab65341eefd73d64d303fffccdbb00d51e4205967b"
-
-[[package]]
-name = "built"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4ad8f11f288f48ca24471bbd51ac257aaeaaa07adae295591266b792902ae64"
@@ -1604,19 +1598,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
-]
-
-[[package]]
-name = "format_serde_error"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5837b8e6a4001f99fe4746767fb7379e8510c508a843caa136cc12ed9c0bad0"
-dependencies = [
- "colored",
- "serde",
- "serde_json",
- "serde_yaml 0.8.26",
- "unicode-segmentation",
 ]
 
 [[package]]
@@ -2800,9 +2781,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6785f6f98f788883c1e91998fe2b0a635e5a15eed9771bfe616e6b1d7d1e4114"
+checksum = "c1f04e24ac7116ba28e929e518bdd2129dd7d991b950e0d4f0677cbc0670a48f"
 dependencies = [
  "euler",
  "indexmap 2.14.0",
@@ -2816,15 +2797,15 @@ dependencies = [
  "serde",
  "serde_json",
  "ts-rs",
- "typed-path",
+ "typed-path 0.13.0",
  "uuid",
 ]
 
 [[package]]
 name = "kcl-engine-codec"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e292e1439e31eb94e9bdf48cd6f4de717c5c6cd87c23af152a46e1daf8f7c948"
+checksum = "4d565b9623d7a692edfe78c0512713becc212f9a80028842d38543d6afc0653a"
 dependencies = [
  "kittycad-modeling-cmds",
  "rmp-serde",
@@ -2833,9 +2814,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3540e68a2aeec68e0d39d8ded348946a24840bb1a222b61a7ff4c2ac589a1340"
+checksum = "938fe7f4f7fd9ac49ec7e07ea86340eb87136eed76575b3b626812e2b4a1d705"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2847,9 +2828,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dc81b3116bef129b7d45b9b0c8af0bc1c0aafcd4cfc7f03401d13dc8cd529b8"
+checksum = "715c5cb13a978a56fdac2be210a749d1d9f53bd0e1c886f079ff830db6d17b51"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2879,7 +2860,7 @@ dependencies = [
  "kcl-engine-codec",
  "kcl-error",
  "kcl-syntax",
- "kittycad",
+ "kittycad 0.6.0",
  "kittycad-modeling-cmds",
  "lazy_static",
  "libm",
@@ -2902,7 +2883,7 @@ dependencies = [
  "toml 1.1.0+spec-1.1.0",
  "tower-lsp",
  "ts-rs",
- "typed-path",
+ "typed-path 0.13.0",
  "unicase",
  "url",
  "uuid",
@@ -2917,18 +2898,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c804809031993a05587b6deb773f64099f00a6bbb2124896dcde8792dfc42d2c"
+checksum = "3ffb88321280e2d6087ae854e50b52af02f6a0b15d6bb593bbd716db49b06342"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.194"
+version = "0.2.195"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "131882cd3f03274faed4954db3ff2c51b5935a40e6de6068d5ab0eb066f746d3"
+checksum = "17861a8d4d8a639480126ce4637a0bb2baa85991b50b9886194310347b39e815"
 dependencies = [
  "anyhow",
  "hyper 0.14.32",
@@ -2941,9 +2922,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad"
-version = "0.5.8"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ecbfd679578f1d3dc35d81e6e9fb0547d14f86203673460140f493f4fd3c22a"
+checksum = "d4e5a9c78698eacffaaa08c5a42004249db84d8327c9276673223b4e5cb4b42a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2953,7 +2934,6 @@ dependencies = [
  "chrono",
  "clap",
  "data-encoding",
- "format_serde_error",
  "futures",
  "getrandom 0.3.4",
  "getrandom 0.4.3",
@@ -2961,6 +2941,48 @@ dependencies = [
  "itertools 0.14.0",
  "log",
  "mime_guess",
+ "openapitor-runtime",
+ "parse-display",
+ "phonenumber",
+ "rand 0.9.4",
+ "reqwest",
+ "reqwest-middleware",
+ "reqwest-retry",
+ "reqwest-tracing",
+ "schemars 0.8.22",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_urlencoded",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "kittycad"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff4da2d8330036b2f0c482ed4d207b075c05a63f1da597e69290d83ffc9fbf4a"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bigdecimal",
+ "bytes",
+ "chrono",
+ "clap",
+ "data-encoding",
+ "futures",
+ "getrandom 0.3.4",
+ "getrandom 0.4.3",
+ "http 1.5.0",
+ "itertools 0.14.0",
+ "log",
+ "mime_guess",
+ "openapitor-runtime",
  "parse-display",
  "phonenumber",
  "rand 0.9.4",
@@ -2992,9 +3014,9 @@ dependencies = [
 
 [[package]]
 name = "kittycad-modeling-cmds"
-version = "0.2.254"
+version = "0.2.256"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e3c73911b1c03a6979d48ab10e5460e367ccfec25301f8c0b6c861c24d2a07d"
+checksum = "352da7af6674aaa3c0bc4a61563e854de293b978002342cac9b6c07ae3139a74"
 dependencies = [
  "anyhow",
  "bon",
@@ -3021,7 +3043,7 @@ dependencies = [
  "serde_with",
  "tabled",
  "ts-rs",
- "typed-path",
+ "typed-path 0.12.3",
  "uuid",
 ]
 
@@ -3116,6 +3138,12 @@ dependencies = [
  "libc",
  "redox_syscall",
 ]
+
+[[package]]
+name = "libyaml-rs"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e126dda6f34391ab7b444f9922055facc83c07a910da3eb16f1e4d9c45dc777"
 
 [[package]]
 name = "line-clipping"
@@ -3684,14 +3712,13 @@ dependencies = [
 [[package]]
 name = "openapitor"
 version = "0.0.9"
-source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#6243603abc9e1d82ab342f5fe62558e286cad7a8"
+source = "git+https://github.com/KittyCAD/kittycad.rs?branch=main#b528fff06666faf7506139e11e089e63021d9391"
 dependencies = [
  "Inflector",
  "anyhow",
  "chrono",
  "clap",
  "data-encoding",
- "format_serde_error",
  "futures-util",
  "http 1.5.0",
  "indexmap 2.14.0",
@@ -3700,6 +3727,7 @@ dependencies = [
  "mime_guess",
  "numeral",
  "once_cell",
+ "openapitor-runtime",
  "openapiv3",
  "phonenumber",
  "proc-macro2",
@@ -3712,7 +3740,6 @@ dependencies = [
  "schemars 0.8.22",
  "serde",
  "serde_json",
- "serde_yaml 0.9.34+deprecated",
  "slog",
  "slog-async",
  "slog-json",
@@ -3722,6 +3749,18 @@ dependencies = [
  "thiserror 2.0.21",
  "url",
  "uuid",
+ "yaml_serde",
+]
+
+[[package]]
+name = "openapitor-runtime"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccdd1758ef6184029f095e6e1f3329de08d983f5ff37d28e8f57fd5c80862a0f"
+dependencies = [
+ "colored",
+ "serde_json",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -4102,9 +4141,9 @@ dependencies = [
 
 [[package]]
 name = "pulldown-cmark"
-version = "0.13.5"
+version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "278e9268c93b9e498a2da46c34d90ba93a3255eb99009646398f34bc73ab36eb"
+checksum = "3db2be46835f013dd3f4fa7f5f7402c537787b54ebb6fe2b94bbdd7e2669bb7b"
 dependencies = [
  "bitflags 2.13.0",
  "getopts",
@@ -4447,7 +4486,7 @@ dependencies = [
  "av-scenechange",
  "av1-grain",
  "bitstream-io",
- "built 0.8.0",
+ "built",
  "cfg-if",
  "interpolate_name",
  "itertools 0.14.0",
@@ -5201,18 +5240,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
-]
-
-[[package]]
-name = "serde_yaml"
-version = "0.8.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "578a7433b776b56a35785ed5ce9a7e777ac0598aac5a6dd1b4b18a307c7fc71b"
-dependencies = [
- "indexmap 1.9.3",
- "ryu",
- "serde",
- "yaml-rust",
 ]
 
 [[package]]
@@ -6307,6 +6334,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e28f89b80c87b8fb0cf04ab448d5dd0dd0ade2f8891bae878de66a75a28600e"
 
 [[package]]
+name = "typed-path"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ce898823d8cd0f028662d2f349694b1af0a5cc9be83f1d213a00d3147445e1e"
+
+[[package]]
 name = "typenum"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6911,12 +6944,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a5a4b21e1a62b67a2970e6831bc091d7b87e119e7f9791aef9702e3bef04448"
 
 [[package]]
-name = "yaml-rust"
-version = "0.4.5"
+name = "yaml_serde"
+version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56c1936c4cc7a1c9ab21a1ebb602eb942ba868cbd44a99cb7cdc5892335e1c85"
+checksum = "33b729a08a9a6be689bbad3e2bf8015926db54b6622cc89c3a5f7dc174b9e918"
 dependencies = [
- "linked-hash-map",
+ "indexmap 2.14.0",
+ "itoa",
+ "libyaml-rs",
+ "ryu",
+ "serde",
 ]
 
 [[package]]
@@ -7041,12 +7078,11 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.209"
+version = "0.2.210"
 dependencies = [
  "anyhow",
  "async-trait",
  "base64 0.23.1",
- "built 0.7.7",
  "camino",
  "chrono",
  "clap",
@@ -7068,7 +7104,8 @@ dependencies = [
  "kcl-error",
  "kcl-lib",
  "kcl-test-server",
- "kittycad",
+ "kittycad 0.6.0",
+ "kittycad 0.7.0",
  "kittycad-modeling-cmds",
  "log",
  "miette",
@@ -7088,7 +7125,7 @@ dependencies = [
  "rmp-serde",
  "serde",
  "serde_json",
- "serde_yaml 0.9.34+deprecated",
+ "serde_yaml",
  "serial_test",
  "shlex",
  "similar 3.2.1",

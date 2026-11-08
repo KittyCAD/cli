@@ -15,11 +15,18 @@ an issue at https://github.com/KittyCAD/cli/issues/new"#;
 ///
 /// If you do not have the app installed, you will be prompted to download it.
 ///
-///     $ zoo app .
+/// ```shell
+/// zoo app .
+/// ```
 ///
-///     $ zoo app main.kcl
+/// ```shell
+/// zoo app main.kcl
+/// ```
 ///
-///     $ zoo app ../main.kcl
+/// ```shell
+/// zoo app ../main.kcl
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApp {

@@ -6,11 +6,16 @@ use parse_display::{Display, FromStr};
 ///
 /// If no arguments are given, the default is to open the Zoo documentation.
 ///
-///     # open the Zoo docs in your browser
-///     $ zoo open docs
+/// ```shell
+/// # open the Zoo docs in your browser
+/// zoo open docs
+/// ```
 ///
-///     # open your Zoo account in your browser
-///     $ zoo open account
+/// ```shell
+/// # open your Zoo account in your browser
+/// zoo open account
+/// ```
+///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdOpen {

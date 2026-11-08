@@ -183,7 +183,7 @@ pub fn is_under_homebrew() -> Result<bool> {
 }
 
 /// Takes a version string and returns the URL to download the latest release.
-fn get_exe_download_url(version: &str) -> String {
+fn get_exe_download_url(version: &str, target: &str) -> String {
     // Make sure the version starts with a v.
     let version = if !version.starts_with('v') {
         format!("v{version}")
@@ -191,7 +191,6 @@ fn get_exe_download_url(version: &str) -> String {
         version.to_string()
     };
 
-    let target = crate::built_info::TARGET;
     format!("https://github.com/KittyCAD/cli/releases/download/{version}/zoo-{target}")
 }
 
@@ -201,14 +200,25 @@ pub async fn download_binary_to_temp_file(version: &str) -> Result<String> {
     let temp_dir = std::env::temp_dir();
     let temp_file = temp_dir.join("zoo");
 
-    let url = get_exe_download_url(version);
+    let platform = if cfg!(target_os = "linux") {
+        // Linux releases use musl so they also run on GNU systems.
+        "unknown-linux-musl"
+    } else if cfg!(target_os = "macos") {
+        "apple-darwin"
+    } else if cfg!(target_os = "windows") {
+        "pc-windows-gnu"
+    } else {
+        anyhow::bail!("no release binary available for {}", std::env::consts::OS);
+    };
+    let target = format!("{}-{platform}", std::env::consts::ARCH);
+    let url = get_exe_download_url(version, &target);
 
     // Get the contents of the binary.
-    let resp = reqwest::get(&url).await?;
+    let resp = reqwest::get(&url).await?.error_for_status()?;
     let bin_body = resp.bytes().await?;
 
     // Get the contents of the sha256sum.
-    let resp = reqwest::get(&format!("{url}.sha256")).await?;
+    let resp = reqwest::get(&format!("{url}.sha256")).await?.error_for_status()?;
     let sha256_body = resp.text().await?;
     let sha256_parts = sha256_body.split(' ').collect::<Vec<&str>>();
     let sha256_hash = sha256_parts[0];
@@ -264,10 +274,6 @@ mod test {
 
     #[tokio::test]
     async fn test_download_binary_to_temp_file() {
-        if crate::update::is_ci() {
-            return;
-        }
-
         let file = super::download_binary_to_temp_file("v0.2.42").await.unwrap();
 
         let temp_base = std::env::temp_dir().to_str().unwrap().trim_end_matches('/').to_string();
@@ -276,18 +282,20 @@ mod test {
 
     #[test]
     fn test_get_exe_download_url() {
-        let url = super::get_exe_download_url("0.1.0");
-        let target = crate::built_info::TARGET;
-        assert_eq!(
-            url,
-            format!("https://github.com/KittyCAD/cli/releases/download/v0.1.0/zoo-{target}")
-        );
-
-        let url = super::get_exe_download_url("v0.2.0");
-        assert_eq!(
-            url,
-            format!("https://github.com/KittyCAD/cli/releases/download/v0.2.0/zoo-{target}")
-        );
+        for target in [
+            "x86_64-unknown-linux-musl",
+            "aarch64-unknown-linux-musl",
+            "x86_64-apple-darwin",
+            "aarch64-apple-darwin",
+            "x86_64-pc-windows-gnu",
+        ] {
+            for version in ["0.2.42", "v0.2.42"] {
+                assert_eq!(
+                    super::get_exe_download_url(version, target),
+                    format!("https://github.com/KittyCAD/cli/releases/download/v0.2.42/zoo-{target}")
+                );
+            }
+        }
     }
 
     #[tokio::test]

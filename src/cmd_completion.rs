@@ -18,17 +18,23 @@ use clap_complete::{Shell, generate};
 ///
 /// After, add this to your `~/.bash_profile`:
 ///
-///     eval "$(zoo completion -s bash)"
-///
+/// ```shell
+/// eval "$(zoo completion -s bash)"
+/// ```
+///     
 /// ### zsh
 /// Generate a `_zoo` completion script and put it somewhere in your `$fpath`:
 ///
-///     zoo completion -s zsh > /usr/local/share/zsh/site-functions/_zoo
-///
+/// ```shell
+/// zoo completion -s zsh > /usr/local/share/zsh/site-functions/_zoo
+/// ```
+///     
 /// Ensure that the following is present in your `~/.zshrc`:
 ///
-///     autoload -U compinit
-///     compinit -i
+/// ```
+/// autoload -U compinit
+/// compinit -i
+/// ```
 ///
 /// Zsh version 5.7 or later is recommended.
 ///
@@ -36,18 +42,25 @@ use clap_complete::{Shell, generate};
 ///
 /// Generate a `zoo.fish` completion script:
 ///
-///     zoo completion -s fish > ~/.config/fish/completions/zoo.fish
-///
+/// ```shell
+///  zoo completion -s fish > ~/.config/fish/completions/zoo.fish
+/// ```
+///    
 /// ### PowerShell
 ///
 /// Open your profile script with:
 ///
-///     mkdir -Path (Split-Path -Parent $profile) -ErrorAction SilentlyContinue
-///     notepad $profile
+/// ```shell
+/// mkdir -Path (Split-Path -Parent $profile) -ErrorAction SilentlyContinue
+/// notepad $profile
+/// ```
 ///
 /// Add the line and save the file:
 ///
-///     Invoke-Expression -Command $(zoo completion -s powershell | Out-String)
+/// ```shell
+/// Invoke-Expression -Command $(zoo completion -s powershell | Out-String)
+/// ```
+///     
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdCompletion {
