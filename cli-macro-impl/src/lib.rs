@@ -363,7 +363,7 @@ impl Operation {
 
                 let p_og = format_ident!("{}", n);
 
-                let mut new = if p == "id" { singular(tag) } else { p.to_string() };
+                let mut new = if p == "id" { singular(tag) } else { p };
 
                 new = clean_param_name(&new);
 
@@ -428,11 +428,11 @@ impl Operation {
             } else {
                 continue;
             };
-            param_names.push((param.to_string(), data.format.schema()?));
+            param_names.push((param, data.format.schema()?));
         }
 
         for (param, p) in self.get_request_body_properties()? {
-            param_names.push((param.to_string(), p.schema));
+            param_names.push((param, p.schema));
         }
 
         param_names.sort_by(|a, b| a.0.cmp(&b.0));
@@ -454,13 +454,13 @@ impl Operation {
                 } else {
                     continue;
                 };
-                param_names.push((param.to_string(), data.format.schema()?));
+                param_names.push((param, data.format.schema()?));
             }
         }
 
         for (param, p) in self.get_request_body_properties()? {
             if p.required {
-                param_names.push((param.to_string(), p.schema));
+                param_names.push((param, p.schema));
             }
         }
 
