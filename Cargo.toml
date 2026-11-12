@@ -112,6 +112,11 @@ serial_test = "4.0.1"
 tempfile = "3.27.0"
 test-context = "0.5.8"
 
+[package.metadata.cross.target.x86_64-pc-windows-gnu]
+# We need the Windows image containing the Wine startup fix. Waiting for the
+# next release after cross v0.2.5.
+image = "ghcr.io/cross-rs/x86_64-pc-windows-gnu@sha256:faf3c23e786ee681c32737331d76ef1a29d4c1d26f5c219ebd335a3f60d22629"
+
 [workspace.lints.clippy]
 redundant_clone = "warn"
 
