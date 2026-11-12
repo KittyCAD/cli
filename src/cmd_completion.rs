@@ -136,7 +136,7 @@ mod test {
 
         for t in tests {
             if let Err(e) = clap_complete::Shell::from_str(&t.input, true) {
-                assert_eq!(e.to_string(), t.want_err, "test {}", t.name);
+                assert_eq!(e, t.want_err, "test {}", t.name);
                 continue;
             }
 
