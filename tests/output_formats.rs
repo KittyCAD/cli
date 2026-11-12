@@ -1,19 +1,22 @@
 //! Exercise output selection through the CLI with local HTTP/WebSocket servers.
 
-use std::{path::Path, process::Output, time::Duration};
+use std::path::Path;
+use std::process::Output;
+use std::time::Duration;
 
-use futures::{SinkExt, StreamExt};
-use kittycad_modeling_cmds::{
-    ModelingCmd,
-    exec_kcl::ExecKclProjectOk,
-    websocket::{OkWebSocketResponseData, SuccessWebSocketResponse, WebSocketRequest},
-};
-use serde_json::{Value, json};
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpListener,
-    process::Command,
-};
+use futures::SinkExt;
+use futures::StreamExt;
+use kittycad_modeling_cmds::ModelingCmd;
+use kittycad_modeling_cmds::exec_kcl::ExecKclProjectOk;
+use kittycad_modeling_cmds::websocket::OkWebSocketResponseData;
+use kittycad_modeling_cmds::websocket::SuccessWebSocketResponse;
+use kittycad_modeling_cmds::websocket::WebSocketRequest;
+use serde_json::Value;
+use serde_json::json;
+use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpListener;
+use tokio::process::Command;
 use tokio_tungstenite::tungstenite::Message;
 
 const CALL_ID: &str = "8fea640b-1257-4b44-94b3-66061dd2f3dc";

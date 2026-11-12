@@ -1,4 +1,5 @@
-use parse_display::{Display, FromStr};
+use parse_display::Display;
+use parse_display::FromStr;
 use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq, Eq, FromStr, Display, clap::ValueEnum)]

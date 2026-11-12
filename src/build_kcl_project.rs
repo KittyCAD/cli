@@ -1,12 +1,13 @@
 //! This module reads a KCL project from disk into memory, so it can be sent over the network.
 use std::env::current_dir;
 
-use anyhow::{Result, anyhow};
-use camino::{Utf8Path, Utf8PathBuf};
-use kittycad_modeling_cmds::{
-    exec_kcl::{KclFile, KclProject},
-    shared::safe_filepath::SafeFilepath,
-};
+use anyhow::Result;
+use anyhow::anyhow;
+use camino::Utf8Path;
+use camino::Utf8PathBuf;
+use kittycad_modeling_cmds::exec_kcl::KclFile;
+use kittycad_modeling_cmds::exec_kcl::KclProject;
+use kittycad_modeling_cmds::shared::safe_filepath::SafeFilepath;
 
 const FILES_TO_SEND_TO_ENGINE: [&str; 18] = [
     "kcl", "fbx", "glb", "gltf", "obj", "ply", "step", "stl", "sat", "sab", "model", "catpart", "ipt", "prt", "xpr",

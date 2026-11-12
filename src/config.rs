@@ -1,6 +1,7 @@
 use std::fmt::Write;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
+use anyhow::anyhow;
 use thiserror::Error;
 
 /// This trait describes interaction with the configuration for `zoo`.

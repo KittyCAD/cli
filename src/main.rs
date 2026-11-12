@@ -66,10 +66,9 @@ mod tests;
 
 mod update;
 
-use std::{
-    error::Error as StdError,
-    io::{Read, Write},
-};
+use std::error::Error as StdError;
+use std::io::Read;
+use std::io::Write;
 
 use anyhow::Result;
 use clap::Parser;

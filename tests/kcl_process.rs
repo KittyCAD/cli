@@ -16,10 +16,10 @@
 //! pure CLI/config behavior that can be tested with injected values or in-memory
 //! config.
 
-use std::{
-    path::{Path, PathBuf},
-    process::{Command, Output},
-};
+use std::path::Path;
+use std::path::PathBuf;
+use std::process::Command;
+use std::process::Output;
 
 const ANALYZE_CUBE_KCL: &str = r#"@settings(kclVersion = 2.0)
 

@@ -1,4 +1,5 @@
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use clap::Parser;
 
 /// KCL machine learning commands.
@@ -30,7 +31,6 @@ impl crate::cmd::Command for CmdKcl {
 /// ```shell
 /// zoo ml kcl copilot
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclCopilot {

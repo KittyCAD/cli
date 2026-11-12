@@ -1,10 +1,12 @@
-use std::{
-    env, fs,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::env;
+use std::fs;
+use std::io::Write;
+use std::path::Path;
+use std::path::PathBuf;
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::Context;
+use anyhow::Result;
+use anyhow::anyhow;
 
 const ZOO_CONFIG_DIR: &str = "ZOO_CONFIG_DIR";
 const XDG_CONFIG_HOME: &str = "XDG_CONFIG_HOME";

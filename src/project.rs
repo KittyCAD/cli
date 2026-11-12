@@ -1,9 +1,9 @@
-use std::{
-    collections::VecDeque,
-    path::{Path, PathBuf},
-};
+use std::collections::VecDeque;
+use std::path::Path;
+use std::path::PathBuf;
 
-use anyhow::{Context as _, Result};
+use anyhow::Context as _;
+use anyhow::Result;
 
 pub struct LocalProject {
     pub root: PathBuf,

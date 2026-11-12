@@ -1,11 +1,12 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::fs;
+use std::io::Write;
+use std::path::Path;
+use std::path::PathBuf;
 
-use anyhow::{Context as _, Result};
+use anyhow::Context as _;
+use anyhow::Result;
 use clap::Parser;
 
 use crate::types::FormatOutput;

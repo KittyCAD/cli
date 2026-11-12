@@ -1,6 +1,8 @@
-use ratatui::{prelude::*, widgets::*};
+use ratatui::prelude::*;
+use ratatui::widgets::*;
 
-use super::state::{App, ChatEvent};
+use super::state::App;
+use super::state::ChatEvent;
 
 const ASSISTANT_LABEL: &str = "ML-ephant> ";
 const ASSISTANT_INDENT: &str = "    "; // 4 spaces for a pleasant left gutter
@@ -40,7 +42,12 @@ fn render_preserving_newlines(s: &str) -> Vec<String> {
 }
 
 fn render_markdown_to_lines(md: &str) -> Vec<String> {
-    use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
+    use pulldown_cmark::CodeBlockKind;
+    use pulldown_cmark::Event;
+    use pulldown_cmark::Options;
+    use pulldown_cmark::Parser;
+    use pulldown_cmark::Tag;
+    use pulldown_cmark::TagEnd;
     let mut lines: Vec<String> = Vec::new();
     let mut cur = String::new();
     let mut list_prefix = String::new();
@@ -310,7 +317,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::{Terminal, backend::TestBackend};
+    use ratatui::Terminal;
+    use ratatui::backend::TestBackend;
 
     use super::*;
 

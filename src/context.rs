@@ -1,27 +1,38 @@
-use std::{path::Path, str::FromStr, time::Duration};
+use std::path::Path;
+use std::str::FromStr;
+use std::time::Duration;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
+use anyhow::anyhow;
 use camino::Utf8Path;
-use futures::{SinkExt, StreamExt};
-use kcl_lib::{KclRuntimeFlags, RuntimeFlag, engine_connection::EngineManager};
-use kittycad_modeling_cmds::{
-    ModelingCmd, ToggleGraphics, each_cmd as mcmd,
-    id::ModelingCmdId,
-    output::TakeSnapshot,
-    websocket::{
-        FailureWebSocketResponse, ModelingCmdReq, ModelingSessionData, OkWebSocketResponseData, RawFile,
-        SuccessWebSocketResponse, WebSocketRequest, WebSocketResponse,
-    },
-};
-use tokio_tungstenite::{
-    WebSocketStream,
-    tungstenite::{Message as WsMsg, protocol::Role},
-};
+use futures::SinkExt;
+use futures::StreamExt;
+use kcl_lib::KclRuntimeFlags;
+use kcl_lib::RuntimeFlag;
+use kcl_lib::engine_connection::EngineManager;
+use kittycad_modeling_cmds::ModelingCmd;
+use kittycad_modeling_cmds::ToggleGraphics;
+use kittycad_modeling_cmds::each_cmd as mcmd;
+use kittycad_modeling_cmds::id::ModelingCmdId;
+use kittycad_modeling_cmds::output::TakeSnapshot;
+use kittycad_modeling_cmds::websocket::FailureWebSocketResponse;
+use kittycad_modeling_cmds::websocket::ModelingCmdReq;
+use kittycad_modeling_cmds::websocket::ModelingSessionData;
+use kittycad_modeling_cmds::websocket::OkWebSocketResponseData;
+use kittycad_modeling_cmds::websocket::RawFile;
+use kittycad_modeling_cmds::websocket::SuccessWebSocketResponse;
+use kittycad_modeling_cmds::websocket::WebSocketRequest;
+use kittycad_modeling_cmds::websocket::WebSocketResponse;
+use tokio_tungstenite::WebSocketStream;
+use tokio_tungstenite::tungstenite::Message as WsMsg;
+use tokio_tungstenite::tungstenite::protocol::Role;
 
-use crate::{
-    build_kcl_project::build_kcl_project, cmd_kcl, config::Config, config_file::get_env_var, kcl_error_fmt,
-    types::FormatOutput,
-};
+use crate::build_kcl_project::build_kcl_project;
+use crate::cmd_kcl;
+use crate::config::Config;
+use crate::config_file::get_env_var;
+use crate::kcl_error_fmt;
+use crate::types::FormatOutput;
 
 type DirectWs = WebSocketStream<reqwest::Upgraded>;
 type DirectWsRead = futures::stream::SplitStream<DirectWs>;
@@ -1012,7 +1023,8 @@ fn websocket_failure_to_anyhow(response: WebSocketResponse) -> anyhow::Error {
 
 #[cfg(test)]
 mod test {
-    use std::{collections::HashMap, sync::Arc};
+    use std::collections::HashMap;
+    use std::sync::Arc;
 
     use pretty_assertions::assert_eq;
 
@@ -1292,7 +1304,8 @@ mod test {
     }
 
     async fn assert_local_kcl_handshake(host_source: &str, version: &str, statuses: Vec<u16>) {
-        use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+        use tokio::io::AsyncBufReadExt;
+        use tokio::io::AsyncWriteExt;
 
         let expected_requests = statuses.len();
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();

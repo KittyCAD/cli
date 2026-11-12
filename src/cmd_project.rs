@@ -1,11 +1,11 @@
-use std::{
-    collections::HashSet,
-    future::Future,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::collections::HashSet;
+use std::future::Future;
+use std::io::Write;
+use std::path::Path;
+use std::path::PathBuf;
 
-use anyhow::{Context as _, Result};
+use anyhow::Context as _;
+use anyhow::Result;
 use clap::Parser;
 
 use crate::types::FormatOutput;
@@ -588,9 +588,11 @@ mod tests {
         command: &CmdProject,
         responses: Vec<Option<(u16, String)>>,
     ) -> (Result<()>, String, Vec<String>) {
-        use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+        use tokio::io::AsyncBufReadExt;
+        use tokio::io::AsyncWriteExt;
 
-        use crate::{cmd::Command, config::Config};
+        use crate::cmd::Command;
+        use crate::config::Config;
 
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let host = format!("http://{}/custom-api", listener.local_addr().unwrap());
