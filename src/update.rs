@@ -1,12 +1,14 @@
+use std::fs;
+use std::io::IsTerminal;
+use std::io::Write;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
-use std::{
-    fs,
-    io::{IsTerminal, Write},
-};
 
-use anyhow::{Context, Result, anyhow};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use anyhow::anyhow;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::config_file::get_env_var;
 

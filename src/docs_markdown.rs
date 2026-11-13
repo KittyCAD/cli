@@ -328,10 +328,11 @@ pub fn app_to_markdown(app: &Command, title: &str) -> Result<String> {
 
 #[cfg(test)]
 mod test {
+    use pretty_assertions::assert_eq;
+
     use super::LanguageCodeBlock;
     use super::cleanup_code_blocks;
     use super::language_and_code;
-    use pretty_assertions::assert_eq;
 
     fn definition_descriptions(markdown: &str) -> Vec<&str> {
         let mut descriptions = Vec::new();

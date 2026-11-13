@@ -1,15 +1,16 @@
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    str::FromStr,
-};
+use std::hash::DefaultHasher;
+use std::hash::Hash;
+use std::hash::Hasher;
+use std::str::FromStr;
 
 use anyhow::Result;
 use base64::prelude::*;
 use clap::Parser;
-use kittycad_modeling_cmds::{
-    self as kcmc, ModelingCmd, ok_response::OkModelingCmdResponse, shared::FileImportFormat,
-    websocket::OkWebSocketResponseData,
-};
+use kittycad_modeling_cmds::ModelingCmd;
+use kittycad_modeling_cmds::ok_response::OkModelingCmdResponse;
+use kittycad_modeling_cmds::shared::FileImportFormat;
+use kittycad_modeling_cmds::websocket::OkWebSocketResponseData;
+use kittycad_modeling_cmds::{self as kcmc};
 
 use crate::cmd_kcl::write_deterministic_export;
 
@@ -19,7 +20,6 @@ use crate::cmd_kcl::write_deterministic_export;
 /// # convert a step file to an obj file
 /// zoo file convert --output-format=obj ./input.step ./
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFile {
@@ -75,7 +75,6 @@ impl crate::cmd::Command for CmdFile {
 /// # when converting from stdin, the original file type is required
 /// cat my-obj.obj | zoo file convert --output-format=step --src-format=obj - output_dir
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileConvert {
@@ -183,7 +182,6 @@ impl crate::cmd::Command for CmdFileConvert {
 /// # pass a file to snapshot from stdin
 /// cat my-obj.obj | zoo file snapshot --output-format=png --src-format=obj - my-file.png
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileSnapshot {
@@ -611,7 +609,6 @@ impl crate::cmd::Command for CmdFileCenterOfMass {
 /// # pass a file from stdin, the original file type is required
 /// cat my-obj.obj | zoo file density - --src-format=obj -material-mass 212.2923 --material-mass-unit g --output-unit kg-m3
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileDensity {
@@ -695,7 +692,6 @@ impl crate::cmd::Command for CmdFileDensity {
 /// # pass a file from stdin, the original file type is required
 /// cat my-obj.obj | zoo file surface-area - --src-format=obj --output-unit m2
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdFileSurfaceArea {

@@ -1,7 +1,10 @@
 use std::collections::VecDeque;
 
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use serde::{Deserialize, Serialize};
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
+use crossterm::event::KeyModifiers;
+use serde::Deserialize;
+use serde::Serialize;
 
 #[derive(Debug, Default, Clone)]
 pub struct App {

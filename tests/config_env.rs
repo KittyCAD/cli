@@ -1,4 +1,5 @@
-use std::{path::Path, process::Command};
+use std::path::Path;
+use std::process::Command;
 
 fn run_config(config_dir: &Path, args: &[&str], host: Option<&str>) -> String {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_zoo"));

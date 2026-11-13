@@ -1,19 +1,27 @@
-use std::{net::SocketAddr, path::Path, str::FromStr};
+use std::net::SocketAddr;
+use std::path::Path;
+use std::str::FromStr;
 
 use anyhow::Result;
 use clap::Parser;
-use image::{DynamicImage, ImageReader};
-use kcl_lib::{ToLspRange, TypedPath, unit_conversion::ToKcmc};
-use kcmc::{format::OutputFormat3d as OutputFormat, ok_response::OkModelingCmdResponse};
+use image::DynamicImage;
+use image::ImageReader;
+use kcl_lib::ToLspRange;
+use kcl_lib::TypedPath;
+use kcl_lib::unit_conversion::ToKcmc;
+use kcmc::format::OutputFormat3d as OutputFormat;
+use kcmc::ok_response::OkModelingCmdResponse;
 use kittycad::types as kt;
-use kittycad_modeling_cmds::{self as kcmc, units::UnitLength, websocket::ModelingSessionData};
+use kittycad_modeling_cmds::units::UnitLength;
+use kittycad_modeling_cmds::websocket::ModelingSessionData;
+use kittycad_modeling_cmds::{self as kcmc};
 use url::Url;
 
-use crate::{
-    iostreams::IoStreams,
-    kcl_error_fmt,
-    types::{CameraStyle, CameraView, FormatOutput},
-};
+use crate::iostreams::IoStreams;
+use crate::kcl_error_fmt;
+use crate::types::CameraStyle;
+use crate::types::CameraView;
+use crate::types::FormatOutput;
 
 mod camera_angles;
 
@@ -213,7 +221,6 @@ impl crate::cmd::Command for CmdKclExport {
 /// # Pass a file to format from stdin
 /// cat my-obj.kcl | zoo kcl fmt -
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdKclFormat {
@@ -1986,7 +1993,10 @@ fn combine_quadrants(
     output_path: &Path,
     output_format: kcmc::ImageFormat,
 ) -> Result<()> {
-    use image::{GenericImage, GenericImageView, ImageBuffer, Rgba};
+    use image::GenericImage;
+    use image::GenericImageView;
+    use image::ImageBuffer;
+    use image::Rgba;
     let (w, h) = top_left.dimensions();
 
     // Sanity checks

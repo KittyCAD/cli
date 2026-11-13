@@ -1,7 +1,10 @@
 use std::time::Duration;
 
-use anyhow::{Context, Result, anyhow};
-use tokio::{process::Command, time::sleep};
+use anyhow::Context;
+use anyhow::Result;
+use anyhow::anyhow;
+use tokio::process::Command;
+use tokio::time::sleep;
 use url::Url;
 
 #[cfg_attr(not(target_os = "windows"), ignore)]

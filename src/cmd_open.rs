@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
-use parse_display::{Display, FromStr};
+use parse_display::Display;
+use parse_display::FromStr;
 
 /// Shortcut to open the Zoo documentation or Account in your browser.
 ///
@@ -15,7 +16,6 @@ use parse_display::{Display, FromStr};
 /// # open your Zoo account in your browser
 /// zoo open account
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdOpen {

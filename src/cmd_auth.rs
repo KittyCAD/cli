@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
+use anyhow::anyhow;
 use clap::Parser;
 use oauth2::TokenResponse;
 
@@ -306,7 +307,6 @@ impl crate::cmd::Command for CmdAuthLogin {
 /// zoo --host api.zoo.dev auth logout
 /// # => log out of specified host
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAuthLogout {}

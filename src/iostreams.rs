@@ -1,7 +1,13 @@
-use std::{collections::HashMap, env, io::IsTerminal, process::Command};
+use std::collections::HashMap;
+use std::env;
+use std::io::IsTerminal;
+use std::process::Command;
 
-use anyhow::{Result, anyhow};
-use terminal_size::{Height, Width, terminal_size};
+use anyhow::Result;
+use anyhow::anyhow;
+use terminal_size::Height;
+use terminal_size::Width;
+use terminal_size::terminal_size;
 
 use crate::config_file::get_env_var;
 

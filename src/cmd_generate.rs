@@ -1,7 +1,11 @@
-use std::{fs, io::Write};
+use std::fs;
+use std::io::Write;
 
-use anyhow::{Context, Result};
-use clap::{Command, CommandFactory, Parser};
+use anyhow::Context;
+use anyhow::Result;
+use clap::Command;
+use clap::CommandFactory;
+use clap::Parser;
 
 /// Generate various documentation files for the `zoo` command line.
 #[derive(Parser, Debug, Clone)]

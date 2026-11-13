@@ -1,32 +1,37 @@
-use std::{
-    io::Write as _,
-    path::{Path, PathBuf},
-};
+use std::io::Write as _;
+use std::path::Path;
+use std::path::PathBuf;
 
 use anyhow::Result;
-use crossterm::{
-    cursor::MoveTo,
-    event::{Event, EventStream},
-    execute, queue,
-    terminal::{ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
-};
-use futures::{SinkExt, StreamExt};
+use crossterm::cursor::MoveTo;
+use crossterm::event::Event;
+use crossterm::event::EventStream;
+use crossterm::execute;
+use crossterm::queue;
+use crossterm::terminal::ClearType;
+use crossterm::terminal::EnterAlternateScreen;
+use crossterm::terminal::LeaveAlternateScreen;
+use crossterm::terminal::disable_raw_mode;
+use crossterm::terminal::enable_raw_mode;
+use futures::SinkExt;
+use futures::StreamExt;
 use kcl_lib::TypedPath;
 use log::LevelFilter;
-use ratatui::{Terminal, backend::CrosstermBackend};
+use ratatui::Terminal;
+use ratatui::backend::CrosstermBackend;
 use similar::TextDiff;
 use tokio::sync::mpsc;
-use tokio_tungstenite::{
-    WebSocketStream,
-    tungstenite::{Message, protocol::Role},
-};
+use tokio_tungstenite::WebSocketStream;
+use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::tungstenite::protocol::Role;
 
-use crate::ml::copilot::{
-    state,
-    state::{App, ChatEvent, KeyAction},
-    ui::draw,
-    util::{join_secure, scan_relevant_files},
-};
+use crate::ml::copilot::state;
+use crate::ml::copilot::state::App;
+use crate::ml::copilot::state::ChatEvent;
+use crate::ml::copilot::state::KeyAction;
+use crate::ml::copilot::ui::draw;
+use crate::ml::copilot::util::join_secure;
+use crate::ml::copilot::util::scan_relevant_files;
 
 const PAYLOAD_LOG_LIMIT: usize = 10_000;
 
@@ -700,7 +705,9 @@ async fn render_side_by_side(
     host: &str,
     edits: &[state::PendingFileEdit],
 ) -> anyhow::Result<std::path::PathBuf> {
-    use kittycad_modeling_cmds::{ImageFormat, ModelingCmd, TakeSnapshot};
+    use kittycad_modeling_cmds::ImageFormat;
+    use kittycad_modeling_cmds::ModelingCmd;
+    use kittycad_modeling_cmds::TakeSnapshot;
     // Determine old code and path from current directory
     let (old_code, old_main_path) = ctx.get_code_and_file_path(&std::path::PathBuf::from(".")).await?;
     let old_settings = crate::cmd_kcl::get_modeling_settings_from_project_toml(&old_main_path)?;

@@ -1,7 +1,10 @@
 use std::io::Write;
 
-use anyhow::{Result, bail};
-use clap::{Command, CommandFactory, Parser};
+use anyhow::Result;
+use anyhow::bail;
+use clap::Command;
+use clap::CommandFactory;
+use clap::Parser;
 
 /// Create command shortcuts.
 ///
@@ -37,7 +40,6 @@ impl crate::cmd::Command for CmdAlias {
 /// ```shell
 /// zoo alias delete aabb_mm
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAliasDelete {
@@ -99,7 +101,6 @@ impl crate::cmd::Command for CmdAliasDelete {
 /// zoo alias set aabb_mm "kcl bounding-box $1 --output-unit mm"
 /// zoo aabb_mm my-file.kcl
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdAliasSet {

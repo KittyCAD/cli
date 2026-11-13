@@ -1,13 +1,14 @@
-use std::{
-    collections::HashMap,
-    fmt::Write as _,
-    io::{Read, Write},
-};
+use std::collections::HashMap;
+use std::fmt::Write as _;
+use std::io::Read;
+use std::io::Write;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
+use anyhow::anyhow;
 use clap::Parser;
 use reqwest::header::CONTENT_TYPE;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 
 /// Makes an authenticated HTTP request to the Zoo API and prints the response.
 ///

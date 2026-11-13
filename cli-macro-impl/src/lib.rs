@@ -1,10 +1,15 @@
 use std::collections::BTreeMap;
 
 use anyhow::Result;
-use inflector::cases::{kebabcase::to_kebab_case, titlecase::to_title_case};
-use openapitor::types::exts::{ParameterExt, ParameterSchemaOrContentExt, ReferenceOrExt, TokenStreamExt};
+use inflector::cases::kebabcase::to_kebab_case;
+use inflector::cases::titlecase::to_title_case;
+use openapitor::types::exts::ParameterExt;
+use openapitor::types::exts::ParameterSchemaOrContentExt;
+use openapitor::types::exts::ReferenceOrExt;
+use openapitor::types::exts::TokenStreamExt;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use quote::format_ident;
+use quote::quote;
 use serde::Deserialize;
 use serde_tokenstream::from_tokenstream;
 use syn::ItemEnum;

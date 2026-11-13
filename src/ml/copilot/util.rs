@@ -1,5 +1,7 @@
 // keep Result import only when used
-use std::path::{Component, Path, PathBuf};
+use std::path::Component;
+use std::path::Path;
+use std::path::PathBuf;
 
 #[allow(unused_imports)]
 use anyhow::Result;

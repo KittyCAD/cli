@@ -10,7 +10,6 @@ use itertools::Itertools;
 /// # convert a step file to an obj file
 /// zoo file convert ~/Downloads/cube.step ~/Downloads --output-format obj
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApiCall {

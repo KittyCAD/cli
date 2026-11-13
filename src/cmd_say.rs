@@ -8,7 +8,6 @@ use clap::Parser;
 /// zoo say hello!
 /// zoo say Hello World!
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdSay {

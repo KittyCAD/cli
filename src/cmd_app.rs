@@ -26,7 +26,6 @@ an issue at https://github.com/KittyCAD/cli/issues/new"#;
 /// ```shell
 /// zoo app ../main.kcl
 /// ```
-///
 #[derive(Parser, Debug, Clone)]
 #[clap(verbatim_doc_comment)]
 pub struct CmdApp {

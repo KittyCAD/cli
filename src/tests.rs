@@ -1,7 +1,9 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::path::PathBuf;
 
 use anyhow::Result;
-use test_context::{AsyncTestContext, test_context};
+use test_context::AsyncTestContext;
+use test_context::test_context;
 
 use crate::config::Config;
 
@@ -17,7 +19,9 @@ macro_rules! svec {
 /// if the CLI is supposed to output json/yaml.
 #[test]
 fn status_output_respects_format() -> Result<()> {
-    use crate::types::FormatOutput::{Json, Table, Yaml};
+    use crate::types::FormatOutput::Json;
+    use crate::types::FormatOutput::Table;
+    use crate::types::FormatOutput::Yaml;
 
     enum WrittenTo {
         Stdout,
