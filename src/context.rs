@@ -370,6 +370,13 @@ impl<'a> Context<'a> {
             anyhow::bail!("Invalid filepath {} (must be unicode)", filepath.display());
         };
         let project = build_kcl_project(filepath, code)?;
+        let entrypoint = project.entrypoint.to_string();
+        let source_files: Vec<_> = project
+            .files
+            .iter()
+            .filter(|file| file.path.to_string().ends_with(".kcl"))
+            .cloned()
+            .collect();
         let executor_settings = settings.inner();
         let ws = self.engine_ws_with_settings(hostname, &executor_settings).await?;
         let wsconfig = tokio_tungstenite::tungstenite::protocol::WebSocketConfig::default()
@@ -454,7 +461,23 @@ impl<'a> Context<'a> {
                     )
                     .map_err(|e| anyhow!("KCL execution had errors: {e}"))?;
                     if let Some(error) = err.error {
-                        return Err(anyhow!("KCL execution failed: {}", error.get_message()));
+                        let line = error
+                            .source_ranges()
+                            .first()
+                            .filter(|range| **range != Default::default())
+                            .and_then(|range| {
+                                let filename = if range.module_id().is_top_level() {
+                                    entrypoint.clone()
+                                } else {
+                                    err.filenames.get(&range.module_id())?.to_string()
+                                };
+                                let file = source_files.iter().find(|file| file.path.to_string() == filename)?;
+                                let source = std::str::from_utf8(&file.contents).ok()?;
+                                let prefix = source.get(..range.start())?;
+                                Some(prefix.bytes().filter(|byte| *byte == b'\n').count() + 1)
+                            });
+                        let location = line.map(|line| format!("line {line}: ")).unwrap_or_default();
+                        return Err(anyhow!("KCL execution failed: {location}{}", error.get_message()));
                     }
                     break;
                 }
