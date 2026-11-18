@@ -74,7 +74,7 @@ impl<'a> Context<'a> {
         let (host, baseurl) = self.resolve_api_host_and_baseurl(hostname)?;
         let token = self.config.get(&host, "token")?;
         let mut client =
-            kittycad_kcl::Client::new_from_reqwest(token, self.http_client_builder(), self.websocket_client_builder());
+            kittycad::Client::new_from_reqwest(token, self.http_client_builder(), self.websocket_client_builder());
         if baseurl != crate::DEFAULT_HOST {
             client.set_base_url(&baseurl);
         }
