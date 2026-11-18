@@ -2692,13 +2692,12 @@ dependencies = [
 
 [[package]]
 name = "js-sys"
-version = "0.3.95"
+version = "0.3.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2964e92d1d9dc3364cae4d718d93f227e3abb088e747d92e0395bfdedf1c12ca"
+checksum = "8dc09d2154098bbf4ef54eab6b117a3c24cbbffe94046b16ee6d6d4510584d3a"
 dependencies = [
  "cfg-if",
  "futures-util",
- "once_cell",
  "wasm-bindgen",
 ]
 
@@ -2737,9 +2736,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-api"
-version = "0.2.196"
+version = "0.2.197"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76c802f6b0f9dec2fead9bd4b7dda930b9938a366d857ebd6b0ed0ad084086e2"
+checksum = "7200d168b6e91b526cf66bc3c8704b8b2c4d3785aaa8c77e35843ca983141945"
 dependencies = [
  "euler",
  "indexmap 2.14.0",
@@ -2759,9 +2758,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-engine-codec"
-version = "0.2.196"
+version = "0.2.197"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b415a07e9ca2b64923a2a71fdd379da0e75aac12018c1bb6ac05b8d146aadb56"
+checksum = "b80ec7f6eeacfa4ec174467ec3a071b5ceb42fd9936683e7dda8f15725a3291e"
 dependencies = [
  "kittycad-modeling-cmds",
  "rmp-serde",
@@ -2770,9 +2769,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-error"
-version = "0.2.196"
+version = "0.2.197"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17b548a0c736ecb95075aa6e1e1b63acfbfd3cf31488402e09ea0558e636d9de"
+checksum = "5e9af21b0f1b10424bbe042cd3122c5c997198898151db0cefeca0ca5f8abfe6"
 dependencies = [
  "miette",
  "schemars 0.8.22",
@@ -2784,9 +2783,9 @@ dependencies = [
 
 [[package]]
 name = "kcl-lib"
-version = "0.2.196"
+version = "0.2.197"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6db68d168ca0f8db208a65a580ba1ceb91ed637378891bbdffbb1876c3a06aac"
+checksum = "24c5d02d65960f091518b94e96e8bbd52ed39fae740881d192fac7a158def828"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2816,7 +2815,7 @@ dependencies = [
  "kcl-engine-codec",
  "kcl-error",
  "kcl-syntax",
- "kittycad 0.6.0",
+ "kittycad",
  "kittycad-modeling-cmds",
  "lazy_static",
  "libm",
@@ -2854,18 +2853,18 @@ dependencies = [
 
 [[package]]
 name = "kcl-syntax"
-version = "0.2.196"
+version = "0.2.197"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3539da0ba611fcd8cfb16ba8adbfb929690a52988b213de2d7b8eab1f40bc08f"
+checksum = "f0e72291ef6383232ef8bb14c92d2712d7602f1ee04e010caf368dbfcc28b0f1"
 dependencies = [
  "logos",
 ]
 
 [[package]]
 name = "kcl-test-server"
-version = "0.2.196"
+version = "0.2.197"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffb00c6532b9c35d72878161be6728280f5b275f500ec8057781e01f2f2a10b4"
+checksum = "8b1068a457e774afa5523f679af0aeb6b60ec5dbbadc51758c0e28a4c272f6b0"
 dependencies = [
  "anyhow",
  "http-body-util",
@@ -2876,47 +2875,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
-]
-
-[[package]]
-name = "kittycad"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4e5a9c78698eacffaaa08c5a42004249db84d8327c9276673223b4e5cb4b42a"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "bigdecimal",
- "bytes",
- "chrono",
- "clap",
- "data-encoding",
- "futures",
- "getrandom 0.3.4",
- "getrandom 0.4.3",
- "http",
- "itertools 0.14.0",
- "log",
- "mime_guess",
- "openapitor-runtime",
- "parse-display",
- "phonenumber",
- "rand 0.9.4",
- "reqwest",
- "reqwest-middleware",
- "reqwest-retry",
- "reqwest-tracing",
- "schemars 0.8.22",
- "serde",
- "serde_bytes",
- "serde_json",
- "serde_urlencoded",
- "thiserror 2.0.21",
- "tokio",
- "tracing",
- "url",
- "uuid",
 ]
 
 [[package]]
@@ -6521,12 +6479,11 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.118"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bf938a0bacb0469e83c1e148908bd7d5a6010354cf4fb73279b7447422e3a89"
+checksum = "a0181c14ddd6c7b8b0b0132a5f1ea2f32be0d893cd3ea97b6e3b28886b8a3d1c"
 dependencies = [
  "cfg-if",
- "once_cell",
  "rustversion",
  "wasm-bindgen-macro",
  "wasm-bindgen-shared",
@@ -6534,19 +6491,20 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.68"
+version = "0.4.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f371d383f2fb139252e0bfac3b81b265689bf45b6874af544ffa4c975ac1ebf8"
+checksum = "5e14e0327cb5368ad60ccb22d04a9827a693c95a926d8d125e9fa39e0baec501"
 dependencies = [
  "js-sys",
+ "tokio",
  "wasm-bindgen",
 ]
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.118"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eeff24f84126c0ec2db7a449f0c2ec963c6a49efe0698c4242929da037ca28ed"
+checksum = "6e931a02a39abdbf66966fc35902b5ed58344750a70885bed4ebb3d8eaf28ed9"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -6554,22 +6512,22 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.118"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d08065faf983b2b80a79fd87d8254c409281cf7de75fc4b773019824196c904"
+checksum = "2ca4b54280e455bd831e33a6b8e734baf432fe63fbc35c42ac14ce67a043a53a"
 dependencies = [
  "bumpalo",
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.9",
  "wasm-bindgen-shared",
 ]
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.118"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fd04d9e306f1907bd13c6361b5c6bfc7b3b3c095ed3f8a9246390f8dbdee129"
+checksum = "3b1f9c3798725016c6ee5f2f57869ec0831e8bbc0ab0310a86e787e97f41389e"
 dependencies = [
  "unicode-ident",
 ]
@@ -6603,9 +6561,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.95"
+version = "0.3.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f2dfbb17949fa2088e5d39408c48368947b86f7834484e87b73de55bc14d97d"
+checksum = "d7d179596ff5ec0f6de4db64d54011bde6289cc49603d3a6e4ce3f329207ab88"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -7030,7 +6988,7 @@ checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
 
 [[package]]
 name = "zoo"
-version = "0.2.211"
+version = "0.2.212"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7056,8 +7014,7 @@ dependencies = [
  "kcl-error",
  "kcl-lib",
  "kcl-test-server",
- "kittycad 0.6.0",
- "kittycad 0.7.0",
+ "kittycad",
  "kittycad-modeling-cmds",
  "log",
  "miette",
