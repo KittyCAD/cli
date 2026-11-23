@@ -76,11 +76,11 @@
         version = cargoToml.package.version;
         src = ./.;
 
-        cargoHash = "sha256-vrkXQ6/JQ5QGqqYYWTkZ3DJq/4T4GsKG4foqsj1sW6Y=";
+        cargoHash = "sha256-YGFOf9ZNWC0pZm08oaBiLWI1M9eBH9eRxU5s2x5ANW4=";
 
         doCheck = false;
         nativeBuildInputs = [pkgs.pkg-config];
-        buildInputs = [pkgs.openssl];
+        buildInputs = [pkgs.openssl pkgs.aws-lc];
       };
       default = self.packages.${system}.zoo;
     });
