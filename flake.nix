@@ -80,7 +80,7 @@
 
         doCheck = false;
         nativeBuildInputs = [pkgs.pkg-config];
-        buildInputs = [pkgs.openssl];
+        buildInputs = [pkgs.openssl pkgs.aws-lc];
       };
       default = self.packages.${system}.zoo;
     });
