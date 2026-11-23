@@ -287,7 +287,7 @@ impl IoStreams {
 
     pub fn write_output_yaml<Y: serde::Serialize>(&mut self, yaml: &Y) -> Result<()> {
         // Print the response body.
-        writeln!(self.out, "{}", serde_yaml::to_string(yaml)?)?;
+        writeln!(self.out, "{}", yaml_serde::to_string(yaml)?)?;
 
         Ok(())
     }

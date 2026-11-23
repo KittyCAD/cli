@@ -56,7 +56,7 @@ fn assert_formatted(output: &Output, format: &str, expected: &Value, table_marke
     match format {
         "json" => assert_eq!(serde_json::from_slice::<Value>(&output.stdout).unwrap(), *expected),
         "yaml" => {
-            assert_eq!(serde_yaml::from_slice::<Value>(&output.stdout).unwrap(), *expected);
+            assert_eq!(yaml_serde::from_slice::<Value>(&output.stdout).unwrap(), *expected);
             // JSON is also valid YAML, so parsing alone would miss hardcoded JSON output.
             assert!(serde_json::from_slice::<Value>(&output.stdout).is_err());
         }
