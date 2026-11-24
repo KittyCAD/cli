@@ -9,7 +9,7 @@ use kittycad_modeling_cmds::exec_kcl::KclFile;
 use kittycad_modeling_cmds::exec_kcl::KclProject;
 use kittycad_modeling_cmds::shared::safe_filepath::SafeFilepath;
 
-const FILES_TO_SEND_TO_ENGINE: [&str; 18] = [
+const FILES_TO_SEND_TO_ENGINE: [&str; 19] = [
     "kcl", "fbx", "glb", "gltf", "obj", "ply", "step", "stl", "sat", "sab", "model", "catpart", "ipt", "prt", "xpr",
     "x_t", "x_t", "sldprt", "stp",
 ];
